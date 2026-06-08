@@ -6,7 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import { CircularProgress, AnimatedProgressBar, ModuleProgressCard } from "@/components/progress";
-import { BookOpen, Trophy, Flame, Zap, ArrowRight, Clock } from "lucide-react";
+import { StreakDisplay } from "@/components/gamification/streak-display";
+import { XpProgressBar } from "@/components/gamification/xp-progress-bar";
+import { BookOpen, Trophy, Flame, ArrowRight, Clock } from "lucide-react";
 
 interface ProgressData {
   user: {
@@ -172,11 +174,7 @@ export default async function DashboardPage() {
                 <p className="font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground">
                   Current Streak
                 </p>
-                <p className="font-heading text-3xl font-semibold flex items-center gap-2">
-                  <Flame className="size-6 text-orange-500" aria-hidden="true" />
-                  {streak.current} days
-                </p>
-                <p className="text-xs text-muted-foreground">Longest: {streak.longest} days</p>
+                <StreakDisplay currentStreak={streak.current} longestStreak={streak.longest} />
               </CardContent>
             </Card>
             <Card>
@@ -201,11 +199,7 @@ export default async function DashboardPage() {
                 <p className="font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground">
                   Level &amp; XP
                 </p>
-                <p className="font-heading text-3xl font-semibold">Level {user.level}</p>
-                <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Zap className="size-3 text-yellow-500" aria-hidden="true" />
-                  {user.xp.toLocaleString()} XP
-                </p>
+                <XpProgressBar xp={user.xp} level={user.level} />
               </CardContent>
             </Card>
           </div>
