@@ -1,4 +1,5 @@
-import { auth } from "@/auth";
+import { getToken } from "next-auth/jwt";
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 /**
@@ -6,8 +7,13 @@ import { NextResponse } from "next/server";
  * Runs on every request to protected routes
  */
 
-export default auth((req) => {
-  const isAuthenticated = !!req.auth;
+export async function middleware(req: NextRequest) {
+  const token = await getToken({
+    req,
+    secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+    secureCookie: req.nextUrl.protocol === "https:",
+  });
+  const isAuthenticated = !!token;
   const pathname = req.nextUrl.pathname;
 
   // API routes that require authentication
@@ -31,7 +37,7 @@ export default auth((req) => {
   }
 
   return NextResponse.next();
-});
+}
 
 // Configure which routes the middleware runs on
 export const config = {
