@@ -128,3 +128,92 @@
     @apply font-sans;
   }
 }
+
+/* ── Landing page ──────────────────────────────────────────────────────────── */
+
+/* Animated gradient blobs in the hero */
+.landing-hero-gradient {
+  background: radial-gradient(
+    ellipse 80% 60% at 50% -10%,
+    oklch(0.88 0.06 250 / 0.18) 0%,
+    transparent 70%
+  );
+}
+
+.landing-blob {
+  animation: landing-blob-float 8s ease-in-out infinite;
+}
+.landing-blob-1 {
+  background: oklch(0.75 0.12 260);
+  opacity: 0.18;
+  animation-delay: 0s;
+}
+.landing-blob-2 {
+  background: oklch(0.72 0.14 310);
+  opacity: 0.14;
+  animation-delay: -3s;
+}
+.landing-blob-3 {
+  background: oklch(0.8 0.1 200);
+  opacity: 0.12;
+  animation-delay: -5s;
+}
+
+@keyframes landing-blob-float {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -20px) scale(1.05);
+  }
+  66% {
+    transform: translate(-20px, 15px) scale(0.97);
+  }
+}
+/* Centre blob overrides translate */
+.landing-blob-3 {
+  animation-name: landing-blob-float-centre;
+}
+@keyframes landing-blob-float-centre {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  33% {
+    transform: translate(calc(-50% + 20px), calc(-50% - 15px)) scale(1.06);
+  }
+  66% {
+    transform: translate(calc(-50% - 15px), calc(-50% + 10px)) scale(0.96);
+  }
+}
+
+/* Gradient text for the hero headline */
+.landing-gradient-text {
+  background: linear-gradient(
+    135deg,
+    oklch(0.55 0.2 260) 0%,
+    oklch(0.6 0.22 300) 50%,
+    oklch(0.58 0.2 340) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.dark .landing-gradient-text {
+  background: linear-gradient(
+    135deg,
+    oklch(0.75 0.18 260) 0%,
+    oklch(0.78 0.2 300) 50%,
+    oklch(0.76 0.18 340) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* CTA section dot-grid overlay */
+.landing-cta-grid {
+  background-image: radial-gradient(circle, currentColor 1px, transparent 1px);
+  background-size: 24px 24px;
+}

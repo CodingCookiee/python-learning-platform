@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { withAuth } from "@/lib/api-auth";
+import { withAuth, AuthContext } from "@/lib/api-auth";
 import { invalidateUserCache } from "@/lib/cache";
 import { z } from "zod";
 
@@ -14,14 +14,14 @@ const projectSubmissionSchema = z.object({
  * POST /api/progress/project
  * Submit a project for evaluation
  */
-export const POST = withAuth(async (req: NextRequest, context: { userId: string }) => {
+export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
   try {
     const body = await req.json();
     const validation = projectSubmissionSchema.safeParse(body);
 
     if (!validation.success) {
       return NextResponse.json(
-        { error: "Invalid request", details: validation.error.errors },
+        { error: "Invalid request", details: validation.error.issues },
         { status: 400 }
       );
     }

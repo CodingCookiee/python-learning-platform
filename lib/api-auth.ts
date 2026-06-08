@@ -6,12 +6,22 @@ import { auth } from "@/auth";
  */
 
 /**
- * Wrapper for API routes that require authentication
+ * Route context type that supports optional dynamic route params.
+ * Next.js App Router passes params as the second argument to route handlers.
  */
-export function withAuth(
-  handler: (req: NextRequest, context: { userId: string }) => Promise<Response>
+export type AuthContext<TParams extends Record<string, string> = Record<string, never>> = {
+  userId: string;
+  params: Promise<TParams>;
+};
+
+/**
+ * Wrapper for API routes that require authentication.
+ * Supports dynamic route segments by forwarding Next.js route params to the handler.
+ */
+export function withAuth<TParams extends Record<string, string> = Record<string, never>>(
+  handler: (req: NextRequest, context: AuthContext<TParams>) => Promise<Response>
 ) {
-  return async (req: NextRequest) => {
+  return async (req: NextRequest, routeContext?: { params: Promise<TParams> }) => {
     const session = await auth();
 
     if (!session?.user?.email) {
@@ -29,7 +39,10 @@ export function withAuth(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    return handler(req, { userId: user.id });
+    // Provide an empty resolved params promise when there are no route params
+    const params = routeContext?.params ?? (Promise.resolve({}) as Promise<TParams>);
+
+    return handler(req, { userId: user.id, params });
   };
 }
 
@@ -52,10 +65,8 @@ export async function isAdmin(userId: string): Promise<boolean> {
 /**
  * Wrapper for API routes that require admin role
  */
-export function withAdmin(
-  handler: (req: NextRequest, context: { userId: string }) => Promise<Response>
-) {
-  return withAuth(async (req: NextRequest, context: { userId: string }) => {
+export function withAdmin(handler: (req: NextRequest, context: AuthContext) => Promise<Response>) {
+  return withAuth(async (req: NextRequest, context: AuthContext) => {
     const isUserAdmin = await isAdmin(context.userId);
 
     if (!isUserAdmin) {

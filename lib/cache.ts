@@ -13,7 +13,8 @@ export async function getCached<T>(
 ): Promise<T> {
   try {
     // Try to get from cache
-    const cached = await redis.get(key);
+    // Use redis.get<string> because we store serialized JSON strings via setex
+    const cached = await redis.get<string>(key);
 
     if (cached) {
       return JSON.parse(cached) as T;
@@ -65,7 +66,8 @@ export async function cacheSet(
 
 export async function cacheGet<T>(key: string): Promise<T | null> {
   try {
-    const cached = await redis.get(key);
+    // Use redis.get<string> because we store serialized JSON strings
+    const cached = await redis.get<string>(key);
     return cached ? (JSON.parse(cached) as T) : null;
   } catch (error) {
     console.error("Cache get error:", error);

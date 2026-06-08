@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { withAuth } from "@/lib/api-auth";
+import { withAuth, AuthContext } from "@/lib/api-auth";
 import { getCached, CacheKeys } from "@/lib/cache";
 
 /**
@@ -8,7 +8,7 @@ import { getCached, CacheKeys } from "@/lib/cache";
  * List all modules with prerequisites and basic info
  * Cached for 1 hour per user
  */
-export const GET = withAuth(async (req: NextRequest, context: { userId: string }) => {
+export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
   try {
     const cacheKey = CacheKeys.modules(context.userId);
 
