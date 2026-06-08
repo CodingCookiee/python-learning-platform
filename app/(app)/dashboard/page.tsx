@@ -3,9 +3,9 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { FadeIn, StaggerContainer } from "@/components/animations";
+import { CircularProgress, AnimatedProgressBar, ModuleProgressCard } from "@/components/progress";
 import { BookOpen, Trophy, Flame, Zap, ArrowRight, Clock } from "lucide-react";
 
 interface ProgressData {
@@ -74,15 +74,13 @@ async function getProgressData(cookieHeader: string): Promise<ProgressData | nul
   }
 }
 
-function getPhaseLabel(moduleTitle: string): string {
+function getPhaseNumber(moduleTitle: string): number {
   const title = moduleTitle.toLowerCase();
-  if (title.includes("foundation") || title.includes("basic") || title.includes("intro"))
-    return "Phase 1";
+  if (title.includes("foundation") || title.includes("basic") || title.includes("intro")) return 1;
   if (title.includes("intermediate") || title.includes("function") || title.includes("oop"))
-    return "Phase 2";
-  if (title.includes("advanced") || title.includes("async") || title.includes("data"))
-    return "Phase 3";
-  return "Phase 4";
+    return 2;
+  if (title.includes("advanced") || title.includes("async") || title.includes("data")) return 3;
+  return 4;
 }
 
 function getTierColor(tier: string): string {
@@ -155,15 +153,17 @@ export default async function DashboardPage() {
         </FadeIn>
         <FadeIn delay={0.05}>
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {/* Overall Progress — CircularProgress */}
             <Card>
-              <CardContent className="flex flex-col gap-3 pt-8">
-                <p className="font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground">
+              <CardContent className="flex flex-col items-center gap-3 pt-8">
+                <p className="font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground self-start">
                   Overall Progress
                 </p>
-                <p className="font-heading text-3xl font-semibold">{completion.overall}%</p>
-                <Progress
+                <CircularProgress
                   value={completion.overall}
-                  aria-label={`${completion.overall}% complete`}
+                  label="overall"
+                  size={80}
+                  strokeWidth={6}
                 />
               </CardContent>
             </Card>
@@ -190,7 +190,7 @@ export default async function DashboardPage() {
                     /{completion.lessons.total}
                   </span>
                 </p>
-                <Progress
+                <AnimatedProgressBar
                   value={completion.lessons.percentage}
                   aria-label={`${completion.lessons.percentage}% lessons complete`}
                 />
@@ -222,7 +222,7 @@ export default async function DashboardPage() {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex flex-col gap-1">
                         <Badge className="mb-1 w-fit text-muted-foreground">
-                          {getPhaseLabel(currentModule.moduleTitle)}
+                          Phase {getPhaseNumber(currentModule.moduleTitle)}
                         </Badge>
                         <CardTitle>{currentModule.moduleTitle}</CardTitle>
                       </div>
@@ -233,10 +233,12 @@ export default async function DashboardPage() {
                   </CardHeader>
                   <CardContent className="flex flex-col gap-4">
                     <div className="flex flex-col gap-2">
-                      <Progress
+                      <AnimatedProgressBar
                         value={currentModule.completionPercentage}
                         className="h-1.5"
                         aria-label={`${currentModule.completionPercentage}% of module complete`}
+                        delay={0.15}
+                        showLabel={false}
                       />
                       <p className="text-xs text-muted-foreground">
                         {currentModule.lessonsCompleted} of {currentModule.lessonsTotal} lessons
@@ -340,36 +342,20 @@ export default async function DashboardPage() {
               All Modules
             </h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {modules.map((module) => {
-                const isLocked = module.completionPercentage === 0;
-                return (
-                  <Card key={module.moduleId} className={isLocked ? "opacity-60" : undefined}>
-                    <CardContent className="flex flex-col gap-3 pt-8">
-                      <div className="flex items-start justify-between gap-2">
-                        <p
-                          className={`font-heading text-xs font-semibold tracking-widest uppercase ${isLocked ? "text-muted-foreground/60" : "text-foreground"}`}
-                        >
-                          {module.moduleTitle}
-                        </p>
-                        <span
-                          className={`font-heading text-sm font-semibold ${module.completionPercentage === 100 ? "text-foreground" : "text-muted-foreground"}`}
-                        >
-                          {module.completionPercentage}%
-                        </span>
-                      </div>
-                      <Progress
-                        value={module.completionPercentage}
-                        aria-label={`${module.completionPercentage}% of ${module.moduleTitle} complete`}
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        {module.lessonsCompleted}/{module.lessonsTotal} lessons
-                        {module.projectsTotal > 0 &&
-                          ` · ${module.projectsCompleted}/${module.projectsTotal} projects`}
-                      </p>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+              {modules.map((module) => (
+                <ModuleProgressCard
+                  key={module.moduleId}
+                  moduleId={module.moduleId}
+                  title={module.moduleTitle}
+                  phase={getPhaseNumber(module.moduleTitle)}
+                  completionPercentage={module.completionPercentage}
+                  lessonsCompleted={module.lessonsCompleted}
+                  lessonsTotal={module.lessonsTotal}
+                  projectsCompleted={module.projectsCompleted}
+                  projectsTotal={module.projectsTotal}
+                  isLocked={module.completionPercentage === 0}
+                />
+              ))}
             </div>
           </div>
         </FadeIn>
