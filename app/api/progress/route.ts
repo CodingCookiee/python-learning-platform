@@ -106,7 +106,6 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
         }
 
         // Calculate overall completion
-        const totalModules = await prisma.module.count();
         const totalLessons = await prisma.lesson.count();
         const totalProjects = await prisma.project.count();
 
