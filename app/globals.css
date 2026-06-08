@@ -128,6 +128,15 @@
     @apply font-sans;
     scroll-behavior: smooth;
   }
+
+  /* Smooth theme transition — applies to background and text color changes */
+  *,
+  *::before,
+  *::after {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-timing-function: ease;
+    transition-duration: 150ms;
+  }
 }
 
 /* ── Landing page ──────────────────────────────────────────────────────────── */

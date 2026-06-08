@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const stats = [
   { value: "16", label: "Modules" },
@@ -143,6 +144,7 @@ export default function LandingPage() {
             </a>
           </nav>
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <Button variant="ghost" size="sm" asChild>
               <Link href="/auth/signin">Sign In</Link>
             </Button>
