@@ -3,8 +3,10 @@
 import * as React from "react";
 import Link from "next/link";
 import { Lock, CheckCircle2, ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AnimatedProgressBar } from "./animated-progress-bar";
 
 export interface ModuleProgressCardProps {
@@ -17,6 +19,7 @@ export interface ModuleProgressCardProps {
   projectsCompleted?: number;
   projectsTotal?: number;
   isLocked?: boolean;
+  prerequisiteNames?: string[];
   href?: string;
 }
 
@@ -30,20 +33,38 @@ export function ModuleProgressCard({
   projectsCompleted,
   projectsTotal,
   isLocked = false,
+  prerequisiteNames = [],
   href,
 }: ModuleProgressCardProps) {
   const linkHref = href ?? `/modules/${moduleId}`;
   const isComplete = completionPercentage >= 100;
+  const prevLockedRef = React.useRef(isLocked);
+  const [justUnlocked, setJustUnlocked] = React.useState(false);
 
-  return (
-    <div
+  React.useEffect(() => {
+    if (prevLockedRef.current && !isLocked) {
+      setJustUnlocked(true);
+      const t = setTimeout(() => setJustUnlocked(false), 800);
+      return () => clearTimeout(t);
+    }
+    prevLockedRef.current = isLocked;
+  }, [isLocked]);
+
+  const lockTooltip =
+    prerequisiteNames.length > 0
+      ? `Complete first: ${prerequisiteNames.join(", ")}`
+      : "Complete prerequisite modules to unlock";
+
+  const card = (
+    <motion.div
+      animate={justUnlocked ? { scale: [1, 1.04, 1] } : {}}
+      transition={{ duration: 0.5 }}
       className={cn(
         "flex flex-col gap-3 bg-card ring-1 ring-foreground/5 p-6 transition-shadow",
         !isLocked && "hover:shadow-md",
         isLocked && "opacity-60"
       )}
     >
-      {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-col gap-1 min-w-0">
           <p
@@ -56,15 +77,23 @@ export function ModuleProgressCard({
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
-          {isLocked && <Lock className="size-3 text-muted-foreground" aria-hidden="true" />}
+          <AnimatePresence>
+            {isLocked && (
+              <motion.span
+                key="lock"
+                initial={{ opacity: 0, scale: 0.6 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.6 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Lock className="size-3 text-muted-foreground" aria-hidden="true" />
+              </motion.span>
+            )}
+          </AnimatePresence>
           <Badge variant="secondary">Phase {phase}</Badge>
         </div>
       </div>
-
-      {/* Progress bar */}
       <AnimatedProgressBar value={completionPercentage} delay={0.1} showLabel={false} />
-
-      {/* Stats */}
       <p className="text-xs text-muted-foreground">
         {lessonsCompleted}/{lessonsTotal} lessons
         {projectsTotal != null && projectsTotal > 0 && (
@@ -75,8 +104,6 @@ export function ModuleProgressCard({
         )}
         <span className="ml-1 font-semibold">{completionPercentage}%</span>
       </p>
-
-      {/* Footer action */}
       <div className="mt-1">
         {isComplete ? (
           <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary">
@@ -98,6 +125,21 @@ export function ModuleProgressCard({
           </Link>
         )}
       </div>
-    </div>
+    </motion.div>
+  );
+
+  if (!isLocked) return card;
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div>{card}</div>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-[220px] text-center">
+          <p>{lockTooltip}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }

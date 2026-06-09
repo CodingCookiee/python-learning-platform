@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import { FadeIn, StaggerContainer } from "@/components/animations";
@@ -58,41 +58,40 @@ export function ModulesClient({ modules }: ModulesClientProps) {
 
     if (sortOption === "az") {
       result = [...result].sort((a, b) => {
-        const aLocked = !a.isUnlocked ? 1 : 0;
-        const bLocked = !b.isUnlocked ? 1 : 0;
-        if (aLocked !== bLocked) return aLocked - bLocked;
+        const al = !a.isUnlocked ? 1 : 0;
+        const bl = !b.isUnlocked ? 1 : 0;
+        if (al !== bl) return al - bl;
         return a.title.localeCompare(b.title);
       });
     } else if (sortOption === "za") {
       result = [...result].sort((a, b) => {
-        const aLocked = !a.isUnlocked ? 1 : 0;
-        const bLocked = !b.isUnlocked ? 1 : 0;
-        if (aLocked !== bLocked) return aLocked - bLocked;
+        const al = !a.isUnlocked ? 1 : 0;
+        const bl = !b.isUnlocked ? 1 : 0;
+        if (al !== bl) return al - bl;
         return b.title.localeCompare(a.title);
       });
     } else if (sortOption === "most-complete") {
       result = [...result].sort((a, b) => {
-        const aLocked = !a.isUnlocked ? 1 : 0;
-        const bLocked = !b.isUnlocked ? 1 : 0;
-        if (aLocked !== bLocked) return aLocked - bLocked;
+        const al = !a.isUnlocked ? 1 : 0;
+        const bl = !b.isUnlocked ? 1 : 0;
+        if (al !== bl) return al - bl;
         return b.completionPercentage - a.completionPercentage;
       });
     } else if (sortOption === "least-complete") {
       result = [...result].sort((a, b) => {
-        const aLocked = !a.isUnlocked ? 1 : 0;
-        const bLocked = !b.isUnlocked ? 1 : 0;
-        if (aLocked !== bLocked) return aLocked - bLocked;
+        const al = !a.isUnlocked ? 1 : 0;
+        const bl = !b.isUnlocked ? 1 : 0;
+        if (al !== bl) return al - bl;
         return a.completionPercentage - b.completionPercentage;
       });
     } else {
       result = [...result].sort((a, b) => {
-        const aLocked = !a.isUnlocked ? 1 : 0;
-        const bLocked = !b.isUnlocked ? 1 : 0;
-        if (aLocked !== bLocked) return aLocked - bLocked;
+        const al = !a.isUnlocked ? 1 : 0;
+        const bl = !b.isUnlocked ? 1 : 0;
+        if (al !== bl) return al - bl;
         return a.order - b.order;
       });
     }
-
     return result;
   }, [modules, phaseFilter, statusFilter, sortOption]);
 
@@ -107,7 +106,6 @@ export function ModulesClient({ modules }: ModulesClientProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Filter / sort toolbar */}
       <div className="flex flex-wrap items-center gap-4">
         <Select value={phaseFilter} onValueChange={(v) => setPhaseFilter(v as PhaseFilter)}>
           <SelectTrigger className="w-36">
@@ -121,7 +119,6 @@ export function ModulesClient({ modules }: ModulesClientProps) {
             <SelectItem value="4">Phase 4</SelectItem>
           </SelectContent>
         </Select>
-
         <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
           <SelectTrigger className="w-36">
             <SelectValue placeholder="All" />
@@ -134,7 +131,6 @@ export function ModulesClient({ modules }: ModulesClientProps) {
             <SelectItem value="locked">Locked</SelectItem>
           </SelectContent>
         </Select>
-
         <Select value={sortOption} onValueChange={(v) => setSortOption(v as SortOption)}>
           <SelectTrigger className="w-44">
             <SelectValue placeholder="Default Order" />
@@ -147,13 +143,11 @@ export function ModulesClient({ modules }: ModulesClientProps) {
             <SelectItem value="least-complete">Least Complete</SelectItem>
           </SelectContent>
         </Select>
-
         <p className="ml-auto text-sm text-muted-foreground">
           {filtered.length} of {modules.length} modules
         </p>
       </div>
 
-      {/* Grid or empty state */}
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center gap-4 py-16 text-center">
           <p className="text-sm text-muted-foreground">No modules match your filters.</p>
@@ -181,6 +175,7 @@ export function ModulesClient({ modules }: ModulesClientProps) {
                   lessonsTotal={module.lessonCount}
                   projectsTotal={module.projectCount}
                   isLocked={!module.isUnlocked}
+                  prerequisiteNames={module.prerequisites.map((p) => p.title)}
                 />
               </FadeIn>
             );
