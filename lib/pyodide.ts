@@ -72,7 +72,7 @@ export interface PyodideRunResult {
 }
 
 export interface UsePyodideReturn {
-  run: (code: string) => Promise<PyodideRunResult>;
+  run: (code: string, timeoutMs?: number) => Promise<PyodideRunResult>;
   loading: boolean;
   ready: boolean;
 }
@@ -83,7 +83,7 @@ export function usePyodide(): UsePyodideReturn {
   const [ready, setReady] = useState(() => pyodideInstance !== null);
   const startedRef = useRef(false);
 
-  const run = useCallback(async (code: string): Promise<PyodideRunResult> => {
+  const run = useCallback(async (code: string, timeoutMs = 10000): Promise<PyodideRunResult> => {
     try {
       let py = pyodideInstance;
 
@@ -98,7 +98,16 @@ export function usePyodide(): UsePyodideReturn {
       }
 
       const wrappedCode = `${STDOUT_SETUP}\n${code}\n${STDOUT_TEARDOWN}`;
-      await py.runPythonAsync(wrappedCode);
+
+      // Race execution against a timeout to handle infinite loops
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error(`Execution timed out after ${timeoutMs / 1000}s`)),
+          timeoutMs
+        )
+      );
+
+      await Promise.race([py.runPythonAsync(wrappedCode), timeoutPromise]);
 
       const captured = py.globals.get("_captured_output");
       const output = typeof captured === "string" ? captured : "";
