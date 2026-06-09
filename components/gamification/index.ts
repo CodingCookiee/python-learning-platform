@@ -8,3 +8,5 @@ export { AchievementModal } from "./achievement-modal";
 export type { AchievementModalProps } from "./achievement-modal";
 export { StreakDisplay } from "./streak-display";
 export type { StreakDisplayProps } from "./streak-display";
+export { AchievementNotificationQueue } from "./achievement-notification";
+export type { AchievementNotificationQueueProps } from "./achievement-notification";

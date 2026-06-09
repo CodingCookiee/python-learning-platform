@@ -41,7 +41,7 @@ const sizeConfig = {
 
 export function AchievementBadge({
   name,
-  description: _description,
+  description,
   icon,
   tier,
   xpReward,
@@ -102,9 +102,13 @@ export function AchievementBadge({
           <div className="inline-flex">{badge}</div>
         </TooltipTrigger>
         <TooltipContent>
-          <span>
-            {name} · {tier} · {xpReward} XP
-          </span>
+          <div className="max-w-48 space-y-1">
+            <p className="font-semibold">{name}</p>
+            <p className="text-xs text-muted-foreground">{description}</p>
+            <p className="text-xs">
+              {tier} · {xpReward} XP
+            </p>
+          </div>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
