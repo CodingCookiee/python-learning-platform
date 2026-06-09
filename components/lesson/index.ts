@@ -6,3 +6,7 @@ export { LessonContent } from "./lesson-content";
 export type { LessonContentProps } from "./lesson-content";
 export { JsBridge } from "./js-bridge";
 export type { JsBridgeProps } from "./js-bridge";
+export { RunnableCode } from "./runnable-code";
+export type { RunnableCodeProps } from "./runnable-code";
+export { PythonEditor } from "./monaco-editor";
+export type { PythonEditorProps } from "./monaco-editor";
