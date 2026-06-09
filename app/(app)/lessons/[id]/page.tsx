@@ -3,7 +3,12 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { auth } from "@/auth";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
-import { LessonSidebar, LessonNavigation, LessonContent } from "@/components/lesson";
+import {
+  LessonSidebar,
+  LessonNavigation,
+  LessonContent,
+  LessonCompleteButton,
+} from "@/components/lesson";
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -240,6 +245,12 @@ export default async function LessonPage({ params }: PageProps) {
                   </div>
                 </section>
               )}
+              {/* Mark as Complete */}
+              <LessonCompleteButton
+                lessonId={lesson.id}
+                nextLessonId={lesson.navigation.next?.id ?? null}
+                initialCompleted={lesson.completed}
+              />
 
               {/* Navigation */}
               <LessonNavigation

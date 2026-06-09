@@ -10,3 +10,5 @@ export { RunnableCode } from "./runnable-code";
 export type { RunnableCodeProps } from "./runnable-code";
 export { PythonEditor } from "./monaco-editor";
 export type { PythonEditorProps } from "./monaco-editor";
+export { LessonCompleteButton } from "./lesson-complete-button";
+export type { LessonCompleteButtonProps } from "./lesson-complete-button";
