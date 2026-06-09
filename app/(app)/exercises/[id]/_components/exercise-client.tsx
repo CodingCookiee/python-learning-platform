@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import ReactMarkdown from "react-markdown";
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { PythonEditor } from "@/components/lesson";
-import { AchievementNotificationQueue } from "@/components/gamification";
+import { AchievementNotificationQueue, Confetti } from "@/components/gamification";
 import { Spinner } from "@/components/animations";
 import { usePyodide } from "@/lib/pyodide";
 import type { UnlockedAchievement } from "@/lib/achievements";
@@ -437,22 +437,56 @@ export function ExerciseClient({ exercise }: ExerciseClientProps) {
   const [solved, setSolved] = React.useState(exercise.stats.solved);
   const [hintsUsed, setHintsUsed] = React.useState(0);
   const [achievements, setAchievements] = React.useState<UnlockedAchievement[]>([]);
+  const [showConfetti, setShowConfetti] = React.useState(false);
 
   async function handleRun() {
     if (isRunning) return;
     setIsRunning(true);
 
     try {
+      // Client-side syntax check: run a compile-only snippet first
+      const syntaxCheck = await run(
+        `
+import ast as _ast
+try:
+    _ast.parse(${JSON.stringify("<<CODE>>")}.replace("<<CODE>>", ${JSON.stringify("__code__")}))
+    print("ok")
+except SyntaxError as e:
+    print(f"SyntaxError: {e}")
+`
+          .replace("<<CODE>>", "")
+          .replace("__code__", "__placeholder__")
+      );
+
+      // Actually do the syntax check by running the user code through ast.parse
+      const syntaxResult = await run(
+        `import ast as _ast\ntry:\n    _ast.parse(${JSON.stringify("x")})\n    print("ok")\nexcept SyntaxError as e:\n    print(f"SyntaxError: {e}")`.replace(
+          JSON.stringify("x"),
+          JSON.stringify(code)
+        )
+      );
+      if (syntaxResult.output.startsWith("SyntaxError")) {
+        setTestResults([
+          {
+            description: "Syntax check",
+            passed: false,
+            actual: syntaxResult.output,
+            expected: "Valid Python syntax",
+            error: syntaxResult.output,
+          },
+        ]);
+        return;
+      }
+
       const results = await runTests(code, exercise.testCases, run);
       setTestResults(results);
 
       const allPassed = results.every((r) => r.passed) && results.length > 0;
 
-      const res = await fetch("/api/progress/exercise", {
+      const res = await fetch(`/api/exercises/${exercise.id}/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          exerciseId: exercise.id,
           code,
           passed: allPassed,
           testResults: JSON.stringify(results),
@@ -465,12 +499,18 @@ export function ExerciseClient({ exercise }: ExerciseClientProps) {
           success: boolean;
           submission: { id: string; passed: boolean; attempts: number; hintsUsed: number };
           xpGained: number;
+          newlySolved: boolean;
           achievements: UnlockedAchievement[];
         };
 
         setAttempts(data.submission.attempts);
         if (data.submission.passed) {
           setSolved(true);
+        }
+        // Confetti on first solve
+        if (data.newlySolved) {
+          setShowConfetti(true);
+          setTimeout(() => setShowConfetti(false), 3500);
         }
         if (data.achievements.length > 0) {
           setAchievements(data.achievements);
@@ -487,6 +527,11 @@ export function ExerciseClient({ exercise }: ExerciseClientProps) {
 
   return (
     <>
+      {" "}
+      {/* Confetti burst on first solve */}
+      <div className="relative overflow-hidden pointer-events-none fixed inset-0 z-50">
+        <Confetti active={showConfetti} particleCount={80} duration={3000} />
+      </div>
       <div className="hidden lg:grid lg:grid-cols-5 lg:gap-8" aria-label="Exercise workspace">
         <div className="lg:col-span-2">
           <div className="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto pr-1">
@@ -511,7 +556,6 @@ export function ExerciseClient({ exercise }: ExerciseClientProps) {
           />
         </div>
       </div>
-
       <div className="lg:hidden">
         <Tabs defaultValue="instructions">
           <TabsList className="w-full">
