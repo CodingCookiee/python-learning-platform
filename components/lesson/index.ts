@@ -4,3 +4,5 @@ export { LessonNavigation } from "./lesson-navigation";
 export type { LessonNavigationProps } from "./lesson-navigation";
 export { LessonContent } from "./lesson-content";
 export type { LessonContentProps } from "./lesson-content";
+export { JsBridge } from "./js-bridge";
+export type { JsBridgeProps } from "./js-bridge";
