@@ -444,20 +444,6 @@ export function ExerciseClient({ exercise }: ExerciseClientProps) {
     setIsRunning(true);
 
     try {
-      // Client-side syntax check: run a compile-only snippet first
-      const syntaxCheck = await run(
-        `
-import ast as _ast
-try:
-    _ast.parse(${JSON.stringify("<<CODE>>")}.replace("<<CODE>>", ${JSON.stringify("__code__")}))
-    print("ok")
-except SyntaxError as e:
-    print(f"SyntaxError: {e}")
-`
-          .replace("<<CODE>>", "")
-          .replace("__code__", "__placeholder__")
-      );
-
       // Actually do the syntax check by running the user code through ast.parse
       const syntaxResult = await run(
         `import ast as _ast\ntry:\n    _ast.parse(${JSON.stringify("x")})\n    print("ok")\nexcept SyntaxError as e:\n    print(f"SyntaxError: {e}")`.replace(

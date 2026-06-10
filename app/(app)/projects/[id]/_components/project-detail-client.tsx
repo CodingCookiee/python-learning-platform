@@ -1,10 +1,12 @@
 ﻿"use client";
 
+import * as React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ConfettiEffect } from "@/components/animations";
 import {
   CheckCircle2,
   Clock,
@@ -77,9 +79,23 @@ function SubmissionStatusBadge({ status }: { status: string }) {
 
 export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
   const isCompleted = project.submission?.status?.toLowerCase() === "approved";
+  const evaluatedAt = project.submission?.evaluatedAt ?? null;
+
+  // Lazily initialise confetti so the sessionStorage check runs only once --
+  // avoids calling setState synchronously inside a useEffect body.
+  const submissionId = project.submission?.id ?? null;
+  const [showConfetti, setShowConfetti] = React.useState<boolean>(() => {
+    if (!isCompleted || !evaluatedAt || !submissionId) return false;
+    if (typeof window === "undefined") return false;
+    const seenKey = `confetti_seen_${submissionId}`;
+    if (sessionStorage.getItem(seenKey)) return false;
+    sessionStorage.setItem(seenKey, "1");
+    return true;
+  });
 
   return (
-    <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+    <div className="relative grid grid-cols-1 gap-8 lg:grid-cols-3">
+      {showConfetti && <ConfettiEffect onComplete={() => setShowConfetti(false)} />}
       {/* Main content column */}
       <div className="flex flex-col gap-8 lg:col-span-2">
         {/* Header */}
