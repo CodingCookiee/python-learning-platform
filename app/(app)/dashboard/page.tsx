@@ -10,6 +10,7 @@ import { StreakDisplay } from "@/components/gamification/streak-display";
 import { XpProgressBar } from "@/components/gamification/xp-progress-bar";
 import { StreakCalendar } from "@/components/gamification/streak-calendar";
 import { LevelBadge } from "@/components/gamification/level-badge";
+import { MilestoneTracker } from "@/components/gamification/milestone-tracker";
 import { BookOpen, Trophy, Flame, ArrowRight, Clock } from "lucide-react";
 
 interface ProgressData {
@@ -370,6 +371,7 @@ export default async function DashboardPage() {
             </div>
           </div>
         </FadeIn>
+        <MilestoneTracker overallPercentage={completion.overall} />
       </StaggerContainer>
     </div>
   );

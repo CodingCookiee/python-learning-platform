@@ -17,3 +17,7 @@ export { LevelUpNotification } from "./level-up-notification";
 export type { LevelUpNotificationProps } from "./level-up-notification";
 export { LevelBadge } from "./level-badge";
 export type { LevelBadgeProps } from "./level-badge";
+export { MilestoneCelebration } from "./milestone-celebration";
+export type { MilestoneCelebrationProps } from "./milestone-celebration";
+export { MilestoneTracker } from "./milestone-tracker";
+export type { MilestoneTrackerProps } from "./milestone-tracker";

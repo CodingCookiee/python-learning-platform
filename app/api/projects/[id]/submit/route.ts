@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
 import { invalidateUserCache } from "@/lib/cache";
-import { checkAndUnlockAchievements, updateStreak, updateUserLevel } from "@/lib/achievements";
+import {
+  checkAndUnlockAchievements,
+  updateStreak,
+  updateUserLevel,
+  checkMilestone,
+} from "@/lib/achievements";
 import { z } from "zod";
 
 const GITHUB_URL_REGEX = /^https?:\/\/(www\.)?github\.com\/.+\/.+/i;
@@ -162,6 +167,8 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
     newLevel = userAfter?.level ?? oldLevel;
     levelUp = newLevel > oldLevel;
 
+    const milestone = isFirstSubmission ? await checkMilestone(context.userId) : null;
+
     return NextResponse.json({
       success: true,
       submissionId: submission.id,
@@ -169,6 +176,7 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
       achievements: newAchievements,
       levelUp,
       newLevel,
+      milestone,
     });
   } catch (error) {
     console.error("Error submitting project:", error);

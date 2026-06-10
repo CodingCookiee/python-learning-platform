@@ -285,3 +285,32 @@ export async function checkAndUnlockAchievements(
     return [];
   }
 }
+
+// ??? Milestone detection ?????????????????????????????????????????????????????
+
+/**
+ * Returns the milestone percentage (25 | 50 | 75 | 100) if the overall
+ * completion just crossed one, otherwise null.
+ * @param userId  The user whose progress to check.
+ */
+export async function checkMilestone(userId: string): Promise<25 | 50 | 75 | 100 | null> {
+  const [totalLessons, totalProjects, completedLessons, completedProjects] = await Promise.all([
+    prisma.lesson.count(),
+    prisma.project.count(),
+    prisma.progress.count({ where: { userId, completed: true } }),
+    prisma.projectSubmission.count({ where: { userId, status: "approved" } }),
+  ]);
+
+  const total = totalLessons + totalProjects;
+  if (total === 0) return null;
+
+  const done = completedLessons + completedProjects;
+  const pct = (done / total) * 100;
+
+  // Check thresholds from highest to lowest so we return the most significant one
+  if (pct >= 100) return 100;
+  if (pct >= 75) return 75;
+  if (pct >= 50) return 50;
+  if (pct >= 25) return 25;
+  return null;
+}

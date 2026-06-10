@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
 import { invalidateUserCache } from "@/lib/cache";
-import { checkAndUnlockAchievements, updateStreak, updateUserLevel } from "@/lib/achievements";
+import {
+  checkAndUnlockAchievements,
+  updateStreak,
+  updateUserLevel,
+  checkMilestone,
+} from "@/lib/achievements";
 import { z } from "zod";
 
 const lessonProgressSchema = z.object({
@@ -102,6 +107,9 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
     newLevel = userAfter?.level ?? oldLevel;
     levelUp = newLevel > oldLevel;
 
+    // Milestone detection
+    const milestone = completed ? await checkMilestone(context.userId) : null;
+
     return NextResponse.json({
       success: true,
       progress,
@@ -109,6 +117,7 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
       achievements: newAchievements,
       levelUp,
       newLevel,
+      milestone,
     });
   } catch (error) {
     console.error("Error updating lesson progress:", error);
