@@ -8,6 +8,7 @@ import { FadeIn, StaggerContainer } from "@/components/animations";
 import { CircularProgress, AnimatedProgressBar, ModuleProgressCard } from "@/components/progress";
 import { StreakDisplay } from "@/components/gamification/streak-display";
 import { XpProgressBar } from "@/components/gamification/xp-progress-bar";
+import { StreakCalendar } from "@/components/gamification/streak-calendar";
 import { BookOpen, Trophy, Flame, ArrowRight, Clock } from "lucide-react";
 
 interface ProgressData {
@@ -22,6 +23,7 @@ interface ProgressData {
     current: number;
     longest: number;
     lastActivity: string | Date;
+    activeDates: string[];
   };
   completion: {
     lessons: { completed: number; total: number; percentage: number };
@@ -155,7 +157,7 @@ export default async function DashboardPage() {
         </FadeIn>
         <FadeIn delay={0.05}>
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {/* Overall Progress — CircularProgress */}
+            {/* Overall Progress */}
             <Card>
               <CardContent className="flex flex-col items-center gap-3 pt-8">
                 <p className="font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground self-start">
@@ -204,6 +206,19 @@ export default async function DashboardPage() {
             </Card>
           </div>
         </FadeIn>
+
+        {/* Streak calendar */}
+        <FadeIn delay={0.07}>
+          <Card>
+            <CardContent className="flex flex-col gap-4 pt-6">
+              <p className="font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground">
+                Activity
+              </p>
+              <StreakCalendar activeDates={streak.activeDates ?? []} />
+            </CardContent>
+          </Card>
+        </FadeIn>
+
         <FadeIn delay={0.1}>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div className="flex flex-col gap-4 lg:col-span-2">

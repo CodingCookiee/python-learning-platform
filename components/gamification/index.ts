@@ -10,3 +10,6 @@ export { StreakDisplay } from "./streak-display";
 export type { StreakDisplayProps } from "./streak-display";
 export { AchievementNotificationQueue } from "./achievement-notification";
 export type { AchievementNotificationQueueProps } from "./achievement-notification";
+export { StreakCalendar } from "./streak-calendar";
+export type { StreakCalendarProps } from "./streak-calendar";
+export { StreakPing } from "./streak-ping";

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
 import { getCached, CacheKeys } from "@/lib/cache";
@@ -105,6 +105,46 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
           });
         }
 
+        // Build active dates for the streak calendar (last 84 days)
+        const eightyfourDaysAgo = new Date();
+        eightyfourDaysAgo.setDate(eightyfourDaysAgo.getDate() - 84);
+        eightyfourDaysAgo.setHours(0, 0, 0, 0);
+
+        const [recentProgress, recentExercises] = await Promise.all([
+          prisma.progress.findMany({
+            where: {
+              userId: context.userId,
+              completed: true,
+              completedAt: { gte: eightyfourDaysAgo },
+            },
+            select: { completedAt: true },
+          }),
+          prisma.exerciseSubmission.findMany({
+            where: {
+              userId: context.userId,
+              passed: true,
+              submittedAt: { gte: eightyfourDaysAgo },
+            },
+            select: { submittedAt: true },
+          }),
+        ]);
+
+        function toDateStr(date: Date): string {
+          const y = date.getFullYear();
+          const m = String(date.getMonth() + 1).padStart(2, "0");
+          const d = String(date.getDate()).padStart(2, "0");
+          return `${y}-${m}-${d}`;
+        }
+
+        const activeDateSet = new Set<string>();
+        for (const p of recentProgress) {
+          if (p.completedAt) activeDateSet.add(toDateStr(new Date(p.completedAt)));
+        }
+        for (const e of recentExercises) {
+          activeDateSet.add(toDateStr(new Date(e.submittedAt)));
+        }
+        const activeDates = Array.from(activeDateSet).sort();
+
         // Calculate overall completion
         const totalLessons = await prisma.lesson.count();
         const totalProjects = await prisma.project.count();
@@ -117,7 +157,7 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
           },
           exercises: {
             completed: passedExercises.length,
-            // We'll update this when exercises are added
+            // We will update this when exercises are added
             total: 0,
             percentage: 0,
           },
@@ -183,6 +223,7 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
             current: streak.currentStreak,
             longest: streak.longestStreak,
             lastActivity: streak.lastActivityDate,
+            activeDates,
           },
           completion: overallCompletion,
           modules: moduleProgress,
