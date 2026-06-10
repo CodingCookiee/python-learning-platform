@@ -13,3 +13,7 @@ export type { AchievementNotificationQueueProps } from "./achievement-notificati
 export { StreakCalendar } from "./streak-calendar";
 export type { StreakCalendarProps } from "./streak-calendar";
 export { StreakPing } from "./streak-ping";
+export { LevelUpNotification } from "./level-up-notification";
+export type { LevelUpNotificationProps } from "./level-up-notification";
+export { LevelBadge } from "./level-badge";
+export type { LevelBadgeProps } from "./level-badge";

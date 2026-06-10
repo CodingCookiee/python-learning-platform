@@ -54,7 +54,16 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
     });
 
     let xpGained = 0;
+    let levelUp = false;
+    let newLevel = 0;
     const newAchievements = [];
+
+    // Read current level before any XP award
+    const userBefore = await prisma.user.findUnique({
+      where: { id: context.userId },
+      select: { level: true },
+    });
+    const oldLevel = userBefore?.level ?? 1;
 
     if (passed) {
       // Only award XP on first solve
@@ -92,6 +101,14 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
       }
     }
 
+    // Read updated level after all XP and level updates
+    const userAfter = await prisma.user.findUnique({
+      where: { id: context.userId },
+      select: { level: true },
+    });
+    newLevel = userAfter?.level ?? oldLevel;
+    levelUp = newLevel > oldLevel;
+
     // Invalidate exercise cache so next GET returns updated solution eligibility
     await invalidateCache(CacheKeys.exercise(exerciseId, context.userId));
     await invalidateUserCache(context.userId);
@@ -107,6 +124,8 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
       xpGained,
       newlySolved: passed && xpGained > 0,
       achievements: newAchievements,
+      levelUp,
+      newLevel,
     });
   } catch (error) {
     console.error("Error submitting exercise:", error);

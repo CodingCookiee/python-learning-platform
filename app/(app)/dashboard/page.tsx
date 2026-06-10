@@ -9,6 +9,7 @@ import { CircularProgress, AnimatedProgressBar, ModuleProgressCard } from "@/com
 import { StreakDisplay } from "@/components/gamification/streak-display";
 import { XpProgressBar } from "@/components/gamification/xp-progress-bar";
 import { StreakCalendar } from "@/components/gamification/streak-calendar";
+import { LevelBadge } from "@/components/gamification/level-badge";
 import { BookOpen, Trophy, Flame, ArrowRight, Clock } from "lucide-react";
 
 interface ProgressData {
@@ -153,6 +154,7 @@ export default async function DashboardPage() {
               <Flame className="size-3.5 text-orange-500" aria-hidden="true" />
               <span>🔥 {streak.current} day streak</span>
             </Badge>
+            <LevelBadge level={user.level} size="sm" className="mt-2 sm:mt-0" />
           </div>
         </FadeIn>
         <FadeIn delay={0.05}>

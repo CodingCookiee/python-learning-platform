@@ -108,7 +108,16 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
 
     // Award XP only on first submission
     let xpGained = 0;
+    let levelUp = false;
+    let newLevel = 0;
     const newAchievements: Awaited<ReturnType<typeof checkAndUnlockAchievements>> = [];
+
+    // Capture level before any XP changes
+    const userBefore = await prisma.user.findUnique({
+      where: { id: context.userId },
+      select: { level: true },
+    });
+    const oldLevel = userBefore?.level ?? 1;
 
     if (isFirstSubmission) {
       xpGained = project.xpReward;
@@ -145,11 +154,21 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
     // Invalidate user caches
     await invalidateUserCache(context.userId);
 
+    // Capture level after all XP updates
+    const userAfter = await prisma.user.findUnique({
+      where: { id: context.userId },
+      select: { level: true },
+    });
+    newLevel = userAfter?.level ?? oldLevel;
+    levelUp = newLevel > oldLevel;
+
     return NextResponse.json({
       success: true,
       submissionId: submission.id,
       xpGained,
       achievements: newAchievements,
+      levelUp,
+      newLevel,
     });
   } catch (error) {
     console.error("Error submitting project:", error);

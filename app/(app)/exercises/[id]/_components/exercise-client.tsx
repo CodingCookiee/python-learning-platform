@@ -9,7 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { PythonEditor } from "@/components/lesson";
-import { AchievementNotificationQueue, Confetti } from "@/components/gamification";
+import {
+  AchievementNotificationQueue,
+  Confetti,
+  LevelUpNotification,
+} from "@/components/gamification";
 import { Spinner } from "@/components/animations";
 import { usePyodide } from "@/lib/pyodide";
 import type { UnlockedAchievement } from "@/lib/achievements";
@@ -438,6 +442,8 @@ export function ExerciseClient({ exercise }: ExerciseClientProps) {
   const [hintsUsed, setHintsUsed] = React.useState(0);
   const [achievements, setAchievements] = React.useState<UnlockedAchievement[]>([]);
   const [showConfetti, setShowConfetti] = React.useState(false);
+  const [showLevelUp, setShowLevelUp] = React.useState(false);
+  const [levelUpLevel, setLevelUpLevel] = React.useState(1);
 
   async function handleRun() {
     if (isRunning) return;
@@ -487,6 +493,8 @@ export function ExerciseClient({ exercise }: ExerciseClientProps) {
           xpGained: number;
           newlySolved: boolean;
           achievements: UnlockedAchievement[];
+          levelUp?: boolean;
+          newLevel?: number;
         };
 
         setAttempts(data.submission.attempts);
@@ -500,6 +508,10 @@ export function ExerciseClient({ exercise }: ExerciseClientProps) {
         }
         if (data.achievements.length > 0) {
           setAchievements(data.achievements);
+        }
+        if (data.levelUp && data.newLevel) {
+          setLevelUpLevel(data.newLevel);
+          setShowLevelUp(true);
         }
       }
     } finally {
@@ -518,6 +530,10 @@ export function ExerciseClient({ exercise }: ExerciseClientProps) {
       <div className="relative overflow-hidden pointer-events-none fixed inset-0 z-50">
         <Confetti active={showConfetti} particleCount={80} duration={3000} />
       </div>
+      {/* Level-up notification overlay */}
+      {showLevelUp && (
+        <LevelUpNotification level={levelUpLevel} onDismiss={() => setShowLevelUp(false)} />
+      )}
       <div className="hidden lg:grid lg:grid-cols-5 lg:gap-8" aria-label="Exercise workspace">
         <div className="lg:col-span-2">
           <div className="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto pr-1">
