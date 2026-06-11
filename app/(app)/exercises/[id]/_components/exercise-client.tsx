@@ -17,6 +17,15 @@ import {
 import { Spinner } from "@/components/animations";
 import { usePyodide } from "@/lib/pyodide";
 import type { UnlockedAchievement } from "@/lib/achievements";
+import { useToast } from "@/components/ui/toast";
+
+const ENCOURAGING_MESSAGES = [
+  "So close! Give it another shot 💪",
+  "Keep going, you're learning! 🚀",
+  "Every bug fixed makes you stronger 🔧",
+  "Almost there! Check the hints if you're stuck 💡",
+  "Great effort! Try a different approach 🤔",
+];
 
 // Types
 
@@ -433,6 +442,7 @@ export interface ExerciseClientProps {
 
 export function ExerciseClient({ exercise }: ExerciseClientProps) {
   const { run, loading: pyodideLoading } = usePyodide();
+  const { toast } = useToast();
 
   const [code, setCode] = React.useState(exercise.starterCode);
   const [isRunning, setIsRunning] = React.useState(false);
@@ -475,6 +485,12 @@ export function ExerciseClient({ exercise }: ExerciseClientProps) {
 
       const allPassed = results.every((r) => r.passed) && results.length > 0;
 
+      // Show encouraging feedback
+      if (!allPassed) {
+        const msg = ENCOURAGING_MESSAGES[Math.floor(Math.random() * ENCOURAGING_MESSAGES.length)];
+        toast({ type: "info", title: msg ?? "Keep trying!", duration: 3500 });
+      }
+
       const res = await fetch(`/api/exercises/${exercise.id}/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -505,6 +521,12 @@ export function ExerciseClient({ exercise }: ExerciseClientProps) {
         if (data.newlySolved) {
           setShowConfetti(true);
           setTimeout(() => setShowConfetti(false), 3500);
+          toast({
+            type: "success",
+            title: "Exercise solved!",
+            description: "You earned " + String(data.xpGained) + " XP!",
+            duration: 4000,
+          });
         }
         if (data.achievements.length > 0) {
           setAchievements(data.achievements);

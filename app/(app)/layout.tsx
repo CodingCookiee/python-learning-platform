@@ -2,6 +2,7 @@
 import { Footer } from "@/components/layout/footer";
 import { PageTransition } from "@/components/animations";
 import { StreakPing } from "@/components/gamification/streak-ping";
+import { ToastProvider } from "@/components/ui/toast";
 
 export default function AppLayout({
   children,
@@ -9,14 +10,16 @@ export default function AppLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="flex min-h-full flex-col">
-      {/* Silent client component: pings streak endpoint once per browser session */}
-      <StreakPing />
-      <Navbar />
-      <main className="flex-1">
-        <PageTransition>{children}</PageTransition>
-      </main>
-      <Footer />
-    </div>
+    <ToastProvider>
+      <div className="flex min-h-full flex-col">
+        {/* Silent client component: pings streak endpoint once per browser session */}
+        <StreakPing />
+        <Navbar />
+        <main className="flex-1">
+          <PageTransition>{children}</PageTransition>
+        </main>
+        <Footer />
+      </div>
+    </ToastProvider>
   );
 }
