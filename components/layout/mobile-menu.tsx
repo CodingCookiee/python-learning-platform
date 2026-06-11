@@ -3,7 +3,16 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, LayoutDashboard, BookOpen, Trophy, User, Settings } from "lucide-react";
+import {
+  Menu,
+  X,
+  LayoutDashboard,
+  BookOpen,
+  Trophy,
+  User,
+  Settings,
+  ShieldCheck,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -12,6 +21,7 @@ interface MobileMenuProps {
   isAuthenticated: boolean;
   userName?: string | null;
   userEmail?: string | null;
+  isAdmin?: boolean;
   onSignOut: () => Promise<void>;
 }
 
@@ -29,7 +39,13 @@ const authLinks = [
   { href: "/settings", label: "Settings", Icon: Settings },
 ];
 
-export function MobileMenu({ isAuthenticated, userName, userEmail, onSignOut }: MobileMenuProps) {
+export function MobileMenu({
+  isAuthenticated,
+  userName,
+  userEmail,
+  isAdmin = false,
+  onSignOut,
+}: MobileMenuProps) {
   const [open, setOpen] = React.useState(false);
   const pathname = usePathname();
 
@@ -128,7 +144,10 @@ export function MobileMenu({ isAuthenticated, userName, userEmail, onSignOut }: 
 
                   <div className="h-px bg-border mb-1" />
 
-                  {authLinks.map(({ href, label, Icon }) => (
+                  {[
+                    ...authLinks,
+                    ...(isAdmin ? [{ href: "/admin", label: "Admin", Icon: ShieldCheck }] : []),
+                  ].map(({ href, label, Icon }) => (
                     <Link
                       key={href}
                       href={href}

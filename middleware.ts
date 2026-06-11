@@ -36,6 +36,22 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
+  // Admin route protection ? redirect non-admins to dashboard
+  if (isAuthenticated && pathname.startsWith("/admin")) {
+    const adminEmails = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim());
+    const userEmail = token?.email as string | undefined;
+    if (!userEmail || !adminEmails.includes(userEmail)) {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+  }
+
+  // Unauthenticated users trying to access admin get sent to sign-in
+  if (!isAuthenticated && pathname.startsWith("/admin")) {
+    const signInUrl = new URL("/auth/signin", req.url);
+    signInUrl.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(signInUrl);
+  }
+
   return NextResponse.next();
 }
 

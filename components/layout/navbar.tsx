@@ -10,11 +10,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { isAdmin } from "@/lib/api-auth";
 import { MobileMenu } from "@/components/layout/mobile-menu";
 
 export async function Navbar() {
   const session = await auth();
   const user = session?.user ?? null;
+  let userIsAdmin = false;
+  if (user?.email) {
+    const { prisma } = await import("@/lib/prisma");
+    const dbUser = await prisma.user.findUnique({
+      where: { email: user.email },
+      select: { id: true },
+    });
+    if (dbUser) userIsAdmin = await isAdmin(dbUser.id);
+  }
 
   async function handleSignOut() {
     "use server";
@@ -92,6 +102,14 @@ export async function Navbar() {
                   <DropdownMenuItem asChild>
                     <Link href="/settings">Settings</Link>
                   </DropdownMenuItem>
+                  {userIsAdmin && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin">Admin Dashboard</Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <form action={handleSignOut} className="w-full">
@@ -120,6 +138,7 @@ export async function Navbar() {
           isAuthenticated={!!user}
           userName={user?.name}
           userEmail={user?.email}
+          isAdmin={userIsAdmin}
           onSignOut={handleSignOut}
         />
       </div>
