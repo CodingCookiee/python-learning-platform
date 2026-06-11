@@ -14,8 +14,6 @@ export interface SuccessCheckProps {
  * Animated SVG checkmark that draws itself when `visible` becomes true.
  */
 export function SuccessCheck({ visible, size = 48, className }: SuccessCheckProps) {
-  const pathLength = 100;
-
   return (
     <AnimatePresence>
       {visible && (
@@ -42,8 +40,6 @@ export function SuccessCheck({ visible, size = 48, className }: SuccessCheckProp
               stroke="currentColor"
               strokeWidth="3"
               className="text-emerald-500"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
             />
             {/* Checkmark */}
@@ -54,8 +50,6 @@ export function SuccessCheck({ visible, size = 48, className }: SuccessCheckProp
               strokeLinecap="round"
               strokeLinejoin="round"
               className="text-emerald-500"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
               transition={{ duration: 0.35, delay: 0.3, ease: "easeOut" }}
             />
           </svg>
@@ -64,5 +58,3 @@ export function SuccessCheck({ visible, size = 48, className }: SuccessCheckProp
     </AnimatePresence>
   );
 }
-
-void pathLength; // suppress unused warning
