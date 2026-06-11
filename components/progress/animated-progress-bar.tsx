@@ -10,6 +10,9 @@ interface AnimatedProgressBarProps {
   barClassName?: string;
   delay?: number;
   showLabel?: boolean;
+  /** Adds a shimmer sweep animation over the bar */
+  shimmer?: boolean;
+  "aria-label"?: string;
 }
 
 export function AnimatedProgressBar({
@@ -18,6 +21,8 @@ export function AnimatedProgressBar({
   barClassName,
   delay = 0,
   showLabel = false,
+  shimmer = false,
+  "aria-label": ariaLabel,
 }: AnimatedProgressBarProps) {
   const clampedValue = Math.min(100, Math.max(0, value));
 
@@ -29,13 +34,21 @@ export function AnimatedProgressBar({
         aria-valuenow={clampedValue}
         aria-valuemin={0}
         aria-valuemax={100}
+        aria-label={ariaLabel}
       >
         <motion.div
-          className={cn("h-full bg-primary", barClassName)}
+          className={cn("relative h-full bg-primary overflow-hidden", barClassName)}
           initial={{ width: "0%" }}
           animate={{ width: `${clampedValue}%` }}
           transition={{ duration: 0.6, ease: "easeOut", delay }}
-        />
+        >
+          {shimmer && (
+            <span
+              aria-hidden="true"
+              className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent"
+            />
+          )}
+        </motion.div>
       </div>
       {showLabel && (
         <span className="font-heading text-xs font-semibold tabular-nums text-muted-foreground whitespace-nowrap">

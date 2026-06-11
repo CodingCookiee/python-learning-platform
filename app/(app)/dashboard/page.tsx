@@ -5,7 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FadeIn, StaggerContainer } from "@/components/animations";
-import { CircularProgress, AnimatedProgressBar, ModuleProgressCard } from "@/components/progress";
+import {
+  CircularProgress,
+  AnimatedProgressBar,
+  ModuleProgressCard,
+  AnimatedNumber,
+} from "@/components/progress";
 import { StreakDisplay } from "@/components/gamification/streak-display";
 import { XpProgressBar } from "@/components/gamification/xp-progress-bar";
 import { StreakCalendar } from "@/components/gamification/streak-calendar";
@@ -188,7 +193,7 @@ export default async function DashboardPage() {
                   Lessons Done
                 </p>
                 <p className="font-heading text-3xl font-semibold">
-                  {completion.lessons.completed}
+                  <AnimatedNumber value={completion.lessons.completed} />
                   <span className="text-lg font-normal text-muted-foreground">
                     /{completion.lessons.total}
                   </span>
