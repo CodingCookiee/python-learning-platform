@@ -5,7 +5,7 @@ import { Slot } from "radix-ui";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-none border border-transparent bg-clip-padding text-xs font-semibold tracking-widest whitespace-nowrap uppercase transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5",
+  "group/button relative overflow-hidden inline-flex shrink-0 items-center justify-center rounded-none border border-transparent bg-clip-padding text-xs font-semibold tracking-widest whitespace-nowrap uppercase transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5",
   {
     variants: {
       variant: {
@@ -44,19 +44,50 @@ function Button({
   variant = "default",
   size = "default",
   asChild = false,
+  onPointerDown,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
   }) {
   const Comp = asChild ? Slot.Root : "button";
+  const ref = React.useRef<HTMLElement | null>(null);
 
   return (
     <Comp
+      ref={ref as React.Ref<HTMLButtonElement>}
       data-slot="button"
       data-variant={variant}
       data-size={size}
       className={cn(buttonVariants({ variant, size, className }))}
+      onPointerDown={(e: React.PointerEvent<HTMLButtonElement>) => {
+        // Ripple effect ? only accesses ref inside the event handler, not during render
+        const el = ref.current;
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          const size = Math.max(rect.width, rect.height) * 2;
+          const x = e.clientX - rect.left - size / 2;
+          const y = e.clientY - rect.top - size / 2;
+          const span = document.createElement("span");
+          span.style.cssText =
+            [
+              "position:absolute",
+              "border-radius:50%",
+              "pointer-events:none",
+              "width:" + String(size) + "px",
+              "height:" + String(size) + "px",
+              "left:" + String(x) + "px",
+              "top:" + String(y) + "px",
+              "background:currentColor",
+              "opacity:0.12",
+              "transform:scale(0)",
+              "animation:ripple 0.5s linear",
+            ].join(";") + ";";
+          el.appendChild(span);
+          span.addEventListener("animationend", () => span.remove(), { once: true });
+        }
+        onPointerDown?.(e);
+      }}
       {...props}
     />
   );
