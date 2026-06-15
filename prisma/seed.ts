@@ -179,7 +179,7 @@ PyCharm is also excellent if you want a more opinionated Python experience out o
 
 If your setup is clean, the rest of the course becomes much easier. Think of this as the Python equivalent of making sure your Next.js dev environment is working before you start building features.`,
         order: 1,
-        estimatedTime: 60,
+        estimatedTime: 20,
       },
       {
         moduleId,
@@ -189,7 +189,7 @@ If your setup is clean, the rest of the course becomes much easier. Think of thi
         content:
           "Master Python variables, data types (int, float, str, bool, None), operators (arithmetic, comparison, logical), and type conversion. Learn how Python syntax differs from JavaScript, including naming conventions (snake_case vs camelCase).",
         order: 2,
-        estimatedTime: 90,
+        estimatedTime: 25,
       },
       {
         moduleId,
@@ -199,7 +199,7 @@ If your setup is clean, the rest of the course becomes much easier. Think of thi
         content:
           "Deep dive into Python strings including common methods (upper, lower, find, replace), f-string formatting (similar to template literals), string slicing, indexing, and raw strings for paths and regex.",
         order: 3,
-        estimatedTime: 75,
+        estimatedTime: 20,
       },
       {
         moduleId,
@@ -208,7 +208,7 @@ If your setup is clean, the rest of the course becomes much easier. Think of thi
         content:
           "Learn to use print() for output and input() for user input. Cover formatted output with f-strings, input validation, command line arguments with sys.argv, and file I/O basics.",
         order: 4,
-        estimatedTime: 45,
+        estimatedTime: 15,
       },
     ],
     2: [

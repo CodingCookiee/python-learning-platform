@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
 import { getCached, CacheKeys } from "@/lib/cache";
+import { getLessonEstimatedTime } from "@/lib/lesson-content";
 
 /**
  * GET /api/modules/[id]
@@ -116,7 +117,11 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: 
             title: lesson.title,
             description: lesson.description,
             order: lesson.order,
-            estimatedTime: lesson.estimatedTime,
+            estimatedTime: getLessonEstimatedTime(
+              learningModule.title,
+              lesson.title,
+              lesson.estimatedTime
+            ),
             exerciseCount: lesson.exercises.length,
             completed: lesson.progress[0]?.completed || false,
             completedAt: lesson.progress[0]?.completedAt || null,

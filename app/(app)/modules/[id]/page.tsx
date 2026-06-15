@@ -8,6 +8,7 @@ import { FadeIn, StaggerContainer } from "@/components/animations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { getLessonEstimatedTime } from "@/lib/lesson-content";
 import {
   CheckCircle2,
   Circle,
@@ -93,7 +94,7 @@ export default async function ModuleDetailPage({ params }: PageProps) {
     title: l.title,
     description: l.description,
     order: l.order,
-    estimatedTime: l.estimatedTime,
+    estimatedTime: getLessonEstimatedTime(learningModule.title, l.title, l.estimatedTime),
     exerciseCount: l.exercises.length,
     completed: l.progress[0]?.completed ?? false,
     completedAt: l.progress[0]?.completedAt?.toISOString() ?? null,
