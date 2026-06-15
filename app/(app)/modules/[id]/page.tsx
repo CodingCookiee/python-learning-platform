@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getLessonEstimatedTime } from "@/lib/lesson-content";
+import { formatProjectEstimatedTime } from "@/lib/project-time";
 import {
   CheckCircle2,
   Circle,
@@ -104,7 +105,7 @@ export default async function ModuleDetailPage({ params }: PageProps) {
     id: p.id,
     title: p.title,
     description: p.description,
-    estimatedTime: p.estimatedTime,
+    estimatedTime: formatProjectEstimatedTime(p.estimatedTime),
     xpReward: p.xpReward,
     hasSubmission: p.submissions.length > 0,
     latestSubmission: p.submissions[0] ?? null,

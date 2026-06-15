@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
 import { getCached } from "@/lib/cache";
+import { formatProjectEstimatedTime } from "@/lib/project-time";
+import { getProjectStarterTemplate } from "@/lib/project-template";
 
 /**
  * Cache key for a project detail by user
@@ -71,8 +73,8 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: 
           description: project.description,
           requirements,
           successCriteria,
-          starterTemplate: project.starterTemplate ?? null,
-          estimatedTime: project.estimatedTime,
+          starterTemplate: getProjectStarterTemplate(project.title, project.starterTemplate),
+          estimatedTime: formatProjectEstimatedTime(project.estimatedTime),
           xpReward: project.xpReward,
           module: project.module,
           submission: latestSubmission

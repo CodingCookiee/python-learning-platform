@@ -328,7 +328,7 @@ function getProjectsForModule(moduleId: string, moduleOrder: number) {
           "Build a calculator with basic operations (+, -, *, /), user interface with menu, input handling for two numbers, formatted output, error handling for division by zero and invalid inputs, loop for multiple calculations, and exit option.",
         successCriteria:
           "All operations work, clear menu, multiple calculations in one session, division by zero handled, non-numeric input handled, user-friendly output, clean exit, helpful comments, snake_case variables, handles all reasonable inputs.",
-        starterTemplate: "# CLI Calculator - Complete this implementation",
+        starterTemplate: "/templates/cli-calculator-starter.py",
         estimatedTime: 180,
         xpReward: 100,
       },
@@ -342,7 +342,7 @@ function getProjectsForModule(moduleId: string, moduleOrder: number) {
           "Support add, list, complete, delete, filter tasks. Save to JSON file, load on start, assign unique IDs to tasks.",
         successCriteria:
           "Add todos, list all with status, mark complete/incomplete, delete by ID, filter by status, persist across restarts, unique IDs, handle empty list, handle invalid operations, proper JSON formatting, uses lists and dicts, uses list comprehensions.",
-        starterTemplate: "# Todo List Manager - Complete this implementation",
+        starterTemplate: "/templates/todo-list-manager-starter.py",
         estimatedTime: 240,
         xpReward: 150,
       },
@@ -356,7 +356,7 @@ function getProjectsForModule(moduleId: string, moduleOrder: number) {
           "Read text files, count words/lines/characters, search for words/patterns, calculate statistics (avg word length, most common words), export results, support multiple files.",
         successCriteria:
           "Organized into modules, accurate counts, word search works, word frequency analysis, handles file errors, all functions have docstrings, uses higher-order functions, analyzes multiple files, exports results, modular and reusable code, uses lambda functions, proper separation of concerns.",
-        starterTemplate: "# Text Processing Tool - Complete this implementation",
+        starterTemplate: "/templates/text-processing-tool-starter.py",
         estimatedTime: 240,
         xpReward: 150,
       },

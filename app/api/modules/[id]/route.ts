@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
 import { getCached, CacheKeys } from "@/lib/cache";
 import { getLessonEstimatedTime } from "@/lib/lesson-content";
+import { formatProjectEstimatedTime } from "@/lib/project-time";
 
 /**
  * GET /api/modules/[id]
@@ -130,7 +131,7 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: 
             id: project.id,
             title: project.title,
             description: project.description,
-            estimatedTime: project.estimatedTime,
+            estimatedTime: formatProjectEstimatedTime(project.estimatedTime),
             xpReward: project.xpReward,
             hasSubmission: project.submissions.length > 0,
             latestSubmission: project.submissions[0] || null,
