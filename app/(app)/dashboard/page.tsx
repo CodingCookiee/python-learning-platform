@@ -1,4 +1,4 @@
-﻿import { redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -47,6 +47,7 @@ interface ProgressData {
     projectsCompleted: number;
     projectsTotal: number;
     completionPercentage: number;
+    modulePhase: string;
   }>;
   recentActivity: {
     lessons: Array<{
@@ -167,6 +168,7 @@ async function getProgressData(userId: string): Promise<ProgressData | null> {
       return {
         moduleId: mod.id,
         moduleTitle: mod.title,
+        modulePhase: mod.phase,
         lessonsCompleted: done,
         lessonsTotal: mod.lessons.length,
         projectsCompleted: doneP,
@@ -209,13 +211,14 @@ async function getProgressData(userId: string): Promise<ProgressData | null> {
   }
 }
 
-function getPhaseNumber(moduleTitle: string): number {
-  const title = moduleTitle.toLowerCase();
-  if (title.includes("foundation") || title.includes("basic") || title.includes("intro")) return 1;
-  if (title.includes("intermediate") || title.includes("function") || title.includes("oop"))
-    return 2;
-  if (title.includes("advanced") || title.includes("async") || title.includes("data")) return 3;
-  return 4;
+function phaseToNumber(phase: string): number {
+  const p = phase.toLowerCase();
+  if (p === "1" || p.includes("foundation")) return 1;
+  if (p === "2" || p.includes("intermediate")) return 2;
+  if (p === "3" || p.includes("advanced")) return 3;
+  if (p === "4" || p.includes("applied")) return 4;
+  const n = parseInt(phase);
+  return isNaN(n) ? 1 : n;
 }
 
 function getTierColor(tier: string): string {
@@ -362,7 +365,7 @@ export default async function DashboardPage() {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex flex-col gap-1">
                         <Badge className="mb-1 w-fit text-muted-foreground">
-                          Phase {getPhaseNumber(currentModule.moduleTitle)}
+                          Phase {phaseToNumber(currentModule.modulePhase ?? "")}
                         </Badge>
                         <CardTitle>{currentModule.moduleTitle}</CardTitle>
                       </div>
@@ -487,7 +490,7 @@ export default async function DashboardPage() {
                   key={module.moduleId}
                   moduleId={module.moduleId}
                   title={module.moduleTitle}
-                  phase={getPhaseNumber(module.moduleTitle)}
+                  phase={phaseToNumber(module.modulePhase ?? "")}
                   completionPercentage={module.completionPercentage}
                   lessonsCompleted={module.lessonsCompleted}
                   lessonsTotal={module.lessonsTotal}
