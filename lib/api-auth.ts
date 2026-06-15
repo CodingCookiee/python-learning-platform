@@ -65,8 +65,10 @@ export async function isAdmin(userId: string): Promise<boolean> {
 /**
  * Wrapper for API routes that require admin role
  */
-export function withAdmin(handler: (req: NextRequest, context: AuthContext) => Promise<Response>) {
-  return withAuth(async (req: NextRequest, context: AuthContext) => {
+export function withAdmin<TParams extends Record<string, string> = Record<string, never>>(
+  handler: (req: NextRequest, context: AuthContext<TParams>) => Promise<Response>
+) {
+  return withAuth<TParams>(async (req: NextRequest, context: AuthContext<TParams>) => {
     const isUserAdmin = await isAdmin(context.userId);
 
     if (!isUserAdmin) {

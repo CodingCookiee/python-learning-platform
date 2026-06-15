@@ -105,9 +105,9 @@ export default async function AdminDashboardPage() {
                   </Link>
                 </Button>
                 <Button variant="outline" asChild>
-                  <Link href="/modules">
+                  <Link href="/admin/content">
                     <BookOpen className="size-4" aria-hidden="true" />
-                    View Modules
+                    Manage Content
                   </Link>
                 </Button>
               </div>
