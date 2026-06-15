@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { auth } from "@/auth";
+import { getAppOrigin } from "@/lib/server-url";
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { AchievementBadge } from "@/components/gamification";
@@ -54,16 +55,9 @@ interface ProgressData {
   };
 }
 
-function getBaseUrl(): string {
-  return (
-    process.env.NEXT_PUBLIC_APP_URL ??
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
-  );
-}
-
 async function getProgressData(cookieHeader: string): Promise<ProgressData | null> {
   try {
-    const res = await fetch(`${getBaseUrl()}/api/progress`, {
+    const res = await fetch(`${await getAppOrigin()}/api/progress`, {
       headers: { cookie: cookieHeader },
       cache: "no-store",
     });

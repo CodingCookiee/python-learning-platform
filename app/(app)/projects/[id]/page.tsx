@@ -1,20 +1,14 @@
 ﻿import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { auth } from "@/auth";
+import { getAppOrigin } from "@/lib/server-url";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import { ProjectDetailClient } from "./_components/project-detail-client";
 import type { ProjectDetailData } from "./_components/project-detail-client";
 
-function getBaseUrl(): string {
-  return (
-    process.env.NEXT_PUBLIC_APP_URL ??
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
-  );
-}
-
 async function getProject(id: string, cookieHeader: string): Promise<ProjectDetailData | null> {
-  const res = await fetch(`${getBaseUrl()}/api/projects/${id}`, {
+  const res = await fetch(`${await getAppOrigin()}/api/projects/${id}`, {
     headers: { cookie: cookieHeader },
     cache: "no-store",
   });

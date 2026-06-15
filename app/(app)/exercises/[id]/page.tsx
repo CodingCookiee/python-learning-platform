@@ -1,20 +1,14 @@
 import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { auth } from "@/auth";
+import { getAppOrigin } from "@/lib/server-url";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { FadeIn } from "@/components/animations";
 import { ExerciseClient } from "./_components/exercise-client";
 import type { ExerciseData } from "./_components/exercise-client";
 
-function getBaseUrl(): string {
-  return (
-    process.env.NEXT_PUBLIC_APP_URL ??
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
-  );
-}
-
 async function getExercise(id: string, cookieHeader: string): Promise<ExerciseData | null> {
-  const res = await fetch(`${getBaseUrl()}/api/exercises/${id}`, {
+  const res = await fetch(`${await getAppOrigin()}/api/exercises/${id}`, {
     headers: { cookie: cookieHeader },
     cache: "no-store",
   });

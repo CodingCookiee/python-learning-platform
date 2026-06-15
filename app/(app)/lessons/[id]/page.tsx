@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { auth } from "@/auth";
+import { getAppOrigin } from "@/lib/server-url";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import {
   LessonSidebar,
@@ -68,17 +69,8 @@ interface ModuleData {
   lessons: ModuleLessonItem[];
 }
 
-// Data fetchers
-
-function getBaseUrl(): string {
-  return (
-    process.env.NEXT_PUBLIC_APP_URL ??
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
-  );
-}
-
 async function getLesson(id: string, cookieHeader: string): Promise<LessonData | null> {
-  const res = await fetch(`${getBaseUrl()}/api/lessons/${id}`, {
+  const res = await fetch(`${await getAppOrigin()}/api/lessons/${id}`, {
     headers: { cookie: cookieHeader },
     cache: "no-store",
   });
@@ -91,7 +83,7 @@ async function getModuleLessons(
   moduleId: string,
   cookieHeader: string
 ): Promise<ModuleData | null> {
-  const res = await fetch(`${getBaseUrl()}/api/modules/${moduleId}`, {
+  const res = await fetch(`${await getAppOrigin()}/api/modules/${moduleId}`, {
     headers: { cookie: cookieHeader },
     cache: "no-store",
   });

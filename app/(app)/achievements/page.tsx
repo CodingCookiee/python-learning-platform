@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { auth } from "@/auth";
+import { getAppOrigin } from "@/lib/server-url";
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { AchievementBadge } from "@/components/gamification";
@@ -25,16 +26,9 @@ interface AchievementsData {
   total: number;
 }
 
-function getBaseUrl(): string {
-  return (
-    process.env.NEXT_PUBLIC_APP_URL ??
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
-  );
-}
-
 async function getAchievements(cookieHeader: string): Promise<AchievementsData | null> {
   try {
-    const res = await fetch(`${getBaseUrl()}/api/achievements`, {
+    const res = await fetch(`${await getAppOrigin()}/api/achievements`, {
       headers: { cookie: cookieHeader },
       cache: "no-store",
     });

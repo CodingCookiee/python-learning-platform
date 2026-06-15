@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { auth } from "@/auth";
+import { getAppOrigin } from "@/lib/server-url";
 import { isAdmin } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
@@ -11,15 +12,8 @@ import { FadeIn, StaggerContainer } from "@/components/animations";
 import { ClipboardList, Clock, ArrowRight, User } from "lucide-react";
 import type { EvaluationListItem } from "@/app/api/admin/projects/submissions/route";
 
-function getBaseUrl(): string {
-  return (
-    process.env.NEXT_PUBLIC_APP_URL ??
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
-  );
-}
-
 async function getSubmissions(cookieHeader: string): Promise<EvaluationListItem[]> {
-  const res = await fetch(`${getBaseUrl()}/api/admin/projects/submissions`, {
+  const res = await fetch(`${await getAppOrigin()}/api/admin/projects/submissions`, {
     headers: { cookie: cookieHeader },
     cache: "no-store",
   });
