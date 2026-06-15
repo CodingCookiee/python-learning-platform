@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { auth } from "@/auth";
 import { FadeIn, StaggerContainer } from "@/components/animations";
+import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { AchievementBadge } from "@/components/gamification";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -93,6 +94,7 @@ export default async function AchievementsPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       <StaggerContainer className="flex flex-col gap-8">
+        <Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Achievements" }]} />
         <FadeIn>
           <div className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center justify-between gap-4">

@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { auth } from "@/auth";
 import { FadeIn, StaggerContainer } from "@/components/animations";
+import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { AchievementBadge } from "@/components/gamification";
 import { LevelBadge } from "@/components/gamification/level-badge";
 import { XpProgressBar } from "@/components/gamification/xp-progress-bar";
@@ -107,6 +108,7 @@ export default async function ProfilePage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       <StaggerContainer className="flex flex-col gap-8">
+        <Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Profile" }]} />
         <FadeIn>
           <Card>
             <CardContent className="flex flex-col gap-6 pt-8 sm:flex-row sm:items-start sm:gap-8">

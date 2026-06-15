@@ -48,7 +48,10 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
   if (crumbs.length < 2) return null;
 
   return (
-    <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-xs text-muted-foreground">
+    <nav
+      aria-label="Breadcrumb"
+      className="flex items-center gap-1 text-xs text-muted-foreground overflow-x-auto scrollbar-none flex-nowrap"
+    >
       {crumbs.map((crumb, index) => {
         const isLast = index === crumbs.length - 1;
 
