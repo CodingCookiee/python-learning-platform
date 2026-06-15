@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
 import { getCached, CacheKeys } from "@/lib/cache";
+import { getLessonContent } from "@/lib/lesson-content";
 
 /**
  * GET /api/lessons/[id]
@@ -69,7 +70,12 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: 
           id: lesson.id,
           title: lesson.title,
           description: lesson.description,
-          content: lesson.content,
+          content: getLessonContent({
+            moduleTitle: lesson.module.title,
+            title: lesson.title,
+            description: lesson.description,
+            content: lesson.content,
+          }),
           order: lesson.order,
           estimatedTime: lesson.estimatedTime,
           module: lesson.module,

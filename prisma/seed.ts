@@ -66,8 +66,118 @@ function getLessonsForModule(moduleId: string, moduleOrder: number) {
         title: "Setting Up Python",
         description:
           "Install Python, configure your development environment, and learn about virtual environments and IDE setup.",
-        content:
-          "Learn how to set up Python on your system, configure your IDE, and create virtual environments. We cover installation on Windows, macOS, and Linux, plus compare Python setup to Node.js for JavaScript developers.",
+        content: `# Setting Up Python
+
+## Why this matters
+
+Before you can write Python confidently, you need a setup that feels as smooth as your JavaScript workflow. This lesson walks through the basics of installing Python, verifying the install, creating isolated environments, and setting up a comfortable editor.
+
+## What you will learn
+
+- How to install Python on Windows, macOS, and Linux
+- How to verify that Python and pip are available
+- Why virtual environments matter
+- How Python setup compares to Node.js setup
+- A simple checklist for getting ready to code
+
+## Install Python
+
+### Windows
+
+1. Download the latest stable Python installer from the official Python website.
+2. Run the installer and make sure \`Add Python to PATH\` is checked.
+3. Finish the install, then open PowerShell and run:
+
+\`\`\`bash
+python --version
+pip --version
+\`\`\`
+
+### macOS
+
+1. Install Python using the official installer or a package manager such as Homebrew.
+2. Verify the install in Terminal:
+
+\`\`\`bash
+python3 --version
+pip3 --version
+\`\`\`
+
+### Linux
+
+1. Use your distribution package manager or install from python.org.
+2. Verify the install:
+
+\`\`\`bash
+python3 --version
+pip3 --version
+\`\`\`
+
+## Create a virtual environment
+
+Virtual environments keep project dependencies isolated, similar to having a dedicated \`node_modules\` folder per app.
+
+\`\`\`bash
+python -m venv .venv
+\`\`\`
+
+Activate it:
+
+\`\`\`bash
+# Windows
+.venv\\\\Scripts\\\\activate
+
+# macOS / Linux
+source .venv/bin/activate
+\`\`\`
+
+Then upgrade pip:
+
+\`\`\`bash
+python -m pip install --upgrade pip
+\`\`\`
+
+## Choose an editor
+
+### VS Code
+
+VS Code is a great default for Python learners:
+
+- Install the Python extension
+- Select the interpreter from \`.venv\`
+- Enable linting and formatting
+
+### PyCharm
+
+PyCharm is also excellent if you want a more opinionated Python experience out of the box.
+
+## Python vs Node.js setup
+
+| Task | Python | Node.js |
+| --- | --- | --- |
+| Install runtime | Python installer | Node installer |
+| Package manager | pip | npm / pnpm |
+| Project isolation | venv | node_modules |
+| Locking dependencies | requirements.txt / pyproject.toml | package-lock.json / pnpm-lock.yaml |
+
+## Common pitfalls
+
+- Forgetting to activate the virtual environment before installing packages
+- Mixing system Python with project Python
+- Not checking that \`python\` or \`python3\` points to the expected interpreter
+- Skipping PATH setup on Windows
+
+## Quick practice
+
+1. Install Python.
+2. Verify \`python --version\`.
+3. Create \`.venv\`.
+4. Activate it.
+5. Confirm \`pip\` works inside the environment.
+
+## Takeaway
+
+If your setup is clean, the rest of the course becomes much easier. Think of this as the Python equivalent of making sure your Next.js dev environment is working before you start building features.`,
         order: 1,
         estimatedTime: 60,
       },
