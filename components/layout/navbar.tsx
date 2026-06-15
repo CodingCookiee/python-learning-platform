@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { isAdmin } from "@/lib/api-auth";
+import { SearchBar } from "@/components/layout/search-bar";
 import { MobileMenu } from "@/components/layout/mobile-menu";
 
 export async function Navbar() {
@@ -41,6 +42,9 @@ export async function Navbar() {
             PyLearn
           </span>
         </Link>
+
+        {/* Search bar */}
+        <SearchBar />
 
         {/* Desktop nav links */}
         <nav

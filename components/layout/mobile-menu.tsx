@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   Menu,
   X,
+  Search,
   LayoutDashboard,
   BookOpen,
   Trophy,
@@ -32,6 +33,7 @@ const publicLinks = [
 ];
 
 const authLinks = [
+  { href: "/search", label: "Search", Icon: Search },
   { href: "/dashboard", label: "Dashboard", Icon: LayoutDashboard },
   { href: "/modules", label: "Modules", Icon: BookOpen },
   { href: "/achievements", label: "Achievements", Icon: Trophy },
