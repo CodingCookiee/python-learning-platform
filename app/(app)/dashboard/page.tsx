@@ -1,6 +1,7 @@
 ﻿import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -50,7 +51,7 @@ interface ProgressData {
   recentActivity: {
     lessons: Array<{
       lesson: { id: string; title: string; moduleId: string; order: number };
-      completedAt: string | Date;
+      completedAt: string | Date | null;
     }>;
     projects: Array<{
       project: { id: string; title: string; moduleId: string; xpReward: number };
@@ -71,16 +72,139 @@ interface ProgressData {
   };
 }
 
-async function getProgressData(cookieHeader: string): Promise<ProgressData | null> {
+async function getProgressData(userId: string): Promise<ProgressData | null> {
   try {
-    const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
-    const res = await fetch(`${baseUrl}/api/progress`, {
-      headers: { cookie: cookieHeader },
-      cache: "no-store",
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, name: true, email: true, xp: true, level: true },
     });
-    if (!res.ok) return null;
-    return (await res.json()) as ProgressData;
-  } catch {
+    if (!user) return null;
+
+    const [completedLessons, passedExercises, approvedProjects, unlockedAchievements] =
+      await Promise.all([
+        prisma.progress.findMany({
+          where: { userId, completed: true },
+          include: { lesson: { select: { id: true, title: true, moduleId: true, order: true } } },
+        }),
+        prisma.exerciseSubmission.findMany({
+          where: { userId, passed: true },
+          distinct: ["exerciseId"],
+          select: { exerciseId: true, submittedAt: true },
+        }),
+        prisma.projectSubmission.findMany({
+          where: { userId, status: "approved" },
+          include: {
+            project: { select: { id: true, title: true, moduleId: true, xpReward: true } },
+          },
+        }),
+        prisma.userAchievement.findMany({
+          where: { userId },
+          include: { achievement: true },
+          orderBy: { unlockedAt: "desc" },
+        }),
+      ]);
+
+    let streak = await prisma.streak.findUnique({ where: { userId } });
+    if (!streak)
+      streak = await prisma.streak.create({
+        data: { userId, currentStreak: 0, longestStreak: 0, lastActivityDate: new Date() },
+      });
+
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 84);
+    cutoff.setHours(0, 0, 0, 0);
+    const [rp, re] = await Promise.all([
+      prisma.progress.findMany({
+        where: { userId, completed: true, completedAt: { gte: cutoff } },
+        select: { completedAt: true },
+      }),
+      prisma.exerciseSubmission.findMany({
+        where: { userId, passed: true, submittedAt: { gte: cutoff } },
+        select: { submittedAt: true },
+      }),
+    ]);
+    const fmt = (d: Date) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${dd}`;
+    };
+    const ads = new Set<string>();
+    for (const p of rp) if (p.completedAt) ads.add(fmt(new Date(p.completedAt)));
+    for (const e of re) ads.add(fmt(new Date(e.submittedAt)));
+    const activeDates = Array.from(ads).sort();
+
+    const [tL, tP] = await Promise.all([prisma.lesson.count(), prisma.project.count()]);
+    const denom = tL + tP;
+    const completion = {
+      lessons: {
+        completed: completedLessons.length,
+        total: tL,
+        percentage: tL > 0 ? Math.round((completedLessons.length / tL) * 100) : 0,
+      },
+      exercises: { completed: passedExercises.length, total: 0, percentage: 0 },
+      projects: {
+        completed: approvedProjects.length,
+        total: tP,
+        percentage: tP > 0 ? Math.round((approvedProjects.length / tP) * 100) : 0,
+      },
+      overall:
+        denom > 0
+          ? Math.round(((completedLessons.length + approvedProjects.length) / denom) * 100)
+          : 0,
+    };
+
+    const mods = await prisma.module.findMany({
+      orderBy: { order: "asc" },
+      include: { lessons: { select: { id: true } }, projects: { select: { id: true } } },
+    });
+    const moduleProgress = mods.map((mod) => {
+      const lIds = mod.lessons.map((l) => l.id),
+        pIds = mod.projects.map((p) => p.id);
+      const done = completedLessons.filter((cl) => lIds.includes(cl.lesson.id)).length,
+        doneP = approvedProjects.filter((ap) => pIds.includes(ap.project.id)).length;
+      const tot = mod.lessons.length + mod.projects.length;
+      return {
+        moduleId: mod.id,
+        moduleTitle: mod.title,
+        lessonsCompleted: done,
+        lessonsTotal: mod.lessons.length,
+        projectsCompleted: doneP,
+        projectsTotal: mod.projects.length,
+        completionPercentage: tot > 0 ? Math.round(((done + doneP) / tot) * 100) : 0,
+      };
+    });
+
+    return {
+      user: { id: user.id, name: user.name, email: user.email, xp: user.xp, level: user.level },
+      streak: {
+        current: streak.currentStreak,
+        longest: streak.longestStreak,
+        lastActivity: streak.lastActivityDate,
+        activeDates,
+      },
+      completion,
+      modules: moduleProgress,
+      recentActivity: {
+        lessons: completedLessons.slice(-5).reverse(),
+        projects: approvedProjects.slice(-3).reverse(),
+      },
+      achievements: {
+        unlocked: unlockedAchievements.map((ua) => ({
+          id: ua.achievement.id,
+          name: ua.achievement.name,
+          description: ua.achievement.description,
+          icon: ua.achievement.icon,
+          category: ua.achievement.category,
+          tier: ua.achievement.tier,
+          xpReward: ua.achievement.xpReward,
+          unlockedAt: ua.unlockedAt,
+        })),
+        total: unlockedAchievements.length,
+      },
+    };
+  } catch (err) {
+    console.error("Dashboard data error:", err);
     return null;
   }
 }
@@ -111,14 +235,13 @@ export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user) redirect("/auth/signin");
 
-  const { cookies } = await import("next/headers");
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore
-    .getAll()
-    .map((c) => `${c.name}=${c.value}`)
-    .join("; ");
+  const dbUser = await prisma.user.findUnique({
+    where: { email: session?.user?.email ?? "" },
+    select: { id: true },
+  });
+  if (!dbUser) redirect("/auth/signin");
 
-  const data = await getProgressData(cookieHeader);
+  const data = await getProgressData(dbUser.id);
 
   if (!data) {
     return (
