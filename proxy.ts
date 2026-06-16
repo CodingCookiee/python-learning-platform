@@ -3,11 +3,10 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 /**
- * Middleware for route protection and authentication
- * Runs on every request to protected routes
+ * Proxy for route protection and authentication.
+ * Runs on every request to protected routes.
  */
-
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const token = await getToken({
     req,
     secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
@@ -36,7 +35,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
-  // Admin route protection ? redirect non-admins to dashboard
+  // Admin route protection - redirect non-admins to dashboard
   if (isAuthenticated && pathname.startsWith("/admin")) {
     const adminEmails = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim());
     const userEmail = token?.email as string | undefined;
@@ -55,7 +54,7 @@ export async function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-// Configure which routes the middleware runs on
+// Configure which routes the proxy runs on
 export const config = {
   matcher: [
     /*
