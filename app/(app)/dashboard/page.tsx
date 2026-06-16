@@ -235,9 +235,9 @@ function getTierColor(tier: string): string {
 }
 
 const roadmapPhases = [
-  { phase: "Phase 2", label: "Intermediate", modules: "Modules 4-7", weeks: "Weeks 5-10" },
-  { phase: "Phase 3", label: "Advanced Python", modules: "Modules 8-10", weeks: "Weeks 11-16" },
-  { phase: "Phase 4", label: "Applied Python", modules: "Modules 11-16", weeks: "Weeks 17-26" },
+  { phase: "Phase 2", label: "Intermediate", modules: "Modules 4-7", weeks: "Week 2" },
+  { phase: "Phase 3", label: "Advanced Python", modules: "Modules 8-10", weeks: "Week 3" },
+  { phase: "Phase 4", label: "Applied Python", modules: "Modules 11-16", weeks: "Week 4" },
 ];
 
 export default async function DashboardPage() {
@@ -408,8 +408,8 @@ export default async function DashboardPage() {
                     <BookOpen className="size-8 text-muted-foreground" aria-hidden="true" />
                     <div className="flex flex-col gap-2">
                       <p className="text-sm text-muted-foreground">
-                        You&apos;ve completed the currently released modules. The next phases are on
-                        the roadmap.
+                        You&apos;ve completed the currently released modules. The roadmap below
+                        shows the remaining weeks in this 3-4 week sprint.
                       </p>
                       <div className="grid gap-2 text-left sm:grid-cols-3">
                         {roadmapPhases.map((phase) => (

@@ -88,10 +88,10 @@ const testimonials = [
 ];
 
 const curriculumPhases = [
-  { phase: "Phase 1", label: "Foundations", modules: "Modules 1-3", weeks: "Weeks 1-4" },
-  { phase: "Phase 2", label: "Intermediate", modules: "Modules 4-7", weeks: "Weeks 5-10" },
-  { phase: "Phase 3", label: "Advanced Python", modules: "Modules 8-10", weeks: "Weeks 11-16" },
-  { phase: "Phase 4", label: "Applied Python", modules: "Modules 11-16", weeks: "Weeks 17-26" },
+  { phase: "Phase 1", label: "Foundations", modules: "Modules 1-3", weeks: "Week 1" },
+  { phase: "Phase 2", label: "Intermediate", modules: "Modules 4-7", weeks: "Week 2" },
+  { phase: "Phase 3", label: "Advanced Python", modules: "Modules 8-10", weeks: "Week 3" },
+  { phase: "Phase 4", label: "Applied Python", modules: "Modules 11-16", weeks: "Week 4" },
 ];
 
 const topicTags = [
@@ -320,8 +320,8 @@ export default async function LandingPage() {
                 Current release and roadmap
               </h2>
               <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
-                Phase 1 is live now. The roadmap below shows the full four-phase learning path so
-                learners can see what comes next.
+                Phase 1 is live now. The full roadmap is designed as a focused 3-4 week sprint, so
+                learners can see what comes next without being sold a marathon.
               </p>
             </div>
 
