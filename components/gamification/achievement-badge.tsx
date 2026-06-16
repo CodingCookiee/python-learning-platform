@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
+import * as LucideIcons from "lucide-react";
 import { Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -34,10 +35,24 @@ const tierTextStyles: Record<string, string> = {
 };
 
 const sizeConfig = {
-  sm: { container: "w-16 h-16", icon: "text-2xl" },
-  md: { container: "w-24 h-24", icon: "text-4xl" },
-  lg: { container: "w-32 h-32", icon: "text-5xl" },
+  sm: { container: "w-16 h-16", iconSize: 24 },
+  md: { container: "w-24 h-24", iconSize: 40 },
+  lg: { container: "w-32 h-32", iconSize: 48 },
 };
+
+function renderIconComponent(iconName: string, size: number, className: string) {
+  type LucideIconProps = {
+    size?: number;
+    className?: string;
+    "aria-hidden"?: boolean;
+  };
+
+  const IconComponent = LucideIcons[
+    iconName as keyof typeof LucideIcons
+  ] as React.ComponentType<LucideIconProps>;
+  if (!IconComponent) return null;
+  return <IconComponent size={size} className={className} aria-hidden="true" />;
+}
 
 export function AchievementBadge({
   name,
@@ -69,10 +84,8 @@ export function AchievementBadge({
       )}
     >
       {/* Icon */}
-      <div className="flex flex-1 items-center justify-center">
-        <span className={sizes.icon} role="img" aria-label={name}>
-          {icon}
-        </span>
+      <div className="flex flex-1 items-center justify-center" role="img" aria-label={name}>
+        {renderIconComponent(icon, sizes.iconSize, "text-current")}
       </div>
       {/* Name strip */}
       <span
