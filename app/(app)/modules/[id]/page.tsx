@@ -21,6 +21,21 @@ import {
   ChevronRight,
 } from "lucide-react";
 
+function getProjectSubmissionState(
+  status?: string | null
+): "none" | "pending" | "rejected" | "approved" {
+  switch (status?.toLowerCase()) {
+    case "approved":
+      return "approved";
+    case "pending":
+      return "pending";
+    case "rejected":
+      return "rejected";
+    default:
+      return "none";
+  }
+}
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }
@@ -107,7 +122,6 @@ export default async function ModuleDetailPage({ params }: PageProps) {
     description: p.description,
     estimatedTime: formatProjectEstimatedTime(p.estimatedTime),
     xpReward: p.xpReward,
-    hasSubmission: p.submissions.length > 0,
     latestSubmission: p.submissions[0] ?? null,
   }));
 
@@ -230,11 +244,37 @@ export default async function ModuleDetailPage({ params }: PageProps) {
                                 {project.description}
                               </p>
                             </div>
-                            <span
-                              className={`shrink-0 text-xs font-semibold tracking-widest uppercase${project.hasSubmission ? " text-emerald-500" : " text-muted-foreground"}`}
-                            >
-                              {project.hasSubmission ? "Submitted" : "Not started"}
-                            </span>
+                            {(() => {
+                              const state = getProjectSubmissionState(
+                                project.latestSubmission?.status
+                              );
+                              if (state === "approved") {
+                                return (
+                                  <span className="shrink-0 text-xs font-semibold tracking-widest uppercase text-emerald-500">
+                                    Complete
+                                  </span>
+                                );
+                              }
+                              if (state === "pending") {
+                                return (
+                                  <span className="shrink-0 text-xs font-semibold tracking-widest uppercase text-amber-500">
+                                    Under Review
+                                  </span>
+                                );
+                              }
+                              if (state === "rejected") {
+                                return (
+                                  <span className="shrink-0 text-xs font-semibold tracking-widest uppercase text-red-500">
+                                    Needs Revision
+                                  </span>
+                                );
+                              }
+                              return (
+                                <span className="shrink-0 text-xs font-semibold tracking-widest uppercase text-muted-foreground">
+                                  Not started
+                                </span>
+                              );
+                            })()}
                           </div>
                           <div className="flex flex-wrap items-center gap-3">
                             <Badge variant="secondary" className="flex items-center gap-1">

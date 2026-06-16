@@ -1,7 +1,14 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { withAuth, isAdmin, AuthContext } from "@/lib/api-auth";
-import { invalidateUserCache, invalidateCache } from "@/lib/cache";
+import { invalidateCache, invalidateUserCache } from "@/lib/cache";
+import {
+  checkAndUnlockAchievements,
+  checkMilestone,
+  updateStreak,
+  updateUserLevel,
+} from "@/lib/achievements";
+import { prisma } from "@/lib/prisma";
 
 const evaluateSchema = z.object({
   decision: z.enum(["approved", "rejected"]),
@@ -9,13 +16,16 @@ const evaluateSchema = z.object({
   checklist: z.record(z.string(), z.boolean()),
 });
 
+function projectCacheKey(projectId: string, userId: string) {
+  return `project:${projectId}:${userId}`;
+}
+
 /**
  * POST /api/admin/projects/submissions/[submissionId]/evaluate
  * Evaluate a project submission. Admin only.
  */
 export const POST = withAuth<{ submissionId: string }>(
   async (req: NextRequest, context: AuthContext<{ submissionId: string }>) => {
-    // Admin guard
     const adminCheck = await isAdmin(context.userId);
     if (!adminCheck) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -41,9 +51,6 @@ export const POST = withAuth<{ submissionId: string }>(
 
       const { decision, feedback, checklist } = validation.data;
 
-      const { prisma } = await import("@/lib/prisma");
-
-      // Fetch the submission with its project
       const submission = await prisma.projectSubmission.findUnique({
         where: { id: submissionId },
         select: {
@@ -69,7 +76,6 @@ export const POST = withAuth<{ submissionId: string }>(
         return NextResponse.json({ error: "Submission not found" }, { status: 404 });
       }
 
-      // Only pending submissions can be evaluated
       if (submission.status !== "pending") {
         return NextResponse.json(
           { error: "Submission has already been evaluated" },
@@ -77,7 +83,6 @@ export const POST = withAuth<{ submissionId: string }>(
         );
       }
 
-      // Update the submission
       await prisma.projectSubmission.update({
         where: { id: submissionId },
         data: {
@@ -87,7 +92,12 @@ export const POST = withAuth<{ submissionId: string }>(
         },
       });
 
-      // If approved: update module lesson progress
+      let xpGained = 0;
+      let levelUp = false;
+      let newLevel = 0;
+      let milestone: 25 | 50 | 75 | 100 | null = null;
+      const newAchievements: Awaited<ReturnType<typeof checkAndUnlockAchievements>> = [];
+
       if (decision === "approved") {
         const moduleId = submission.project.moduleId;
         const lessonIds = submission.project.module.lessons.map((l) => l.id);
@@ -108,16 +118,83 @@ export const POST = withAuth<{ submissionId: string }>(
           });
         }
 
-        // Invalidate module-level caches
+        const previousApprovedSubmission = await prisma.projectSubmission.findFirst({
+          where: {
+            userId: submission.userId,
+            projectId: submission.projectId,
+            status: "approved",
+            id: { not: submissionId },
+          },
+          select: { id: true },
+        });
+
+        if (!previousApprovedSubmission) {
+          const project = await prisma.project.findUnique({
+            where: { id: submission.projectId },
+            select: {
+              xpReward: true,
+              module: { select: { order: true } },
+            },
+          });
+
+          if (project) {
+            xpGained = project.xpReward;
+
+            const userBefore = await prisma.user.findUnique({
+              where: { id: submission.userId },
+              select: { level: true },
+            });
+            const oldLevel = userBefore?.level ?? 1;
+
+            await prisma.user.update({
+              where: { id: submission.userId },
+              data: { xp: { increment: xpGained } },
+            });
+            await updateUserLevel(submission.userId);
+
+            const projectAchievements = await checkAndUnlockAchievements(submission.userId, {
+              type: "project_complete",
+              moduleOrder: project.module.order,
+            });
+            newAchievements.push(...projectAchievements);
+
+            await updateStreak(submission.userId);
+
+            const userAfter = await prisma.user.findUnique({
+              where: { id: submission.userId },
+              select: { level: true, xp: true },
+            });
+            newLevel = userAfter?.level ?? oldLevel;
+            levelUp = newLevel > oldLevel;
+
+            if (userAfter) {
+              const xpAchievements = await checkAndUnlockAchievements(submission.userId, {
+                type: "xp_update",
+                totalXp: userAfter.xp,
+              });
+              newAchievements.push(...xpAchievements);
+            }
+
+            milestone = await checkMilestone(submission.userId);
+          }
+        }
+
         await invalidateCache(`module:${moduleId}:${submission.userId}`);
         await invalidateCache(`progress:module:${moduleId}:${submission.userId}`);
-        await invalidateCache(`project:${submission.projectId}:${submission.userId}`);
       }
 
-      // Invalidate user caches
+      await invalidateCache(projectCacheKey(submission.projectId, submission.userId));
       await invalidateUserCache(submission.userId);
 
-      return NextResponse.json({ success: true, checklist });
+      return NextResponse.json({
+        success: true,
+        checklist,
+        xpGained,
+        achievements: newAchievements,
+        levelUp,
+        newLevel,
+        milestone,
+      });
     } catch (error) {
       console.error("Error evaluating submission:", error);
       return NextResponse.json({ error: "Failed to evaluate submission" }, { status: 500 });

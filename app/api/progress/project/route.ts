@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
-import { invalidateUserCache } from "@/lib/cache";
+import { invalidateCache, invalidateUserCache } from "@/lib/cache";
 import { checkAndUnlockAchievements, updateUserLevel } from "@/lib/achievements";
 import { z } from "zod";
 
@@ -10,6 +10,10 @@ const projectSubmissionSchema = z.object({
   files: z.string().min(1, "Files are required"),
   githubUrl: z.string().url().optional(),
 });
+
+function projectCacheKey(projectId: string, userId: string) {
+  return `project:${projectId}:${userId}`;
+}
 
 /**
  * POST /api/progress/project
@@ -80,6 +84,7 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
       newAchievements.push(...xpAchievements);
     }
 
+    await invalidateCache(projectCacheKey(projectId, context.userId));
     await invalidateUserCache(context.userId);
 
     return NextResponse.json({

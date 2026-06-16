@@ -77,8 +77,24 @@ function SubmissionStatusBadge({ status }: { status: string }) {
   }
 }
 
+function getSubmissionState(status?: string | null): "none" | "pending" | "rejected" | "approved" {
+  switch (status?.toLowerCase()) {
+    case "approved":
+      return "approved";
+    case "pending":
+      return "pending";
+    case "rejected":
+      return "rejected";
+    default:
+      return "none";
+  }
+}
+
 export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
-  const isCompleted = project.submission?.status?.toLowerCase() === "approved";
+  const submissionState = getSubmissionState(project.submission?.status);
+  const isCompleted = submissionState === "approved";
+  const needsRevision = submissionState === "rejected";
+  const isUnderReview = submissionState === "pending";
   const evaluatedAt = project.submission?.evaluatedAt ?? null;
 
   // Lazily initialise confetti so the sessionStorage check runs only once --
@@ -296,7 +312,7 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
                     </Link>
                   </Button>
                 </>
-              ) : project.submission ? (
+              ) : isUnderReview ? (
                 <>
                   <div className="flex items-center gap-2">
                     <Clock className="size-4 text-muted-foreground" aria-hidden="true" />
@@ -305,6 +321,25 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
                   <p className="text-sm text-muted-foreground">
                     Your submission is being evaluated. Check back soon for feedback.
                   </p>
+                  <Button variant="outline" className="w-full" asChild>
+                    <Link href={`/modules/${project.module.id}`}>Back to Module</Link>
+                  </Button>
+                </>
+              ) : needsRevision ? (
+                <>
+                  <div className="flex items-center gap-2">
+                    <Clock className="size-4 text-amber-500" aria-hidden="true" />
+                    <p className="text-sm font-semibold text-amber-600 dark:text-amber-400">
+                      Needs Revision
+                    </p>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Your submission was reviewed and needs changes. Use the feedback below, then
+                    resubmit when you are ready.
+                  </p>
+                  <Button className="w-full" asChild>
+                    <Link href={`/projects/${project.id}/submit`}>Resubmit Project</Link>
+                  </Button>
                   <Button variant="outline" className="w-full" asChild>
                     <Link href={`/modules/${project.module.id}`}>Back to Module</Link>
                   </Button>

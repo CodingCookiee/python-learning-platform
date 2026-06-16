@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
-import { invalidateUserCache } from "@/lib/cache";
-import {
-  checkAndUnlockAchievements,
-  updateStreak,
-  updateUserLevel,
-  checkMilestone,
-} from "@/lib/achievements";
+import { invalidateCache, invalidateUserCache } from "@/lib/cache";
 import { z } from "zod";
 
 const GITHUB_URL_REGEX = /^https?:\/\/(www\.)?github\.com\/.+\/.+/i;
@@ -36,10 +30,14 @@ const submitSchema = z.discriminatedUnion("type", [
   }),
 ]);
 
+function projectCacheKey(projectId: string, userId: string) {
+  return `project:${projectId}:${userId}`;
+}
+
 /**
  * POST /api/projects/[id]/submit
  * Submit a project (file metadata list or GitHub repo link).
- * Awards XP on first-ever submission for the project; checks achievements.
+ * Rewards are granted only after admin approval.
  */
 export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id: string }>) => {
   try {
@@ -66,7 +64,7 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
     // Check project exists
     const project = await prisma.project.findUnique({
       where: { id: projectId },
-      select: { id: true, xpReward: true, module: { select: { order: true } } },
+      select: { id: true },
     });
     if (!project) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
@@ -94,13 +92,6 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
             notes: data.notes ?? null,
           });
 
-    // Determine if this is the user's very first submission for this project
-    const previousSubmission = await prisma.projectSubmission.findFirst({
-      where: { userId: context.userId, projectId },
-      select: { id: true },
-    });
-    const isFirstSubmission = !previousSubmission;
-
     // Create submission
     const submission = await prisma.projectSubmission.create({
       data: {
@@ -111,72 +102,13 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
       },
     });
 
-    // Award XP only on first submission
-    let xpGained = 0;
-    let levelUp = false;
-    let newLevel = 0;
-    const newAchievements: Awaited<ReturnType<typeof checkAndUnlockAchievements>> = [];
-
-    // Capture level before any XP changes
-    const userBefore = await prisma.user.findUnique({
-      where: { id: context.userId },
-      select: { level: true },
-    });
-    const oldLevel = userBefore?.level ?? 1;
-
-    if (isFirstSubmission) {
-      xpGained = project.xpReward;
-      await prisma.user.update({
-        where: { id: context.userId },
-        data: { xp: { increment: xpGained } },
-      });
-      await updateUserLevel(context.userId);
-
-      // Check project-specific achievements
-      const projectAchievements = await checkAndUnlockAchievements(context.userId, {
-        type: "project_complete",
-        moduleOrder: project.module.order,
-      });
-      newAchievements.push(...projectAchievements);
-
-      // Update streak
-      await updateStreak(context.userId);
-
-      // Check XP threshold achievements
-      const user = await prisma.user.findUnique({
-        where: { id: context.userId },
-        select: { xp: true },
-      });
-      if (user) {
-        const xpAchievements = await checkAndUnlockAchievements(context.userId, {
-          type: "xp_update",
-          totalXp: user.xp,
-        });
-        newAchievements.push(...xpAchievements);
-      }
-    }
-
-    // Invalidate user caches
+    // Invalidate project detail cache so the latest status shows immediately
+    await invalidateCache(projectCacheKey(projectId, context.userId));
     await invalidateUserCache(context.userId);
-
-    // Capture level after all XP updates
-    const userAfter = await prisma.user.findUnique({
-      where: { id: context.userId },
-      select: { level: true },
-    });
-    newLevel = userAfter?.level ?? oldLevel;
-    levelUp = newLevel > oldLevel;
-
-    const milestone = isFirstSubmission ? await checkMilestone(context.userId) : null;
 
     return NextResponse.json({
       success: true,
       submissionId: submission.id,
-      xpGained,
-      achievements: newAchievements,
-      levelUp,
-      newLevel,
-      milestone,
     });
   } catch (error) {
     console.error("Error submitting project:", error);
