@@ -236,6 +236,52 @@
   color: oklch(0.922 0.005 34.3);
 }
 
+.dark .hljs-comment,
+.dark .hljs-quote {
+  color: oklch(0.708 0.014 41.2);
+}
+
+.dark .hljs-keyword,
+.dark .hljs-selector-tag,
+.dark .hljs-built_in,
+.dark .hljs-type,
+.dark .hljs-title,
+.dark .hljs-section {
+  color: oklch(0.78 0.16 264.376);
+}
+
+.dark .hljs-string,
+.dark .hljs-regexp,
+.dark .hljs-literal,
+.dark .hljs-number,
+.dark .hljs-symbol,
+.dark .hljs-bullet,
+.dark .hljs-template-variable,
+.dark .hljs-attr,
+.dark .hljs-addition {
+  color: oklch(0.82 0.14 84.429);
+}
+
+.dark .hljs-function,
+.dark .hljs-attr,
+.dark .hljs-variable,
+.dark .hljs-template-tag,
+.dark .hljs-name {
+  color: oklch(0.84 0.13 170.14);
+}
+
+.dark .hljs-meta,
+.dark .hljs-tag {
+  color: oklch(0.74 0.12 23.15);
+}
+
+.dark .hljs-attr,
+.dark .hljs-selector-attr,
+.dark .hljs-selector-class,
+.dark .hljs-selector-id {
+  color: oklch(0.8 0.13 184.7);
+}
+
 @keyframes ripple {
   to {
     transform: scale(4);

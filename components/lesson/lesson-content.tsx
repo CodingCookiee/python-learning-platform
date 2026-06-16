@@ -186,7 +186,10 @@ export function LessonContent({ content, className }: LessonContentProps) {
         );
       }
       return (
-        <code className="bg-muted px-1.5 py-0.5 font-mono text-sm" {...props}>
+        <code
+          className="bg-muted px-1.5 py-0.5 font-mono text-sm text-foreground dark:text-foreground"
+          {...props}
+        >
           {children}
         </code>
       );
