@@ -220,7 +220,7 @@ If your setup is clean, the rest of the course becomes much easier. Think of thi
         content:
           "Master Python lists (mutable sequences like JS arrays) and tuples (immutable sequences). Learn list methods (append, insert, remove, sort), slicing, indexing, and tuple unpacking. Compare with JavaScript array methods.",
         order: 1,
-        estimatedTime: 120,
+        estimatedTime: 30,
       },
       {
         moduleId,
@@ -230,7 +230,7 @@ If your setup is clean, the rest of the course becomes much easier. Think of thi
         content:
           "Learn Python dictionaries (like JS objects), dictionary methods (keys, values, items), dictionary comprehensions, and the .get() method. Master sets for unique collections and set operations (union, intersection, difference).",
         order: 2,
-        estimatedTime: 105,
+        estimatedTime: 25,
       },
       {
         moduleId,
@@ -240,7 +240,7 @@ If your setup is clean, the rest of the course becomes much easier. Think of thi
         content:
           "Learn Python conditionals (if, elif, else), comparison operators, logical operators (and, or, not), truthiness/falsiness, nested conditionals, and ternary expressions. Compare with JavaScript conditional syntax.",
         order: 3,
-        estimatedTime: 75,
+        estimatedTime: 20,
       },
       {
         moduleId,
@@ -250,7 +250,7 @@ If your setup is clean, the rest of the course becomes much easier. Think of thi
         content:
           "Learn for loops (including range()), while loops, loop control statements (break, continue, pass), enumerate() for index access, zip() for parallel iteration, and nested loops. Compare with JavaScript loops.",
         order: 4,
-        estimatedTime: 90,
+        estimatedTime: 25,
       },
       {
         moduleId,
@@ -260,7 +260,7 @@ If your setup is clean, the rest of the course becomes much easier. Think of thi
         content:
           "Learn list comprehensions (concise way to create lists), dictionary comprehensions, set comprehensions, nested comprehensions, and conditional comprehensions. Compare with JavaScript map, filter, and reduce.",
         order: 5,
-        estimatedTime: 90,
+        estimatedTime: 20,
       },
     ],
     3: [
