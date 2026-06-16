@@ -272,7 +272,7 @@ If your setup is clean, the rest of the course becomes much easier. Think of thi
         content:
           "Master function definition with def, parameters and arguments, return values (including multiple returns), docstrings for documentation, default parameters, keyword arguments, and type hints. Compare with JavaScript functions.",
         order: 1,
-        estimatedTime: 90,
+        estimatedTime: 25,
       },
       {
         moduleId,
@@ -282,7 +282,7 @@ If your setup is clean, the rest of the course becomes much easier. Think of thi
         content:
           "Learn positional vs keyword arguments, *args for variable positional arguments, **kwargs for variable keyword arguments, unpacking arguments, parameter ordering rules, and returning multiple values with tuples.",
         order: 2,
-        estimatedTime: 105,
+        estimatedTime: 25,
       },
       {
         moduleId,
@@ -291,7 +291,7 @@ If your setup is clean, the rest of the course becomes much easier. Think of thi
         content:
           "Learn the LEGB rule (Local, Enclosing, Global, Built-in), global and nonlocal keywords, closures and nested functions, and how Python scope differs from JavaScript. Master when to use global vs local variables.",
         order: 3,
-        estimatedTime: 90,
+        estimatedTime: 20,
       },
       {
         moduleId,
@@ -301,7 +301,7 @@ If your setup is clean, the rest of the course becomes much easier. Think of thi
         content:
           "Learn lambda functions (anonymous functions), higher-order functions (map, filter, reduce), passing functions as arguments, returning functions from functions, and functional programming patterns. Compare with JavaScript arrow functions.",
         order: 4,
-        estimatedTime: 90,
+        estimatedTime: 20,
       },
       {
         moduleId,
@@ -310,7 +310,7 @@ If your setup is clean, the rest of the course becomes much easier. Think of thi
         content:
           'Master Python imports (import, from...import), creating modules, __name__ == "__main__" pattern, package structure with __init__.py, relative vs absolute imports, and standard library overview. Compare with JavaScript ES6 modules and CommonJS.',
         order: 5,
-        estimatedTime: 75,
+        estimatedTime: 20,
       },
     ],
   };
