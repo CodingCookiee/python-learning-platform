@@ -234,6 +234,12 @@ function getTierColor(tier: string): string {
   }
 }
 
+const roadmapPhases = [
+  { phase: "Phase 2", label: "Intermediate", modules: "Modules 4-7", weeks: "Weeks 5-10" },
+  { phase: "Phase 3", label: "Advanced Python", modules: "Modules 8-10", weeks: "Weeks 11-16" },
+  { phase: "Phase 4", label: "Applied Python", modules: "Modules 11-16", weeks: "Weeks 17-26" },
+];
+
 export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user) redirect("/auth/signin");
@@ -400,9 +406,28 @@ export default async function DashboardPage() {
                 <Card>
                   <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
                     <BookOpen className="size-8 text-muted-foreground" aria-hidden="true" />
-                    <p className="text-sm text-muted-foreground">
-                      You&apos;ve completed all modules. Incredible work!
-                    </p>
+                    <div className="flex flex-col gap-2">
+                      <p className="text-sm text-muted-foreground">
+                        You&apos;ve completed the currently released modules. The next phases are on
+                        the roadmap.
+                      </p>
+                      <div className="grid gap-2 text-left sm:grid-cols-3">
+                        {roadmapPhases.map((phase) => (
+                          <div
+                            key={phase.phase}
+                            className="border border-border bg-muted/30 px-3 py-2"
+                          >
+                            <p className="font-heading text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">
+                              {phase.phase}
+                            </p>
+                            <p className="text-sm font-medium">{phase.label}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {phase.modules} · {phase.weeks}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               )}

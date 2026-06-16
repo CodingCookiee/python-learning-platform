@@ -1,4 +1,7 @@
-﻿import Link from "next/link";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 import {
   BookOpen,
   Code2,
@@ -17,13 +20,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/theme-toggle";
-
-const stats = [
-  { value: "16", label: "Modules" },
-  { value: "80+", label: "Lessons" },
-  { value: "12+", label: "Projects" },
-  { value: "200+", label: "Exercises" },
-];
 
 const features = [
   {
@@ -117,7 +113,24 @@ const topicTags = [
   "Performance Tuning",
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const session = await auth();
+  if (session?.user) redirect("/dashboard");
+
+  const [moduleCount, lessonCount, projectCount, exerciseCount] = await Promise.all([
+    prisma.module.count(),
+    prisma.lesson.count(),
+    prisma.project.count(),
+    prisma.exercise.count(),
+  ]);
+
+  const stats = [
+    { value: String(moduleCount), label: "Modules live" },
+    { value: String(lessonCount), label: "Lessons live" },
+    { value: String(projectCount), label: "Projects live" },
+    { value: String(exerciseCount), label: "Exercises live" },
+  ];
+
   return (
     <div className="flex min-h-full flex-col bg-background text-foreground">
       {/* Navbar */}
@@ -304,11 +317,11 @@ export default function LandingPage() {
                 id="curriculum-heading"
                 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl"
               >
-                From zero Python to production Python
+                Current release and roadmap
               </h2>
               <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
-                26 weeks of structured content, each phase building cleanly on the last. Skip ahead
-                if you&apos;ve already mastered a phase.
+                Phase 1 is live now. The roadmap below shows the full four-phase learning path so
+                learners can see what comes next.
               </p>
             </div>
 

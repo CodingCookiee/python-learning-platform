@@ -31,7 +31,10 @@ export async function proxy(req: NextRequest) {
   }
 
   // Redirect authenticated users away from auth pages
-  if (isAuthenticated && pathname.startsWith("/auth/signin")) {
+  if (
+    isAuthenticated &&
+    (pathname === "/" || pathname.startsWith("/auth/signin") || pathname.startsWith("/auth/signup"))
+  ) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
