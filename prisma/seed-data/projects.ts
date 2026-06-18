@@ -50,7 +50,7 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
 ✅ Variables follow Python naming conventions (snake_case)
 ✅ Program doesn't crash on any reasonable input`,
         starterTemplate: "/templates/cli-calculator-starter.py",
-        estimatedTime: 180, // 3 hours in minutes
+        estimatedTime: 120, // 2 hours in minutes
         xpReward: 100,
       },
     ],
@@ -97,7 +97,7 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
 ✅ Code uses appropriate data structures (lists, dicts)
 ✅ Uses list comprehensions for filtering`,
         starterTemplate: "/templates/todo-list-manager-starter.py",
-        estimatedTime: 240, // 4 hours
+        estimatedTime: 150, // 2.5 hours
         xpReward: 150,
       },
     ],
@@ -144,7 +144,7 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
 ✅ Uses lambda functions for simple operations
 ✅ Proper separation of concerns between modules`,
         starterTemplate: "/templates/text-processing-tool-starter.py",
-        estimatedTime: 240, // 4 hours
+        estimatedTime: 150, // 2.5 hours
         xpReward: 150,
       },
     ],
@@ -190,7 +190,7 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
 ✅ Error handling for edge cases
 ✅ Code is well-documented with docstrings`,
         starterTemplate: "/templates/library-management-starter.py",
-        estimatedTime: 300, // 5 hours
+        estimatedTime: 180, // 3 hours
         xpReward: 200,
       },
     ],
@@ -236,7 +236,7 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
 ✅ Error messages are clear and helpful
 ✅ All resources properly cleaned up`,
         starterTemplate: "/templates/log-analyzer-starter.py",
-        estimatedTime: 240, // 4 hours
+        estimatedTime: 150, // 2.5 hours
         xpReward: 150,
       },
     ],
@@ -282,7 +282,7 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
 ✅ All tests pass consistently
 ✅ Clear test reports and output`,
         starterTemplate: "/templates/banking-system-starter.py",
-        estimatedTime: 300, // 5 hours
+        estimatedTime: 180, // 3 hours
         xpReward: 200,
       },
     ],
@@ -327,7 +327,7 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
 ✅ Version properly managed
 ✅ Clear changelog documenting changes`,
         starterTemplate: "/templates/package-creator-starter.py",
-        estimatedTime: 240, // 4 hours
+        estimatedTime: 150, // 2.5 hours
         xpReward: 150,
       },
     ],
@@ -372,7 +372,7 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
 ✅ Performance improvement over sync version
 ✅ No resource leaks or hanging connections`,
         starterTemplate: "/templates/async-scraper-starter.py",
-        estimatedTime: 300, // 5 hours
+        estimatedTime: 180, // 3 hours
         xpReward: 200,
       },
     ],
@@ -417,7 +417,7 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
 ✅ Edge cases handled properly
 ✅ Comprehensive documentation`,
         starterTemplate: "/templates/decorator-toolkit-starter.py",
-        estimatedTime: 280, // 4.5 hours
+        estimatedTime: 150, // 2.5 hours
         xpReward: 180,
       },
     ],
@@ -462,7 +462,7 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
 ✅ Documentation explains all types
 ✅ No type: ignore comments without justification`,
         starterTemplate: "/templates/typed-calculator-starter.py",
-        estimatedTime: 240, // 4 hours
+        estimatedTime: 150, // 2.5 hours
         xpReward: 150,
       },
     ],
@@ -508,7 +508,7 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
 ✅ OpenAPI docs auto-generated
 ✅ All endpoints tested`,
         starterTemplate: "/templates/fastapi-rest-starter.py",
-        estimatedTime: 320, // 5+ hours
+        estimatedTime: 200, // 3.3 hours
         xpReward: 250,
       },
     ],
@@ -553,7 +553,7 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
 ✅ No N+1 query problems
 ✅ Database constraints enforced`,
         starterTemplate: "/templates/sqlalchemy-multi-tenant-starter.py",
-        estimatedTime: 300, // 5 hours
+        estimatedTime: 180, // 3 hours
         xpReward: 200,
       },
     ],
@@ -598,7 +598,7 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
 ✅ Code uses vectorized operations
 ✅ Results are reproducible`,
         starterTemplate: "/templates/pandas-dashboard-starter.py",
-        estimatedTime: 280, // 4.5 hours
+        estimatedTime: 180, // 3 hours
         xpReward: 180,
       },
     ],
@@ -643,7 +643,7 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
 ✅ Documentation is clear
 ✅ Performance is reasonable`,
         starterTemplate: "/templates/cicd-builder-starter.py",
-        estimatedTime: 240, // 4 hours
+        estimatedTime: 150, // 2.5 hours
         xpReward: 150,
       },
     ],
@@ -689,7 +689,7 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
 ✅ Private keys stored securely
 ✅ All operations tested`,
         starterTemplate: "/templates/web3-dapp-starter.py",
-        estimatedTime: 260, // 4.3 hours
+        estimatedTime: 150, // 2.5 hours
         xpReward: 180,
       },
     ],
@@ -735,7 +735,7 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
 ✅ Documentation explains trade-offs
 ✅ Performance regressions prevented`,
         starterTemplate: "/templates/perf-optimization-starter.py",
-        estimatedTime: 300, // 5 hours
+        estimatedTime: 180, // 3 hours
         xpReward: 200,
       },
     ],
