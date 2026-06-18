@@ -8,11 +8,12 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AnimatedProgressBar } from "./animated-progress-bar";
+import { getCurriculumPhaseLabel } from "@/lib/curriculum";
 
 export interface ModuleProgressCardProps {
   moduleId: string;
   title: string;
-  phase: number;
+  phase: number | string;
   completionPercentage: number;
   lessonsCompleted: number;
   lessonsTotal: number;
@@ -90,7 +91,7 @@ export function ModuleProgressCard({
               </motion.span>
             )}
           </AnimatePresence>
-          <Badge variant="secondary">Phase {phase}</Badge>
+          <Badge variant="secondary">{getCurriculumPhaseLabel(String(phase))}</Badge>
         </div>
       </div>
       <AnimatedProgressBar value={completionPercentage} delay={0.1} showLabel={false} />

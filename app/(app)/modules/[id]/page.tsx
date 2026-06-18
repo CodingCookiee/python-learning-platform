@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getLessonEstimatedTime } from "@/lib/lesson-content";
 import { formatProjectEstimatedTime } from "@/lib/project-time";
+import { getCurriculumPhaseLabel } from "@/lib/curriculum";
 import {
   CheckCircle2,
   Circle,
@@ -146,7 +147,9 @@ export default async function ModuleDetailPage({ params }: PageProps) {
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="flex flex-col gap-2">
                 <div className="flex flex-wrap items-center gap-3">
-                  <Badge className="text-muted-foreground">Phase {learningModule.phase}</Badge>
+                  <Badge className="text-muted-foreground">
+                    {getCurriculumPhaseLabel(learningModule.phase)}
+                  </Badge>
                   {!isUnlocked && (
                     <Badge variant="secondary" className="flex items-center gap-1">
                       <Lock className="size-2.5" aria-hidden="true" />

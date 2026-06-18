@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { getCurriculumPhaseLabel } from "@/lib/curriculum";
 
 interface Module {
   id: string;
@@ -264,7 +265,7 @@ export function ContentClient({ initialModules }: ContentClientProps) {
                       #{mod.order}
                     </span>
                     <Badge variant="secondary" className="text-xs">
-                      Phase {mod.phase}
+                      {getCurriculumPhaseLabel(mod.phase)}
                     </Badge>
                     <Badge variant="outline" className="text-xs">
                       {mod.duration}h

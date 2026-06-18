@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { getCurriculumPhaseKey, getCurriculumPhases } from "@/lib/curriculum";
 
 export interface ModuleData {
   id: string;
@@ -28,7 +29,7 @@ export interface ModuleData {
   projects: Array<{ id: string; title: string }>;
 }
 
-type PhaseFilter = "all" | "1" | "2" | "3" | "4";
+type PhaseFilter = "all" | "foundation" | "intermediate" | "advanced" | "applied";
 type StatusFilter = "all" | "not-started" | "in-progress" | "completed" | "locked";
 type SortOption = "default" | "az" | "za" | "most-complete" | "least-complete";
 
@@ -47,11 +48,12 @@ export function ModulesClient({ modules }: ModulesClientProps) {
   const [phaseFilter, setPhaseFilter] = React.useState<PhaseFilter>("all");
   const [statusFilter, setStatusFilter] = React.useState<StatusFilter>("all");
   const [sortOption, setSortOption] = React.useState<SortOption>("default");
+  const curriculumPhases = React.useMemo(() => getCurriculumPhases(), []);
 
   const filtered = React.useMemo(() => {
     let result = modules.filter((m) => {
-      const phaseNum = String(parseInt(m.phase) || 1);
-      if (phaseFilter !== "all" && phaseNum !== phaseFilter) return false;
+      const phaseKey = getCurriculumPhaseKey(m.phase);
+      if (phaseFilter !== "all" && phaseKey !== phaseFilter) return false;
       if (statusFilter !== "all" && getStatus(m) !== statusFilter) return false;
       return true;
     });
@@ -113,10 +115,11 @@ export function ModulesClient({ modules }: ModulesClientProps) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Phases</SelectItem>
-            <SelectItem value="1">Phase 1</SelectItem>
-            <SelectItem value="2">Phase 2</SelectItem>
-            <SelectItem value="3">Phase 3</SelectItem>
-            <SelectItem value="4">Phase 4</SelectItem>
+            {curriculumPhases.map((phase) => (
+              <SelectItem key={phase.key} value={phase.key}>
+                {phase.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
@@ -160,7 +163,6 @@ export function ModulesClient({ modules }: ModulesClientProps) {
       ) : (
         <StaggerContainer className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((module, index) => {
-            const phaseNum = parseInt(module.phase) || 1;
             const lessonsCompleted = Math.round(
               (module.completionPercentage * module.lessonCount) / 100
             );
@@ -169,7 +171,7 @@ export function ModulesClient({ modules }: ModulesClientProps) {
                 <ModuleProgressCard
                   moduleId={module.id}
                   title={module.title}
-                  phase={phaseNum}
+                  phase={module.phase}
                   completionPercentage={module.completionPercentage}
                   lessonsCompleted={lessonsCompleted}
                   lessonsTotal={module.lessonCount}

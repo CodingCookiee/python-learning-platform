@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfettiEffect } from "@/components/animations";
+import { getCurriculumPhaseLabel } from "@/lib/curriculum";
 import {
   CheckCircle2,
   Clock,
@@ -122,7 +123,9 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
           transition={{ duration: 0.25 }}
         >
           <div className="flex flex-wrap items-center gap-3">
-            <Badge className="text-muted-foreground">Phase {project.module.phase}</Badge>
+            <Badge className="text-muted-foreground">
+              {getCurriculumPhaseLabel(project.module.phase)}
+            </Badge>
             <Badge variant="secondary" className="flex items-center gap-1.5 text-muted-foreground">
               <BookOpen className="size-3" aria-hidden="true" />
               {project.module.title}

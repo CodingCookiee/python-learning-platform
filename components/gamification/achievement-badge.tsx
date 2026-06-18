@@ -1,11 +1,10 @@
 ﻿"use client";
 
-import * as React from "react";
 import { motion } from "framer-motion";
-import * as LucideIcons from "lucide-react";
 import { Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { renderAchievementIcon } from "@/lib/achievement-icon";
 
 export interface AchievementBadgeProps {
   name: string;
@@ -41,17 +40,7 @@ const sizeConfig = {
 };
 
 function renderIconComponent(iconName: string, size: number, className: string) {
-  type LucideIconProps = {
-    size?: number;
-    className?: string;
-    "aria-hidden"?: boolean;
-  };
-
-  const IconComponent = LucideIcons[
-    iconName as keyof typeof LucideIcons
-  ] as React.ComponentType<LucideIconProps>;
-  if (!IconComponent) return null;
-  return <IconComponent size={size} className={className} aria-hidden="true" />;
+  return renderAchievementIcon({ iconName, size, className });
 }
 
 export function AchievementBadge({

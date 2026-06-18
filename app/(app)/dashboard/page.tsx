@@ -18,6 +18,8 @@ import { StreakCalendar } from "@/components/gamification/streak-calendar";
 import { LevelBadge } from "@/components/gamification/level-badge";
 import { MilestoneTracker } from "@/components/gamification/milestone-tracker";
 import { BookOpen, Trophy, Flame, ArrowRight, Clock } from "lucide-react";
+import { getCurriculumPhaseLabel } from "@/lib/curriculum";
+import { renderAchievementIcon } from "@/lib/achievement-icon";
 
 interface ProgressData {
   user: {
@@ -211,16 +213,6 @@ async function getProgressData(userId: string): Promise<ProgressData | null> {
   }
 }
 
-function phaseToNumber(phase: string): number {
-  const p = phase.toLowerCase();
-  if (p === "1" || p.includes("foundation")) return 1;
-  if (p === "2" || p.includes("intermediate")) return 2;
-  if (p === "3" || p.includes("advanced")) return 3;
-  if (p === "4" || p.includes("applied")) return 4;
-  const n = parseInt(phase);
-  return isNaN(n) ? 1 : n;
-}
-
 function getTierColor(tier: string): string {
   switch (tier.toLowerCase()) {
     case "gold":
@@ -371,7 +363,7 @@ export default async function DashboardPage() {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex flex-col gap-1">
                         <Badge className="mb-1 w-fit text-muted-foreground">
-                          Phase {phaseToNumber(currentModule.modulePhase ?? "")}
+                          {getCurriculumPhaseLabel(currentModule.modulePhase ?? "")}
                         </Badge>
                         <CardTitle>{currentModule.moduleTitle}</CardTitle>
                       </div>
@@ -473,9 +465,12 @@ export default async function DashboardPage() {
                       key={achievement.id}
                       className="flex items-center gap-3 border border-border bg-card px-4 py-3"
                     >
-                      <span className="text-xl" role="img" aria-label={achievement.name}>
-                        {achievement.icon}
-                      </span>
+                      {renderAchievementIcon({
+                        iconName: achievement.icon,
+                        size: 20,
+                        className: "text-muted-foreground text-xl",
+                        ariaLabel: achievement.name,
+                      })}
                       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                         <p className="truncate text-sm font-semibold">{achievement.name}</p>
                         <p
@@ -515,7 +510,7 @@ export default async function DashboardPage() {
                   key={module.moduleId}
                   moduleId={module.moduleId}
                   title={module.moduleTitle}
-                  phase={phaseToNumber(module.modulePhase ?? "")}
+                  phase={module.modulePhase}
                   completionPercentage={module.completionPercentage}
                   lessonsCompleted={module.lessonsCompleted}
                   lessonsTotal={module.lessonsTotal}

@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Confetti } from "./confetti";
 import { cn } from "@/lib/utils";
+import { renderAchievementIcon } from "@/lib/achievement-icon";
 
 export interface AchievementModalProps {
   open: boolean;
@@ -59,17 +60,20 @@ export function AchievementModal({ open, onClose, achievement }: AchievementModa
           {achievement && (
             <>
               {/* Animated icon */}
-              <motion.span
+              <motion.div
                 key={achievement.name}
-                className="text-5xl"
-                role="img"
-                aria-label={achievement.name}
+                className="flex size-16 items-center justify-center text-5xl"
                 initial={{ scale: 0 }}
                 animate={{ scale: [0, 1.2, 1] }}
                 transition={{ type: "spring", stiffness: 300, damping: 18 }}
               >
-                {achievement.icon}
-              </motion.span>
+                {renderAchievementIcon({
+                  iconName: achievement.icon,
+                  size: 48,
+                  className: "text-foreground",
+                  ariaLabel: achievement.name,
+                })}
+              </motion.div>
 
               <DialogHeader className="items-center gap-1">
                 <p className="font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground">
