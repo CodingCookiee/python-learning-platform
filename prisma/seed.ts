@@ -1045,39 +1045,199 @@ function getProjectsForModule(moduleId: string, moduleOrder: number) {
         xpReward: 150,
       },
     ],
+    // Phase 2 Projects
+    4: [
+      {
+        moduleId,
+        title: "OOP Game Library System",
+        description:
+          "Build a library management system using object-oriented programming principles.",
+        requirements:
+          "Create Book, Author, and Library classes. Implement inheritance for different book types. Support adding books, checking out/returning, tracking availability. Use magic methods for string representation and comparison. Implement encapsulation with properties and private attributes.",
+        successCriteria:
+          "Classes properly defined with __init__, inheritance works correctly, magic methods implemented, property decorators used, books can be checked out/returned, inventory tracked, error handling for invalid operations, docstrings for all methods, demonstrates composition and encapsulation.",
+        starterTemplate: "/templates/cli-calculator-starter.py",
+        estimatedTime: 300,
+        xpReward: 200,
+      },
+    ],
+    5: [
+      {
+        moduleId,
+        title: "File Processing Pipeline",
+        description: "Build a file processing pipeline that reads, transforms, and saves data.",
+        requirements:
+          "Read CSV files with error handling, implement context managers for resource management, process data with exception handling, validate data integrity, save results to JSON with proper formatting. Handle various error scenarios gracefully.",
+        successCriteria:
+          "CSV reading works correctly, context managers properly implemented, all exception types handled, data validation works, JSON output properly formatted, custom exceptions used where appropriate, finally blocks used correctly, files properly closed.",
+        starterTemplate: "/templates/todo-list-manager-starter.py",
+        estimatedTime: 270,
+        xpReward: 180,
+      },
+    ],
+    6: [
+      {
+        moduleId,
+        title: "Tested Calculator with pytest",
+        description: "Create a calculator with comprehensive pytest test coverage.",
+        requirements:
+          "Build a calculator module, write parametrized tests for all operations, implement fixtures for test setup, achieve 90%+ code coverage, test edge cases and error conditions, use mocking for external dependencies.",
+        successCriteria:
+          "All tests pass, parametrized tests cover multiple scenarios, fixtures properly used, coverage report shows 90%+, edge cases tested, error conditions handled, test discovery works, clear test organization.",
+        starterTemplate: "/templates/cli-calculator-starter.py",
+        estimatedTime: 240,
+        xpReward: 200,
+      },
+    ],
+    7: [
+      {
+        moduleId,
+        title: "Package Manager with Poetry",
+        description: "Create a Python package and publish it using Poetry.",
+        requirements:
+          "Create project structure with proper setup, write pyproject.toml configuration, manage dependencies with Poetry, create documentation, version package correctly, build distribution files, publish to TestPyPI.",
+        successCriteria:
+          "Poetry configured correctly, dependencies managed, package structure proper, README and documentation complete, version follows semantic versioning, wheel and sdist build successfully, TestPyPI publication works.",
+        starterTemplate: "/templates/text-processing-tool-starter.py",
+        estimatedTime: 180,
+        xpReward: 250,
+      },
+    ],
+    // Phase 3 Projects
+    8: [
+      {
+        moduleId,
+        title: "Async Web Scraper",
+        description: "Build an asynchronous web scraper using asyncio and aiohttp.",
+        requirements:
+          "Fetch multiple URLs concurrently, implement rate limiting, parse HTML responses, store results in JSON, handle network errors gracefully, use async context managers, implement retry logic for failed requests.",
+        successCriteria:
+          "Concurrent requests work, rate limiting implemented, HTML parsing successful, JSON output correct, error handling comprehensive, async/await used correctly, performance efficient, handles timeouts.",
+        starterTemplate: "/templates/cli-calculator-starter.py",
+        estimatedTime: 300,
+        xpReward: 250,
+      },
+    ],
+    9: [
+      {
+        moduleId,
+        title: "Advanced Python Patterns",
+        description:
+          "Create decorators, generators, and context managers demonstrating advanced patterns.",
+        requirements:
+          "Implement custom decorators with arguments, create generator functions, build context managers, use properties and descriptors, demonstrate lazy evaluation, implement caching decorators.",
+        successCriteria:
+          "Decorators work with and without arguments, generators properly yield values, context managers handle resources, properties work correctly, descriptors implemented, lazy evaluation functions, caching works efficiently.",
+        starterTemplate: "/templates/text-processing-tool-starter.py",
+        estimatedTime: 280,
+        xpReward: 220,
+      },
+    ],
+    10: [
+      {
+        moduleId,
+        title: "Type-Safe Data Validation",
+        description: "Build a data validation system using type hints, Pydantic, and mypy.",
+        requirements:
+          "Define type hints for all functions and classes, use Pydantic models for validation, run mypy static type checking, implement custom validators, handle validation errors, create complex nested models.",
+        successCriteria:
+          "Type hints complete and correct, Pydantic models validate data, mypy passes without errors, custom validators work, nested models function properly, error messages helpful, type safety maintained.",
+        starterTemplate: "/templates/cli-calculator-starter.py",
+        estimatedTime: 240,
+        xpReward: 200,
+      },
+    ],
+    // Phase 4 Projects
+    11: [
+      {
+        moduleId,
+        title: "FastAPI REST API",
+        description:
+          "Build a complete REST API with FastAPI, authentication, and database integration.",
+        requirements:
+          "Create API endpoints for CRUD operations, implement JWT authentication, use Pydantic models for validation, add request logging, implement error handling, create API documentation, add pagination and filtering.",
+        successCriteria:
+          "All CRUD endpoints work, authentication validates tokens, Pydantic validation works, API docs auto-generated, errors handled properly, pagination functional, filtering works, performance optimized.",
+        starterTemplate: "/templates/cli-calculator-starter.py",
+        estimatedTime: 360,
+        xpReward: 300,
+      },
+    ],
+    12: [
+      {
+        moduleId,
+        title: "Database ORM Application",
+        description: "Build an application using SQLAlchemy ORM with complex relationships.",
+        requirements:
+          "Define models with relationships (one-to-many, many-to-many), implement database migrations with Alembic, write complex queries with joins and filters, optimize queries, implement soft deletes, handle transactions.",
+        successCriteria:
+          "Models properly defined, migrations work, relationships function correctly, complex queries return expected data, migrations rollback works, transactions maintain data integrity, query optimization evident.",
+        starterTemplate: "/templates/text-processing-tool-starter.py",
+        estimatedTime: 300,
+        xpReward: 280,
+      },
+    ],
+    13: [
+      {
+        moduleId,
+        title: "Data Analysis Dashboard",
+        description: "Create a data analysis project using NumPy, Pandas, and Matplotlib.",
+        requirements:
+          "Load and clean real datasets, perform statistical analysis, create visualizations, implement data transformations, handle missing data, aggregate and group data, export results.",
+        successCriteria:
+          "Data loaded and cleaned correctly, statistics calculated accurately, visualizations clear and informative, transformations work, missing data handled properly, groupby operations functional, exports formatted well.",
+        starterTemplate: "/templates/cli-calculator-starter.py",
+        estimatedTime: 320,
+        xpReward: 260,
+      },
+    ],
+    14: [
+      {
+        moduleId,
+        title: "DevOps Pipeline Project",
+        description: "Create a complete DevOps pipeline with Docker, CI/CD, and automation.",
+        requirements:
+          "Containerize Python application with Docker, set up CI/CD with GitHub Actions, automate testing, implement automated deployment, create shell scripts for common tasks, set up logging and monitoring.",
+        successCriteria:
+          "Docker image builds and runs, CI/CD pipeline triggers on push, tests run automatically, deployment works, scripts are executable and reliable, logging captures events, monitoring shows metrics.",
+        starterTemplate: "/templates/text-processing-tool-starter.py",
+        estimatedTime: 280,
+        xpReward: 300,
+      },
+    ],
+    15: [
+      {
+        moduleId,
+        title: "Blockchain Interaction Project",
+        description: "Build a Web3 application that interacts with smart contracts.",
+        requirements:
+          "Connect to Ethereum network, interact with smart contracts, read and write contract state, listen to events, handle transactions and gas estimation, implement error handling, create transaction signing.",
+        successCriteria:
+          "Web3 connection works, contract interactions function, state reads/writes correct, event listening works, gas estimation accurate, transactions signed properly, error handling comprehensive.",
+        starterTemplate: "/templates/cli-calculator-starter.py",
+        estimatedTime: 240,
+        xpReward: 320,
+      },
+    ],
+    16: [
+      {
+        moduleId,
+        title: "Performance Optimization",
+        description: "Profile, optimize, and benchmark a Python application.",
+        requirements:
+          "Profile code using cProfile, identify bottlenecks, implement optimization strategies, use caching effectively, optimize algorithms, implement multiprocessing where needed, measure performance improvements.",
+        successCriteria:
+          "Profiling output analyzed correctly, bottlenecks identified, optimization applied, performance improves measurably, caching implemented effectively, multiprocessing works, benchmarks show improvement.",
+        starterTemplate: "/templates/text-processing-tool-starter.py",
+        estimatedTime: 300,
+        xpReward: 280,
+      },
+    ],
   };
   return projects[moduleOrder] || [];
 }
 
-const achievements = [
-  {
-    name: "Consistent Learner",
-    description: "7-day streak",
-    icon: "Flame",
-    category: "Streaks",
-    criteria: "7-day streak",
-    xpReward: 50,
-    tier: "Bronze",
-  },
-  {
-    name: "Dedication Master",
-    description: "30-day streak",
-    icon: "Flame",
-    category: "Streaks",
-    criteria: "30-day streak",
-    xpReward: 200,
-    tier: "Silver",
-  },
-  {
-    name: "Unstoppable",
-    description: "100-day streak",
-    icon: "Flame",
-    category: "Streaks",
-    criteria: "100-day streak",
-    xpReward: 500,
-    tier: "Platinum",
-  },
-];
+import { achievements } from "./seed-data/achievements";
 
 async function main() {
   console.log("Ã°Å¸Å’Â± Starting database seed...");
