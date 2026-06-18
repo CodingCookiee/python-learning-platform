@@ -5,7 +5,7 @@ export const achievements = [
   {
     name: "First Steps",
     description: "Complete your first lesson",
-    icon: "🎓",
+    icon: "GraduationCap",
     category: "Learning",
     criteria: "Complete any lesson",
     xpReward: 10,
@@ -14,7 +14,7 @@ export const achievements = [
   {
     name: "Hello, Python!",
     description: "Complete Module 1: Python Setup & Fundamentals",
-    icon: "🐍✨",
+    icon: "Snake",
     category: "Modules",
     criteria: "Complete Module 1",
     xpReward: 50,
@@ -23,7 +23,7 @@ export const achievements = [
   {
     name: "Data Master",
     description: "Complete Module 2: Data Structures & Control Flow",
-    icon: "📊🎪",
+    icon: "BarChart3",
     category: "Modules",
     criteria: "Complete Module 2",
     xpReward: 75,
@@ -32,7 +32,7 @@ export const achievements = [
   {
     name: "Function Expert",
     description: "Complete Module 3: Functions & Modules",
-    icon: "⚙️🎨",
+    icon: "Settings",
     category: "Modules",
     criteria: "Complete Module 3",
     xpReward: 75,
@@ -41,7 +41,7 @@ export const achievements = [
   {
     name: "OOP Architect",
     description: "Complete Module 4: Object-Oriented Programming",
-    icon: "🏗️🤖",
+    icon: "Building2",
     category: "Modules",
     criteria: "Complete Module 4",
     xpReward: 100,
@@ -50,7 +50,7 @@ export const achievements = [
   {
     name: "File Ninja",
     description: "Complete Module 5: File I/O & Exception Handling",
-    icon: "📂⚔️",
+    icon: "Folder",
     category: "Modules",
     criteria: "Complete Module 5",
     xpReward: 75,
@@ -59,7 +59,7 @@ export const achievements = [
   {
     name: "Quality Guardian",
     description: "Complete Module 6: Testing with pytest",
-    icon: "🧪🛡️",
+    icon: "TestTube2",
     category: "Modules",
     criteria: "Complete Module 6",
     xpReward: 100,
@@ -68,7 +68,7 @@ export const achievements = [
   {
     name: "Package Wizard",
     description: "Complete Module 7: Package Management & Virtual Environments",
-    icon: "📦🪄",
+    icon: "Package",
     category: "Modules",
     criteria: "Complete Module 7",
     xpReward: 75,
@@ -77,7 +77,7 @@ export const achievements = [
   {
     name: "Async Virtuoso",
     description: "Complete Module 8: Async Programming with asyncio",
-    icon: "⚡🎵",
+    icon: "Zap",
     category: "Modules",
     criteria: "Complete Module 8",
     xpReward: 125,
@@ -86,7 +86,7 @@ export const achievements = [
   {
     name: "Advanced Scholar",
     description: "Complete Module 9: Advanced Python Features",
-    icon: "🧠💫",
+    icon: "Brain",
     category: "Modules",
     criteria: "Complete Module 9",
     xpReward: 125,
@@ -95,7 +95,7 @@ export const achievements = [
   {
     name: "Type Safety Pro",
     description: "Complete Module 10: Type Hints & Static Analysis",
-    icon: "🔍✅",
+    icon: "Search",
     category: "Modules",
     criteria: "Complete Module 10",
     xpReward: 100,
@@ -104,7 +104,7 @@ export const achievements = [
   {
     name: "Web Alchemist",
     description: "Complete Module 11: Web Development with Flask/FastAPI",
-    icon: "🌐🧪",
+    icon: "Globe",
     category: "Modules",
     criteria: "Complete Module 11",
     xpReward: 150,
@@ -113,7 +113,7 @@ export const achievements = [
   {
     name: "Database Maestro",
     description: "Complete Module 12: Database Integration with SQLAlchemy",
-    icon: "🗄️🎼",
+    icon: "Database",
     category: "Modules",
     criteria: "Complete Module 12",
     xpReward: 125,
@@ -122,7 +122,7 @@ export const achievements = [
   {
     name: "Data Scientist",
     description: "Complete Module 13: Data Processing & Pandas",
-    icon: "📈🔬",
+    icon: "TrendingUp",
     category: "Modules",
     criteria: "Complete Module 13",
     xpReward: 125,
@@ -131,7 +131,7 @@ export const achievements = [
   {
     name: "DevOps Warrior",
     description: "Complete Module 14: DevOps & Automation",
-    icon: "⚙️🚀",
+    icon: "Rocket",
     category: "Modules",
     criteria: "Complete Module 14",
     xpReward: 125,
@@ -140,7 +140,7 @@ export const achievements = [
   {
     name: "Blockchain Pioneer",
     description: "Complete Module 15: Web3 & Blockchain Integration",
-    icon: "⛓️🌍",
+    icon: "Link",
     category: "Modules",
     criteria: "Complete Module 15",
     xpReward: 100,
@@ -149,7 +149,7 @@ export const achievements = [
   {
     name: "Performance Tuner",
     description: "Complete Module 16: Performance & Optimization",
-    icon: "🏎️⚡",
+    icon: "Gauge",
     category: "Modules",
     criteria: "Complete Module 16",
     xpReward: 125,
@@ -160,7 +160,7 @@ export const achievements = [
   {
     name: "Calculator Pro",
     description: "Build your first Python project",
-    icon: "🧮💎",
+    icon: "Calculator",
     category: "Projects",
     criteria: "Complete CLI Calculator project",
     xpReward: 100,
@@ -169,7 +169,7 @@ export const achievements = [
   {
     name: "Task Master",
     description: "Build a fully functional todo app",
-    icon: "✅🎯",
+    icon: "CheckCircle2",
     category: "Projects",
     criteria: "Complete Todo List Manager project",
     xpReward: 150,
@@ -178,7 +178,7 @@ export const achievements = [
   {
     name: "Text Wizard",
     description: "Create a modular text processing tool",
-    icon: "📝🪄",
+    icon: "FileText",
     category: "Projects",
     criteria: "Complete Text Processing CLI Tool project",
     xpReward: 150,
@@ -187,7 +187,7 @@ export const achievements = [
   {
     name: "Library Guardian",
     description: "Build a library management system",
-    icon: "📚🏛️",
+    icon: "BookOpen",
     category: "Projects",
     criteria: "Complete Library Management System project",
     xpReward: 175,
@@ -196,7 +196,7 @@ export const achievements = [
   {
     name: "Log Detective",
     description: "Create a log file analyzer",
-    icon: "🔍📋",
+    icon: "ClipboardList",
     category: "Projects",
     criteria: "Complete Log File Analyzer project",
     xpReward: 150,
@@ -205,7 +205,7 @@ export const achievements = [
   {
     name: "Banking Expert",
     description: "Develop a banking system with tests",
-    icon: "🏦✅",
+    icon: "Building",
     category: "Projects",
     criteria: "Complete Banking System with Tests project",
     xpReward: 175,
@@ -214,7 +214,7 @@ export const achievements = [
   {
     name: "Package Publisher",
     description: "Create and publish a Python package",
-    icon: "📦🌟",
+    icon: "Box",
     category: "Projects",
     criteria: "Complete Python Package Creator project",
     xpReward: 150,
@@ -223,7 +223,7 @@ export const achievements = [
   {
     name: "Web Scraper Master",
     description: "Build an async web scraper",
-    icon: "🕷️⚡",
+    icon: "Share2",
     category: "Projects",
     criteria: "Complete Async Web Scraper project",
     xpReward: 175,
@@ -232,7 +232,7 @@ export const achievements = [
   {
     name: "Toolkit Creator",
     description: "Create a decorator & metaclass toolkit",
-    icon: "🛠️🎨",
+    icon: "Wrench",
     category: "Projects",
     criteria: "Complete Decorator & Metaclass Toolkit project",
     xpReward: 175,
@@ -241,7 +241,7 @@ export const achievements = [
   {
     name: "Type Master",
     description: "Build a type-safe calculator library",
-    icon: "🔢✨",
+    icon: "Hash",
     category: "Projects",
     criteria: "Complete Type-Safe Calculator Library project",
     xpReward: 150,
@@ -250,7 +250,7 @@ export const achievements = [
   {
     name: "API Architect",
     description: "Build a REST API with FastAPI",
-    icon: "🌐🏗️",
+    icon: "Code",
     category: "Projects",
     criteria: "Complete REST API with FastAPI project",
     xpReward: 200,
@@ -268,7 +268,7 @@ export const achievements = [
   {
     name: "Data Wizard",
     description: "Create a data analysis dashboard",
-    icon: "📊🪄",
+    icon: "PieChart",
     category: "Projects",
     criteria: "Complete Data Analysis Dashboard project",
     xpReward: 175,
@@ -277,7 +277,7 @@ export const achievements = [
   {
     name: "Pipeline Engineer",
     description: "Build a CI/CD pipeline",
-    icon: "⚙️🚀",
+    icon: "Workflow",
     category: "Projects",
     criteria: "Complete CI/CD Pipeline Builder project",
     xpReward: 150,
@@ -286,7 +286,7 @@ export const achievements = [
   {
     name: "Blockchain Builder",
     description: "Create a Web3 dApp",
-    icon: "⛓️💻",
+    icon: "Blocks",
     category: "Projects",
     criteria: "Complete Smart Contract Interaction dApp project",
     xpReward: 150,
@@ -295,7 +295,7 @@ export const achievements = [
   {
     name: "Optimization Master",
     description: "Create a performance optimization suite",
-    icon: "🏎️🔧",
+    icon: "Zap",
     category: "Projects",
     criteria: "Complete Performance Optimization Suite project",
     xpReward: 175,
@@ -306,7 +306,7 @@ export const achievements = [
   {
     name: "Problem Solver",
     description: "Complete 10 exercises",
-    icon: "💡🎯",
+    icon: "Lightbulb",
     category: "Exercises",
     criteria: "Complete 10 exercises",
     xpReward: 50,
@@ -315,7 +315,7 @@ export const achievements = [
   {
     name: "Coding Machine",
     description: "Complete 25 exercises",
-    icon: "⚡💻",
+    icon: "Code2",
     category: "Exercises",
     criteria: "Complete 25 exercises",
     xpReward: 100,
@@ -333,7 +333,7 @@ export const achievements = [
   {
     name: "Unstoppable Solver",
     description: "Complete 100 exercises",
-    icon: "💪🎖️",
+    icon: "Medal",
     category: "Exercises",
     criteria: "Complete 100 exercises",
     xpReward: 400,
@@ -353,7 +353,7 @@ export const achievements = [
   {
     name: "Week Warrior",
     description: "Maintain a 14-day learning streak",
-    icon: "🔥🔥💪",
+    icon: "Flame",
     category: "Streaks",
     criteria: "14-day streak",
     xpReward: 100,
@@ -362,7 +362,7 @@ export const achievements = [
   {
     name: "Dedication Master",
     description: "Maintain a 30-day learning streak",
-    icon: "🔥💫🏅",
+    icon: "Flame",
     category: "Streaks",
     criteria: "30-day streak",
     xpReward: 200,
@@ -371,7 +371,7 @@ export const achievements = [
   {
     name: "Unstoppable",
     description: "Maintain a 100-day learning streak",
-    icon: "🔥🔥🔥👑",
+    icon: "Flame",
     category: "Streaks",
     criteria: "100-day streak",
     xpReward: 500,
@@ -380,7 +380,7 @@ export const achievements = [
   {
     name: "Eternal Flame",
     description: "Maintain a 365-day learning streak",
-    icon: "🔥🌟💎",
+    icon: "Flame",
     category: "Streaks",
     criteria: "365-day streak",
     xpReward: 2000,
@@ -391,7 +391,7 @@ export const achievements = [
   {
     name: "Getting Started",
     description: "Reach 10% overall completion",
-    icon: "🌱🚀",
+    icon: "Sprout",
     category: "Milestones",
     criteria: "10% completion",
     xpReward: 50,
@@ -400,7 +400,7 @@ export const achievements = [
   {
     name: "Quarter Way",
     description: "Reach 25% overall completion",
-    icon: "📈🎯",
+    icon: "Target",
     category: "Milestones",
     criteria: "25% completion",
     xpReward: 100,
@@ -409,7 +409,7 @@ export const achievements = [
   {
     name: "Halfway There",
     description: "Reach 50% overall completion",
-    icon: "🎊🎯",
+    icon: "Target",
     category: "Milestones",
     criteria: "50% completion",
     xpReward: 200,
@@ -418,7 +418,7 @@ export const achievements = [
   {
     name: "Almost Done",
     description: "Reach 75% overall completion",
-    icon: "🚀✨",
+    icon: "Rocket",
     category: "Milestones",
     criteria: "75% completion",
     xpReward: 300,
@@ -438,7 +438,7 @@ export const achievements = [
   {
     name: "Quick Learner",
     description: "Complete a module in under the estimated time",
-    icon: "⚡🎯",
+    icon: "Zap",
     category: "Speed",
     criteria: "Complete any module faster than estimated",
     xpReward: 50,
@@ -447,7 +447,7 @@ export const achievements = [
   {
     name: "Speed Runner",
     description: "Complete 3 modules faster than estimated",
-    icon: "🏃💨",
+    icon: "Zap",
     category: "Speed",
     criteria: "Complete 3 modules faster than estimated",
     xpReward: 150,
@@ -456,7 +456,7 @@ export const achievements = [
   {
     name: "Lightning Learner",
     description: "Complete 10 modules faster than estimated",
-    icon: "⚡👑",
+    icon: "Zap",
     category: "Speed",
     criteria: "Complete 10 modules faster than estimated",
     xpReward: 300,
@@ -467,7 +467,7 @@ export const achievements = [
   {
     name: "Early Bird",
     description: "Complete a lesson before 8 AM",
-    icon: "🌅🐦",
+    icon: "Sun",
     category: "Special",
     criteria: "Complete lesson before 8 AM",
     xpReward: 25,
@@ -476,7 +476,7 @@ export const achievements = [
   {
     name: "Night Owl",
     description: "Complete a lesson after 10 PM",
-    icon: "🦉🌙",
+    icon: "Moon",
     category: "Special",
     criteria: "Complete lesson after 10 PM",
     xpReward: 25,
@@ -485,7 +485,7 @@ export const achievements = [
   {
     name: "Weekend Warrior",
     description: "Complete 5 lessons on weekends",
-    icon: "⚔️🎉",
+    icon: "Zap",
     category: "Special",
     criteria: "Complete 5 lessons on Saturday or Sunday",
     xpReward: 75,
@@ -494,7 +494,7 @@ export const achievements = [
   {
     name: "Marathon Runner",
     description: "Complete 10 exercises in one session",
-    icon: "🏃💪",
+    icon: "Zap",
     category: "Special",
     criteria: "Complete 10 exercises in one session",
     xpReward: 100,
@@ -503,7 +503,7 @@ export const achievements = [
   {
     name: "All-Nighter",
     description: "Study for 12+ hours straight",
-    icon: "🌃☕",
+    icon: "Coffee",
     category: "Special",
     criteria: "Accumulate 12+ hours in one day",
     xpReward: 50,
