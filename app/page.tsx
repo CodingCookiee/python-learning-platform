@@ -320,8 +320,8 @@ export default async function LandingPage() {
                 Current release and roadmap
               </h2>
               <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
-                Phase 1 is live now. The full roadmap is designed as a focused 3-4 week sprint, so
-                learners can see what comes next without being sold a marathon.
+                All phases are live now. The full roadmap is designed as a focused 3-4 week sprint,
+                so learners can see what comes next without being sold a marathon.
               </p>
             </div>
 

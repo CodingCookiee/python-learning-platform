@@ -6,14 +6,12 @@ import { getAppOrigin } from "@/lib/server-url";
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { AchievementBadge } from "@/components/gamification";
-import { LevelBadge } from "@/components/gamification/level-badge";
 import { XpProgressBar } from "@/components/gamification/xp-progress-bar";
 import { StreakDisplay } from "@/components/gamification/streak-display";
 import { AnimatedProgressBar } from "@/components/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { EditProfileForm } from "./_components/edit-profile-form";
-import { BookOpen, Trophy, CheckCircle2, Calendar } from "lucide-react";
+import { ProfileCard } from "./_components/profile-card";
+import { CheckCircle2, Calendar } from "lucide-react";
 
 interface ProgressData {
   user: { id: string; name: string | null; email: string | null; xp: number; level: number };
@@ -104,37 +102,15 @@ export default async function ProfilePage() {
       <StaggerContainer className="flex flex-col gap-8">
         <Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Profile" }]} />
         <FadeIn>
-          <Card>
-            <CardContent className="flex flex-col gap-6 pt-8 sm:flex-row sm:items-start sm:gap-8">
-              <div className="flex size-20 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-2xl font-bold font-heading self-start">
-                {initials}
-              </div>
-              <div className="flex flex-1 flex-col gap-3">
-                <div className="flex flex-wrap items-center gap-3">
-                  <h1 className="font-heading text-2xl font-semibold">
-                    {user.name ?? "Anonymous"}
-                  </h1>
-                  <LevelBadge level={user.level} size="sm" />
-                </div>
-                <p className="text-sm text-muted-foreground">{user.email ?? ""}</p>
-                <div className="flex flex-wrap gap-3">
-                  <Badge variant="outline" className="flex items-center gap-1.5 text-xs">
-                    <Trophy className="size-3 text-yellow-500" aria-hidden="true" />
-                    {achievements.total} achievements
-                  </Badge>
-                  <Badge variant="outline" className="flex items-center gap-1.5 text-xs">
-                    <BookOpen className="size-3" aria-hidden="true" />
-                    {completion.lessons.completed} lessons done
-                  </Badge>
-                  <Badge variant="outline" className="flex items-center gap-1.5 text-xs">
-                    <CheckCircle2 className="size-3 text-emerald-500" aria-hidden="true" />
-                    {completion.overall}% complete
-                  </Badge>
-                </div>
-                <EditProfileForm initialName={user.name ?? ""} onSaved={() => {}} />
-              </div>
-            </CardContent>
-          </Card>
+          <ProfileCard
+            initials={initials}
+            name={user.name ?? "Anonymous"}
+            email={user.email ?? ""}
+            level={user.level}
+            achievements={achievements.total}
+            lessonsCompleted={completion.lessons.completed}
+            completionPercentage={completion.overall}
+          />
         </FadeIn>
 
         <FadeIn delay={0.05}>
