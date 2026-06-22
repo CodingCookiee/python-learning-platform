@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import * as React from "react";
-import { AchievementModal } from "./achievement-modal";
+import { AchievementUnlockModal } from "./achievement-unlock-modal";
 import type { UnlockedAchievement } from "@/lib/achievements";
 
 type ValidTier = "bronze" | "silver" | "gold" | "platinum";
@@ -32,7 +32,7 @@ export function AchievementNotificationQueue({ achievements }: AchievementNotifi
   };
 
   return (
-    <AchievementModal
+    <AchievementUnlockModal
       open={current !== null}
       onClose={handleClose}
       achievement={

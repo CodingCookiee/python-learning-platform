@@ -6,6 +6,8 @@ export { Confetti } from "./confetti";
 export type { ConfettiProps } from "./confetti";
 export { AchievementModal } from "./achievement-modal";
 export type { AchievementModalProps } from "./achievement-modal";
+export { AchievementUnlockModal } from "./achievement-unlock-modal";
+export type { AchievementUnlockModalProps } from "./achievement-unlock-modal";
 export { StreakDisplay } from "./streak-display";
 export type { StreakDisplayProps } from "./streak-display";
 export { AchievementNotificationQueue } from "./achievement-notification";
