@@ -107,10 +107,13 @@ export function ModuleProgressCard({
       </p>
       <div className="mt-1">
         {isComplete ? (
-          <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary">
+          <Link
+            href={linkHref}
+            className="inline-flex items-center gap-1 text-xs font-semibold text-primary underline-offset-4 hover:underline"
+          >
             <CheckCircle2 className="size-3.5" aria-hidden="true" />
-            Complete
-          </span>
+            Review
+          </Link>
         ) : isLocked ? (
           <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
             <Lock className="size-3" aria-hidden="true" />

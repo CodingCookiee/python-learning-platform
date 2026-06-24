@@ -99,6 +99,7 @@ export function LessonCompleteButton({
 
   const isLoading = status === "loading";
   const isSuccess = status === "success";
+  const isReadOnly = completed;
   const lockedCopy =
     lockedMessage ?? "Complete the prerequisite module before you can mark this lesson complete.";
 
@@ -110,7 +111,7 @@ export function LessonCompleteButton({
         <div className="relative">
           <Button
             onClick={handleToggle}
-            disabled={isLoading || isLocked}
+            disabled={isLoading || isLocked || isReadOnly}
             variant={completed ? "outline" : "default"}
             className={cn(
               "w-full sm:w-auto transition-all",
@@ -121,7 +122,7 @@ export function LessonCompleteButton({
               isLocked
                 ? "Lesson locked"
                 : completed
-                  ? "Mark lesson as incomplete"
+                  ? "Lesson completed and available for review"
                   : "Mark lesson as complete"
             }
           >
@@ -139,7 +140,7 @@ export function LessonCompleteButton({
                   ? "Completed"
                   : "Locked"
                 : completed
-                  ? "Completed"
+                  ? "Completed for review"
                   : "Mark as Complete"}
           </Button>
 
@@ -173,7 +174,7 @@ export function LessonCompleteButton({
               className="text-xs text-emerald-600 dark:text-emerald-400"
             >
               {nextLessonId
-                ? "Nice work! Moving to the next lesson…"
+                ? "Nice work! You can review this lesson anytime."
                 : "Lesson complete! Great job 🎉"}
             </motion.p>
           )}

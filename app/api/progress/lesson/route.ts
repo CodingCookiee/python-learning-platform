@@ -43,6 +43,12 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
             title: true,
           },
         },
+        progress: {
+          where: { userId: context.userId },
+          select: {
+            completed: true,
+          },
+        },
       },
     });
 
@@ -83,6 +89,16 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
         {
           error:
             "Complete the prerequisite module and previous lessons before marking this lesson complete.",
+        },
+        { status: 403 }
+      );
+    }
+
+    const existingProgressCompleted = lesson.progress[0]?.completed ?? false;
+    if (existingProgressCompleted && !completed) {
+      return NextResponse.json(
+        {
+          error: "Completed lessons are read-only for review and cannot be marked incomplete.",
         },
         { status: 403 }
       );
