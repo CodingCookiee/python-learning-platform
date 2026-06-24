@@ -11,9 +11,10 @@ export const advancedFeaturesLessons: LessonSeed[] = [
   {
     moduleTitle: "Advanced Python Features",
     title: "Decorators and Function Wrapping",
-    description: "Master Python decorators for modifying function behavior, creating reusable wrappers, and building elegant APIs.",
+    description:
+      "Master Python decorators for modifying function behavior, creating reusable wrappers, and building elegant APIs.",
     order: 1,
-    estimatedTime: 35,
+    estimatedTime: 30,
     content: `# Decorators and Function Wrapping
 
 ## Why This Matters
@@ -596,12 +597,13 @@ print(f"Total calls: {square.call_count}")
 ---
 
 **Next Lesson:** Generators and Iterators!
-`
+`,
   },
   {
     moduleTitle: "Advanced Python Features",
     title: "Generators and Iterators",
-    description: "Master generators for memory-efficient iteration, create custom iterators, and understand lazy evaluation in Python.",
+    description:
+      "Master generators for memory-efficient iteration, create custom iterators, and understand lazy evaluation in Python.",
     order: 2,
     estimatedTime: 30,
     content: `# Generators and Iterators
@@ -1108,14 +1110,15 @@ for word in long_words:
 ---
 
 **Next Lesson:** Context Managers and the with Statement!
-`
+`,
   },
   {
     moduleTitle: "Advanced Python Features",
     title: "Advanced Context Managers",
-    description: "Create custom context managers using classes and contextlib for resource management and code organization.",
+    description:
+      "Create custom context managers using classes and contextlib for resource management and code organization.",
     order: 3,
-    estimatedTime: 25,
+    estimatedTime: 30,
     content: `# Advanced Context Managers
 
 ## Why This Matters
@@ -1616,12 +1619,13 @@ def copy_multiple(sources, destination):
 ---
 
 **Next Lesson:** Metaclasses and Class Customization!
-`
+`,
   },
   {
     moduleTitle: "Advanced Python Features",
     title: "Metaclasses and Class Customization",
-    description: "Understand metaclasses, customize class creation, and use advanced class features for powerful abstractions.",
+    description:
+      "Understand metaclasses, customize class creation, and use advanced class features for powerful abstractions.",
     order: 4,
     estimatedTime: 30,
     content: `# Metaclasses and Class Customization
@@ -2073,14 +2077,15 @@ print(Registry.registry)
 ---
 
 **Next Lesson:** Descriptors and Properties!
-`
+`,
   },
   {
     moduleTitle: "Advanced Python Features",
     title: "Descriptors and Properties",
-    description: "Master Python descriptors for attribute access control, implement custom properties, and understand Python's descriptor protocol.",
+    description:
+      "Master Python descriptors for attribute access control, implement custom properties, and understand Python's descriptor protocol.",
     order: 5,
-    estimatedTime: 25,
+    estimatedTime: 30,
     content: `# Descriptors and Properties
 
 ## Why This Matters
@@ -2629,6 +2634,6 @@ print(calc.factorial)  # 120 (cached)
 ---
 
 **Next Module:** Type Hints & Static Analysis!
-`
-  }
+`,
+  },
 ];

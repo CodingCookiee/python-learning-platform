@@ -11,7 +11,8 @@ export const devopsAutomationLessons: LessonSeed[] = [
   {
     moduleTitle: "DevOps & Automation",
     title: "Virtual Environments and Package Management",
-    description: "Master Python virtual environments and package management with venv and pip, ensuring reproducible project dependencies and isolated development environments.",
+    description:
+      "Master Python virtual environments and package management with venv and pip, ensuring reproducible project dependencies and isolated development environments.",
     order: 1,
     estimatedTime: 30,
     content: `

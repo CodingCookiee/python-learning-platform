@@ -11,9 +11,10 @@ export const webDevelopmentLessons: LessonSeed[] = [
   {
     moduleTitle: "Web Development",
     title: "Introduction to Flask - Basics and Routing",
-    description: "Learn Flask fundamentals, create your first web application, master routing, request handling, and response types.",
+    description:
+      "Learn Flask fundamentals, create your first web application, master routing, request handling, and response types.",
     order: 1,
-    estimatedTime: 35,
+    estimatedTime: 30,
     content: `# Introduction to Flask - Basics and Routing
 
 ## Why This Matters
@@ -579,14 +580,15 @@ if __name__ == '__main__':
 ---
 
 **Next Lesson:** Flask Templates and Forms!
-`
+`,
   },
   {
     moduleTitle: "Web Development",
     title: "Flask Templates and Forms",
-    description: "Learn Jinja2 templating, render dynamic HTML, handle form submissions, and validate user input in Flask applications.",
+    description:
+      "Learn Jinja2 templating, render dynamic HTML, handle form submissions, and validate user input in Flask applications.",
     order: 2,
-    estimatedTime: 35,
+    estimatedTime: 30,
     content: `# Flask Templates and Forms
 
 ## Why This Matters
@@ -1120,14 +1122,15 @@ if __name__ == '__main__':
 ---
 
 **Next Lesson:** Building RESTful APIs with Flask!
-`
+`,
   },
   {
     moduleTitle: "Web Development",
     title: "Building RESTful APIs with Flask",
-    description: "Master REST API design, implement CRUD operations, handle JSON data, add error handling, and work with Flask-RESTX for API documentation.",
+    description:
+      "Master REST API design, implement CRUD operations, handle JSON data, add error handling, and work with Flask-RESTX for API documentation.",
     order: 3,
-    estimatedTime: 35,
+    estimatedTime: 30,
     content: `# Building RESTful APIs with Flask
 
 ## Why This Matters
@@ -1849,14 +1852,15 @@ if __name__ == '__main__':
 ---
 
 **Next Lesson:** FastAPI Fundamentals!
-`
+`,
   },
   {
     moduleTitle: "Web Development",
     title: "FastAPI Fundamentals",
-    description: "Learn FastAPI, a modern high-performance Python web framework with automatic API documentation, async support, and built-in data validation.",
+    description:
+      "Learn FastAPI, a modern high-performance Python web framework with automatic API documentation, async support, and built-in data validation.",
     order: 4,
-    estimatedTime: 35,
+    estimatedTime: 30,
     content: `# FastAPI Fundamentals
 
 ## Why This Matters
@@ -2308,14 +2312,15 @@ def delete_book(book_id: int):
 ---
 
 **Next Lesson:** API Authentication and Deployment!
-`
+`,
   },
   {
     moduleTitle: "Web Development",
     title: "API Authentication and Deployment",
-    description: "Implement JWT authentication, secure your APIs, and deploy Flask/FastAPI applications to production environments.",
+    description:
+      "Implement JWT authentication, secure your APIs, and deploy Flask/FastAPI applications to production environments.",
     order: 5,
-    estimatedTime: 35,
+    estimatedTime: 30,
     content: `# API Authentication and Deployment
 
 ## Why This Matters
@@ -2953,6 +2958,6 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 ---
 
 **Congratulations!** You've completed the Web Development module!
-`
-  }
+`,
+  },
 ];

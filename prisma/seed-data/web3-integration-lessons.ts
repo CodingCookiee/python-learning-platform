@@ -14,7 +14,7 @@ export const web3IntegrationLessons: LessonSeed[] = [
     description:
       "Learn blockchain fundamentals, understand Web3 concepts, explore smart contracts, and discover how Python integrates with blockchain networks.",
     order: 1,
-    estimatedTime: 35,
+    estimatedTime: 40,
     content: `
 ## Why This Matters
 

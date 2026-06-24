@@ -14,7 +14,7 @@ export const databaseIntegrationLessons: LessonSeed[] = [
     description:
       "Learn to work with SQLite databases using SQLAlchemy ORM, define models, perform CRUD operations, and manage database connections.",
     order: 1,
-    estimatedTime: 35,
+    estimatedTime: 30,
     content: `# Working with SQLite and SQLAlchemy
 
 ## Why This Matters
@@ -580,7 +580,7 @@ session.close()
     description:
       "Work with PostgreSQL databases, implement database migrations with Alembic, and manage schema changes in production applications.",
     order: 2,
-    estimatedTime: 35,
+    estimatedTime: 30,
     content: `# PostgreSQL with SQLAlchemy and Alembic
 
 ## Why This Matters
@@ -1198,7 +1198,7 @@ alembic downgrade -1
     description:
       "Work with MongoDB using Motor (async driver) and Beanie ODM, implement document-based data models, and perform CRUD operations on NoSQL databases.",
     order: 3,
-    estimatedTime: 35,
+    estimatedTime: 30,
     content: `# MongoDB with Motor and Beanie
 
 ## Why This Matters

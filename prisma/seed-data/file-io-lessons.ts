@@ -306,7 +306,7 @@ print(content)
 
 File operations are fundamental to real applications. Always close files (or use context managers), handle encodings properly, and be memory-efficient with large files. Next, you'll learn context managers for automatic resource cleanup.`,
     1,
-    30
+    24
   ),
   createLesson(
     "File I/O & Exception Handling",
@@ -659,7 +659,7 @@ print(content)  # Works fine
 
 Context managers guarantee cleanup happens, making your code safer and more reliable. Use \`with\` for files, connections, locks, and any resource that needs cleanup. In the next lesson, you'll work with CSV and JSON files using context managers.`,
     2,
-    30
+    24
   ),
   createLesson(
     "File I/O & Exception Handling",
@@ -1139,7 +1139,7 @@ with open('data.json', 'r', encoding='utf-8') as file:
 
 CSV and JSON are essential for data exchange and storage. Use csv.DictReader/DictWriter for header-based CSV files, json.load/dump for files, and json.loads/dumps for strings. Always handle encoding and use context managers. Next, you'll learn exception handling for robust error management.`,
     3,
-    30
+    24
   ),
   createLesson(
     "File I/O & Exception Handling",
@@ -1703,7 +1703,7 @@ except Exception as e:
 
 Exception handling is essential for robust applications. Use try-except for expected errors, be specific about exceptions you catch, always clean up resources in finally, and provide helpful error messages. Next, you'll learn to create custom exceptions for domain-specific error handling.`,
     4,
-    25
+    24
   ),
   createLesson(
     "File I/O & Exception Handling",
@@ -2720,6 +2720,6 @@ create_account('ab', 'alice@example.com')        # Validation error
 
 Custom exceptions make your code more maintainable and self-documenting. Create exception hierarchies for related errors, add attributes for context, use clear names, and organize exceptions in dedicated modules. Custom exceptions enable precise error handling and better debugging. You now have all the tools for robust file I/O and error handling in Python!`,
     5,
-    25
+    24
   ),
 ];

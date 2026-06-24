@@ -11,7 +11,8 @@ export const dataProcessingLessons: LessonSeed[] = [
   {
     moduleTitle: "Data Processing",
     title: "NumPy Fundamentals",
-    description: "Master NumPy for numerical computing, work with arrays, perform vectorized operations, and understand array manipulation techniques.",
+    description:
+      "Master NumPy for numerical computing, work with arrays, perform vectorized operations, and understand array manipulation techniques.",
     order: 1,
     estimatedTime: 35,
     content: `# NumPy Fundamentals
@@ -495,12 +496,13 @@ print(result)
 ---
 
 **Next Lesson:** Pandas for Data Manipulation!
-`
+`,
   },
   {
     moduleTitle: "Data Processing",
     title: "Pandas for Data Manipulation",
-    description: "Master Pandas for data manipulation, work with DataFrames and Series, perform data cleaning, filtering, grouping, and merging operations.",
+    description:
+      "Master Pandas for data manipulation, work with DataFrames and Series, perform data cleaning, filtering, grouping, and merging operations.",
     order: 2,
     estimatedTime: 35,
     content: `# Pandas for Data Manipulation
@@ -1003,12 +1005,13 @@ print(df_sorted.head())
 ---
 
 **Next Lesson:** Data Visualization with Matplotlib and Seaborn!
-`
+`,
   },
   {
     moduleTitle: "Data Processing",
     title: "Data Visualization with Matplotlib",
-    description: "Create data visualizations with Matplotlib, master plotting basics, customize charts, and create publication-quality figures.",
+    description:
+      "Create data visualizations with Matplotlib, master plotting basics, customize charts, and create publication-quality figures.",
     order: 3,
     estimatedTime: 35,
     content: `# Data Visualization with Matplotlib
@@ -1489,6 +1492,6 @@ plt.show()
 ---
 
 **Congratulations!** You've completed the Data Processing module!
-`
-  }
+`,
+  },
 ];

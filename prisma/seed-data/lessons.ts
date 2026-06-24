@@ -48,7 +48,7 @@ export const lessons: LessonSeed[] = [
     "Install Python, set up your development environment, and verify your installation. Learn about virtual environments and IDE configuration.",
     "Learn how to install Python on your system and set up a proper development environment.",
     1,
-    15
+    20
   ),
   createLesson(
     "Python Setup & Fundamentals",
@@ -56,7 +56,7 @@ export const lessons: LessonSeed[] = [
     "Master Python's fundamental syntax including variables, data types, operators, and basic expressions. Compare with JavaScript syntax.",
     "Understand Python's basic syntax, variables, and data types.",
     2,
-    20
+    25
   ),
   createLesson(
     "Python Setup & Fundamentals",
@@ -64,7 +64,7 @@ export const lessons: LessonSeed[] = [
     "Deep dive into Python strings: formatting, methods, slicing, and string manipulation techniques.",
     "Learn string manipulation, formatting, and common string operations.",
     3,
-    15
+    20
   ),
   createLesson(
     "Python Setup & Fundamentals",
@@ -72,7 +72,7 @@ export const lessons: LessonSeed[] = [
     "Learn how to handle user input, display output, read command-line arguments, and perform basic file I/O.",
     "Master input/output operations and basic file handling.",
     4,
-    10
+    25
   ),
 
   // Data Structures & Control Flow
@@ -82,7 +82,7 @@ export const lessons: LessonSeed[] = [
     "Master Python lists and tuples: creation, indexing, slicing, methods, and when to use each type.",
     "Learn about Python's list and tuple data structures.",
     1,
-    25
+    24
   ),
   createLesson(
     "Data Structures & Control Flow",
@@ -90,7 +90,7 @@ export const lessons: LessonSeed[] = [
     "Explore dictionaries for key-value pairs and sets for unique collections. Learn common operations and use cases.",
     "Work with dictionaries and sets for efficient data management.",
     2,
-    20
+    24
   ),
   createLesson(
     "Data Structures & Control Flow",
@@ -98,7 +98,7 @@ export const lessons: LessonSeed[] = [
     "Master if, elif, else statements, comparison operators, logical operators, and truthiness in Python.",
     "Implement conditional logic and decision-making in your code.",
     3,
-    15
+    24
   ),
   createLesson(
     "Data Structures & Control Flow",
@@ -106,7 +106,7 @@ export const lessons: LessonSeed[] = [
     "Learn for loops, while loops, range(), enumerate(), zip(), and loop control statements (break, continue, pass).",
     "Master iteration patterns and loop control flow.",
     4,
-    20
+    24
   ),
   createLesson(
     "Data Structures & Control Flow",
@@ -114,7 +114,7 @@ export const lessons: LessonSeed[] = [
     "Master list, dictionary, and set comprehensions for concise, readable data transformations.",
     "Write elegant comprehensions for data transformation.",
     5,
-    15
+    24
   ),
 
   // Functions & Modules
@@ -124,7 +124,7 @@ export const lessons: LessonSeed[] = [
     "Learn function syntax, parameters, return values, docstrings, and function best practices.",
     "Create reusable functions with proper documentation.",
     1,
-    20
+    18
   ),
   createLesson(
     "Functions & Modules",
@@ -132,7 +132,7 @@ export const lessons: LessonSeed[] = [
     "Master positional arguments, keyword arguments, default values, *args, **kwargs, and multiple return values.",
     "Work with flexible function signatures and return patterns.",
     2,
-    20
+    18
   ),
   createLesson(
     "Functions & Modules",
@@ -140,7 +140,7 @@ export const lessons: LessonSeed[] = [
     "Understand variable scope, global vs local variables, nonlocal keyword, and how closures work.",
     "Master scope rules and closure patterns.",
     3,
-    15
+    18
   ),
   createLesson(
     "Functions & Modules",
@@ -148,7 +148,7 @@ export const lessons: LessonSeed[] = [
     "Learn lambda expressions, map(), filter(), sorted() with custom keys, and functional programming patterns.",
     "Use lambda functions and higher-order function patterns.",
     4,
-    15
+    18
   ),
   createLesson(
     "Functions & Modules",
@@ -156,7 +156,7 @@ export const lessons: LessonSeed[] = [
     "Master Python's module system: importing, creating modules, packages, and the __name__ guard pattern.",
     "Organize code into reusable modules and packages.",
     5,
-    15
+    18
   ),
 
   // Object-Oriented Programming

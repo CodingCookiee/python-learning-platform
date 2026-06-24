@@ -11,7 +11,8 @@ export const typeHintsLessons: LessonSeed[] = [
   {
     moduleTitle: "Type Hints & Static Analysis",
     title: "Introduction to Type Hints",
-    description: "Learn Python's type hint syntax, basic type annotations, and how type hints improve code quality and IDE support.",
+    description:
+      "Learn Python's type hint syntax, basic type annotations, and how type hints improve code quality and IDE support.",
     order: 1,
     estimatedTime: 30,
     content: `# Introduction to Type Hints
@@ -521,12 +522,13 @@ if found:
 ---
 
 **Next Lesson:** Advanced Type Annotations!
-`
+`,
   },
   {
     moduleTitle: "Type Hints & Static Analysis",
     title: "Advanced Type Annotations",
-    description: "Master advanced typing features including generics, protocols, TypedDict, and creating reusable type aliases.",
+    description:
+      "Master advanced typing features including generics, protocols, TypedDict, and creating reusable type aliases.",
     order: 2,
     estimatedTime: 30,
     content: `# Advanced Type Annotations
@@ -1039,14 +1041,15 @@ connect(config)
 ---
 
 **Next Lesson:** Static Type Checking with mypy!
-`
+`,
   },
   {
     moduleTitle: "Type Hints & Static Analysis",
     title: "Static Type Checking with mypy",
-    description: "Use mypy to catch type errors before runtime, configure type checking rules, and integrate into development workflow.",
+    description:
+      "Use mypy to catch type errors before runtime, configure type checking rules, and integrate into development workflow.",
     order: 3,
-    estimatedTime: 25,
+    estimatedTime: 30,
     content: `# Static Type Checking with mypy
 
 ## Why This Matters
@@ -1457,14 +1460,15 @@ mypy example.py
 ---
 
 **Next Lesson:** Typed Python Best Practices!
-`
+`,
   },
   {
     moduleTitle: "Type Hints & Static Analysis",
     title: "Typed Python Best Practices",
-    description: "Learn best practices for type hints, when to use them, gradual typing strategies, and writing type-safe Python code.",
+    description:
+      "Learn best practices for type hints, when to use them, gradual typing strategies, and writing type-safe Python code.",
     order: 4,
-    estimatedTime: 25,
+    estimatedTime: 30,
     content: `# Typed Python Best Practices
 
 ## Why This Matters
@@ -1913,6 +1917,6 @@ result = process_order({"items": [...]})  # Type-checked
 ---
 
 **Next Module:** Web Development!
-`
-  }
+`,
+  },
 ];

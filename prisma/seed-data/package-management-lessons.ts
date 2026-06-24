@@ -14,7 +14,7 @@ export const packageManagementLessons: LessonSeed[] = [
     description:
       "Master Python's package manager pip, learn to install and manage packages from PyPI, and understand package versioning.",
     order: 1,
-    estimatedTime: 10,
+    estimatedTime: 6,
     content: `# Understanding pip and PyPI
 
 ## Why This Matters
@@ -398,7 +398,7 @@ pip install -r requirements.txt
     description:
       "Learn to create isolated Python environments using venv and virtualenv to manage project dependencies independently.",
     order: 2,
-    estimatedTime: 10,
+    estimatedTime: 6,
     content: `# Creating and Managing Virtual Environments
 
 ## Why This Matters
@@ -880,7 +880,7 @@ pip install -r requirements.txt
     description:
       "Master dependency management with requirements.txt files, learn best practices for pinning versions, and organize development vs production dependencies.",
     order: 3,
-    estimatedTime: 10,
+    estimatedTime: 6,
     content: `# Working with requirements.txt
 
 ## Why This Matters
@@ -1093,7 +1093,7 @@ echo "black==23.7.0" >> requirements-dev.txt
     description:
       "Learn to install and manage multiple Python versions on the same system using pyenv, enabling project-specific Python versions.",
     order: 4,
-    estimatedTime: 10,
+    estimatedTime: 6,
     content: `# Using pyenv for Python Version Management
 
 ## Why This Matters
@@ -1428,7 +1428,7 @@ python --version  # Should show 3.11.7
     description:
       "Learn to create, structure, and publish your own Python packages to PyPI, making your code available to the Python community.",
     order: 5,
-    estimatedTime: 10,
+    estimatedTime: 6,
     content: `# Publishing Packages to PyPI
 
 ## Why This Matters

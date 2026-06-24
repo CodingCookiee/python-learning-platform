@@ -11,9 +11,10 @@ export const asyncLessons: LessonSeed[] = [
   {
     moduleTitle: "Async Programming with asyncio",
     title: "Introduction to Asynchronous Programming",
-    description: "Understand the fundamentals of asynchronous programming, event loops, and when to use async/await in Python.",
+    description:
+      "Understand the fundamentals of asynchronous programming, event loops, and when to use async/await in Python.",
     order: 1,
-    estimatedTime: 30,
+    estimatedTime: 37,
     content: `# Introduction to Asynchronous Programming
 
 ## Why This Matters
@@ -447,14 +448,15 @@ asyncio.run(main())
 ---
 
 **Next Lesson:** Working with Coroutines and Tasks!
-`
+`,
   },
   {
     moduleTitle: "Async Programming with asyncio",
     title: "Working with Coroutines and Tasks",
-    description: "Learn to create and manage coroutines, run multiple tasks concurrently, and understand task lifecycle and cancellation.",
+    description:
+      "Learn to create and manage coroutines, run multiple tasks concurrently, and understand task lifecycle and cancellation.",
     order: 2,
-    estimatedTime: 30,
+    estimatedTime: 37,
     content: `# Working with Coroutines and Tasks
 
 ## Why This Matters
@@ -940,14 +942,15 @@ asyncio.run(main())
 ---
 
 **Next Lesson:** Async I/O Operations!
-`
+`,
   },
   {
     moduleTitle: "Async Programming with asyncio",
     title: "Async I/O Operations",
-    description: "Master asynchronous file operations, HTTP requests with aiohttp, and async database queries for efficient I/O handling.",
+    description:
+      "Master asynchronous file operations, HTTP requests with aiohttp, and async database queries for efficient I/O handling.",
     order: 3,
-    estimatedTime: 35,
+    estimatedTime: 38,
     content: `# Async I/O Operations
 
 ## Why This Matters
@@ -1456,14 +1459,15 @@ asyncio.run(main())
 ---
 
 **Next Lesson:** Advanced asyncio Patterns!
-`
+`,
   },
   {
     moduleTitle: "Async Programming with asyncio",
     title: "Advanced asyncio Patterns",
-    description: "Master advanced async patterns including queues, semaphores, locks, event coordination, and building robust async applications.",
+    description:
+      "Master advanced async patterns including queues, semaphores, locks, event coordination, and building robust async applications.",
     order: 4,
-    estimatedTime: 35,
+    estimatedTime: 38,
     content: `# Advanced asyncio Patterns
 
 ## Why This Matters
@@ -1994,6 +1998,6 @@ asyncio.run(main())
 ---
 
 **Next Module:** Advanced Python Features!
-`
-  }
+`,
+  },
 ];
