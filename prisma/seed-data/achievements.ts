@@ -112,7 +112,7 @@ export const achievements = [
   },
   {
     name: "Database Maestro",
-    description: "Complete Module 12: Database Integration with SQLAlchemy",
+    description: "Complete Module 12: Database Integration",
     icon: "Database",
     category: "Modules",
     criteria: "Complete Module 12",
@@ -121,7 +121,7 @@ export const achievements = [
   },
   {
     name: "Data Scientist",
-    description: "Complete Module 13: Data Processing & Pandas",
+    description: "Complete Module 13: Data Processing",
     icon: "TrendingUp",
     category: "Modules",
     criteria: "Complete Module 13",

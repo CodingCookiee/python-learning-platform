@@ -92,7 +92,7 @@ export const modules = [
     duration: 12,
   },
   {
-    title: "Database Integration with SQLAlchemy",
+    title: "Database Integration",
     description:
       "Master SQLAlchemy ORM, PostgreSQL, MongoDB with PyMongo, database migrations with Alembic, and query optimization.",
     phase: "Applied",
@@ -100,7 +100,7 @@ export const modules = [
     duration: 7,
   },
   {
-    title: "Data Processing & Pandas",
+    title: "Data Processing",
     description:
       "Learn data manipulation with NumPy and Pandas, data visualization with Matplotlib, and data analysis workflows.",
     phase: "Applied",

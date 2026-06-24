@@ -119,7 +119,7 @@ const modules = [
     duration: 12,
   },
   {
-    title: "Database Integration with SQLAlchemy",
+    title: "Database Integration",
     description:
       "Master SQLAlchemy ORM, PostgreSQL, MongoDB with PyMongo, database migrations with Alembic, and query optimization.",
     phase: "Applied",
@@ -127,7 +127,7 @@ const modules = [
     duration: 7,
   },
   {
-    title: "Data Processing & Pandas",
+    title: "Data Processing",
     description:
       "Learn data manipulation with NumPy and Pandas, data visualization with Matplotlib, and data analysis workflows.",
     phase: "Applied",
@@ -164,8 +164,18 @@ function getLessonsForModule(moduleId: string, moduleOrder: number) {
   const moduleData = modules[moduleOrder - 1];
   if (!moduleData) return [];
 
+  const normalizeTitle = (title: string) =>
+    title
+      .toLowerCase()
+      .replace(/\s+[&-]\s+.*$/, "")
+      .replace(/\s+with\s+.*$/, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const targetTitle = normalizeTitle(moduleData.title);
+
   return lessonsData
-    .filter((lesson) => lesson.moduleTitle === moduleData.title)
+    .filter((lesson) => normalizeTitle(lesson.moduleTitle) === targetTitle)
     .map((lesson) => ({
       moduleId,
       title: lesson.title,

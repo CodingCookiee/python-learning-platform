@@ -513,7 +513,7 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
       },
     ],
 
-    // Module 12: Database Integration with SQLAlchemy
+    // Module 12: Database Integration
     12: [
       {
         moduleId,
@@ -558,7 +558,7 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
       },
     ],
 
-    // Module 13: Data Processing & Pandas
+    // Module 13: Data Processing
     13: [
       {
         moduleId,
