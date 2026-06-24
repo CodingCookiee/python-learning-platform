@@ -51,6 +51,10 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function hasDownloadableContent(file: { content?: string }): boolean {
+  return typeof file.content === "string" && file.content.length > 0;
+}
+
 export function EvaluateClient({ submission }: EvaluateClientProps) {
   const router = useRouter();
 
@@ -208,16 +212,33 @@ export function EvaluateClient({ submission }: EvaluateClientProps) {
                           <Badge variant="secondary" className="text-xs">
                             {formatFileSize(file.size)}
                           </Badge>
-                          <Button size="sm" variant="outline" asChild className="h-7 px-2 text-xs">
-                            <a
-                              href={`/api/admin/projects/submissions/${submission.id}/file/${i}`}
-                              download={file.name}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                          {hasDownloadableContent(file) ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              asChild
+                              className="h-7 px-2 text-xs"
                             >
-                              Download
-                            </a>
-                          </Button>
+                              <a
+                                href={`/api/admin/projects/submissions/${submission.id}/file/${i}`}
+                                download={file.name}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                Download
+                              </a>
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 px-2 text-xs"
+                              disabled
+                              title="Original file content was not stored with this submission"
+                            >
+                              Unavailable
+                            </Button>
+                          )}
                         </div>
                       </li>
                     ))}

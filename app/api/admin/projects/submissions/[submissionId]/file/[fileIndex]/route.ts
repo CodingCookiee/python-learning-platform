@@ -3,6 +3,8 @@ import { auth } from "@/auth";
 import { isAdmin } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 
+export const runtime = "nodejs";
+
 interface RouteContext {
   params: Promise<{
     submissionId: string;
@@ -49,7 +51,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     let filesPayload: {
       type: string;
-      files?: Array<{ name: string; content: string; type: string }>;
+      files?: Array<{ name: string; content?: string; type: string; size?: number }>;
     };
     try {
       filesPayload = JSON.parse(submission.files);
@@ -62,15 +64,25 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
 
     const file = filesPayload.files[index];
+    if (!file.content) {
+      return NextResponse.json(
+        {
+          error:
+            "Original file content was not stored for this submission. Legacy submissions can only show metadata.",
+        },
+        { status: 410 }
+      );
+    }
 
     // Decode base64 content
     const content = Buffer.from(file.content, "base64");
 
     // Return file with appropriate headers
+    const safeFileName = file.name.replace(/"/g, '\\"');
     return new NextResponse(content, {
       headers: {
         "Content-Type": file.type || "application/octet-stream",
-        "Content-Disposition": `attachment; filename="${encodeURIComponent(file.name)}"`,
+        "Content-Disposition": `attachment; filename="${safeFileName}"; filename*=UTF-8''${encodeURIComponent(file.name)}`,
         "Content-Length": content.length.toString(),
       },
     });

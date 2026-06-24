@@ -15,6 +15,7 @@ const submitSchema = z.discriminatedUnion("type", [
           name: z.string().min(1),
           size: z.number().int().min(0),
           type: z.string(),
+          content: z.string().min(1),
         })
       )
       .min(1, "At least one file is required"),

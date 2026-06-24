@@ -18,6 +18,7 @@ interface FileItem {
   name: string;
   size: number;
   type: string;
+  content: string;
 }
 
 interface SubmitResponse {
@@ -37,6 +38,7 @@ export function ProjectSubmitClient({ projectId, projectTitle }: ProjectSubmitCl
   const [tab, setTab] = React.useState<"files" | "github">("files");
   const [files, setFiles] = React.useState<FileItem[]>([]);
   const [isDragging, setIsDragging] = React.useState(false);
+  const [isProcessingFiles, setIsProcessingFiles] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [githubUrl, setGithubUrl] = React.useState("");
   const [githubError, setGithubError] = React.useState("");
@@ -48,17 +50,37 @@ export function ProjectSubmitClient({ projectId, projectTitle }: ProjectSubmitCl
   // suppress unused warning for projectTitle (used for aria)
   const _title = projectTitle;
 
-  function addFiles(incoming: FileList | null) {
+  async function fileToItem(file: File): Promise<FileItem> {
+    const buffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    let binary = "";
+    const chunkSize = 0x8000;
+
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+    }
+
+    return {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      content: btoa(binary),
+    };
+  }
+
+  async function addFiles(incoming: FileList | null) {
     if (!incoming) return;
-    const items: FileItem[] = Array.from(incoming).map((f) => ({
-      name: f.name,
-      size: f.size,
-      type: f.type,
-    }));
-    setFiles((prev) => {
-      const names = new Set(prev.map((f) => f.name));
-      return [...prev, ...items.filter((f) => !names.has(f.name))];
-    });
+    setIsProcessingFiles(true);
+    try {
+      const incomingItems = await Promise.all(Array.from(incoming).map((file) => fileToItem(file)));
+
+      setFiles((prev) => {
+        const names = new Set(prev.map((f) => f.name));
+        return [...prev, ...incomingItems.filter((file) => !names.has(file.name))];
+      });
+    } finally {
+      setIsProcessingFiles(false);
+    }
   }
 
   function removeFile(name: string) {
@@ -84,7 +106,7 @@ export function ProjectSubmitClient({ projectId, projectTitle }: ProjectSubmitCl
   function handleDrop(e: React.DragEvent) {
     e.preventDefault();
     setIsDragging(false);
-    addFiles(e.dataTransfer.files);
+    void addFiles(e.dataTransfer.files);
   }
 
   function validateGithubUrl(url: string): string {
@@ -96,6 +118,11 @@ export function ProjectSubmitClient({ projectId, projectTitle }: ProjectSubmitCl
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitError("");
+
+    if (isProcessingFiles) {
+      setSubmitError("Please wait for the files to finish loading.");
+      return;
+    }
 
     if (tab === "github") {
       const err = validateGithubUrl(githubUrl);
@@ -206,7 +233,7 @@ export function ProjectSubmitClient({ projectId, projectTitle }: ProjectSubmitCl
               multiple
               accept={ACCEPTED_EXTENSIONS.join(",")}
               className="sr-only"
-              onChange={(e) => addFiles(e.target.files)}
+              onChange={(e) => void addFiles(e.target.files)}
               aria-hidden="true"
             />
           </div>
@@ -320,12 +347,16 @@ export function ProjectSubmitClient({ projectId, projectTitle }: ProjectSubmitCl
           type="button"
           variant="outline"
           onClick={() => router.push(`/projects/${projectId}`)}
-          disabled={isSubmitting}
+          disabled={isSubmitting || isProcessingFiles}
         >
           Cancel
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Submitting\u2026" : "Submit Project"}
+        <Button type="submit" disabled={isSubmitting || isProcessingFiles}>
+          {isSubmitting
+            ? "Submitting\u2026"
+            : isProcessingFiles
+              ? "Preparing files\u2026"
+              : "Submit Project"}
         </Button>
       </div>
     </form>

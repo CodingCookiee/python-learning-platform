@@ -13,7 +13,7 @@ export interface SubmissionDetail {
   filesPayload: {
     type: "files" | "github";
     url?: string;
-    files?: Array<{ name: string; size: number; type: string }>;
+    files?: Array<{ name: string; size: number; type: string; content?: string }>;
     notes?: string | null;
   };
   project: {
