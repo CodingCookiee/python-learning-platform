@@ -23,8 +23,8 @@ type ProjectSeed = {
 };
 
 // Seed data
-// 4-week compressed timeline: Week 1 (Phase 1: 20h), Week 2 (Phase 2: 25h), Week 3 (Phase 3: 20h), Week 4 (Phase 4: 42h)
-// Total: 107 hours = ~27 hours/week
+// 4-week compressed timeline: Week 1 (Phase 1: 20h), Week 2 (Phase 2: 23h), Week 3 (Phase 3: 22h), Week 4 (Phase 4: 44h)
+// Total: 109 hours = ~27 hours/week
 const modules = [
   // Phase 1: Foundations (Week 1) - 20 hours total
   {
@@ -51,14 +51,14 @@ const modules = [
     order: 3,
     duration: 6,
   },
-  // Phase 2: Intermediate (Week 2) - 25 hours total
+  // Phase 2: Intermediate (Week 2) - 23 hours total
   {
     title: "Object-Oriented Programming",
     description:
       "Master classes, objects, inheritance, polymorphism, encapsulation, and magic methods. Learn OOP patterns and how they compare to ES6 classes.",
     phase: "Intermediate",
     order: 4,
-    duration: 10,
+    duration: 8,
   },
   {
     title: "File I/O & Exception Handling",
@@ -84,7 +84,7 @@ const modules = [
     order: 7,
     duration: 4,
   },
-  // Phase 3: Advanced Python (Week 3) - 20 hours total
+  // Phase 3: Advanced Python (Week 3) - 22 hours total
   {
     title: "Async Programming with asyncio",
     description:
@@ -99,7 +99,7 @@ const modules = [
       "Learn decorators, context managers, generators, iterators, metaclasses, and other advanced Python features for writing elegant code.",
     phase: "Advanced",
     order: 9,
-    duration: 7,
+    duration: 9,
   },
   {
     title: "Type Hints & Static Analysis",
@@ -109,17 +109,17 @@ const modules = [
     order: 10,
     duration: 5,
   },
-  // Phase 4: Applied Python (Week 4) - 42 hours total
+  // Phase 4: Applied Python (Week 4) - 44 hours total
   {
     title: "Web Development",
     description:
       "Build web applications with Flask, FastAPI, and Django. Learn REST APIs, GraphQL, WebSockets, and modern web patterns.",
     phase: "Applied",
     order: 11,
-    duration: 10,
+    duration: 12,
   },
   {
-    title: "Database Integration",
+    title: "Database Integration with SQLAlchemy",
     description:
       "Master SQLAlchemy ORM, PostgreSQL, MongoDB with PyMongo, database migrations with Alembic, and query optimization.",
     phase: "Applied",
@@ -127,7 +127,7 @@ const modules = [
     duration: 7,
   },
   {
-    title: "Data Processing",
+    title: "Data Processing & Pandas",
     description:
       "Learn data manipulation with NumPy and Pandas, data visualization with Matplotlib, and data analysis workflows.",
     phase: "Applied",

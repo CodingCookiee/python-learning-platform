@@ -78,7 +78,7 @@ class BookRecord:
 
 ## Instances versus class attributes
 
-`source` belongs to the class, so every BookRecord shares the same default label. The title, authors, and identifiers belong to the instance, so each book keeps its own data.
+"source" belongs to the class, so every BookRecord shares the same default label. The title, authors, and identifiers belong to the instance, so each book keeps its own data.
 
 ## Using the class
 
@@ -574,19 +574,19 @@ Advanced OOP is mostly design judgment. The goal is not more classes; the goal i
 
 export const oopLessonOverrides: Record<string, OopLessonOverride> = {
   "Object-Oriented Programming::Classes and Objects": {
-    estimatedTime: 110,
+    estimatedTime: 85,
     content: classesAndObjectsContent,
   },
   "Object-Oriented Programming::Methods and Attributes": {
-    estimatedTime: 110,
+    estimatedTime: 90,
     content: methodsAndAttributesContent,
   },
   "Object-Oriented Programming::Inheritance and Polymorphism": {
-    estimatedTime: 120,
+    estimatedTime: 100,
     content: inheritanceAndPolymorphismContent,
   },
   "Object-Oriented Programming::Magic Methods and Operator Overloading": {
-    estimatedTime: 105,
+    estimatedTime: 85,
     content: magicMethodsContent,
   },
   "Object-Oriented Programming::Advanced OOP Concepts": {
@@ -604,7 +604,7 @@ export function getOopLessonsForModule(moduleId: string): OopLessonSeed[] {
         "Learn the fundamentals of object-oriented programming in Python using real library catalog data and object construction.",
       content: classesAndObjectsContent,
       order: 1,
-      estimatedTime: 110,
+      estimatedTime: 85,
     },
     {
       moduleId,
@@ -613,7 +613,7 @@ export function getOopLessonsForModule(moduleId: string): OopLessonSeed[] {
         "Work with instance methods, class methods, static methods, and computed attributes on a realistic library copy object.",
       content: methodsAndAttributesContent,
       order: 2,
-      estimatedTime: 110,
+      estimatedTime: 90,
     },
     {
       moduleId,
@@ -622,7 +622,7 @@ export function getOopLessonsForModule(moduleId: string): OopLessonSeed[] {
         "Model different catalog item types with inheritance, abstract base classes, and polymorphic behavior.",
       content: inheritanceAndPolymorphismContent,
       order: 3,
-      estimatedTime: 120,
+      estimatedTime: 100,
     },
     {
       moduleId,
@@ -631,7 +631,7 @@ export function getOopLessonsForModule(moduleId: string): OopLessonSeed[] {
         "Make custom Python objects behave like native containers with special methods and context managers.",
       content: magicMethodsContent,
       order: 4,
-      estimatedTime: 105,
+      estimatedTime: 85,
     },
     {
       moduleId,

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getModuleDisplayDuration } from "@/lib/module-duration";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import { ModulesClient, type ModuleData } from "./_components/modules-client";
@@ -58,7 +59,7 @@ export default async function ModulesPage() {
         description: mod.description,
         phase: mod.phase,
         order: mod.order,
-        duration: mod.duration,
+        duration: getModuleDisplayDuration(mod.title, mod.duration),
         lessonCount: mod._count.lessons,
         projectCount: mod._count.projects,
         completionPercentage,

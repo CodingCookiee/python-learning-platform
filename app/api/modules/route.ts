@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
 import { getCached, CacheKeys } from "@/lib/cache";
+import { getModuleDisplayDuration } from "@/lib/module-duration";
 
 /**
  * GET /api/modules
@@ -95,7 +96,7 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
               description: module.description,
               phase: module.phase,
               order: module.order,
-              duration: module.duration,
+              duration: getModuleDisplayDuration(module.title, module.duration),
               lessonCount: module._count.lessons,
               projectCount: module._count.projects,
               completionPercentage,

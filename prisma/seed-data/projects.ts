@@ -467,7 +467,7 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
       },
     ],
 
-    // Module 11: Web Development with Flask/FastAPI
+    // Module 11: Web Development
     11: [
       {
         moduleId,

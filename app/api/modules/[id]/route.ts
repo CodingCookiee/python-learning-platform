@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
 import { getCached, CacheKeys } from "@/lib/cache";
 import { getLessonEstimatedTime } from "@/lib/lesson-content";
+import { getModuleDisplayDuration } from "@/lib/module-duration";
 import { formatProjectEstimatedTime } from "@/lib/project-time";
 
 /**
@@ -108,7 +109,7 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: 
           description: learningModule.description,
           phase: learningModule.phase,
           order: learningModule.order,
-          duration: learningModule.duration,
+          duration: getModuleDisplayDuration(learningModule.title, learningModule.duration),
           completionPercentage,
           isUnlocked,
           prerequisites: learningModule.prerequisites,

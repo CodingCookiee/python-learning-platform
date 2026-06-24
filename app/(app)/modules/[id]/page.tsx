@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getLessonEstimatedTime } from "@/lib/lesson-content";
 import { formatProjectEstimatedTime } from "@/lib/project-time";
+import { getModuleDisplayDuration } from "@/lib/module-duration";
 import { getCurriculumPhaseLabel } from "@/lib/curriculum";
 import {
   CheckCircle2,
@@ -128,6 +129,7 @@ export default async function ModuleDetailPage({ params }: PageProps) {
 
   const firstIncompleteLesson = lessons.find((l) => !l.completed);
   const firstLesson = lessons[0] ?? null;
+  const displayDuration = getModuleDisplayDuration(learningModule.title, learningModule.duration);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
@@ -162,7 +164,7 @@ export default async function ModuleDetailPage({ params }: PageProps) {
                 </h1>
                 <p className="text-sm text-muted-foreground">
                   <Clock className="mr-1 inline size-3" aria-hidden="true" />
-                  {learningModule.duration}h estimated
+                  {displayDuration}h estimated
                 </p>
               </div>
               <span className="font-heading text-2xl font-semibold text-muted-foreground">
@@ -395,9 +397,7 @@ export default async function ModuleDetailPage({ params }: PageProps) {
                       <span className="text-xs text-muted-foreground">projects</span>
                     </div>
                     <div className="flex flex-col gap-0.5 text-center">
-                      <span className="font-heading text-lg font-semibold">
-                        {learningModule.duration}h
-                      </span>
+                      <span className="font-heading text-lg font-semibold">{displayDuration}h</span>
                       <span className="text-xs text-muted-foreground">total</span>
                     </div>
                   </div>

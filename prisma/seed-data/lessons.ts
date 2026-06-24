@@ -166,7 +166,7 @@ export const lessons: LessonSeed[] = [
     "Learn OOP fundamentals using real library catalog data: creating classes, instances, the __init__ constructor, instance vs class attributes, and class methods.",
     "Master Python classes with real-world library catalog examples using Open Library data format.",
     1,
-    50
+    85
   ),
   createLesson(
     "Object-Oriented Programming",
@@ -174,7 +174,7 @@ export const lessons: LessonSeed[] = [
     "Work with instance methods, class methods (@classmethod), static methods (@staticmethod), properties (@property), and private attributes using realistic library copy management.",
     "Implement different method types and attribute patterns with library copy checkout/return workflows.",
     2,
-    50
+    90
   ),
   createLesson(
     "Object-Oriented Programming",
@@ -182,7 +182,7 @@ export const lessons: LessonSeed[] = [
     "Model catalog hierarchies with inheritance, abstract base classes (ABC), method overriding, super(), and polymorphic behavior across book, magazine, and reference types.",
     "Build flexible class hierarchies using abstract base classes and polymorphism for catalog items.",
     3,
-    50
+    100
   ),
   createLesson(
     "Object-Oriented Programming",
@@ -190,7 +190,7 @@ export const lessons: LessonSeed[] = [
     "Make custom objects behave like native Python types with special methods: __len__, __iter__, __contains__, __getitem__, __add__, __repr__, __str__, __eq__, and context managers (__enter__/__exit__).",
     "Implement magic methods to create collection classes and context managers for library operations.",
     4,
-    45
+    85
   ),
   createLesson(
     "Object-Oriented Programming",
@@ -198,7 +198,7 @@ export const lessons: LessonSeed[] = [
     "Master dataclasses for structured data, composition over inheritance, abstract interfaces (ABC), repository patterns, and when to use classes vs functions in real systems.",
     "Apply advanced OOP design patterns: dataclasses, composition, and service-layer architecture.",
     5,
-    45
+    120
   ),
 
   // File I/O & Exception Handling

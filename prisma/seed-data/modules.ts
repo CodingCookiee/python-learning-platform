@@ -1,12 +1,12 @@
 export const modules = [
-  // Phase 1: Foundation (Week 1) - 10 hours total
+  // Phase 1: Foundation (Week 1) - 20 hours total
   {
     title: "Python Setup & Fundamentals",
     description:
       "Learn Python basics including installation, syntax, variables, data types, operators, strings, and I/O operations. Perfect for developers transitioning from JavaScript.",
     phase: "Foundation",
     order: 1,
-    duration: 1.5, // hours
+    duration: 6,
   },
   {
     title: "Data Structures & Control Flow",
@@ -14,7 +14,7 @@ export const modules = [
       "Master Python data structures (lists, tuples, dictionaries, sets) and control flow (conditionals, loops, comprehensions). Includes comparisons with JavaScript arrays and objects.",
     phase: "Foundation",
     order: 2,
-    duration: 2, // hours
+    duration: 8,
   },
   {
     title: "Functions & Modules",
@@ -22,113 +22,113 @@ export const modules = [
       "Deep dive into Python functions, parameters, scope, lambda functions, higher-order functions, and module system. Learn how Python modules compare to JavaScript ES6 modules.",
     phase: "Foundation",
     order: 3,
-    duration: 1.5, // hours
+    duration: 6,
   },
-  // Phase 2: Intermediate (Week 2) - 10 hours total
+  // Phase 2: Intermediate (Week 2) - 23 hours total
   {
     title: "Object-Oriented Programming",
     description:
-      "Master OOP concepts including classes, inheritance, polymorphism, encapsulation, and design patterns. Learn how Python's OOP differs from JavaScript prototypal inheritance.",
+      "Master classes, objects, inheritance, polymorphism, encapsulation, and design patterns. Learn how Python's OOP differs from JavaScript prototypal inheritance.",
     phase: "Intermediate",
     order: 4,
-    duration: 4, // hours
+    duration: 8,
   },
   {
     title: "File I/O & Exception Handling",
     description:
-      "Learn to work with files, streams, and handle errors gracefully. Master try-except blocks, custom exceptions, and context managers for resource management.",
+      "Learn file operations, context managers, working with CSV and JSON, comprehensive exception handling, and custom exceptions.",
     phase: "Intermediate",
     order: 5,
-    duration: 2, // hours
+    duration: 5,
   },
   {
     title: "Testing with pytest",
     description:
-      "Dive deep into unit testing, integration testing, and test fixtures. Learn pytest framework and how to write testable, maintainable code.",
+      "Master unit testing with pytest, fixtures, mocking, parametrized tests, test coverage, and TDD methodology. Compare with Jest testing patterns.",
     phase: "Intermediate",
     order: 6,
-    duration: 2, // hours
+    duration: 6,
   },
   {
     title: "Package Management & Virtual Environments",
     description:
-      "Master pip, virtual environments, and dependency management. Learn best practices for project structure and packaging similar to npm in the JavaScript world.",
+      "Deep dive into pip, virtual environments with venv, Poetry for modern dependency management, requirements.txt, and publishing packages.",
     phase: "Intermediate",
     order: 7,
-    duration: 0.5, // hours
+    duration: 4,
   },
-  // Phase 3: Advanced (Week 3) - 10 hours total
+  // Phase 3: Advanced Python (Week 3) - 22 hours total
   {
     title: "Async Programming with asyncio",
     description:
-      "Learn asynchronous programming with async/await syntax. Master coroutines, event loops, and concurrent execution patterns similar to JavaScript Promises.",
+      "Master asynchronous programming with async/await, event loops, coroutines, concurrent execution, and aiohttp. Compare with JavaScript Promises.",
     phase: "Advanced",
     order: 8,
-    duration: 2.5, // hours
+    duration: 8,
   },
   {
     title: "Advanced Python Features",
     description:
-      "Explore decorators, context managers, metaclasses, descriptors, and functional programming paradigms. Master advanced techniques for writing elegant Python code.",
+      "Learn decorators, context managers, generators, iterators, metaclasses, and other advanced Python features for writing elegant code.",
     phase: "Advanced",
     order: 9,
-    duration: 2.5, // hours
+    duration: 9,
   },
   {
     title: "Type Hints & Static Analysis",
     description:
-      "Learn Python type hints for better code quality. Master mypy, static type checking, and how to write self-documenting code with type annotations.",
+      "Master Python type hints, mypy for static type checking, Pydantic for validation, and the typing module. Perfect for TypeScript developers.",
     phase: "Advanced",
     order: 10,
-    duration: 2, // hours
+    duration: 5,
   },
-  // Phase 4: Applied (Week 4) - 10 hours total
+  // Phase 4: Applied Python (Week 4) - 44 hours total
   {
-    title: "Web Development with Flask/FastAPI",
+    title: "Web Development",
     description:
-      "Build REST APIs and web applications using modern Python frameworks. Learn routing, middleware, and how to bridge the gap between frontend and backend.",
+      "Build web applications with Flask, FastAPI, and Django. Learn REST APIs, GraphQL, WebSockets, and modern web patterns.",
     phase: "Applied",
     order: 11,
-    duration: 2.5, // hours
+    duration: 12,
   },
   {
     title: "Database Integration with SQLAlchemy",
     description:
-      "Master relational databases with SQLAlchemy ORM. Learn migrations, relationships, and how Python ORM compares to Node.js ORMs like Sequelize.",
+      "Master SQLAlchemy ORM, PostgreSQL, MongoDB with PyMongo, database migrations with Alembic, and query optimization.",
     phase: "Applied",
     order: 12,
-    duration: 2, // hours
+    duration: 7,
   },
   {
     title: "Data Processing & Pandas",
     description:
-      "Learn data manipulation with Pandas, NumPy, and data analysis techniques. Build skills in working with CSV, JSON, and other data formats.",
+      "Learn data manipulation with NumPy and Pandas, data visualization with Matplotlib, and data analysis workflows.",
     phase: "Applied",
     order: 13,
-    duration: 1.75, // hours
+    duration: 8,
   },
   {
     title: "DevOps & Automation",
     description:
-      "Master system automation, scripting, Docker containerization, and CI/CD pipelines. Learn deployment strategies and infrastructure as code concepts.",
+      "Master Python scripting, subprocess management, Docker containerization, CI/CD pipelines, and building CLI tools with Click.",
     phase: "Applied",
     order: 14,
-    duration: 0.5, // hours
+    duration: 6,
   },
   {
-    title: "Web3 & Blockchain Integration",
+    title: "Web3 Integration",
     description:
-      "Explore blockchain development with Python. Learn smart contract interaction, Web3.py, and decentralized application development concepts.",
+      "Learn Web3.py for Ethereum interaction, smart contract integration, blockchain data processing, and decentralized application development.",
     phase: "Applied",
     order: 15,
-    duration: 2, // hours
+    duration: 5,
   },
   {
     title: "Performance & Optimization",
     description:
-      "Learn profiling, optimization techniques, and performance debugging. Master Cython, multiprocessing, and advanced memory management concepts.",
+      "Master profiling with cProfile, optimization techniques, caching strategies with Redis, multiprocessing, and performance best practices.",
     phase: "Applied",
     order: 16,
-    duration: 0.75, // hours
+    duration: 6,
   },
 ];

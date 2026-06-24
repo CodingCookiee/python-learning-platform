@@ -103,7 +103,7 @@ export const achievements = [
   },
   {
     name: "Web Alchemist",
-    description: "Complete Module 11: Web Development with Flask/FastAPI",
+    description: "Complete Module 11: Web Development",
     icon: "Globe",
     category: "Modules",
     criteria: "Complete Module 11",
