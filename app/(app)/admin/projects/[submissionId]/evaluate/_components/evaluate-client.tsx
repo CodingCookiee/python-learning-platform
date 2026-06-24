@@ -204,9 +204,21 @@ export function EvaluateClient({ submission }: EvaluateClientProps) {
                           />
                           <span className="truncate font-medium">{file.name}</span>
                         </span>
-                        <Badge variant="secondary" className="shrink-0 text-xs">
-                          {formatFileSize(file.size)}
-                        </Badge>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Badge variant="secondary" className="text-xs">
+                            {formatFileSize(file.size)}
+                          </Badge>
+                          <Button size="sm" variant="outline" asChild className="h-7 px-2 text-xs">
+                            <a
+                              href={`/api/admin/projects/submissions/${submission.id}/file/${i}`}
+                              download={file.name}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Download
+                            </a>
+                          </Button>
+                        </div>
                       </li>
                     ))}
                   </ul>
