@@ -1,6 +1,7 @@
 const starterTemplateMap: Record<string, string> = {
   "CLI Calculator": "/templates/cli-calculator-starter.py",
   "Todo List Manager": "/templates/todo-list-manager-starter.py",
+  "Test Suite for Todo App": "/templates/todo-test-suite-starter.py",
   "Text Processing CLI Tool": "/templates/text-processing-tool-starter.py",
   "Library Management System": "/templates/library-management-starter.py",
   "Data ETL Pipeline": "/templates/etl-pipeline-starter.py",
