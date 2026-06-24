@@ -13,6 +13,8 @@ export interface LessonCompleteButtonProps {
   lessonId: string;
   nextLessonId?: string | null;
   initialCompleted?: boolean;
+  isLocked?: boolean;
+  lockedMessage?: string;
   className?: string;
 }
 
@@ -22,6 +24,8 @@ export function LessonCompleteButton({
   lessonId,
   nextLessonId,
   initialCompleted = false,
+  isLocked = false,
+  lockedMessage,
   className,
 }: LessonCompleteButtonProps) {
   const router = useRouter();
@@ -30,9 +34,11 @@ export function LessonCompleteButton({
   const [xpGained, setXpGained] = React.useState(0);
   const [achievements, setAchievements] = React.useState<UnlockedAchievement[]>([]);
   const [showXp, setShowXp] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
   async function handleToggle() {
     setStatus("loading");
+    setErrorMessage(null);
     try {
       const res = await fetch("/api/progress/lesson", {
         method: "POST",
@@ -41,6 +47,13 @@ export function LessonCompleteButton({
       });
 
       if (!res.ok) {
+        const payload = (await res.json().catch(() => null)) as { error?: string } | null;
+        const message =
+          payload?.error ??
+          (res.status === 403
+            ? "This lesson is locked until the prerequisite module is complete."
+            : "Something went wrong. Please try again.");
+        setErrorMessage(message);
         setStatus("error");
         setTimeout(() => setStatus("idle"), 2000);
         return;
@@ -78,6 +91,7 @@ export function LessonCompleteButton({
 
       setTimeout(() => setStatus("idle"), 1000);
     } catch {
+      setErrorMessage("Something went wrong. Please try again.");
       setStatus("error");
       setTimeout(() => setStatus("idle"), 2000);
     }
@@ -85,6 +99,8 @@ export function LessonCompleteButton({
 
   const isLoading = status === "loading";
   const isSuccess = status === "success";
+  const lockedCopy =
+    lockedMessage ?? "Complete the prerequisite module before you can mark this lesson complete.";
 
   return (
     <>
@@ -94,14 +110,20 @@ export function LessonCompleteButton({
         <div className="relative">
           <Button
             onClick={handleToggle}
-            disabled={isLoading}
+            disabled={isLoading || isLocked}
             variant={completed ? "outline" : "default"}
             className={cn(
               "w-full sm:w-auto transition-all",
               completed &&
                 "border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/5"
             )}
-            aria-label={completed ? "Mark lesson as incomplete" : "Mark lesson as complete"}
+            aria-label={
+              isLocked
+                ? "Lesson locked"
+                : completed
+                  ? "Mark lesson as incomplete"
+                  : "Mark lesson as complete"
+            }
           >
             {isLoading ? (
               <Loader2 className="size-4 animate-spin" aria-hidden="true" />
@@ -110,7 +132,15 @@ export function LessonCompleteButton({
             ) : (
               <Circle className="size-4" aria-hidden="true" />
             )}
-            {isLoading ? "Saving..." : completed ? "Completed" : "Mark as Complete"}
+            {isLoading
+              ? "Saving..."
+              : isLocked
+                ? completed
+                  ? "Completed"
+                  : "Locked"
+                : completed
+                  ? "Completed"
+                  : "Mark as Complete"}
           </Button>
 
           {/* XP gained float */}
@@ -156,7 +186,7 @@ export function LessonCompleteButton({
               transition={{ duration: 0.3 }}
               className="text-xs text-destructive"
             >
-              Something went wrong. Please try again.
+              {isLocked ? lockedCopy : (errorMessage ?? "Something went wrong. Please try again.")}
             </motion.p>
           )}
         </AnimatePresence>

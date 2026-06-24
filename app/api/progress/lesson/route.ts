@@ -8,6 +8,7 @@ import {
   updateUserLevel,
   checkMilestone,
 } from "@/lib/achievements";
+import { canCompleteLesson, getSequentialModuleUnlockMap } from "@/lib/module-access";
 import { z } from "zod";
 
 const lessonProgressSchema = z.object({
@@ -35,11 +36,56 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
 
     const lesson = await prisma.lesson.findUnique({
       where: { id: lessonId },
-      include: { module: true },
+      include: {
+        module: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
     });
 
     if (!lesson) {
       return NextResponse.json({ error: "Lesson not found" }, { status: 404 });
+    }
+
+    const moduleUnlockMap = await getSequentialModuleUnlockMap(context.userId);
+    const isUnlocked = moduleUnlockMap.get(lesson.moduleId) ?? false;
+
+    const siblingLessons = await prisma.lesson.findMany({
+      where: { moduleId: lesson.moduleId },
+      orderBy: { order: "asc" },
+      select: {
+        id: true,
+        title: true,
+        order: true,
+        progress: {
+          where: { userId: context.userId },
+          select: { completed: true },
+        },
+      },
+    });
+
+    const lessonUnlocked = canCompleteLesson(
+      siblingLessons.map((item) => ({
+        id: item.id,
+        title: item.title,
+        order: item.order,
+        completed: item.progress[0]?.completed || false,
+      })),
+      lesson.id,
+      isUnlocked
+    );
+
+    if (completed && !lessonUnlocked) {
+      return NextResponse.json(
+        {
+          error:
+            "Complete the prerequisite module and previous lessons before marking this lesson complete.",
+        },
+        { status: 403 }
+      );
     }
 
     const progress = await prisma.progress.upsert({

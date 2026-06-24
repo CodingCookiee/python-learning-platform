@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
 import { getCached, CacheKeys } from "@/lib/cache";
 import { getLessonContent, getLessonEstimatedTime } from "@/lib/lesson-content";
+import { canCompleteLesson, getSequentialModuleUnlockMap } from "@/lib/module-access";
 
 /**
  * GET /api/lessons/[id]
@@ -58,13 +59,33 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: 
         const siblingLessons = await prisma.lesson.findMany({
           where: { moduleId: lesson.moduleId },
           orderBy: { order: "asc" },
-          select: { id: true, title: true, order: true },
+          select: {
+            id: true,
+            title: true,
+            order: true,
+            progress: {
+              where: { userId: context.userId },
+              select: { completed: true },
+            },
+          },
         });
 
         const currentIndex = siblingLessons.findIndex((l) => l.id === lesson.id);
         const previousLesson = currentIndex > 0 ? siblingLessons[currentIndex - 1] : null;
         const nextLesson =
           currentIndex < siblingLessons.length - 1 ? siblingLessons[currentIndex + 1] : null;
+        const moduleUnlockMap = await getSequentialModuleUnlockMap(context.userId);
+        const isUnlocked = moduleUnlockMap.get(lesson.module.id) ?? false;
+        const lessonUnlocked = canCompleteLesson(
+          siblingLessons.map((item) => ({
+            id: item.id,
+            title: item.title,
+            order: item.order,
+            completed: item.progress[0]?.completed || false,
+          })),
+          lesson.id,
+          isUnlocked
+        );
 
         return {
           id: lesson.id,
@@ -82,7 +103,10 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: 
             lesson.title,
             lesson.estimatedTime
           ),
-          module: lesson.module,
+          module: {
+            ...lesson.module,
+            isUnlocked: lessonUnlocked,
+          },
           completed: lesson.progress[0]?.completed || false,
           completedAt: lesson.progress[0]?.completedAt || null,
           exercises: lesson.exercises.map((exercise) => ({

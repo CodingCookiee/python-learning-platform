@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
 import { getCached, CacheKeys } from "@/lib/cache";
 import { getModuleDisplayDuration } from "@/lib/module-duration";
+import { getLessonAccessState, getSequentialModuleUnlockMap } from "@/lib/module-access";
 
 /**
  * GET /api/modules
@@ -50,9 +51,24 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
         });
 
         // Get user's progress for each module
+        const moduleUnlockMap = await getSequentialModuleUnlockMap(context.userId);
+
         return await Promise.all(
           modules.map(async (module) => {
             const lessonIds = module.lessons.map((l) => l.id);
+            const lessonProgress = await prisma.progress.findMany({
+              where: {
+                userId: context.userId,
+                lessonId: { in: lessonIds },
+              },
+              select: {
+                lessonId: true,
+                completed: true,
+              },
+            });
+            const lessonProgressMap = new Map(
+              lessonProgress.map((progress) => [progress.lessonId, progress.completed])
+            );
 
             // Count completed lessons for this user
             const completedCount = await prisma.progress.count({
@@ -67,28 +83,18 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
             const completionPercentage =
               totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
 
-            // Check if prerequisites are met
-            const prerequisitesCompleted = await Promise.all(
-              module.prerequisites.map(async (prereq) => {
-                const prereqLessons = await prisma.lesson.findMany({
-                  where: { moduleId: prereq.id },
-                  select: { id: true },
-                });
-                const prereqLessonIds = prereqLessons.map((l) => l.id);
-                const prereqCompletedCount = await prisma.progress.count({
-                  where: {
-                    userId: context.userId,
-                    lessonId: { in: prereqLessonIds },
-                    completed: true,
-                  },
-                });
-                return prereqCompletedCount === prereqLessonIds.length;
-              })
+            const lessonAccess = getLessonAccessState(
+              module.lessons.map((lesson) => ({
+                id: lesson.id,
+                title: lesson.title,
+                order: lesson.order,
+                completed: lessonProgressMap.get(lesson.id) ?? false,
+              })),
+              moduleUnlockMap.get(module.id) ?? false
             );
-
-            const isUnlocked =
-              module.prerequisites.length === 0 ||
-              prerequisitesCompleted.every((completed) => completed);
+            const lessonAccessMap = new Map(
+              lessonAccess.map((lesson) => [lesson.id, lesson.isUnlocked])
+            );
 
             return {
               id: module.id,
@@ -100,9 +106,12 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
               lessonCount: module._count.lessons,
               projectCount: module._count.projects,
               completionPercentage,
-              isUnlocked,
+              isUnlocked: moduleUnlockMap.get(module.id) ?? false,
               prerequisites: module.prerequisites,
-              lessons: module.lessons,
+              lessons: module.lessons.map((lesson) => ({
+                ...lesson,
+                isUnlocked: lessonAccessMap.get(lesson.id) ?? false,
+              })),
               projects: module.projects,
             };
           })

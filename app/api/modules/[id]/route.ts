@@ -5,6 +5,7 @@ import { getCached, CacheKeys } from "@/lib/cache";
 import { getLessonEstimatedTime } from "@/lib/lesson-content";
 import { getModuleDisplayDuration } from "@/lib/module-duration";
 import { formatProjectEstimatedTime } from "@/lib/project-time";
+import { getLessonAccessState, getSequentialModuleUnlockMap } from "@/lib/module-access";
 
 /**
  * GET /api/modules/[id]
@@ -80,28 +81,20 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: 
         const completionPercentage =
           totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
 
-        // Check if prerequisites are met
-        const prerequisitesCompleted = await Promise.all(
-          learningModule.prerequisites.map(async (prereq) => {
-            const prereqLessons = await prisma.lesson.findMany({
-              where: { moduleId: prereq.id },
-              select: { id: true },
-            });
-            const prereqLessonIds = prereqLessons.map((l) => l.id);
-            const prereqCompletedCount = await prisma.progress.count({
-              where: {
-                userId: context.userId,
-                lessonId: { in: prereqLessonIds },
-                completed: true,
-              },
-            });
-            return prereqCompletedCount === prereqLessonIds.length;
-          })
+        const moduleUnlockMap = await getSequentialModuleUnlockMap(context.userId);
+        const isUnlocked = moduleUnlockMap.get(learningModule.id) ?? false;
+        const lessonAccess = getLessonAccessState(
+          learningModule.lessons.map((lesson) => ({
+            id: lesson.id,
+            title: lesson.title,
+            order: lesson.order,
+            completed: lesson.progress[0]?.completed || false,
+          })),
+          isUnlocked
         );
-
-        const isUnlocked =
-          learningModule.prerequisites.length === 0 ||
-          prerequisitesCompleted.every((completed) => completed);
+        const lessonAccessMap = new Map(
+          lessonAccess.map((lesson) => [lesson.id, lesson.isUnlocked])
+        );
 
         return {
           id: learningModule.id,
@@ -127,6 +120,7 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: 
             exerciseCount: lesson.exercises.length,
             completed: lesson.progress[0]?.completed || false,
             completedAt: lesson.progress[0]?.completedAt || null,
+            isUnlocked: lessonAccessMap.get(lesson.id) ?? false,
           })),
           projects: learningModule.projects.map((project) => ({
             id: project.id,

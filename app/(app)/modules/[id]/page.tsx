@@ -12,6 +12,7 @@ import { getLessonEstimatedTime } from "@/lib/lesson-content";
 import { formatProjectEstimatedTime } from "@/lib/project-time";
 import { getModuleDisplayDuration } from "@/lib/module-duration";
 import { getCurriculumPhaseLabel } from "@/lib/curriculum";
+import { getLessonAccessState, getSequentialModuleUnlockMap } from "@/lib/module-access";
 import {
   CheckCircle2,
   Circle,
@@ -91,21 +92,8 @@ export default async function ModuleDetailPage({ params }: PageProps) {
   const completionPercentage =
     totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
 
-  // Check prerequisites
-  const prereqResults = await Promise.all(
-    learningModule.prerequisites.map(async (prereq) => {
-      const prereqLessons = await prisma.lesson.findMany({
-        where: { moduleId: prereq.id },
-        select: { id: true },
-      });
-      if (prereqLessons.length === 0) return true;
-      const done = await prisma.progress.count({
-        where: { userId, lessonId: { in: prereqLessons.map((l) => l.id) }, completed: true },
-      });
-      return done === prereqLessons.length;
-    })
-  );
-  const isUnlocked = learningModule.prerequisites.length === 0 || prereqResults.every(Boolean);
+  const moduleUnlockMap = await getSequentialModuleUnlockMap(userId);
+  const isUnlocked = moduleUnlockMap.get(learningModule.id) ?? false;
 
   const lessons = learningModule.lessons.map((l) => ({
     id: l.id,
@@ -117,6 +105,16 @@ export default async function ModuleDetailPage({ params }: PageProps) {
     completed: l.progress[0]?.completed ?? false,
     completedAt: l.progress[0]?.completedAt?.toISOString() ?? null,
   }));
+  const lessonAccess = getLessonAccessState(
+    lessons.map((lesson) => ({
+      id: lesson.id,
+      title: lesson.title,
+      order: lesson.order,
+      completed: lesson.completed,
+    })),
+    isUnlocked
+  );
+  const lessonAccessMap = new Map(lessonAccess.map((lesson) => [lesson.id, lesson.isUnlocked]));
 
   const projects = learningModule.projects.map((p) => ({
     id: p.id,
@@ -187,6 +185,7 @@ export default async function ModuleDetailPage({ params }: PageProps) {
                 </h2>
                 <div className="flex flex-col divide-y divide-border ring-1 ring-foreground/5">
                   {lessons.map((lesson) => {
+                    const lessonUnlocked = lessonAccessMap.get(lesson.id) ?? false;
                     const inner = (
                       <div className="flex items-center gap-3 bg-card px-4 py-3">
                         {lesson.completed ? (
@@ -194,6 +193,8 @@ export default async function ModuleDetailPage({ params }: PageProps) {
                             className="size-4 shrink-0 text-emerald-500"
                             aria-hidden="true"
                           />
+                        ) : !lessonUnlocked ? (
+                          <Lock className="size-4 shrink-0 text-amber-500" aria-hidden="true" />
                         ) : (
                           <Circle
                             className="size-4 shrink-0 text-muted-foreground"
@@ -201,17 +202,22 @@ export default async function ModuleDetailPage({ params }: PageProps) {
                           />
                         )}
                         <span
-                          className={`flex-1 truncate text-sm font-medium${!isUnlocked ? " text-muted-foreground" : ""}`}
+                          className={`flex-1 truncate text-sm font-medium${!lessonUnlocked ? " text-muted-foreground" : ""}`}
                         >
                           {lesson.title}
                         </span>
+                        {!lessonUnlocked && (
+                          <span className="shrink-0 text-[10px] font-semibold tracking-widest uppercase text-amber-600 dark:text-amber-400">
+                            Locked
+                          </span>
+                        )}
                         <span className="ml-auto flex shrink-0 items-center gap-3 text-xs text-muted-foreground">
                           <span>{lesson.estimatedTime}min</span>
                           <span>{lesson.exerciseCount} exercises</span>
                         </span>
                       </div>
                     );
-                    if (!isUnlocked)
+                    if (!lessonUnlocked)
                       return (
                         <div key={lesson.id} aria-disabled="true">
                           {inner}

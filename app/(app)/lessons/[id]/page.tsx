@@ -13,7 +13,8 @@ import {
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle2, Clock, Zap, BookOpen } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CheckCircle2, Clock, Zap, BookOpen, Lock, ChevronRight } from "lucide-react";
 
 // Types
 
@@ -61,12 +62,15 @@ interface ModuleLessonItem {
   order: number;
   completed: boolean;
   estimatedTime: number;
+  isUnlocked?: boolean;
 }
 
 interface ModuleData {
   id: string;
   title: string;
   lessons: ModuleLessonItem[];
+  isUnlocked: boolean;
+  prerequisites: Array<{ id: string; title: string; order: number }>;
 }
 
 async function getLesson(id: string, cookieHeader: string): Promise<LessonData | null> {
@@ -128,6 +132,10 @@ export default async function LessonPage({ params }: PageProps) {
   if (!lesson) notFound();
 
   const moduleData = await getModuleLessons(lesson.module.id, cookieHeader);
+  const currentLessonUnlocked =
+    moduleData?.lessons.find((item) => item.id === lesson.id)?.isUnlocked ?? false;
+  const lessonLocked = !(moduleData?.isUnlocked && currentLessonUnlocked);
+  const lockedPrerequisites = moduleData?.prerequisites ?? [];
 
   const sidebarLessons: ModuleLessonItem[] = moduleData?.lessons ?? [];
 
@@ -188,6 +196,46 @@ export default async function LessonPage({ params }: PageProps) {
                 )}
               </div>
 
+              {lessonLocked && (
+                <Card className="border-amber-500/30 bg-amber-500/5">
+                  <CardContent className="flex flex-col gap-4 pt-6">
+                    <div className="flex items-center gap-2">
+                      <Lock
+                        className="size-4 text-amber-600 dark:text-amber-400"
+                        aria-hidden="true"
+                      />
+                      <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">
+                        This lesson is locked
+                      </p>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {lockedPrerequisites.length > 0
+                        ? `Complete the prerequisite module${lockedPrerequisites.length > 1 ? "s" : ""} first.`
+                        : "Complete the previous lessons in this module first."}
+                    </p>
+                    {lockedPrerequisites.length > 0 ? (
+                      <ul className="flex flex-col gap-2">
+                        {lockedPrerequisites.map((prereq) => (
+                          <li key={prereq.id}>
+                            <Button variant="outline" size="sm" asChild className="justify-start">
+                              <Link href={`/modules/${prereq.id}`}>
+                                <BookOpen className="size-3.5" aria-hidden="true" />
+                                {prereq.title}
+                                <ChevronRight className="size-3" aria-hidden="true" />
+                              </Link>
+                            </Button>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        The next lesson unlocks after you complete the earlier lessons.
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Lesson content (markdown) */}
               <LessonContent content={lesson.content} />
 
@@ -242,6 +290,12 @@ export default async function LessonPage({ params }: PageProps) {
                 lessonId={lesson.id}
                 nextLessonId={lesson.navigation.next?.id ?? null}
                 initialCompleted={lesson.completed}
+                isLocked={lessonLocked}
+                lockedMessage={
+                  lockedPrerequisites.length > 0
+                    ? `Complete ${lockedPrerequisites.map((prereq) => prereq.title).join(", ")} before this lesson can be marked complete.`
+                    : "Complete the previous lessons in this module before this lesson can be marked complete."
+                }
               />
 
               {/* Navigation */}

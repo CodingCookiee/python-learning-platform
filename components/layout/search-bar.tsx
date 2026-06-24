@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, X, BookOpen, Layers, Code2, Loader2 } from "lucide-react";
+import { Search, X, BookOpen, Layers, Code2, Loader2, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SearchResult {
@@ -13,6 +13,8 @@ interface SearchResult {
   description: string;
   href: string;
   moduleTitle?: string;
+  isLocked?: boolean;
+  lockLabel?: string;
 }
 
 const TYPE_ICONS = {
@@ -255,6 +257,12 @@ export function SearchBar() {
                             <span className="text-xs font-semibold tracking-widest uppercase text-muted-foreground">
                               {TYPE_LABELS[r.type]}
                             </span>
+                            {r.isLocked && (
+                              <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400">
+                                <Lock className="size-3" aria-hidden="true" />
+                                Locked
+                              </span>
+                            )}
                             {r.moduleTitle && (
                               <span className="text-xs text-muted-foreground truncate">
                                 · {r.moduleTitle}
@@ -264,6 +272,9 @@ export function SearchBar() {
                           <p className="truncate text-sm font-medium">
                             {highlight(r.title, query)}
                           </p>
+                          {r.isLocked && r.lockLabel && (
+                            <p className="truncate text-xs text-muted-foreground">{r.lockLabel}</p>
+                          )}
                         </div>
                       </button>
                     );

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle2, Circle, ChevronLeft } from "lucide-react";
+import { CheckCircle2, Circle, ChevronLeft, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AnimatedProgressBar } from "@/components/progress";
 
@@ -15,6 +15,7 @@ export interface LessonSidebarProps {
     order: number;
     completed: boolean;
     estimatedTime: number;
+    isUnlocked?: boolean;
   }>;
   className?: string;
 }
@@ -50,6 +51,7 @@ export function LessonSidebar({
       <ol className="flex flex-col gap-0">
         {lessons.map((lesson) => {
           const isCurrent = lesson.id === currentLessonId;
+          const isUnlocked = lesson.isUnlocked ?? true;
 
           const rowContent = (
             <div
@@ -63,6 +65,8 @@ export function LessonSidebar({
                   className="mt-0.5 size-4 shrink-0 text-emerald-500"
                   aria-hidden="true"
                 />
+              ) : !isUnlocked ? (
+                <Lock className="mt-0.5 size-4 shrink-0 text-amber-500" aria-hidden="true" />
               ) : (
                 <Circle
                   className="mt-0.5 size-4 shrink-0 text-muted-foreground"
@@ -73,17 +77,23 @@ export function LessonSidebar({
                 <span
                   className={cn(
                     "text-sm leading-snug",
-                    isCurrent ? "font-semibold text-foreground" : "text-muted-foreground"
+                    isCurrent ? "font-semibold text-foreground" : "text-muted-foreground",
+                    !isUnlocked && "text-muted-foreground"
                   )}
                 >
                   {lesson.title}
                 </span>
+                {!isUnlocked && (
+                  <span className="text-[10px] font-semibold tracking-widest uppercase text-amber-600 dark:text-amber-400">
+                    Locked
+                  </span>
+                )}
                 <span className="text-xs text-muted-foreground">{lesson.estimatedTime}min</span>
               </div>
             </div>
           );
 
-          if (isCurrent) {
+          if (isCurrent || !isUnlocked) {
             return (
               <li key={lesson.id} aria-current="page">
                 {rowContent}
