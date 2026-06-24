@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { EvaluateClient } from "./_components/evaluate-client";
+import { parseProjectListText } from "@/lib/project-content";
 
 export interface SubmissionDetail {
   id: string;
@@ -66,27 +67,7 @@ async function getSubmissionDetail(submissionId: string): Promise<SubmissionDeta
     // keep default
   }
 
-  let successCriteria: string[] = [];
-  try {
-    const parsed = JSON.parse(submission.project.successCriteria);
-    if (Array.isArray(parsed)) {
-      successCriteria = parsed;
-    } else if (typeof parsed === "string") {
-      // Split by common delimiters if it's a string
-      successCriteria = parsed
-        .split(/[.\n]/)
-        .map((s: string) => s.trim())
-        .filter((s: string) => s.length > 0);
-    }
-  } catch {
-    // If JSON parse fails, try splitting the raw string
-    if (typeof submission.project.successCriteria === "string") {
-      successCriteria = submission.project.successCriteria
-        .split(/[.\n]/)
-        .map((s) => s.trim())
-        .filter((s) => s.length > 0);
-    }
-  }
+  const successCriteria = parseProjectListText(submission.project.successCriteria);
 
   return {
     id: submission.id,

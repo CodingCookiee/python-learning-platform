@@ -4,12 +4,13 @@ import { withAuth, AuthContext } from "@/lib/api-auth";
 import { getCached } from "@/lib/cache";
 import { formatProjectEstimatedTime } from "@/lib/project-time";
 import { getProjectStarterTemplate } from "@/lib/project-template";
+import { parseProjectListText } from "@/lib/project-content";
 
 /**
  * Cache key for a project detail by user
  */
 function projectCacheKey(projectId: string, userId: string) {
-  return `project:${projectId}:${userId}`;
+  return `project:v3:${projectId}:${userId}`;
 }
 
 /**
@@ -48,22 +49,8 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: 
           return null;
         }
 
-        // Parse JSON fields stored as text
-        let requirements: string[] = [];
-        let successCriteria: string[] = [];
-
-        try {
-          requirements = JSON.parse(project.requirements) as string[];
-        } catch {
-          // Fall back to treating the raw text as a single-item list
-          requirements = project.requirements ? [project.requirements] : [];
-        }
-
-        try {
-          successCriteria = JSON.parse(project.successCriteria) as string[];
-        } catch {
-          successCriteria = project.successCriteria ? [project.successCriteria] : [];
-        }
+        const requirements = parseProjectListText(project.requirements);
+        const successCriteria = parseProjectListText(project.successCriteria);
 
         const latestSubmission = project.submissions[0] ?? null;
 
