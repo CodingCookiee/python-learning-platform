@@ -11,9 +11,10 @@ export const packageManagementLessons: LessonSeed[] = [
   {
     moduleTitle: "Package Management & Virtual Environments",
     title: "Understanding pip and PyPI",
-    description: "Master Python's package manager pip, learn to install and manage packages from PyPI, and understand package versioning.",
+    description:
+      "Master Python's package manager pip, learn to install and manage packages from PyPI, and understand package versioning.",
     order: 1,
-    estimatedTime: 30,
+    estimatedTime: 10,
     content: `# Understanding pip and PyPI
 
 ## Why This Matters
@@ -389,14 +390,15 @@ pip install -r requirements.txt
 ---
 
 **Next Lesson:** Virtual Environments - Learn to isolate project dependencies!
-`
+`,
   },
   {
     moduleTitle: "Package Management & Virtual Environments",
     title: "Creating and Managing Virtual Environments",
-    description: "Learn to create isolated Python environments using venv and virtualenv to manage project dependencies independently.",
+    description:
+      "Learn to create isolated Python environments using venv and virtualenv to manage project dependencies independently.",
     order: 2,
-    estimatedTime: 30,
+    estimatedTime: 10,
     content: `# Creating and Managing Virtual Environments
 
 ## Why This Matters
@@ -870,14 +872,15 @@ pip install -r requirements.txt
 ---
 
 **Next Lesson:** Working with requirements.txt and dependency management best practices!
-`
+`,
   },
   {
     moduleTitle: "Package Management & Virtual Environments",
     title: "Working with requirements.txt",
-    description: "Master dependency management with requirements.txt files, learn best practices for pinning versions, and organize development vs production dependencies.",
+    description:
+      "Master dependency management with requirements.txt files, learn best practices for pinning versions, and organize development vs production dependencies.",
     order: 3,
-    estimatedTime: 25,
+    estimatedTime: 10,
     content: `# Working with requirements.txt
 
 ## Why This Matters
@@ -1082,14 +1085,15 @@ echo "black==23.7.0" >> requirements-dev.txt
 ---
 
 **Next Lesson:** Managing multiple Python versions!
-`
+`,
   },
   {
     moduleTitle: "Package Management & Virtual Environments",
     title: "Using pyenv for Python Version Management",
-    description: "Learn to install and manage multiple Python versions on the same system using pyenv, enabling project-specific Python versions.",
+    description:
+      "Learn to install and manage multiple Python versions on the same system using pyenv, enabling project-specific Python versions.",
     order: 4,
-    estimatedTime: 25,
+    estimatedTime: 10,
     content: `# Using pyenv for Python Version Management
 
 ## Why This Matters
@@ -1416,14 +1420,15 @@ python --version  # Should show 3.11.7
 ---
 
 **Next Lesson:** Publishing packages to PyPI!
-`
+`,
   },
   {
     moduleTitle: "Package Management & Virtual Environments",
     title: "Publishing Packages to PyPI",
-    description: "Learn to create, structure, and publish your own Python packages to PyPI, making your code available to the Python community.",
+    description:
+      "Learn to create, structure, and publish your own Python packages to PyPI, making your code available to the Python community.",
     order: 5,
-    estimatedTime: 35,
+    estimatedTime: 10,
     content: `# Publishing Packages to PyPI
 
 ## Why This Matters
@@ -1877,6 +1882,6 @@ pip install dist/*.whl
 ---
 
 **Next Module:** Async Programming with asyncio!
-`
-  }
+`,
+  },
 ];

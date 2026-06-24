@@ -1,12 +1,12 @@
 export const modules = [
-  // Phase 1: Foundation (Week 1) - ~6 hours total
+  // Phase 1: Foundation (Week 1) - 10 hours total
   {
     title: "Python Setup & Fundamentals",
     description:
       "Learn Python basics including installation, syntax, variables, data types, operators, strings, and I/O operations. Perfect for developers transitioning from JavaScript.",
     phase: "Foundation",
     order: 1,
-    duration: 2, // hours
+    duration: 1.5, // hours
   },
   {
     title: "Data Structures & Control Flow",
@@ -14,7 +14,7 @@ export const modules = [
       "Master Python data structures (lists, tuples, dictionaries, sets) and control flow (conditionals, loops, comprehensions). Includes comparisons with JavaScript arrays and objects.",
     phase: "Foundation",
     order: 2,
-    duration: 2.5, // hours
+    duration: 2, // hours
   },
   {
     title: "Functions & Modules",
@@ -24,14 +24,14 @@ export const modules = [
     order: 3,
     duration: 1.5, // hours
   },
-  // Phase 2: Intermediate (Week 2) - ~7 hours total
+  // Phase 2: Intermediate (Week 2) - 10 hours total
   {
     title: "Object-Oriented Programming",
     description:
       "Master OOP concepts including classes, inheritance, polymorphism, encapsulation, and design patterns. Learn how Python's OOP differs from JavaScript prototypal inheritance.",
     phase: "Intermediate",
     order: 4,
-    duration: 2, // hours
+    duration: 4, // hours
   },
   {
     title: "File I/O & Exception Handling",
@@ -39,7 +39,7 @@ export const modules = [
       "Learn to work with files, streams, and handle errors gracefully. Master try-except blocks, custom exceptions, and context managers for resource management.",
     phase: "Intermediate",
     order: 5,
-    duration: 1.5, // hours
+    duration: 2, // hours
   },
   {
     title: "Testing with pytest",
@@ -55,16 +55,16 @@ export const modules = [
       "Master pip, virtual environments, and dependency management. Learn best practices for project structure and packaging similar to npm in the JavaScript world.",
     phase: "Intermediate",
     order: 7,
-    duration: 1, // hours
+    duration: 0.5, // hours
   },
-  // Phase 3: Advanced (Week 3) - ~6 hours total
+  // Phase 3: Advanced (Week 3) - 10 hours total
   {
     title: "Async Programming with asyncio",
     description:
       "Learn asynchronous programming with async/await syntax. Master coroutines, event loops, and concurrent execution patterns similar to JavaScript Promises.",
     phase: "Advanced",
     order: 8,
-    duration: 2, // hours
+    duration: 2.5, // hours
   },
   {
     title: "Advanced Python Features",
@@ -72,7 +72,7 @@ export const modules = [
       "Explore decorators, context managers, metaclasses, descriptors, and functional programming paradigms. Master advanced techniques for writing elegant Python code.",
     phase: "Advanced",
     order: 9,
-    duration: 2, // hours
+    duration: 2.5, // hours
   },
   {
     title: "Type Hints & Static Analysis",
@@ -82,14 +82,14 @@ export const modules = [
     order: 10,
     duration: 2, // hours
   },
-  // Phase 4: Applied (Week 4) - ~15 hours total
+  // Phase 4: Applied (Week 4) - 10 hours total
   {
     title: "Web Development with Flask/FastAPI",
     description:
       "Build REST APIs and web applications using modern Python frameworks. Learn routing, middleware, and how to bridge the gap between frontend and backend.",
     phase: "Applied",
     order: 11,
-    duration: 3.5, // hours
+    duration: 2.5, // hours
   },
   {
     title: "Database Integration with SQLAlchemy",
@@ -97,7 +97,7 @@ export const modules = [
       "Master relational databases with SQLAlchemy ORM. Learn migrations, relationships, and how Python ORM compares to Node.js ORMs like Sequelize.",
     phase: "Applied",
     order: 12,
-    duration: 3, // hours
+    duration: 2, // hours
   },
   {
     title: "Data Processing & Pandas",
@@ -105,7 +105,7 @@ export const modules = [
       "Learn data manipulation with Pandas, NumPy, and data analysis techniques. Build skills in working with CSV, JSON, and other data formats.",
     phase: "Applied",
     order: 13,
-    duration: 3, // hours
+    duration: 1.75, // hours
   },
   {
     title: "DevOps & Automation",
@@ -113,7 +113,7 @@ export const modules = [
       "Master system automation, scripting, Docker containerization, and CI/CD pipelines. Learn deployment strategies and infrastructure as code concepts.",
     phase: "Applied",
     order: 14,
-    duration: 2.5, // hours
+    duration: 0.5, // hours
   },
   {
     title: "Web3 & Blockchain Integration",
@@ -129,6 +129,6 @@ export const modules = [
       "Learn profiling, optimization techniques, and performance debugging. Master Cython, multiprocessing, and advanced memory management concepts.",
     phase: "Applied",
     order: 16,
-    duration: 1, // hours
+    duration: 0.75, // hours
   },
 ];

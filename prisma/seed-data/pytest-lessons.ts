@@ -14,7 +14,7 @@ export const pytestLessons: LessonSeed[] = [
     description:
       "Understand why testing matters, types of tests, test-driven development (TDD), and how pytest compares to unittest and JavaScript testing frameworks.",
     order: 1,
-    estimatedTime: 30,
+    estimatedTime: 20,
     content: `# Introduction to Testing
 
 ## Why This Matters
@@ -269,7 +269,7 @@ pytest test_basics.py
     description:
       "Master pytest assertions, test organization, test discovery, and running tests with various options and filters.",
     order: 2,
-    estimatedTime: 35,
+    estimatedTime: 25,
     content: `# Writing Your First Tests
 
 ## Why This Matters
@@ -504,7 +504,7 @@ def test_create_user_invalid_email():
     description:
       "Master pytest fixtures for test setup, teardown, fixture scopes, and sharing data across tests efficiently.",
     order: 3,
-    estimatedTime: 40,
+    estimatedTime: 30,
     content: `# Fixtures and Setup
 
 ## Why This Matters
@@ -734,7 +734,7 @@ def database():
     description:
       "Master test isolation using unittest.mock, pytest-mock, patching external dependencies, and mocking API calls and database operations.",
     order: 4,
-    estimatedTime: 45,
+    estimatedTime: 30,
     content: `# Mocking and Patching
 
 ## Why This Matters
@@ -942,7 +942,7 @@ def test_process_order_success(mock_post):
     description:
       "Master parametrized tests to reduce duplication, use pytest markers for test organization, and measure code coverage with pytest-cov.",
     order: 5,
-    estimatedTime: 40,
+    estimatedTime: 25,
     content: `# Parametrized Tests and Coverage
 
 ## Why This Matters

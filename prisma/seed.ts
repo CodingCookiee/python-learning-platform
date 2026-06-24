@@ -4,6 +4,13 @@ import { Pool } from "pg";
 import dotenv from "dotenv";
 import { lessons as lessonsData } from "./seed-data/lessons";
 
+dotenv.config();
+
+const connectionString = `${process.env.DATABASE_URL}`;
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
+
 type ProjectSeed = {
   moduleId: string;
   title: string;
@@ -156,10 +163,10 @@ const modules = [
 function getLessonsForModule(moduleId: string, moduleOrder: number) {
   const moduleData = modules[moduleOrder - 1];
   if (!moduleData) return [];
-  
+
   return lessonsData
-    .filter(lesson => lesson.moduleTitle === moduleData.title)
-    .map(lesson => ({
+    .filter((lesson) => lesson.moduleTitle === moduleData.title)
+    .map((lesson) => ({
       moduleId,
       title: lesson.title,
       description: lesson.description,
