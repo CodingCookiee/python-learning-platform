@@ -18,6 +18,19 @@ function splitIntoSentences(text: string): string[] {
     .filter((part) => part.length > 0);
 }
 
+function splitCommaClauses(text: string): string[] {
+  const segments = text
+    .split(",")
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0);
+
+  if (segments.length <= 1) {
+    return [];
+  }
+
+  return segments;
+}
+
 export function parseProjectListText(input: unknown): string[] {
   if (Array.isArray(input)) {
     return input
@@ -67,6 +80,11 @@ export function parseProjectListText(input: unknown): string[] {
   const sentenceMatches = splitIntoSentences(normalizeListItem(trimmed));
   if (sentenceMatches.length > 1) {
     return sentenceMatches;
+  }
+
+  const commaMatches = splitCommaClauses(normalizeListItem(trimmed));
+  if (commaMatches.length > 1) {
+    return commaMatches;
   }
 
   return [trimmed];

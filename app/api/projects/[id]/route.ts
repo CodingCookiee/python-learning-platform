@@ -10,7 +10,7 @@ import { parseProjectListText } from "@/lib/project-content";
  * Cache key for a project detail by user
  */
 function projectCacheKey(projectId: string, userId: string) {
-  return `project:v3:${projectId}:${userId}`;
+  return `project:v4:${projectId}:${userId}`;
 }
 
 /**
