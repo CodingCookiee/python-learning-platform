@@ -8,6 +8,7 @@ const starterTemplateMap: Record<string, string> = {
   "Publish a Python Package": "/templates/python-package-starter.py",
   "Async Web Scraper": "/templates/async-scraper-starter.py",
   "Framework Utilities Library": "/templates/utilities-library-starter.py",
+  "Type-Safe API Client": "/templates/typed-api-client-starter.py",
 };
 
 export function getProjectStarterTemplate(
