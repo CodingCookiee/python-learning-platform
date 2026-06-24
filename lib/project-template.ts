@@ -7,6 +7,7 @@ const starterTemplateMap: Record<string, string> = {
   "Data ETL Pipeline": "/templates/etl-pipeline-starter.py",
   "Publish a Python Package": "/templates/python-package-starter.py",
   "Async Web Scraper": "/templates/async-scraper-starter.py",
+  "Framework Utilities Library": "/templates/utilities-library-starter.py",
 };
 
 export function getProjectStarterTemplate(
