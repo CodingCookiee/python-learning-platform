@@ -18,7 +18,7 @@ import { StreakCalendar } from "@/components/gamification/streak-calendar";
 import { LevelBadge } from "@/components/gamification/level-badge";
 import { MilestoneTracker } from "@/components/gamification/milestone-tracker";
 import { BookOpen, Trophy, Flame, ArrowRight, Clock } from "lucide-react";
-import { getCurriculumPhaseLabel } from "@/lib/curriculum";
+import { getCurriculumPhaseLabel, getCurriculumPhases } from "@/lib/curriculum";
 import { renderAchievementIcon } from "@/lib/achievement-icon";
 
 interface ProgressData {
@@ -226,12 +226,6 @@ function getTierColor(tier: string): string {
   }
 }
 
-const roadmapPhases = [
-  { phase: "Phase 2", label: "Intermediate", modules: "Modules 4-7", weeks: "Week 2" },
-  { phase: "Phase 3", label: "Advanced Python", modules: "Modules 8-10", weeks: "Week 3" },
-  { phase: "Phase 4", label: "Applied Python", modules: "Modules 11-16", weeks: "Week 4" },
-];
-
 export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user) redirect("/auth/signin");
@@ -260,6 +254,7 @@ export default async function DashboardPage() {
   }
 
   const { user, streak, completion, modules, recentActivity, achievements } = data;
+  const roadmapPhases = getCurriculumPhases();
   const currentModule =
     modules.find((m) => m.completionPercentage > 0 && m.completionPercentage < 100) ??
     modules.find((m) => m.completionPercentage === 0) ??
@@ -400,10 +395,10 @@ export default async function DashboardPage() {
                     <BookOpen className="size-8 text-muted-foreground" aria-hidden="true" />
                     <div className="flex flex-col gap-2">
                       <p className="text-sm text-muted-foreground">
-                        You&apos;ve completed the currently released modules. The roadmap below
-                        shows the remaining weeks in this 3-4 week sprint.
+                        You&apos;ve completed the full 16-module curriculum. The roadmap below shows
+                        the complete course structure across all phases.
                       </p>
-                      <div className="grid gap-2 text-left sm:grid-cols-3">
+                      <div className="grid gap-2 text-left sm:grid-cols-2 xl:grid-cols-4">
                         {roadmapPhases.map((phase) => (
                           <div
                             key={phase.phase}
