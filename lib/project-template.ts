@@ -10,6 +10,7 @@ const starterTemplateMap: Record<string, string> = {
   "Framework Utilities Library": "/templates/utilities-library-starter.py",
   "Type-Safe API Client": "/templates/typed-api-client-starter.py",
   "Full REST API": "/templates/full-rest-api-starter.py",
+  "Data Analysis Dashboard": "/templates/data-analysis-starter.py",
 };
 
 export function getProjectStarterTemplate(
