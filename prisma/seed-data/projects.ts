@@ -20,35 +20,33 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
         title: "CLI Calculator",
         description:
           "Build a command-line calculator application that demonstrates your understanding of Python fundamentals including variables, operators, input/output, and basic error handling.",
-        requirements: `## Functional Requirements
-
-1. **Basic Operations**: Support addition, subtraction, multiplication, and division
-2. **User Interface**: Display a menu and prompt for operation selection
-3. **Input Handling**: Accept two numbers from the user
-4. **Output**: Display the result in a formatted way
-5. **Error Handling**: Handle division by zero and invalid inputs gracefully
-6. **Loop**: Allow multiple calculations without restarting the program
-7. **Exit Option**: Provide a way for users to exit the program
-
-## Technical Requirements
-
-- Use f-strings for output formatting
-- Implement input validation
-- Use appropriate variable names (snake_case)
-- Include comments explaining your code
-- Handle edge cases (e.g., non-numeric input)`,
-        successCriteria: `## Success Criteria
-
-✅ All four basic operations (+ - * /) work correctly
-✅ Program displays a clear menu of options
-✅ User can perform multiple calculations in one session
-✅ Division by zero is handled with an appropriate error message
-✅ Non-numeric input is caught and handled gracefully
-✅ Results are displayed in a user-friendly format
-✅ User can exit the program cleanly
-✅ Code includes helpful comments
-✅ Variables follow Python naming conventions (snake_case)
-✅ Program doesn't crash on any reasonable input`,
+        requirements: JSON.stringify(
+          [
+            "Basic arithmetic operations",
+            "Menu-driven interface",
+            "Two-number input flow",
+            "Formatted output",
+            "Input validation",
+            "Division-by-zero handling",
+            "Repeat calculations and exit option",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Addition, subtraction, multiplication, and division work correctly",
+            "Menu is clear and easy to follow",
+            "Invalid input is handled gracefully",
+            "Division by zero does not crash the program",
+            "Multiple calculations work in one session",
+            "Output is readable and well formatted",
+            "Program exits cleanly",
+            "Code follows Python naming conventions and uses f-strings",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/cli-calculator-starter.py",
         estimatedTime: 120, // 2 hours in minutes
         xpReward: 100,
@@ -62,40 +60,33 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
         title: "Todo List Manager",
         description:
           "Create a command-line todo list application that uses lists, dictionaries, control flow, and file I/O to manage tasks. This project demonstrates your mastery of Python data structures.",
-        requirements: `## Functional Requirements
-
-1. **Add Tasks**: Create new todos with title and optional description
-2. **List Tasks**: Display all todos with their status (pending/completed)
-3. **Complete Tasks**: Mark todos as completed
-4. **Delete Tasks**: Remove todos from the list
-5. **Filter Tasks**: Show only pending or only completed tasks
-6. **Data Persistence**: Save todos to a JSON file
-7. **Load on Start**: Restore todos from the file when program starts
-8. **Task IDs**: Assign unique IDs to each task for easy reference
-
-## Technical Requirements
-
-- Use a list to store todo items
-- Use dictionaries to represent individual todos
-- Implement all CRUD operations (Create, Read, Update, Delete)
-- Use list comprehensions where appropriate
-- Save data to "todos.json" using the "json" module
-- Handle file operations with proper error checking
-- Use control flow for menu logic`,
-        successCriteria: `## Success Criteria
-
-✅ Can add new todos with title and description
-✅ Can list all todos with status indicators
-✅ Can mark todos as complete/incomplete
-✅ Can delete todos by ID
-✅ Can filter todos by status (all/pending/completed)
-✅ Todos persist across program restarts (saved to JSON file)
-✅ Each todo has a unique ID
-✅ Program handles empty todo list gracefully
-✅ Invalid operations (e.g., delete non-existent ID) are handled
-✅ JSON file is properly formatted
-✅ Code uses appropriate data structures (lists, dicts)
-✅ Uses list comprehensions for filtering`,
+        requirements: JSON.stringify(
+          [
+            "Add new todos with optional description",
+            "List todos with status",
+            "Mark tasks complete or incomplete",
+            "Delete tasks by ID",
+            "Filter tasks by status",
+            "Persist data to JSON",
+            "Load saved todos on startup",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Todos can be created, listed, completed, and deleted",
+            "Filtering works for all and status-based views",
+            "Data survives program restarts",
+            "Each todo has a unique ID",
+            "Empty states are handled well",
+            "Invalid IDs and bad operations are handled safely",
+            "JSON output is valid and readable",
+            "Lists and dictionaries are used appropriately",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/todo-list-manager-starter.py",
         estimatedTime: 150, // 2.5 hours
         xpReward: 150,
@@ -109,40 +100,35 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
         title: "Text Processing CLI Tool",
         description:
           "Build a modular command-line tool for analyzing text files. This project demonstrates functions, modules, higher-order functions, and code organization.",
-        requirements: `## Functional Requirements
-
-1. **File Reading**: Read and process text files
-2. **Word Count**: Count total words in the file
-3. **Line Count**: Count total lines
-4. **Character Count**: Count total characters (including/excluding spaces)
-5. **Find Words**: Search for specific words or patterns
-6. **Statistics**: Calculate average word length, most common words
-7. **Export Results**: Save analysis results to a file
-8. **Multiple Files**: Support analyzing multiple files at once
-
-## Technical Requirements
-
-- Organize code into multiple modules
-- Create reusable functions for each operation
-- Use higher-order functions (map, filter) where appropriate
-- Implement lambda functions for simple operations
-- Use proper function documentation (docstrings)
-- Handle file I/O errors gracefully
-- Use if __name__ == "__main__" pattern`,
-        successCriteria: `## Success Criteria
-
-✅ Project organized into separate modules (analyzer.py, stats.py, main.py)
-✅ Can count words, lines, and characters accurately
-✅ Can search for specific words/patterns in text
-✅ Calculates word frequency and most common words
-✅ Handles file not found and other I/O errors
-✅ All functions have docstrings
-✅ Uses higher-order functions appropriately
-✅ Can analyze multiple files in one run
-✅ Results can be exported to a file
-✅ Code is modular and reusable
-✅ Uses lambda functions for simple operations
-✅ Proper separation of concerns between modules`,
+        requirements: JSON.stringify(
+          [
+            "Read text files",
+            "Count words, lines, and characters",
+            "Search for words and patterns",
+            "Calculate word statistics",
+            "Identify common words",
+            "Export results",
+            "Support multiple files",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Project is organized into modules",
+            "Counts for words, lines, and characters are accurate",
+            "Search for words and patterns works correctly",
+            "Word frequency analysis is available",
+            "File errors are handled cleanly",
+            "All functions include docstrings",
+            "Higher-order functions and lambda functions are used appropriately",
+            "Multiple files can be analyzed in one run",
+            "Results can be exported",
+            "Code is modular, reusable, and well separated",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/text-processing-tool-starter.py",
         estimatedTime: 150, // 2.5 hours
         xpReward: 150,
@@ -156,39 +142,33 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
         title: "Library Management System",
         description:
           "Build a library management system using OOP principles. Design classes for books, users, and library operations to demonstrate inheritance, polymorphism, and encapsulation.",
-        requirements: `## Functional Requirements
-
-1. **Book Management**: Add, remove, and search books by title, author, or ISBN
-2. **User Management**: Register users, manage borrowing history
-3. **Borrowing System**: Track borrowed books, due dates, and fines
-4. **Inventory**: Monitor available copies and stock levels
-5. **Search & Filter**: Advanced search capabilities by genre, publication year
-6. **Fine Calculation**: Calculate late fees based on days overdue
-7. **Report Generation**: Generate reports on library operations
-8. **Persistence**: Save all data to files (JSON or CSV)
-
-## Technical Requirements
-
-- Design class hierarchy with proper inheritance
-- Implement polymorphism for different book types
-- Use encapsulation with private attributes
-- Implement __str__, __repr__, and other magic methods
-- Use composition for complex relationships
-- Handle exceptions properly
-- Use decorators for validation (if applicable)`,
-        successCriteria: `## Success Criteria
-
-✅ Well-designed class hierarchy (Book, User, Library, etc.)
-✅ Proper use of inheritance for book types
-✅ Encapsulation with getters/setters where needed
-✅ Can add/remove/search books efficiently
-✅ User borrowing system tracks all transactions
-✅ Fine calculation is accurate
-✅ Data persists across program runs
-✅ Uses magic methods appropriately
-✅ Composition used for complex relationships
-✅ Error handling for edge cases
-✅ Code is well-documented with docstrings`,
+        requirements: JSON.stringify(
+          [
+            "Add, remove, and search books",
+            "Register users and track borrowing history",
+            "Borrow and return books",
+            "Track availability, due dates, and fines",
+            "Support advanced search and filtering",
+            "Persist data to files",
+            "Use class inheritance for book types",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Book, user, and library classes are implemented cleanly",
+            "Borrow and return workflows work correctly",
+            "Search by title and author returns the right results",
+            "Fine calculation is accurate",
+            "Data persists across runs",
+            "Encapsulation and inheritance are used appropriately",
+            "Magic methods are included where useful",
+            "Code is documented and handles errors gracefully",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/library-management-starter.py",
         estimatedTime: 180, // 3 hours
         xpReward: 200,
@@ -202,39 +182,33 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
         title: "Log File Analyzer",
         description:
           "Create a robust log file analyzer that reads, parses, and analyzes various log formats. Demonstrates file I/O, exception handling, and context managers.",
-        requirements: `## Functional Requirements
-
-1. **Log Parsing**: Parse multiple log formats (text, JSON, CSV)
-2. **Error Detection**: Identify and categorize errors, warnings, info messages
-3. **Filtering**: Filter logs by date, severity level, or keyword
-4. **Statistics**: Generate statistics on log occurrences
-5. **Export**: Export filtered logs to various formats
-6. **Real-time Monitoring**: Monitor live log files for changes
-7. **Pattern Matching**: Search logs using regex patterns
-8. **Compression**: Handle compressed log files (gz, zip)
-
-## Technical Requirements
-
-- Use context managers for file operations
-- Implement custom exceptions for error handling
-- Handle various file encodings gracefully
-- Use try-except-finally patterns appropriately
-- Implement resource cleanup properly
-- Process large files efficiently
-- Support multiple file formats`,
-        successCriteria: `## Success Criteria
-
-✅ Can read and parse multiple log formats
-✅ Proper use of context managers for file handling
-✅ Custom exceptions for different error types
-✅ Can filter logs by various criteria
-✅ Generates accurate statistics
-✅ Handles corrupted/incomplete log entries gracefully
-✅ Can process large log files without memory issues
-✅ Supports regex pattern matching
-✅ Can handle compressed log files
-✅ Error messages are clear and helpful
-✅ All resources properly cleaned up`,
+        requirements: JSON.stringify(
+          [
+            "Parse multiple log formats",
+            "Detect errors, warnings, and info messages",
+            "Filter by date, severity, or keyword",
+            "Generate log statistics",
+            "Export filtered output",
+            "Search with regex patterns",
+            "Handle compressed log files",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Multiple log formats are parsed correctly",
+            "Context managers are used for file handling",
+            "Custom exceptions handle error cases",
+            "Filtering works across the supported criteria",
+            "Statistics are accurate",
+            "Corrupt entries are handled safely",
+            "Regex search and compressed file support work",
+            "Resources are cleaned up properly",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/log-analyzer-starter.py",
         estimatedTime: 150, // 2.5 hours
         xpReward: 150,
@@ -248,39 +222,33 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
         title: "Banking System with Tests",
         description:
           "Develop a banking system with comprehensive unit and integration tests. Learn pytest fixtures, parametrized tests, and test organization.",
-        requirements: `## Functional Requirements
-
-1. **Account Management**: Create, update, delete bank accounts
-2. **Transactions**: Deposit, withdraw, and transfer funds
-3. **Balance Tracking**: Accurate balance calculation
-4. **Transaction History**: Complete transaction log
-5. **Interest Calculation**: Calculate interest on savings
-6. **Overdraft Protection**: Prevent unauthorized overdrafts
-7. **Account Types**: Support checking and savings accounts
-8. **Fees**: Deduct monthly maintenance fees
-
-## Technical Requirements
-
-- Write unit tests for all functions
-- Use pytest fixtures for test setup
-- Implement parametrized tests for multiple scenarios
-- Use mocking for external dependencies
-- Achieve 90%+ code coverage
-- Test error cases and edge cases
-- Use test markers for test organization
-- Implement integration tests`,
-        successCriteria: `## Success Criteria
-
-✅ 90%+ code coverage with pytest
-✅ Unit tests for all critical functions
-✅ Uses pytest fixtures effectively
-✅ Parametrized tests for multiple scenarios
-✅ Tests for error conditions and edge cases
-✅ Integration tests for workflows
-✅ Proper test organization and naming
-✅ Mock objects used appropriately
-✅ All tests pass consistently
-✅ Clear test reports and output`,
+        requirements: JSON.stringify(
+          [
+            "Create and manage accounts",
+            "Support deposits, withdrawals, and transfers",
+            "Track balances and transaction history",
+            "Calculate interest and fees",
+            "Prevent unauthorized overdrafts",
+            "Support multiple account types",
+            "Write comprehensive automated tests",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Core banking operations work correctly",
+            "Balances and transaction history stay accurate",
+            "Overdraft protection is enforced",
+            "Pytest fixtures and parametrized tests are used well",
+            "Integration tests cover key workflows",
+            "Coverage is high and consistent",
+            "Tests are organized and named clearly",
+            "All tests pass reliably",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/banking-system-starter.py",
         estimatedTime: 180, // 3 hours
         xpReward: 200,
@@ -294,38 +262,31 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
         title: "Python Package Creator",
         description:
           "Create and publish a reusable Python package with proper structure, dependencies, documentation, and distribution.",
-        requirements: `## Functional Requirements
-
-1. **Package Structure**: Proper directory layout following PEP standards
-2. **Setup Configuration**: setup.py or pyproject.toml with metadata
-3. **Dependencies**: Manage dependencies with requirements.txt
-4. **Documentation**: README, docstrings, and API documentation
-5. **Testing**: Include and run tests with tox
-6. **Version Management**: Proper versioning and changelog
-7. **Distribution**: Package for PyPI distribution
-8. **CI/CD**: GitHub Actions or similar for testing
-
-## Technical Requirements
-
-- Follow PEP 517, 518, 621 standards
-- Use virtual environments properly
-- Implement entry points for CLI tools
-- Include comprehensive docstrings
-- Set up proper package metadata
-- Use semantic versioning
-- Create installable package`,
-        successCriteria: `## Success Criteria
-
-✅ Package follows Python project structure standards
-✅ setup.py or pyproject.toml properly configured
-✅ Virtual environment set up correctly
-✅ All dependencies documented
-✅ Comprehensive README with usage examples
-✅ Proper docstrings on all public APIs
-✅ Tests included and passing
-✅ Package can be installed with pip
-✅ Version properly managed
-✅ Clear changelog documenting changes`,
+        requirements: JSON.stringify(
+          [
+            "Create a standard package structure",
+            "Configure setup metadata",
+            "Manage dependencies cleanly",
+            "Write documentation and docstrings",
+            "Include tests and versioning",
+            "Prepare the package for distribution",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Package structure follows Python conventions",
+            "Setup or pyproject configuration is correct",
+            "Dependencies are documented",
+            "Public APIs are documented with docstrings",
+            "Tests are included and passing",
+            "Package can be installed with pip",
+            "Versioning and changelog are clear",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/package-creator-starter.py",
         estimatedTime: 150, // 2.5 hours
         xpReward: 150,
@@ -339,38 +300,33 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
         title: "Async Web Scraper",
         description:
           "Build a high-performance web scraper using asyncio and aiohttp. Learn concurrent programming patterns similar to JavaScript Promises.",
-        requirements: `## Functional Requirements
-
-1. **URL Fetching**: Fetch multiple URLs concurrently
-2. **HTML Parsing**: Parse and extract data from HTML
-3. **Rate Limiting**: Respect server limits with delays
-4. **Error Handling**: Gracefully handle failed requests
-5. **Data Storage**: Save scraped data to database/file
-6. **Progress Tracking**: Monitor scraping progress
-7. **Retry Logic**: Retry failed requests with backoff
-8. **Performance**: Process 100+ URLs efficiently
-
-## Technical Requirements
-
-- Use asyncio for concurrent operations
-- Implement async/await patterns
-- Use aiohttp for async HTTP requests
-- Handle timeouts and retries
-- Implement rate limiting
-- Use semaphores for concurrency control
-- Handle connection pools efficiently`,
-        successCriteria: `## Success Criteria
-
-✅ Properly uses async/await syntax
-✅ Fetches multiple URLs concurrently
-✅ HTML parsing works correctly
-✅ Respects rate limiting and delays
-✅ Graceful error handling for failures
-✅ Retries failed requests appropriately
-✅ Scraped data stored correctly
-✅ Progress tracking implemented
-✅ Performance improvement over sync version
-✅ No resource leaks or hanging connections`,
+        requirements: JSON.stringify(
+          [
+            "Fetch URLs concurrently",
+            "Parse HTML and extract data",
+            "Respect rate limits",
+            "Retry failed requests with backoff",
+            "Store scraped data",
+            "Track progress",
+            "Handle large batches efficiently",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Async and await are used correctly",
+            "Multiple URLs are fetched concurrently",
+            "Parsing and extraction work correctly",
+            "Rate limiting and retries are respected",
+            "Scraped data is stored successfully",
+            "Progress is visible during the run",
+            "Resource cleanup is reliable",
+            "Performance is better than a synchronous approach",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/async-scraper-starter.py",
         estimatedTime: 180, // 3 hours
         xpReward: 200,
@@ -384,38 +340,32 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
         title: "Decorator & Metaclass Toolkit",
         description:
           "Create a comprehensive toolkit using decorators and metaclasses. Build reusable utilities for logging, caching, validation, and type checking.",
-        requirements: `## Functional Requirements
-
-1. **Logging Decorator**: Auto-log function calls with parameters
-2. **Caching Decorator**: Implement memoization and cache management
-3. **Validation Decorator**: Validate function arguments
-4. **Rate Limiting Decorator**: Limit function execution frequency
-5. **Retry Decorator**: Implement retry logic with backoff
-6. **Performance Tracking**: Measure execution time
-7. **Type Validation**: Metaclass for type checking
-8. **Plugin System**: Use metaclasses to create extensible systems
-
-## Technical Requirements
-
-- Implement function and class decorators
-- Use functools.wraps appropriately
-- Create decorators with parameters
-- Implement custom metaclasses
-- Use context managers with decorators
-- Handle closures and scope correctly
-- Apply decorators to real-world problems`,
-        successCriteria: `## Success Criteria
-
-✅ All decorators work correctly
-✅ Logging captures all relevant information
-✅ Caching improves performance
-✅ Validation prevents invalid calls
-✅ Rate limiting enforces limits
-✅ Retry logic works with backoff
-✅ Metaclasses used appropriately
-✅ Decorators are reusable
-✅ Edge cases handled properly
-✅ Comprehensive documentation`,
+        requirements: JSON.stringify(
+          [
+            "Build logging and caching decorators",
+            "Add validation and retry decorators",
+            "Support rate limiting and timing",
+            "Use metaclasses for type validation",
+            "Create reusable plugin-style utilities",
+            "Apply decorators to real scenarios",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Decorators behave correctly",
+            "Logging and caching add real value",
+            "Validation blocks invalid calls",
+            "Retry logic and rate limiting work",
+            "Metaclasses are used appropriately",
+            "Utilities are reusable across code",
+            "Closures and scope are handled safely",
+            "Documentation is complete and clear",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/decorator-toolkit-starter.py",
         estimatedTime: 150, // 2.5 hours
         xpReward: 180,
@@ -429,38 +379,31 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
         title: "Type-Safe Calculator Library",
         description:
           "Develop a fully type-hinted calculator library with mypy validation. Demonstrates modern Python type checking practices.",
-        requirements: `## Functional Requirements
-
-1. **Basic Operations**: Type-safe arithmetic operations
-2. **Complex Numbers**: Support complex number operations
-3. **Statistics**: Mean, median, standard deviation functions
-4. **Matrix Operations**: Matrix math with proper types
-5. **Input Validation**: Type validation at runtime
-6. **Error Messages**: Clear error messages for type violations
-7. **Generic Types**: Use TypeVar and Generic for reusable code
-8. **Type Stubs**: Provide .pyi files for compatibility
-
-## Technical Requirements
-
-- Use comprehensive type hints throughout
-- Pass mypy strict mode checks
-- Use Union, Optional, Literal types appropriately
-- Implement Generic classes and functions
-- Use Protocol for structural typing
-- Validate types at runtime where needed
-- Document type expectations`,
-        successCriteria: `## Success Criteria
-
-✅ All functions have complete type hints
-✅ Passes mypy in strict mode
-✅ Uses Generic types appropriately
-✅ Union and Optional used correctly
-✅ Runtime type validation works
-✅ Clear error messages for type errors
-✅ Protocol used for duck typing
-✅ Type stubs provided (.pyi files)
-✅ Documentation explains all types
-✅ No type: ignore comments without justification`,
+        requirements: JSON.stringify(
+          [
+            "Implement type-safe arithmetic operations",
+            "Support complex numbers and statistics",
+            "Add matrix operations",
+            "Validate inputs at runtime",
+            "Use generic and protocol-based typing",
+            "Provide type stubs",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "All public functions are fully typed",
+            "Mypy strict mode passes",
+            "Generic and protocol types are used correctly",
+            "Runtime validation catches bad input",
+            "Type errors have clear messages",
+            "Type stubs are included for compatibility",
+            "Documentation explains the typing approach",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/typed-calculator-starter.py",
         estimatedTime: 150, // 2.5 hours
         xpReward: 150,
@@ -474,39 +417,33 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
         title: "REST API with FastAPI",
         description:
           "Build a production-ready REST API using FastAPI. Learn routing, validation, authentication, and API documentation.",
-        requirements: `## Functional Requirements
-
-1. **RESTful Routes**: CRUD operations for resources
-2. **Input Validation**: Validate all incoming data
-3. **Authentication**: JWT token-based auth
-4. **Error Handling**: Proper HTTP error responses
-5. **Pagination**: Support large datasets
-6. **Filtering**: Advanced query filters
-7. **Rate Limiting**: Prevent API abuse
-8. **Documentation**: Auto-generated API docs
-
-## Technical Requirements
-
-- Use FastAPI with Pydantic models
-- Implement JWT authentication
-- Proper HTTP status codes
-- Request/response validation
-- Error handling and logging
-- Database integration
-- CORS configuration
-- OpenAPI documentation`,
-        successCriteria: `## Success Criteria
-
-✅ All CRUD operations work correctly
-✅ Input validation with Pydantic models
-✅ JWT authentication implemented
-✅ Proper HTTP status codes returned
-✅ Error responses are informative
-✅ Pagination works efficiently
-✅ Advanced filtering implemented
-✅ Rate limiting prevents abuse
-✅ OpenAPI docs auto-generated
-✅ All endpoints tested`,
+        requirements: JSON.stringify(
+          [
+            "Implement CRUD routes",
+            "Validate incoming data",
+            "Add authentication",
+            "Handle errors consistently",
+            "Support pagination and filtering",
+            "Add rate limiting",
+            "Document the API",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "CRUD operations work correctly",
+            "Validation is enforced on input",
+            "Authentication is implemented properly",
+            "HTTP status codes are correct",
+            "Pagination and filtering work as expected",
+            "Rate limiting prevents abuse",
+            "OpenAPI docs are generated",
+            "Endpoints are tested",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/fastapi-rest-starter.py",
         estimatedTime: 200, // 3.3 hours
         xpReward: 250,
@@ -520,38 +457,33 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
         title: "Multi-Tenant Database System",
         description:
           "Design and implement a multi-tenant system with SQLAlchemy ORM. Learn relationships, migrations, and complex queries.",
-        requirements: `## Functional Requirements
-
-1. **Multi-Tenancy**: Isolate data per tenant
-2. **Relationships**: Complex model relationships
-3. **Migrations**: Alembic for schema management
-4. **Queries**: Complex filtering and joins
-5. **Transactions**: ACID transactions
-6. **Performance**: Optimized queries and indexes
-7. **Soft Deletes**: Logical delete functionality
-8. **Audit Trail**: Track changes to records
-
-## Technical Requirements
-
-- Use SQLAlchemy ORM effectively
-- Implement migrations with Alembic
-- Complex relationships (one-to-many, many-to-many)
-- Query optimization and indexing
-- Transaction management
-- Connection pooling
-- Raw SQL where appropriate`,
-        successCriteria: `## Success Criteria
-
-✅ Multi-tenant isolation working
-✅ Relationships properly defined
-✅ Migrations execute cleanly
-✅ Queries are optimized
-✅ Transactions handled properly
-✅ Indexes improve performance
-✅ Soft deletes implemented
-✅ Audit trail functional
-✅ No N+1 query problems
-✅ Database constraints enforced`,
+        requirements: JSON.stringify(
+          [
+            "Isolate tenant data",
+            "Model relationships clearly",
+            "Manage schema migrations",
+            "Build complex queries",
+            "Use transactions safely",
+            "Optimize indexes and performance",
+            "Track changes with an audit trail",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Tenant isolation works correctly",
+            "Relationships are modeled cleanly",
+            "Migrations run without issues",
+            "Queries are optimized",
+            "Transactions are handled safely",
+            "Soft deletes and audit logging work",
+            "Database constraints are enforced",
+            "The design avoids common N plus 1 issues",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/sqlalchemy-multi-tenant-starter.py",
         estimatedTime: 180, // 3 hours
         xpReward: 200,
@@ -565,38 +497,33 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
         title: "Data Analysis Dashboard",
         description:
           "Create a data analysis tool using Pandas and data visualization. Process real-world datasets and generate insights.",
-        requirements: `## Functional Requirements
-
-1. **Data Loading**: Load from CSV, JSON, Excel
-2. **Data Cleaning**: Handle missing values, duplicates
-3. **Analysis**: Statistical analysis and aggregation
-4. **Visualization**: Create charts and graphs
-5. **Export**: Export results in multiple formats
-6. **Filtering**: Advanced data filtering
-7. **Merging**: Combine multiple datasets
-8. **Performance**: Handle large datasets efficiently
-
-## Technical Requirements
-
-- Pandas for data manipulation
-- NumPy for numerical operations
-- Matplotlib/Seaborn for visualization
-- Efficient memory usage
-- Proper data type handling
-- Vectorized operations
-- Error handling for bad data`,
-        successCriteria: `## Success Criteria
-
-✅ Loads data from multiple formats
-✅ Handles missing/corrupted data gracefully
-✅ Statistical analysis accurate
-✅ Visualizations clear and informative
-✅ Can filter and aggregate data
-✅ Merges datasets correctly
-✅ Performance optimized for large datasets
-✅ Exports in multiple formats
-✅ Code uses vectorized operations
-✅ Results are reproducible`,
+        requirements: JSON.stringify(
+          [
+            "Load data from multiple formats",
+            "Clean and normalize datasets",
+            "Run statistical analysis",
+            "Build visualizations",
+            "Merge datasets",
+            "Export reports",
+            "Handle larger datasets efficiently",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Multiple file formats are loaded correctly",
+            "Missing and bad data are handled safely",
+            "Analysis results are accurate",
+            "Visualizations are clear and useful",
+            "Filtering and aggregation work correctly",
+            "Exports are available in multiple formats",
+            "Vectorized operations are used where possible",
+            "Results are reproducible",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/pandas-dashboard-starter.py",
         estimatedTime: 180, // 3 hours
         xpReward: 180,
@@ -610,38 +537,32 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
         title: "CI/CD Pipeline Builder",
         description:
           "Create a complete CI/CD pipeline with Docker, GitHub Actions, and automated testing.",
-        requirements: `## Functional Requirements
-
-1. **Dockerfile**: Containerize Python application
-2. **GitHub Actions**: Automated testing on push
-3. **Code Quality**: Linting and formatting checks
-4. **Security Scanning**: Vulnerability scanning
-5. **Test Reports**: Generate coverage reports
-6. **Deployment**: Automated deployment script
-7. **Monitoring**: Basic monitoring and alerts
-8. **Documentation**: Document the pipeline
-
-## Technical Requirements
-
-- Docker image optimization
-- GitHub Actions workflows
-- Testing automation
-- Code quality tools (flake8, black, isort)
-- Security tools (bandit, safety)
-- Coverage reporting
-- Deployment scripts`,
-        successCriteria: `## Success Criteria
-
-✅ Dockerfile creates valid images
-✅ GitHub Actions workflow runs on push
-✅ All tests run automatically
-✅ Code quality checks pass
-✅ Security scanning enabled
-✅ Coverage reports generated
-✅ Deployment works reliably
-✅ Pipeline handles failures gracefully
-✅ Documentation is clear
-✅ Performance is reasonable`,
+        requirements: JSON.stringify(
+          [
+            "Containerize the application with Docker",
+            "Run tests in CI",
+            "Add linting and formatting checks",
+            "Include security scanning",
+            "Generate coverage reports",
+            "Automate deployment steps",
+            "Document the pipeline",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Docker images build successfully",
+            "CI runs on push or pull request",
+            "Tests and quality checks run automatically",
+            "Security scanning is enabled",
+            "Coverage reports are produced",
+            "Deployment steps are reliable",
+            "Documentation is clear",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/cicd-builder-starter.py",
         estimatedTime: 150, // 2.5 hours
         xpReward: 150,
@@ -655,39 +576,33 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
         title: "Smart Contract Interaction dApp",
         description:
           "Build a decentralized application that interacts with smart contracts using Web3.py.",
-        requirements: `## Functional Requirements
-
-1. **Wallet Connection**: Connect to Ethereum wallets
-2. **Smart Contracts**: Read and write to contracts
-3. **Token Transfers**: Send and receive tokens
-4. **Transaction Tracking**: Monitor transactions
-5. **Gas Estimation**: Calculate transaction costs
-6. **Event Listening**: Subscribe to contract events
-7. **Price Tracking**: Monitor token prices
-8. **Error Handling**: Handle blockchain errors
-
-## Technical Requirements
-
-- Web3.py library usage
-- Ethereum network interaction
-- Smart contract ABI handling
-- Private key management
-- Transaction building and signing
-- Gas price estimation
-- Event monitoring
-- Error handling for network issues`,
-        successCriteria: `## Success Criteria
-
-✅ Wallet connection works correctly
-✅ Can read contract state
-✅ Can write to contracts (with proper auth)
-✅ Transactions execute successfully
-✅ Gas estimates are accurate
-✅ Events captured and processed
-✅ Prices fetched correctly
-✅ Handles network errors gracefully
-✅ Private keys stored securely
-✅ All operations tested`,
+        requirements: JSON.stringify(
+          [
+            "Connect a wallet",
+            "Read and write smart contracts",
+            "Send and receive tokens",
+            "Track transactions and events",
+            "Estimate gas usage",
+            "Handle blockchain errors",
+            "Secure private key handling",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Wallet connection works correctly",
+            "Contract reads and writes work",
+            "Transactions execute successfully",
+            "Gas estimation is accurate enough for use",
+            "Events are captured and processed",
+            "Network errors are handled gracefully",
+            "Keys are stored securely",
+            "Operations are tested",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/web3-dapp-starter.py",
         estimatedTime: 150, // 2.5 hours
         xpReward: 180,
@@ -701,39 +616,32 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
         title: "Performance Optimization Suite",
         description:
           "Analyze and optimize a Python application. Use profiling tools to identify bottlenecks and implement performance improvements.",
-        requirements: `## Functional Requirements
-
-1. **Profiling**: CPU and memory profiling
-2. **Bottleneck Analysis**: Identify slow code
-3. **Optimization**: Apply optimization techniques
-4. **Cython**: Compile critical sections
-5. **Multiprocessing**: Parallelize operations
-6. **Benchmarking**: Compare before/after performance
-7. **Monitoring**: Track performance metrics
-8. **Documentation**: Document optimization results
-
-## Technical Requirements
-
-- cProfile and memory_profiler usage
-- Timing measurements
-- Big O complexity analysis
-- Cython compilation
-- Multiprocessing implementation
-- Threading vs processes
-- Async optimization
-- Memory management`,
-        successCriteria: `## Success Criteria
-
-✅ Profiling identifies bottlenecks
-✅ Optimizations improve performance
-✅ Benchmarks show measurable gains
-✅ Cython improves critical sections
-✅ Parallelization works correctly
-✅ Memory usage optimized
-✅ Results reproducible
-✅ Code remains maintainable
-✅ Documentation explains trade-offs
-✅ Performance regressions prevented`,
+        requirements: JSON.stringify(
+          [
+            "Profile CPU and memory usage",
+            "Identify bottlenecks",
+            "Apply optimizations",
+            "Benchmark improvements",
+            "Parallelize expensive work",
+            "Improve memory usage",
+            "Document the results",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Bottlenecks are identified accurately",
+            "Optimizations produce measurable gains",
+            "Benchmarks show before and after results",
+            "Parallelization works correctly",
+            "Memory usage is improved",
+            "Code remains maintainable",
+            "Trade-offs and regressions are documented",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/perf-optimization-starter.py",
         estimatedTime: 180, // 3 hours
         xpReward: 200,

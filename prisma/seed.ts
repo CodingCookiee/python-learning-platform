@@ -193,10 +193,33 @@ function getProjectsForModule(moduleId: string, moduleOrder: number) {
         moduleId,
         title: "CLI Calculator",
         description: "Build a command-line calculator application.",
-        requirements:
-          "Build a calculator with basic operations (+, -, *, /), user interface with menu, input handling for two numbers, formatted output, error handling for division by zero and invalid inputs, loop for multiple calculations, and exit option.",
-        successCriteria:
-          "All operations work, clear menu, multiple calculations in one session, division by zero handled, non-numeric input handled, user-friendly output, clean exit, helpful comments, snake_case variables, handles all reasonable inputs.",
+        requirements: JSON.stringify(
+          [
+            "Basic arithmetic operations",
+            "Menu-driven interface",
+            "Two-number input flow",
+            "Formatted output",
+            "Input validation",
+            "Division-by-zero handling",
+            "Repeat calculations and exit option",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Addition, subtraction, multiplication, and division work correctly",
+            "Menu is clear and easy to follow",
+            "Invalid input is handled gracefully",
+            "Division by zero does not crash the program",
+            "Multiple calculations work in one session",
+            "Output is readable and well formatted",
+            "Program exits cleanly",
+            "Code follows Python naming conventions and uses f-strings",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/cli-calculator-starter.py",
         estimatedTime: 180,
         xpReward: 100,
@@ -207,10 +230,33 @@ function getProjectsForModule(moduleId: string, moduleOrder: number) {
         moduleId,
         title: "Todo List Manager",
         description: "Create a command-line todo list application.",
-        requirements:
-          "Support add, list, complete, delete, filter tasks. Save to JSON file, load on start, assign unique IDs to tasks.",
-        successCriteria:
-          "Add todos, list all with status, mark complete/incomplete, delete by ID, filter by status, persist across restarts, unique IDs, handle empty list, handle invalid operations, proper JSON formatting, uses lists and dicts, uses list comprehensions.",
+        requirements: JSON.stringify(
+          [
+            "Add new todos with optional description",
+            "List todos with status",
+            "Mark tasks complete or incomplete",
+            "Delete tasks by ID",
+            "Filter tasks by status",
+            "Persist data to JSON",
+            "Load saved todos on startup",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Todos can be created, listed, completed, and deleted",
+            "Filtering works for all and status-based views",
+            "Data survives program restarts",
+            "Each todo has a unique ID",
+            "Empty states are handled well",
+            "Invalid IDs and bad operations are handled safely",
+            "JSON output is valid and readable",
+            "Lists and dictionaries are used appropriately",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/todo-list-manager-starter.py",
         estimatedTime: 240,
         xpReward: 150,
@@ -221,10 +267,35 @@ function getProjectsForModule(moduleId: string, moduleOrder: number) {
         moduleId,
         title: "Text Processing CLI Tool",
         description: "Build a modular command-line tool for analyzing text files.",
-        requirements:
-          "Read text files, count words/lines/characters, search for words/patterns, calculate statistics (avg word length, most common words), export results, support multiple files.",
-        successCriteria:
-          "Organized into modules, accurate counts, word search works, word frequency analysis, handles file errors, all functions have docstrings, uses higher-order functions, analyzes multiple files, exports results, modular and reusable code, uses lambda functions, proper separation of concerns.",
+        requirements: JSON.stringify(
+          [
+            "Read text files",
+            "Count words, lines, and characters",
+            "Search for words and patterns",
+            "Calculate word statistics",
+            "Identify common words",
+            "Export results",
+            "Support multiple files",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Project is organized into modules",
+            "Counts for words, lines, and characters are accurate",
+            "Search for words and patterns works correctly",
+            "Word frequency analysis is available",
+            "File errors are handled cleanly",
+            "All functions include docstrings",
+            "Higher-order functions and lambda functions are used appropriately",
+            "Multiple files can be analyzed in one run",
+            "Results can be exported",
+            "Code is modular, reusable, and well separated",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/text-processing-tool-starter.py",
         estimatedTime: 240,
         xpReward: 150,
@@ -236,10 +307,32 @@ function getProjectsForModule(moduleId: string, moduleOrder: number) {
         title: "Library Management System",
         description:
           "Build a comprehensive object-oriented library management system with classes for books, members, and library operations.",
-        requirements:
-          "Create a Book class with title, author, ISBN, availability status. Create a Member class with name, member ID, borrowed books list. Create a Library class to manage books and members. Implement methods to: add/remove books, register members, borrow books (check availability, update status, add to member's list), return books (update availability, remove from member's list), search books by title/author, list all books and their status, list member's borrowed books. Use inheritance to create different types of books (Fiction, NonFiction, Reference) with specific attributes. Implement proper encapsulation with private attributes where appropriate.",
-        successCriteria:
-          "All three main classes (Book, Member, Library) properly implemented with appropriate attributes and methods. Inheritance demonstrated with book types (Fiction, NonFiction, Reference classes inherit from Book). Borrowing system works correctly (checks availability, prevents duplicate borrows, tracks member borrows). Search functionality returns correct results for title and author queries. All CRUD operations work (add, list, update, delete books and members). Proper use of self and __init__ constructors. Private attributes used appropriately with underscore convention. Code demonstrates encapsulation principles. Includes at least 3 magic methods (__str__, __repr__, __len__ or others). Error handling for invalid operations (borrowing unavailable books, etc.). Clean, well-documented code with docstrings for all classes and methods.",
+        requirements: JSON.stringify(
+          [
+            "Add and remove books",
+            "Register members",
+            "Borrow and return books",
+            "Track availability and due dates",
+            "Search by title or author",
+            "Persist data to files",
+            "Use inheritance for book types",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Core library classes are implemented cleanly",
+            "Borrow and return workflows work correctly",
+            "Search by title and author returns the right results",
+            "Fine or fee logic works as expected",
+            "Data persists across runs",
+            "Encapsulation and inheritance are used appropriately",
+            "Code is documented and handles errors gracefully",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/library-management-starter.py",
         estimatedTime: 360,
         xpReward: 200,
@@ -250,10 +343,33 @@ function getProjectsForModule(moduleId: string, moduleOrder: number) {
         moduleId,
         title: "Data ETL Pipeline",
         description: "Build a data extraction, transformation, and loading pipeline.",
-        requirements:
-          "Create a pipeline that reads data from CSV, transforms it (clean, normalize, enrich), and exports to JSON. Support filtering, aggregation, and validation. Handle errors gracefully. Log operations.",
-        successCriteria:
-          "Reads CSV files correctly, applies transformations (filtering, normalization, aggregation), exports to JSON, validates data, handles errors with custom exceptions, logs all operations, modular code structure, comprehensive documentation, performance optimized for large datasets.",
+        requirements: JSON.stringify(
+          [
+            "Load data from CSV",
+            "Transform and clean records",
+            "Validate incoming data",
+            "Export to JSON",
+            "Support filtering and aggregation",
+            "Log pipeline steps",
+            "Handle errors cleanly",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "CSV data is read correctly",
+            "Transformations run as expected",
+            "Exports are produced in the right format",
+            "Validation catches bad records",
+            "Errors are handled with custom exceptions",
+            "Pipeline steps are logged",
+            "Code is modular and documented",
+            "Performance is reasonable for large datasets",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/etl-pipeline-starter.py",
         estimatedTime: 300,
         xpReward: 200,
@@ -264,10 +380,32 @@ function getProjectsForModule(moduleId: string, moduleOrder: number) {
         moduleId,
         title: "Test Suite for Todo App",
         description: "Build a comprehensive test suite for a todo application.",
-        requirements:
-          "Create unit tests for todo operations (add, complete, delete, filter). Write integration tests for file I/O. Achieve 80%+ code coverage. Use pytest fixtures for test setup.",
-        successCriteria:
-          "Unit tests cover all todo operations, integration tests verify file persistence, pytest fixtures properly set up test state, parametrized tests for edge cases, mock external dependencies, 80%+ code coverage achieved, clear test names and documentation, all tests pass.",
+        requirements: JSON.stringify(
+          [
+            "Write unit tests for todo operations",
+            "Write integration tests for file I O",
+            "Use pytest fixtures",
+            "Use parametrized cases",
+            "Mock external dependencies",
+            "Aim for strong test coverage",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Todo operations are covered by tests",
+            "File persistence is verified",
+            "Fixtures set up and tear down state cleanly",
+            "Edge cases are covered with parametrized tests",
+            "External dependencies are mocked where needed",
+            "Coverage is high enough to be meaningful",
+            "Test names and structure are clear",
+            "All tests pass consistently",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/todo-test-suite-starter.py",
         estimatedTime: 300,
         xpReward: 200,
@@ -278,10 +416,31 @@ function getProjectsForModule(moduleId: string, moduleOrder: number) {
         moduleId,
         title: "Publish a Python Package",
         description: "Create, package, and publish a Python package to PyPI.",
-        requirements:
-          "Create a reusable utility package with multiple modules. Structure with proper __init__.py files. Write setup.py or pyproject.toml. Publish to TestPyPI first. Ensure proper versioning and documentation.",
-        successCriteria:
-          "Package structure follows Python standards, all modules properly documented, setup.py/pyproject.toml correctly configured, publishes successfully to TestPyPI, semantic versioning used, README and license included, can be installed with pip, includes example usage.",
+        requirements: JSON.stringify(
+          [
+            "Create a reusable package structure",
+            "Configure setup or pyproject metadata",
+            "Document dependencies and usage",
+            "Write tests",
+            "Use semantic versioning",
+            "Prepare for TestPyPI and PyPI",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Package structure follows Python standards",
+            "Metadata configuration is correct",
+            "Documentation is complete",
+            "Tests pass",
+            "Package can be installed with pip",
+            "Versioning is clear and consistent",
+            "Distribution steps are ready to repeat",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/python-package-starter.py",
         estimatedTime: 300,
         xpReward: 200,
@@ -292,10 +451,33 @@ function getProjectsForModule(moduleId: string, moduleOrder: number) {
         moduleId,
         title: "Async Web Scraper",
         description: "Build an async web scraper with concurrent requests.",
-        requirements:
-          "Create a web scraper using aiohttp that fetches multiple URLs concurrently. Parse HTML responses, extract data, handle errors, implement rate limiting, and save results to JSON.",
-        successCriteria:
-          "Fetches URLs concurrently, parses HTML correctly, error handling for failed requests, implements rate limiting, respects robots.txt, saves results to JSON, clean code with async/await, proper resource cleanup.",
+        requirements: JSON.stringify(
+          [
+            "Fetch multiple URLs concurrently",
+            "Parse HTML",
+            "Handle retries and timeouts",
+            "Respect rate limits",
+            "Store scraped data",
+            "Track progress",
+            "Handle large batches efficiently",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Async and await are used correctly",
+            "Multiple URLs are fetched concurrently",
+            "HTML parsing works correctly",
+            "Retries and timeouts are handled safely",
+            "Rate limits are respected",
+            "Data is stored correctly",
+            "Progress reporting is available",
+            "Resource cleanup is reliable",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/async-scraper-starter.py",
         estimatedTime: 300,
         xpReward: 250,
@@ -306,10 +488,30 @@ function getProjectsForModule(moduleId: string, moduleOrder: number) {
         moduleId,
         title: "Framework Utilities Library",
         description: "Build a utilities library using decorators and context managers.",
-        requirements:
-          "Create reusable utilities featuring decorators (caching, timing, retry logic), context managers for resource management, and advanced Python features.",
-        successCriteria:
-          "Decorators work correctly, context managers handle resources properly, good test coverage, well-documented, can be packaged and imported, includes caching and retry decorators.",
+        requirements: JSON.stringify(
+          [
+            "Build reusable decorators",
+            "Add context managers",
+            "Support caching and retry logic",
+            "Add timing and validation helpers",
+            "Use advanced Python features",
+            "Document the utilities clearly",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Decorators and context managers work correctly",
+            "Caching and retry logic behave as expected",
+            "Utilities are reusable across projects",
+            "Tests cover the main behaviors",
+            "Documentation is clear",
+            "Advanced Python features are applied appropriately",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/utilities-library-starter.py",
         estimatedTime: 300,
         xpReward: 250,
@@ -320,10 +522,30 @@ function getProjectsForModule(moduleId: string, moduleOrder: number) {
         moduleId,
         title: "Type-Safe API Client",
         description: "Build a fully type-hinted API client with Pydantic.",
-        requirements:
-          "Create an API client with complete type hints, Pydantic models for request/response validation, error handling, and comprehensive documentation.",
-        successCriteria:
-          "All functions have complete type hints, Pydantic models validate responses, mypy type checking passes, error handling for various scenarios, good documentation, includes example usage.",
+        requirements: JSON.stringify(
+          [
+            "Add complete type hints",
+            "Validate requests and responses",
+            "Handle errors clearly",
+            "Use Pydantic models",
+            "Document expected types",
+            "Provide example usage",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Type hints are complete",
+            "Response validation works correctly",
+            "Mypy checks pass",
+            "Error handling is clear and useful",
+            "Documentation explains the API",
+            "Examples show how to use the client",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/typed-api-client-starter.py",
         estimatedTime: 300,
         xpReward: 250,
@@ -334,10 +556,30 @@ function getProjectsForModule(moduleId: string, moduleOrder: number) {
         moduleId,
         title: "Full REST API",
         description: "Build a complete REST API with Flask or FastAPI.",
-        requirements:
-          "Create a REST API with authentication, database integration, multiple endpoints, error handling, and comprehensive documentation.",
-        successCriteria:
-          "All CRUD operations work, authentication implemented, database models defined, API documentation complete, error handling for all scenarios, code follows REST principles.",
+        requirements: JSON.stringify(
+          [
+            "Implement CRUD endpoints",
+            "Add authentication",
+            "Integrate with a database",
+            "Handle errors cleanly",
+            "Document the API",
+            "Follow REST principles",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "CRUD operations work",
+            "Authentication is implemented",
+            "Database integration works",
+            "API documentation is complete",
+            "Errors are handled consistently",
+            "REST conventions are followed",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/full-rest-api-starter.py",
         estimatedTime: 400,
         xpReward: 300,
@@ -348,10 +590,30 @@ function getProjectsForModule(moduleId: string, moduleOrder: number) {
         moduleId,
         title: "Multi-Database Application",
         description: "Build an app using PostgreSQL and MongoDB.",
-        requirements:
-          "Create an application that uses both PostgreSQL (SQLAlchemy) and MongoDB (PyMongo), implement data synchronization, and demonstrate when to use each.",
-        successCriteria:
-          "Both databases configured and working, data synchronization implemented, models for both databases defined, queries work correctly, code demonstrates benefits of each database.",
+        requirements: JSON.stringify(
+          [
+            "Use PostgreSQL and MongoDB together",
+            "Define models for both databases",
+            "Synchronize shared data",
+            "Choose the right store for each use case",
+            "Handle queries and persistence",
+            "Document the architecture",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Both databases are configured correctly",
+            "Data synchronization works",
+            "Models are clear and appropriate",
+            "Queries return the expected results",
+            "The code shows when to use each database",
+            "Documentation explains the design",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/multi-db-app-starter.py",
         estimatedTime: 350,
         xpReward: 300,
@@ -362,10 +624,30 @@ function getProjectsForModule(moduleId: string, moduleOrder: number) {
         moduleId,
         title: "Data Analysis Pipeline",
         description: "Build a complete data analysis pipeline.",
-        requirements:
-          "Create a pipeline that loads data, cleans it, performs analysis, creates visualizations, and generates reports.",
-        successCriteria:
-          "Data loading works, cleaning handles edge cases, analysis is meaningful, visualizations are clear, reports are generated, code is well-organized.",
+        requirements: JSON.stringify(
+          [
+            "Load data",
+            "Clean data",
+            "Run analysis",
+            "Create visualizations",
+            "Generate reports",
+            "Handle larger datasets",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Data loading works",
+            "Cleaning handles common edge cases",
+            "Analysis produces useful output",
+            "Visualizations are clear",
+            "Reports are generated",
+            "Code is well organized",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/data-analysis-starter.py",
         estimatedTime: 350,
         xpReward: 300,
@@ -376,10 +658,30 @@ function getProjectsForModule(moduleId: string, moduleOrder: number) {
         moduleId,
         title: "DevOps Automation Suite",
         description: "Build a suite of DevOps automation scripts.",
-        requirements:
-          "Create automation scripts for common DevOps tasks, Dockerize a Python app, set up CI/CD pipeline, and demonstrate automation patterns.",
-        successCriteria:
-          "Automation scripts work correctly, Docker setup is functional, CI/CD pipeline executes, scripts handle errors gracefully, good documentation.",
+        requirements: JSON.stringify(
+          [
+            "Build automation scripts",
+            "Dockerize the app",
+            "Set up CI CD",
+            "Run quality checks",
+            "Handle errors gracefully",
+            "Document the workflow",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Automation scripts work correctly",
+            "Docker setup is functional",
+            "CI CD runs successfully",
+            "Quality checks pass",
+            "Error handling is solid",
+            "Documentation is clear",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/devops-automation-starter.py",
         estimatedTime: 300,
         xpReward: 300,
@@ -390,10 +692,30 @@ function getProjectsForModule(moduleId: string, moduleOrder: number) {
         moduleId,
         title: "Web3 Backend Service",
         description: "Build a backend service for blockchain interaction.",
-        requirements:
-          "Create a service that interacts with blockchain, handles smart contracts, processes transactions, and stores blockchain data.",
-        successCriteria:
-          "Blockchain interaction works, transactions processed correctly, event monitoring functional, data storage implemented, error handling for chain issues.",
+        requirements: JSON.stringify(
+          [
+            "Interact with blockchain networks",
+            "Handle smart contracts",
+            "Process transactions",
+            "Monitor events",
+            "Store blockchain data",
+            "Handle chain errors safely",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Blockchain interaction works",
+            "Transactions are processed correctly",
+            "Event monitoring works",
+            "Data storage is implemented",
+            "Blockchain-specific errors are handled",
+            "The service is tested",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/web3-backend-starter.py",
         estimatedTime: 300,
         xpReward: 300,
@@ -404,10 +726,28 @@ function getProjectsForModule(moduleId: string, moduleOrder: number) {
         moduleId,
         title: "Performance Optimization Challenge",
         description: "Optimize existing code for performance.",
-        requirements:
-          "Profile existing code, identify bottlenecks, implement optimizations, benchmark improvements, and document changes.",
-        successCriteria:
-          "Profiling identifies actual bottlenecks, optimizations achieve measurable improvement, benchmarks show before/after performance, optimizations are production-ready.",
+        requirements: JSON.stringify(
+          [
+            "Profile existing code",
+            "Identify bottlenecks",
+            "Implement optimizations",
+            "Benchmark improvements",
+            "Document the changes",
+          ],
+          null,
+          2
+        ),
+        successCriteria: JSON.stringify(
+          [
+            "Profiling identifies the real bottlenecks",
+            "Optimizations produce measurable improvement",
+            "Benchmarks show before and after results",
+            "Changes are production ready",
+            "Documentation explains the trade-offs",
+          ],
+          null,
+          2
+        ),
         starterTemplate: "/templates/performance-optimization-starter.py",
         estimatedTime: 350,
         xpReward: 300,
