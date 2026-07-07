@@ -642,7 +642,7 @@ export function getProjectsForModule(moduleId: string, moduleOrder: number) {
           null,
           2
         ),
-        starterTemplate: "/templates/perf-optimization-starter.py",
+        starterTemplate: "/templates/performance-optimization-starter.py",
         estimatedTime: 180, // 3 hours
         xpReward: 200,
       },
