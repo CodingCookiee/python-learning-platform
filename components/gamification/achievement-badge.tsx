@@ -40,8 +40,16 @@ const sizeConfig = {
   lg: { container: "w-32 h-32", iconSize: 48 },
 };
 
+const iconAliases: Record<string, keyof typeof LucideIcons> = {
+  Snake: "Code2",
+  Flow: "Workflow",
+};
+
 function renderIconComponent(iconName: string, size: number, className: string) {
-  const IconComponent = LucideIcons[iconName as keyof typeof LucideIcons] as React.ComponentType<{
+  const resolvedIconName = iconAliases[iconName] ?? iconName;
+  const IconComponent = LucideIcons[
+    resolvedIconName as keyof typeof LucideIcons
+  ] as React.ComponentType<{
     size: number;
     className: string;
   }>;

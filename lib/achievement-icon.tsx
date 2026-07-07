@@ -2,6 +2,11 @@ import * as React from "react";
 import * as LucideIcons from "lucide-react";
 import { cn } from "@/lib/utils";
 
+const iconAliases: Record<string, keyof typeof LucideIcons> = {
+  Snake: "Code2",
+  Flow: "Workflow",
+};
+
 type AchievementIconProps = {
   iconName: string;
   size?: number;
@@ -15,7 +20,8 @@ export function renderAchievementIcon({
   className,
   ariaLabel,
 }: AchievementIconProps): React.ReactNode {
-  const IconComponent = LucideIcons[iconName as keyof typeof LucideIcons] as
+  const resolvedIconName = iconAliases[iconName] ?? iconName;
+  const IconComponent = LucideIcons[resolvedIconName as keyof typeof LucideIcons] as
     | React.ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean }>
     | undefined;
 
@@ -31,7 +37,7 @@ export function renderAchievementIcon({
       role={ariaLabel ? "img" : undefined}
       aria-label={ariaLabel}
     >
-      {iconName}
+      {resolvedIconName}
     </span>
   );
 }

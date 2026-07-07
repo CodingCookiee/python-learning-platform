@@ -14,7 +14,7 @@ export const achievements = [
   {
     name: "Hello, Python!",
     description: "Complete Module 1: Python Setup & Fundamentals",
-    icon: "Snake",
+    icon: "Code2",
     category: "Modules",
     criteria: "Complete Module 1",
     xpReward: 50,

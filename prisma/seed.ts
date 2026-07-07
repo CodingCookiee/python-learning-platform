@@ -770,7 +770,7 @@ const achievements = [
   {
     name: "Hello, Python!",
     description: "Complete Module 1",
-    icon: "Snake",
+    icon: "Code2",
     category: "Modules",
     criteria: "Complete Module 1",
     xpReward: 50,
@@ -950,7 +950,7 @@ const achievements = [
   {
     name: "ETL Engineer",
     description: "Build a data pipeline",
-    icon: "Flow",
+    icon: "Workflow",
     category: "Projects",
     criteria: "Complete Data ETL Pipeline",
     xpReward: 200,

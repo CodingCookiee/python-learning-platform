@@ -16,6 +16,55 @@ export type AchievementEvent =
   | { type: "streak_update"; streakDays: number }
   | { type: "xp_update"; totalXp: number };
 
+const moduleAchievementNames: Record<number, string> = {
+  1: "Hello, Python!",
+  2: "Data Master",
+  3: "Function Expert",
+  4: "OOP Master",
+  5: "File Handler",
+  6: "Test Ninja",
+  7: "Package Pro",
+  8: "Async Wizard",
+  9: "Python Sorcerer",
+  10: "Type Guardian",
+  11: "Web Developer",
+  12: "Database Guru",
+  13: "Data Scientist",
+  14: "DevOps Hero",
+  15: "Web3 Pioneer",
+  16: "Performance Beast",
+};
+
+const projectAchievementNames: Record<number, string> = {
+  1: "Calculator Pro",
+  2: "Task Master",
+  3: "Text Wizard",
+  4: "Library Architect",
+  5: "ETL Engineer",
+  6: "Quality Assurance",
+  7: "Package Publisher",
+  8: "Async Master",
+  9: "Framework Builder",
+  10: "Type Safety Champion",
+  11: "API Architect",
+  12: "Multi-DB Master",
+  13: "Data Analyst",
+  14: "Automation King",
+  15: "Blockchain Builder",
+  16: "Speed Demon",
+};
+
+const phaseAchievementRules = [
+  { name: "Phase 1 Complete", requiredModules: [1, 2, 3] },
+  { name: "Phase 2 Complete", requiredModules: [4, 5, 6, 7] },
+  { name: "Phase 3 Complete", requiredModules: [8, 9, 10] },
+  { name: "Phase 4 Complete", requiredModules: [11, 12, 13, 14, 15, 16] },
+  {
+    name: "Python Master",
+    requiredModules: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+  },
+] as const;
+
 // ─── Core helpers ────────────────────────────────────────────────────────────
 
 export function calculateLevel(xp: number): number {
@@ -126,16 +175,9 @@ async function checkLessonAchievements(
     where: { userId, completed: true },
   });
 
-  const thresholds: Array<[number, string]> = [
-    [1, "First Steps"],
-    [5, "Quick Learner"],
-    [25, "Dedicated Student"],
-  ];
-  for (const [n, name] of thresholds) {
-    if (completedCount >= n) {
-      const a = await unlockAchievement(userId, name);
-      if (a) unlocked.push(a);
-    }
+  if (completedCount >= 1) {
+    const firstSteps = await unlockAchievement(userId, "First Steps");
+    if (firstSteps) unlocked.push(firstSteps);
   }
 
   // Module completion achievements
@@ -156,16 +198,20 @@ async function checkLessonAchievements(
       },
     });
     if (completedInModule >= allModuleLessons.length) {
-      const moduleAchievements: Record<number, string> = {
-        1: "Module 1 Complete",
-        2: "Module 2 Complete",
-        3: "Module 3 Complete",
-      };
-      const name = moduleAchievements[lesson.module.order];
+      const name = moduleAchievementNames[lesson.module.order];
       if (name) {
         const a = await unlockAchievement(userId, name);
         if (a) unlocked.push(a);
       }
+    }
+  }
+
+  const completedModuleOrders = await getCompletedModuleOrders(userId);
+  const completedModuleSet = new Set(completedModuleOrders);
+  for (const rule of phaseAchievementRules) {
+    if (rule.requiredModules.every((moduleOrder) => completedModuleSet.has(moduleOrder))) {
+      const achievement = await unlockAchievement(userId, rule.name);
+      if (achievement) unlocked.push(achievement);
     }
   }
 
@@ -203,12 +249,7 @@ async function checkProjectAchievements(
 ): Promise<UnlockedAchievement[]> {
   const unlocked: UnlockedAchievement[] = [];
 
-  const projectAchievements: Record<number, string> = {
-    1: "Calculator Pro",
-    2: "Task Master",
-    3: "Text Wizard",
-  };
-  const name = projectAchievements[moduleOrder];
+  const name = projectAchievementNames[moduleOrder];
   if (name) {
     const a = await unlockAchievement(userId, name);
     if (a) unlocked.push(a);
@@ -224,9 +265,9 @@ async function checkStreakAchievements(
   const unlocked: UnlockedAchievement[] = [];
 
   const thresholds: Array<[number, string]> = [
-    [7, "Week Warrior"],
-    [30, "Consistent Coder"],
-    [100, "Python Devotee"],
+    [7, "Consistent Learner"],
+    [30, "Dedication Master"],
+    [100, "Unstoppable"],
   ];
   for (const [n, name] of thresholds) {
     if (streakDays >= n) {
@@ -284,6 +325,33 @@ export async function checkAndUnlockAchievements(
     console.error("Error checking achievements:", error);
     return [];
   }
+}
+
+async function getCompletedModuleOrders(userId: string): Promise<number[]> {
+  const [modules, completedLessons] = await Promise.all([
+    prisma.module.findMany({
+      select: {
+        order: true,
+        lessons: {
+          select: { id: true },
+        },
+      },
+      orderBy: { order: "asc" },
+    }),
+    prisma.progress.findMany({
+      where: { userId, completed: true },
+      select: { lessonId: true },
+    }),
+  ]);
+
+  const completedLessonIds = new Set(completedLessons.map((lesson) => lesson.lessonId));
+  return modules
+    .filter(
+      (module) =>
+        module.lessons.length > 0 &&
+        module.lessons.every((lesson) => completedLessonIds.has(lesson.id))
+    )
+    .map((module) => module.order);
 }
 
 // ??? Milestone detection ?????????????????????????????????????????????????????
