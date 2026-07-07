@@ -217,7 +217,7 @@ export default async function LandingPage() {
               </Button>
             </div>
 
-            <p className="mt-10 text-xs font-semibold tracking-widest uppercase text-muted-foreground">
+            {/* <p className="mt-10 text-xs font-semibold tracking-widest uppercase text-muted-foreground">
               Trusted by engineers at
             </p>
             <div
@@ -232,7 +232,7 @@ export default async function LandingPage() {
                   {co}
                 </span>
               ))}
-            </div>
+            </div> */}
           </div>
         </section>
 
@@ -320,8 +320,8 @@ export default async function LandingPage() {
                 Current release and roadmap
               </h2>
               <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
-                All phases are live now. The full roadmap is designed as a focused 3-4 week sprint,
-                so learners can see what comes next without being sold a marathon.
+                All phases are live. The full roadmap is designed as a focused 3-4 week sprint, so
+                learners can see what comes next without being sold a marathon.
               </p>
             </div>
 
@@ -442,7 +442,7 @@ export default async function LandingPage() {
             </h2>
             <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed opacity-80">
               Join developers who made the leap from JavaScript to Python without starting from
-              scratch. Free to start, no credit card required.
+              scratch.
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Button
