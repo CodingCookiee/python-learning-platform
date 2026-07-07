@@ -23,8 +23,8 @@ export function XpProgressBar({ xp, level, className }: XpProgressBarProps) {
   const [showLevelUpNotification, setShowLevelUpNotification] = React.useState(false);
 
   const currentLevelThreshold = xpForLevel(level - 1);
-  const xpInLevel = xp - currentLevelThreshold;
-  const percentage = Math.min(100, Math.max(0, (xpInLevel / 500) * 100));
+  const xpInLevel = Math.max(0, Math.round(xp - currentLevelThreshold));
+  const percentage = Math.min(100, Math.max(0, Math.round((xpInLevel / 500) * 100)));
 
   useEffect(() => {
     if (level > prevLevelRef.current) {
