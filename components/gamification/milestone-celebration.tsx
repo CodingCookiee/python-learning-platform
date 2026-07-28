@@ -16,13 +16,13 @@ const MILESTONE_CONFIG: Record<number, { emoji: string; heading: string; sub: st
   50: {
     emoji: "💪",
     heading: "Halfway There!",
-    sub: "You' + chr(39) + 're at 50% ? the momentum is real.",
+    sub: "You are at 50% ? the momentum is real.",
   },
   75: { emoji: "🔥", heading: "75% Complete!", sub: "Almost there. The finish line is in sight!" },
   100: {
     emoji: "🏆",
     heading: "Curriculum Complete!",
-    sub: "You' + chr(39) + 've finished the entire Python learning program. Incredible!",
+    sub: "You have finished the entire Python learning program. Incredible!",
   },
 };
 
