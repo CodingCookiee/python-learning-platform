@@ -115,10 +115,10 @@
   --keyline: oklch(0.4 0.035 162);
 
   --chart-1: var(--primary);
-  --chart-2: var(--belt-blue);
-  --chart-3: var(--highlight);
-  --chart-4: var(--belt-brown);
-  --chart-5: var(--belt-green);
+  --chart-2: var(--highlight);
+  --chart-3: color-mix(in oklch, var(--primary) 55%, var(--background));
+  --chart-4: var(--muted-foreground);
+  --chart-5: var(--keyline);
 
   --sidebar: oklch(0.96 0.015 145);
   --sidebar-foreground: oklch(0.27 0.035 162);

@@ -1,0 +1,936 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-24T13:41:29.714Z",
+  "title": "Design System: pylearn",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Jade",
+        "canonical": "oklch(0.52 0.11 162)",
+        "tonalRamp": [
+          "oklch(0.15 0.05 162)",
+          "oklch(0.26 0.083 162)",
+          "oklch(0.37 0.11 162)",
+          "oklch(0.48 0.11 162)",
+          "oklch(0.59 0.11 162)",
+          "oklch(0.7 0.11 162)",
+          "oklch(0.82 0.083 162)",
+          "oklch(0.95 0.05 162)"
+        ]
+      },
+      "primary-foreground": {
+        "role": "primary",
+        "displayName": "Cotton on Jade",
+        "canonical": "oklch(0.985 0.01 145)",
+        "tonalRamp": [
+          "oklch(0.15 0.005 145)",
+          "oklch(0.26 0.007 145)",
+          "oklch(0.37 0.01 145)",
+          "oklch(0.48 0.01 145)",
+          "oklch(0.59 0.01 145)",
+          "oklch(0.7 0.01 145)",
+          "oklch(0.82 0.007 145)",
+          "oklch(0.95 0.005 145)"
+        ]
+      },
+      "seal": {
+        "role": "primary",
+        "displayName": "Seal Jade",
+        "canonical": "oklch(0.52 0.11 162)",
+        "tonalRamp": [
+          "oklch(0.15 0.05 162)",
+          "oklch(0.26 0.083 162)",
+          "oklch(0.37 0.11 162)",
+          "oklch(0.48 0.11 162)",
+          "oklch(0.59 0.11 162)",
+          "oklch(0.7 0.11 162)",
+          "oklch(0.82 0.083 162)",
+          "oklch(0.95 0.05 162)"
+        ]
+      },
+      "ring": {
+        "role": "primary",
+        "displayName": "Jade Ring",
+        "canonical": "oklch(0.56 0.11 162)",
+        "tonalRamp": [
+          "oklch(0.15 0.05 162)",
+          "oklch(0.26 0.083 162)",
+          "oklch(0.37 0.11 162)",
+          "oklch(0.48 0.11 162)",
+          "oklch(0.59 0.11 162)",
+          "oklch(0.7 0.11 162)",
+          "oklch(0.82 0.083 162)",
+          "oklch(0.95 0.05 162)"
+        ]
+      },
+      "success": {
+        "role": "primary",
+        "displayName": "Pass Green",
+        "canonical": "oklch(0.52 0.11 150)",
+        "tonalRamp": [
+          "oklch(0.15 0.05 150)",
+          "oklch(0.26 0.083 150)",
+          "oklch(0.37 0.11 150)",
+          "oklch(0.48 0.11 150)",
+          "oklch(0.59 0.11 150)",
+          "oklch(0.7 0.11 150)",
+          "oklch(0.82 0.083 150)",
+          "oklch(0.95 0.05 150)"
+        ]
+      },
+      "highlight": {
+        "role": "secondary",
+        "displayName": "Straw",
+        "canonical": "oklch(0.88 0.12 95)",
+        "tonalRamp": [
+          "oklch(0.15 0.054 95)",
+          "oklch(0.26 0.09 95)",
+          "oklch(0.37 0.12 95)",
+          "oklch(0.48 0.12 95)",
+          "oklch(0.59 0.12 95)",
+          "oklch(0.7 0.12 95)",
+          "oklch(0.82 0.09 95)",
+          "oklch(0.95 0.054 95)"
+        ]
+      },
+      "highlight-foreground": {
+        "role": "secondary",
+        "displayName": "Straw Ink",
+        "canonical": "oklch(0.33 0.06 80)",
+        "tonalRamp": [
+          "oklch(0.15 0.027 80)",
+          "oklch(0.26 0.045 80)",
+          "oklch(0.37 0.06 80)",
+          "oklch(0.48 0.06 80)",
+          "oklch(0.59 0.06 80)",
+          "oklch(0.7 0.06 80)",
+          "oklch(0.82 0.045 80)",
+          "oklch(0.95 0.027 80)"
+        ]
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "Cotton Ground",
+        "canonical": "oklch(0.972 0.012 145)",
+        "tonalRamp": [
+          "oklch(0.15 0.005 145)",
+          "oklch(0.26 0.009 145)",
+          "oklch(0.37 0.012 145)",
+          "oklch(0.48 0.012 145)",
+          "oklch(0.59 0.012 145)",
+          "oklch(0.7 0.012 145)",
+          "oklch(0.82 0.009 145)",
+          "oklch(0.95 0.005 145)"
+        ]
+      },
+      "sheet": {
+        "role": "neutral",
+        "displayName": "Sheet",
+        "canonical": "oklch(0.99 0.006 145)",
+        "tonalRamp": [
+          "oklch(0.15 0.003 145)",
+          "oklch(0.26 0.005 145)",
+          "oklch(0.37 0.006 145)",
+          "oklch(0.48 0.006 145)",
+          "oklch(0.59 0.006 145)",
+          "oklch(0.7 0.006 145)",
+          "oklch(0.82 0.005 145)",
+          "oklch(0.95 0.003 145)"
+        ]
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Forest Ink",
+        "canonical": "oklch(0.27 0.035 162)",
+        "tonalRamp": [
+          "oklch(0.15 0.016 162)",
+          "oklch(0.26 0.026 162)",
+          "oklch(0.37 0.035 162)",
+          "oklch(0.48 0.035 162)",
+          "oklch(0.59 0.035 162)",
+          "oklch(0.7 0.035 162)",
+          "oklch(0.82 0.026 162)",
+          "oklch(0.95 0.016 162)"
+        ]
+      },
+      "secondary": {
+        "role": "neutral",
+        "displayName": "Pale Cotton",
+        "canonical": "oklch(0.935 0.02 145)",
+        "tonalRamp": [
+          "oklch(0.15 0.009 145)",
+          "oklch(0.26 0.015 145)",
+          "oklch(0.37 0.02 145)",
+          "oklch(0.48 0.02 145)",
+          "oklch(0.59 0.02 145)",
+          "oklch(0.7 0.02 145)",
+          "oklch(0.82 0.015 145)",
+          "oklch(0.95 0.009 145)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted Cotton",
+        "canonical": "oklch(0.94 0.016 145)",
+        "tonalRamp": [
+          "oklch(0.15 0.007 145)",
+          "oklch(0.26 0.012 145)",
+          "oklch(0.37 0.016 145)",
+          "oklch(0.48 0.016 145)",
+          "oklch(0.59 0.016 145)",
+          "oklch(0.7 0.016 145)",
+          "oklch(0.82 0.012 145)",
+          "oklch(0.95 0.007 145)"
+        ]
+      },
+      "muted-foreground": {
+        "role": "neutral",
+        "displayName": "Moss Grey-Green",
+        "canonical": "oklch(0.45 0.035 160)",
+        "tonalRamp": [
+          "oklch(0.15 0.016 160)",
+          "oklch(0.26 0.026 160)",
+          "oklch(0.37 0.035 160)",
+          "oklch(0.48 0.035 160)",
+          "oklch(0.59 0.035 160)",
+          "oklch(0.7 0.035 160)",
+          "oklch(0.82 0.026 160)",
+          "oklch(0.95 0.016 160)"
+        ]
+      },
+      "accent": {
+        "role": "neutral",
+        "displayName": "Jade Wash",
+        "canonical": "oklch(0.925 0.035 150)",
+        "tonalRamp": [
+          "oklch(0.15 0.016 150)",
+          "oklch(0.26 0.026 150)",
+          "oklch(0.37 0.035 150)",
+          "oklch(0.48 0.035 150)",
+          "oklch(0.59 0.035 150)",
+          "oklch(0.7 0.035 150)",
+          "oklch(0.82 0.026 150)",
+          "oklch(0.95 0.016 150)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "oklch(0.875 0.022 148)",
+        "tonalRamp": [
+          "oklch(0.15 0.01 148)",
+          "oklch(0.26 0.017 148)",
+          "oklch(0.37 0.022 148)",
+          "oklch(0.48 0.022 148)",
+          "oklch(0.59 0.022 148)",
+          "oklch(0.7 0.022 148)",
+          "oklch(0.82 0.017 148)",
+          "oklch(0.95 0.01 148)"
+        ]
+      },
+      "input": {
+        "role": "neutral",
+        "displayName": "Field Edge",
+        "canonical": "oklch(0.8 0.03 150)",
+        "tonalRamp": [
+          "oklch(0.15 0.013 150)",
+          "oklch(0.26 0.022 150)",
+          "oklch(0.37 0.03 150)",
+          "oklch(0.48 0.03 150)",
+          "oklch(0.59 0.03 150)",
+          "oklch(0.7 0.03 150)",
+          "oklch(0.82 0.022 150)",
+          "oklch(0.95 0.013 150)"
+        ]
+      },
+      "keyline": {
+        "role": "neutral",
+        "displayName": "Keyline",
+        "canonical": "oklch(0.4 0.035 162)",
+        "tonalRamp": [
+          "oklch(0.15 0.016 162)",
+          "oklch(0.26 0.026 162)",
+          "oklch(0.37 0.035 162)",
+          "oklch(0.48 0.035 162)",
+          "oklch(0.59 0.035 162)",
+          "oklch(0.7 0.035 162)",
+          "oklch(0.82 0.026 162)",
+          "oklch(0.95 0.016 162)"
+        ]
+      },
+      "destructive": {
+        "role": "error",
+        "displayName": "Clay",
+        "canonical": "oklch(0.54 0.13 30)",
+        "tonalRamp": [
+          "oklch(0.15 0.059 30)",
+          "oklch(0.26 0.098 30)",
+          "oklch(0.37 0.13 30)",
+          "oklch(0.48 0.13 30)",
+          "oklch(0.59 0.13 30)",
+          "oklch(0.7 0.13 30)",
+          "oklch(0.82 0.098 30)",
+          "oklch(0.95 0.059 30)"
+        ]
+      },
+      "belt-white": {
+        "role": "tertiary",
+        "displayName": "Belt White",
+        "canonical": "oklch(0.99 0.008 100)",
+        "tonalRamp": [
+          "oklch(0.15 0.004 100)",
+          "oklch(0.26 0.006 100)",
+          "oklch(0.37 0.008 100)",
+          "oklch(0.48 0.008 100)",
+          "oklch(0.59 0.008 100)",
+          "oklch(0.7 0.008 100)",
+          "oklch(0.82 0.006 100)",
+          "oklch(0.95 0.004 100)"
+        ]
+      },
+      "belt-yellow": {
+        "role": "tertiary",
+        "displayName": "Belt Yellow",
+        "canonical": "oklch(0.88 0.11 93)",
+        "tonalRamp": [
+          "oklch(0.15 0.05 93)",
+          "oklch(0.26 0.083 93)",
+          "oklch(0.37 0.11 93)",
+          "oklch(0.48 0.11 93)",
+          "oklch(0.59 0.11 93)",
+          "oklch(0.7 0.11 93)",
+          "oklch(0.82 0.083 93)",
+          "oklch(0.95 0.05 93)"
+        ]
+      },
+      "belt-green": {
+        "role": "tertiary",
+        "displayName": "Belt Green",
+        "canonical": "oklch(0.72 0.1 145)",
+        "tonalRamp": [
+          "oklch(0.15 0.045 145)",
+          "oklch(0.26 0.075 145)",
+          "oklch(0.37 0.1 145)",
+          "oklch(0.48 0.1 145)",
+          "oklch(0.59 0.1 145)",
+          "oklch(0.7 0.1 145)",
+          "oklch(0.82 0.075 145)",
+          "oklch(0.95 0.045 145)"
+        ]
+      },
+      "belt-blue": {
+        "role": "tertiary",
+        "displayName": "Belt Blue",
+        "canonical": "oklch(0.66 0.085 240)",
+        "tonalRamp": [
+          "oklch(0.15 0.038 240)",
+          "oklch(0.26 0.064 240)",
+          "oklch(0.37 0.085 240)",
+          "oklch(0.48 0.085 240)",
+          "oklch(0.59 0.085 240)",
+          "oklch(0.7 0.085 240)",
+          "oklch(0.82 0.064 240)",
+          "oklch(0.95 0.038 240)"
+        ]
+      },
+      "belt-brown": {
+        "role": "tertiary",
+        "displayName": "Belt Brown",
+        "canonical": "oklch(0.57 0.065 60)",
+        "tonalRamp": [
+          "oklch(0.15 0.029 60)",
+          "oklch(0.26 0.049 60)",
+          "oklch(0.37 0.065 60)",
+          "oklch(0.48 0.065 60)",
+          "oklch(0.59 0.065 60)",
+          "oklch(0.7 0.065 60)",
+          "oklch(0.82 0.049 60)",
+          "oklch(0.95 0.029 60)"
+        ]
+      },
+      "belt-black": {
+        "role": "tertiary",
+        "displayName": "Belt Black",
+        "canonical": "oklch(0.3 0.03 162)",
+        "tonalRamp": [
+          "oklch(0.15 0.013 162)",
+          "oklch(0.26 0.022 162)",
+          "oklch(0.37 0.03 162)",
+          "oklch(0.48 0.03 162)",
+          "oklch(0.59 0.03 162)",
+          "oklch(0.7 0.03 162)",
+          "oklch(0.82 0.022 162)",
+          "oklch(0.95 0.013 162)"
+        ]
+      },
+      "tape": {
+        "role": "tertiary",
+        "displayName": "Tape",
+        "canonical": "oklch(0.985 0.008 100)",
+        "tonalRamp": [
+          "oklch(0.15 0.004 100)",
+          "oklch(0.26 0.006 100)",
+          "oklch(0.37 0.008 100)",
+          "oklch(0.48 0.008 100)",
+          "oklch(0.59 0.008 100)",
+          "oklch(0.7 0.008 100)",
+          "oklch(0.82 0.006 100)",
+          "oklch(0.95 0.004 100)"
+        ]
+      },
+      "code-keyword": {
+        "role": "tertiary",
+        "displayName": "Code Keyword",
+        "canonical": "oklch(0.45 0.1 165)",
+        "tonalRamp": [
+          "oklch(0.15 0.045 165)",
+          "oklch(0.26 0.075 165)",
+          "oklch(0.37 0.1 165)",
+          "oklch(0.48 0.1 165)",
+          "oklch(0.59 0.1 165)",
+          "oklch(0.7 0.1 165)",
+          "oklch(0.82 0.075 165)",
+          "oklch(0.95 0.045 165)"
+        ]
+      },
+      "code-string": {
+        "role": "tertiary",
+        "displayName": "Code String",
+        "canonical": "oklch(0.5 0.1 100)",
+        "tonalRamp": [
+          "oklch(0.15 0.045 100)",
+          "oklch(0.26 0.075 100)",
+          "oklch(0.37 0.1 100)",
+          "oklch(0.48 0.1 100)",
+          "oklch(0.59 0.1 100)",
+          "oklch(0.7 0.1 100)",
+          "oklch(0.82 0.075 100)",
+          "oklch(0.95 0.045 100)"
+        ]
+      },
+      "code-number": {
+        "role": "tertiary",
+        "displayName": "Code Number",
+        "canonical": "oklch(0.52 0.11 45)",
+        "tonalRamp": [
+          "oklch(0.15 0.05 45)",
+          "oklch(0.26 0.083 45)",
+          "oklch(0.37 0.11 45)",
+          "oklch(0.48 0.11 45)",
+          "oklch(0.59 0.11 45)",
+          "oklch(0.7 0.11 45)",
+          "oklch(0.82 0.083 45)",
+          "oklch(0.95 0.05 45)"
+        ]
+      },
+      "code-attr": {
+        "role": "tertiary",
+        "displayName": "Code Attribute",
+        "canonical": "oklch(0.47 0.08 245)",
+        "tonalRamp": [
+          "oklch(0.15 0.036 245)",
+          "oklch(0.26 0.06 245)",
+          "oklch(0.37 0.08 245)",
+          "oklch(0.48 0.08 245)",
+          "oklch(0.59 0.08 245)",
+          "oklch(0.7 0.08 245)",
+          "oklch(0.82 0.06 245)",
+          "oklch(0.95 0.036 245)"
+        ]
+      },
+      "night-background": {
+        "role": "neutral",
+        "displayName": "Forest Night",
+        "canonical": "oklch(0.205 0.024 165)",
+        "tonalRamp": [
+          "oklch(0.15 0.011 165)",
+          "oklch(0.26 0.018 165)",
+          "oklch(0.37 0.024 165)",
+          "oklch(0.48 0.024 165)",
+          "oklch(0.59 0.024 165)",
+          "oklch(0.7 0.024 165)",
+          "oklch(0.82 0.018 165)",
+          "oklch(0.95 0.011 165)"
+        ]
+      },
+      "night-sheet": {
+        "role": "neutral",
+        "displayName": "Night Sheet",
+        "canonical": "oklch(0.24 0.026 165)",
+        "tonalRamp": [
+          "oklch(0.15 0.012 165)",
+          "oklch(0.26 0.019 165)",
+          "oklch(0.37 0.026 165)",
+          "oklch(0.48 0.026 165)",
+          "oklch(0.59 0.026 165)",
+          "oklch(0.7 0.026 165)",
+          "oklch(0.82 0.019 165)",
+          "oklch(0.95 0.012 165)"
+        ]
+      },
+      "night-foreground": {
+        "role": "neutral",
+        "displayName": "Night Ink",
+        "canonical": "oklch(0.945 0.016 140)",
+        "tonalRamp": [
+          "oklch(0.15 0.007 140)",
+          "oklch(0.26 0.012 140)",
+          "oklch(0.37 0.016 140)",
+          "oklch(0.48 0.016 140)",
+          "oklch(0.59 0.016 140)",
+          "oklch(0.7 0.016 140)",
+          "oklch(0.82 0.012 140)",
+          "oklch(0.95 0.007 140)"
+        ]
+      },
+      "night-muted-foreground": {
+        "role": "neutral",
+        "displayName": "Night Moss",
+        "canonical": "oklch(0.77 0.035 150)",
+        "tonalRamp": [
+          "oklch(0.15 0.016 150)",
+          "oklch(0.26 0.026 150)",
+          "oklch(0.37 0.035 150)",
+          "oklch(0.48 0.035 150)",
+          "oklch(0.59 0.035 150)",
+          "oklch(0.7 0.035 150)",
+          "oklch(0.82 0.026 150)",
+          "oklch(0.95 0.016 150)"
+        ]
+      },
+      "night-primary": {
+        "role": "primary",
+        "displayName": "Night Jade",
+        "canonical": "oklch(0.8 0.12 156)",
+        "tonalRamp": [
+          "oklch(0.15 0.054 156)",
+          "oklch(0.26 0.09 156)",
+          "oklch(0.37 0.12 156)",
+          "oklch(0.48 0.12 156)",
+          "oklch(0.59 0.12 156)",
+          "oklch(0.7 0.12 156)",
+          "oklch(0.82 0.09 156)",
+          "oklch(0.95 0.054 156)"
+        ]
+      },
+      "night-primary-foreground": {
+        "role": "primary",
+        "displayName": "Deep Forest",
+        "canonical": "oklch(0.22 0.035 165)",
+        "tonalRamp": [
+          "oklch(0.15 0.016 165)",
+          "oklch(0.26 0.026 165)",
+          "oklch(0.37 0.035 165)",
+          "oklch(0.48 0.035 165)",
+          "oklch(0.59 0.035 165)",
+          "oklch(0.7 0.035 165)",
+          "oklch(0.82 0.026 165)",
+          "oklch(0.95 0.016 165)"
+        ]
+      },
+      "night-highlight": {
+        "role": "secondary",
+        "displayName": "Night Straw",
+        "canonical": "oklch(0.86 0.12 95)",
+        "tonalRamp": [
+          "oklch(0.15 0.054 95)",
+          "oklch(0.26 0.09 95)",
+          "oklch(0.37 0.12 95)",
+          "oklch(0.48 0.12 95)",
+          "oklch(0.59 0.12 95)",
+          "oklch(0.7 0.12 95)",
+          "oklch(0.82 0.09 95)",
+          "oklch(0.95 0.054 95)"
+        ]
+      },
+      "night-highlight-foreground": {
+        "role": "secondary",
+        "displayName": "Night Straw Ink",
+        "canonical": "oklch(0.26 0.045 80)",
+        "tonalRamp": [
+          "oklch(0.15 0.02 80)",
+          "oklch(0.26 0.034 80)",
+          "oklch(0.37 0.045 80)",
+          "oklch(0.48 0.045 80)",
+          "oklch(0.59 0.045 80)",
+          "oklch(0.7 0.045 80)",
+          "oklch(0.82 0.034 80)",
+          "oklch(0.95 0.02 80)"
+        ]
+      },
+      "night-accent": {
+        "role": "neutral",
+        "displayName": "Night Jade Wash",
+        "canonical": "oklch(0.31 0.04 162)",
+        "tonalRamp": [
+          "oklch(0.15 0.018 162)",
+          "oklch(0.26 0.03 162)",
+          "oklch(0.37 0.04 162)",
+          "oklch(0.48 0.04 162)",
+          "oklch(0.59 0.04 162)",
+          "oklch(0.7 0.04 162)",
+          "oklch(0.82 0.03 162)",
+          "oklch(0.95 0.018 162)"
+        ]
+      },
+      "night-border": {
+        "role": "neutral",
+        "displayName": "Night Hairline",
+        "canonical": "oklch(0.35 0.03 165)",
+        "tonalRamp": [
+          "oklch(0.15 0.013 165)",
+          "oklch(0.26 0.022 165)",
+          "oklch(0.37 0.03 165)",
+          "oklch(0.48 0.03 165)",
+          "oklch(0.59 0.03 165)",
+          "oklch(0.7 0.03 165)",
+          "oklch(0.82 0.022 165)",
+          "oklch(0.95 0.013 165)"
+        ]
+      },
+      "night-input": {
+        "role": "neutral",
+        "displayName": "Night Field Edge",
+        "canonical": "oklch(0.44 0.035 165)",
+        "tonalRamp": [
+          "oklch(0.15 0.016 165)",
+          "oklch(0.26 0.026 165)",
+          "oklch(0.37 0.035 165)",
+          "oklch(0.48 0.035 165)",
+          "oklch(0.59 0.035 165)",
+          "oklch(0.7 0.035 165)",
+          "oklch(0.82 0.026 165)",
+          "oklch(0.95 0.016 165)"
+        ]
+      },
+      "night-keyline": {
+        "role": "neutral",
+        "displayName": "Night Keyline",
+        "canonical": "oklch(0.63 0.04 155)",
+        "tonalRamp": [
+          "oklch(0.15 0.018 155)",
+          "oklch(0.26 0.03 155)",
+          "oklch(0.37 0.04 155)",
+          "oklch(0.48 0.04 155)",
+          "oklch(0.59 0.04 155)",
+          "oklch(0.7 0.04 155)",
+          "oklch(0.82 0.03 155)",
+          "oklch(0.95 0.018 155)"
+        ]
+      },
+      "night-destructive": {
+        "role": "error",
+        "displayName": "Night Clay",
+        "canonical": "oklch(0.76 0.11 30)",
+        "tonalRamp": [
+          "oklch(0.15 0.05 30)",
+          "oklch(0.26 0.083 30)",
+          "oklch(0.37 0.11 30)",
+          "oklch(0.48 0.11 30)",
+          "oklch(0.59 0.11 30)",
+          "oklch(0.7 0.11 30)",
+          "oklch(0.82 0.083 30)",
+          "oklch(0.95 0.05 30)"
+        ]
+      },
+      "night-belt-black": {
+        "role": "tertiary",
+        "displayName": "Night Belt Black",
+        "canonical": "oklch(0.14 0.02 165)",
+        "tonalRamp": [
+          "oklch(0.15 0.009 165)",
+          "oklch(0.26 0.015 165)",
+          "oklch(0.37 0.02 165)",
+          "oklch(0.48 0.02 165)",
+          "oklch(0.59 0.02 165)",
+          "oklch(0.7 0.02 165)",
+          "oklch(0.82 0.015 165)",
+          "oklch(0.95 0.009 165)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "One per page: the hero headline and the closing line. Condensed Archivo 800."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section headings; 3rem below 640px, 3.75rem above. Also the auth panel title (at 0.92 line-height)."
+      },
+      "numeral": {
+        "displayName": "Rank Numeral",
+        "purpose": "Kyu/dan numbers set monumentally with a small muted unit; scales to 5.5rem in the record figure."
+      },
+      "title": {
+        "displayName": "Belt Title",
+        "purpose": "Belt names in the syllabus. Condensed 700."
+      },
+      "title-plain": {
+        "displayName": "Title",
+        "purpose": "Step headings and card titles at normal width."
+      },
+      "lede": {
+        "displayName": "Lede",
+        "purpose": "Section intros and the hero subline, about 65ch max."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text."
+      },
+      "body-small": {
+        "displayName": "Body Small",
+        "purpose": "Step descriptions, list meta, form fields from 768px."
+      },
+      "control": {
+        "displayName": "Control",
+        "purpose": "Button and control labels, 600 weight."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Condensed tabular meta in sentence case: ladder ranges, drill header, counts."
+      },
+      "wordmark": {
+        "displayName": "Wordmark",
+        "purpose": "Lowercase 'pylearn' only, semicondensed (wdth 86)."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "Code, drill editor, test cases and REPL on a 24px line grid; ligatures off."
+      }
+    },
+    "shadows": [
+      {
+        "name": "focus-halo",
+        "value": "0 0 0 3px color-mix(in oklch, var(--ring), transparent 75%)",
+        "purpose": "Text inputs on focus-visible, with a Jade Ring border. The only shadow in the system."
+      },
+      {
+        "name": "focus-outline",
+        "value": "outline: 2px solid var(--ring); outline-offset: 2px",
+        "purpose": "Focus on every other interactive element (not a shadow; recorded here as the focus treatment)."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "The curve for both signature motions."
+      },
+      {
+        "name": "tape-on",
+        "value": "420ms ease-out-expo; clip-path inset(0 0 100% 0) to inset(0), translateY(-6px) to 0",
+        "purpose": "A freshly earned stripe pressed onto the rank bar, in straw."
+      },
+      {
+        "name": "seal-stamp",
+        "value": "520ms ease-out-expo; scale 1.35 + blur 2px + opacity 0, to 0.96 at 60%, to 1; rotation held at -7deg",
+        "purpose": "The examiner's seal landing on passed work."
+      },
+      {
+        "name": "state",
+        "value": "150ms on background-color, border-color, color, opacity, transform",
+        "purpose": "Hover, focus and re-grading dims (55% opacity). No layout-affecting transitions."
+      },
+      {
+        "name": "press",
+        "value": "translateY(1px)",
+        "purpose": "Button active state."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "animation and transition durations 0.01ms; smooth scroll off",
+        "purpose": "Global prefers-reduced-motion collapse. Celebrations must honour it."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "container",
+        "value": "1280px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single jade action. Every primary CTA, form submit and 'Submit drill'.",
+      "html": "<button class=\"ds-btn-primary\">Start at white belt <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/></svg></button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: Archivo, system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; white-space: nowrap; border: 1px solid transparent; border-radius: 2px; cursor: pointer; transition: background-color 150ms, border-color 150ms, color 150ms, transform 150ms; height: 40px; padding: 0 16px 0 20px; background: var(--primary, oklch(0.52 0.11 162)); color: var(--primary-foreground, oklch(0.985 0.01 145)); } .ds-btn-primary:hover { background: color-mix(in oklch, var(--primary, oklch(0.52 0.11 162)), var(--foreground, oklch(0.27 0.035 162)) 18%); } .ds-btn-primary:focus-visible { outline: 2px solid var(--ring, oklch(0.56 0.11 162)); outline-offset: 2px; } .ds-btn-primary:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Quiet secondary action: 'Sign in', 'Reset'. Jade Wash on hover.",
+      "html": "<button class=\"ds-btn-ghost\">Sign in</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: Archivo, system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; white-space: nowrap; border: 1px solid transparent; border-radius: 2px; cursor: pointer; transition: background-color 150ms, border-color 150ms, color 150ms, transform 150ms; height: 32px; padding: 0 14px; font-size: 0.8125rem; background: transparent; color: var(--foreground, oklch(0.27 0.035 162)); } .ds-btn-ghost:hover { background: var(--accent, oklch(0.925 0.035 150)); } .ds-btn-ghost:focus-visible { outline: 2px solid var(--ring, oklch(0.56 0.11 162)); outline-offset: 2px; } .ds-btn-ghost:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Outline Icon Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Square 40px icon control with a field-edge border, e.g. the theme toggle.",
+      "html": "<button class=\"ds-btn-outline\" aria-label=\"Switch theme\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41\"/></svg></button>",
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: Archivo, system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; white-space: nowrap; border: 1px solid transparent; border-radius: 2px; cursor: pointer; transition: background-color 150ms, border-color 150ms, color 150ms, transform 150ms; width: 40px; height: 40px; padding: 0; background: transparent; color: var(--foreground, oklch(0.27 0.035 162)); border-color: var(--input, oklch(0.8 0.03 150)); } .ds-btn-outline:hover { background: var(--accent, oklch(0.925 0.035 150)); border-color: color-mix(in oklch, var(--foreground, oklch(0.27 0.035 162)) 40%, transparent); } .ds-btn-outline:focus-visible { outline: 2px solid var(--ring, oklch(0.56 0.11 162)); outline-offset: 2px; } .ds-btn-outline:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Sheet-filled field with a 2px corner; jade border plus soft halo on focus.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Email</span><input class=\"ds-input\" type=\"email\" placeholder=\"you@example.com\" /></label>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 8px; font-family: Archivo, system-ui, sans-serif; max-width: 24rem; } .ds-field-label { font-size: 0.875rem; font-weight: 600; color: var(--foreground, oklch(0.27 0.035 162)); } .ds-input { height: 40px; padding: 8px 12px; font-family: Archivo, system-ui, sans-serif; font-size: 0.875rem; color: var(--foreground, oklch(0.27 0.035 162)); background: var(--sheet, oklch(0.99 0.006 145)); border: 1px solid var(--input, oklch(0.8 0.03 150)); border-radius: 2px; outline: none; transition: border-color 150ms, box-shadow 150ms; } .ds-input::placeholder { color: var(--muted-foreground, oklch(0.45 0.035 160)); } .ds-input:hover { border-color: color-mix(in oklch, var(--foreground, oklch(0.27 0.035 162)) 35%, transparent); } .ds-input:focus-visible { border-color: var(--ring, oklch(0.56 0.11 162)); box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring, oklch(0.56 0.11 162)), transparent 75%); }"
+    },
+    {
+      "name": "Site Header",
+      "kind": "nav",
+      "refersTo": "button-primary-sm",
+      "description": "Sticky 64px bar on the cotton ground: knot mark and wordmark, muted in-page links, toggle, sign in, CTA.",
+      "html": "<header class=\"ds-nav\"><a class=\"ds-nav-brand\" href=\"#\"><svg width=\"28\" height=\"28\" viewBox=\"0 0 32 32\" aria-hidden=\"true\"><g fill=\"var(--primary, oklch(0.52 0.11 162))\" stroke=\"var(--keyline, oklch(0.4 0.035 162))\" stroke-width=\"1.25\" stroke-linejoin=\"miter\"><rect x=\"1.5\" y=\"8.5\" width=\"29\" height=\"6\"/><path d=\"M13.6 15.5 L17.4 15.5 L12.2 28.6 L8.4 27.4 Z\"/><path d=\"M14.6 15.5 L18.4 15.5 L23.6 27.4 L19.8 28.6 Z\"/><rect x=\"11.5\" y=\"5.5\" width=\"9\" height=\"11\"/></g><path d=\"M11.5 8.2 L20.5 13.8\" stroke=\"var(--keyline, oklch(0.4 0.035 162))\" stroke-width=\"1.25\" fill=\"none\"/></svg><span>pylearn</span></a><nav class=\"ds-nav-links\"><a href=\"#\">Syllabus</a><a href=\"#\">How rank is earned</a><a href=\"#\">For JS developers</a></nav><div class=\"ds-nav-actions\"><a class=\"ds-nav-ghost\" href=\"#\">Sign in</a><a class=\"ds-nav-cta\" href=\"#\">Start at white belt</a></div></header>",
+      "css": ".ds-nav { display: flex; align-items: center; justify-content: space-between; gap: 24px; height: 64px; padding: 0 32px; background: var(--background, oklch(0.972 0.012 145)); border-bottom: 1px solid var(--border, oklch(0.875 0.022 148)); font-family: Archivo, system-ui, sans-serif; } .ds-nav-brand { display: inline-flex; align-items: center; gap: 8px; color: var(--foreground, oklch(0.27 0.035 162)); text-decoration: none; font-size: 1.3125rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1; font-variation-settings: \"wdth\" 86; } .ds-nav-links { display: flex; gap: 28px; font-size: 0.875rem; } .ds-nav-links a { color: var(--muted-foreground, oklch(0.45 0.035 160)); text-decoration: none; transition: color 150ms; } .ds-nav-links a:hover { color: var(--foreground, oklch(0.27 0.035 162)); } .ds-nav-links a:focus-visible, .ds-nav-ghost:focus-visible, .ds-nav-cta:focus-visible { outline: 2px solid var(--ring, oklch(0.56 0.11 162)); outline-offset: 2px; } .ds-nav-actions { display: flex; align-items: center; gap: 8px; } .ds-nav-ghost, .ds-nav-cta { display: inline-flex; align-items: center; height: 32px; padding: 0 14px; border-radius: 2px; font-size: 0.8125rem; font-weight: 600; text-decoration: none; transition: background-color 150ms; } .ds-nav-ghost { color: var(--foreground, oklch(0.27 0.035 162)); } .ds-nav-ghost:hover { background: var(--accent, oklch(0.925 0.035 150)); } .ds-nav-cta { background: var(--primary, oklch(0.52 0.11 162)); color: var(--primary-foreground, oklch(0.985 0.01 145)); } .ds-nav-cta:hover { background: color-mix(in oklch, var(--primary, oklch(0.52 0.11 162)), var(--foreground, oklch(0.27 0.035 162)) 18%); }"
+    },
+    {
+      "name": "Here Tag",
+      "kind": "chip",
+      "refersTo": "here-tag",
+      "description": "Straw tag tied to the top edge of the learner's current belt. The only straw chip.",
+      "html": "<span class=\"ds-here-tag\">You start here</span>",
+      "css": ".ds-here-tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 2px 2px 0 0; background: var(--highlight, oklch(0.88 0.12 95)); color: var(--highlight-foreground, oklch(0.33 0.06 80)); font-family: Archivo, system-ui, sans-serif; font-size: 0.75rem; line-height: 1rem; font-weight: 600; white-space: nowrap; }"
+    },
+    {
+      "name": "Badge",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "Small jade-wash status chip, sentence case, 2px corners.",
+      "html": "<span class=\"ds-badge\">In preparation</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border: 1px solid transparent; border-radius: 2px; background: var(--accent, oklch(0.925 0.035 150)); color: var(--foreground, oklch(0.27 0.035 162)); font-family: Archivo, system-ui, sans-serif; font-size: 0.75rem; line-height: 1; font-weight: 500; white-space: nowrap; transition: background-color 150ms; } a.ds-badge:hover { background: var(--secondary, oklch(0.935 0.02 145)); }"
+    },
+    {
+      "name": "Sheet Panel",
+      "kind": "card",
+      "refersTo": "sheet-panel",
+      "description": "One framed object (a drill, a record): sheet tone, hairline, 3px corners, regions split by hairlines. No shadow.",
+      "html": "<figure class=\"ds-panel\"><div class=\"ds-panel-head\"><span class=\"ds-panel-num\">9</span><span class=\"ds-panel-unit\">kyu</span></div><div class=\"ds-panel-body\">Green belt · 1 of 3 stripes</div><figcaption class=\"ds-panel-cap\">Example record. Yours starts at 16 kyu, white belt.</figcaption></figure>",
+      "css": ".ds-panel { margin: 0; max-width: 28rem; background: var(--sheet, oklch(0.99 0.006 145)); color: var(--foreground, oklch(0.27 0.035 162)); border: 1px solid var(--border, oklch(0.875 0.022 148)); border-radius: 3px; font-family: Archivo, system-ui, sans-serif; } .ds-panel-head { display: flex; align-items: flex-end; gap: 12px; padding: 24px; border-bottom: 1px solid var(--border, oklch(0.875 0.022 148)); } .ds-panel-num { font-size: 5.5rem; line-height: 0.8; font-weight: 800; letter-spacing: -0.03em; font-variation-settings: \"wdth\" 72; font-variant-numeric: tabular-nums; } .ds-panel-unit { padding-bottom: 4px; font-size: 1.5rem; font-weight: 700; font-variation-settings: \"wdth\" 72; } .ds-panel-body { padding: 24px; font-size: 0.875rem; font-weight: 600; } .ds-panel-cap { padding: 12px 24px; border-top: 1px solid var(--border, oklch(0.875 0.022 148)); font-size: 0.75rem; color: var(--muted-foreground, oklch(0.45 0.035 160)); }"
+    },
+    {
+      "name": "Belt Band",
+      "kind": "custom",
+      "refersTo": "belt-band",
+      "description": "Signature rank object: dyed cloth with stitch rows, a keyline edge and a tail rank bar of tape stripes; the fresh stripe tapes on in straw.",
+      "html": "<div class=\"ds-belt\" role=\"img\" aria-label=\"Green belt, 2 of 3 stripes\"><div class=\"ds-belt-bar\"><span class=\"ds-stripe ds-stripe-on\"></span><span class=\"ds-stripe ds-stripe-fresh\"></span><span class=\"ds-stripe\"></span></div></div>",
+      "css": ".ds-belt { position: relative; display: flex; justify-content: flex-end; align-items: stretch; width: 14rem; height: 24px; background-color: var(--belt-green, oklch(0.72 0.1 145)); color: var(--keyline, oklch(0.4 0.035 162)); border: 1px solid color-mix(in oklch, var(--keyline, oklch(0.4 0.035 162)) 60%, transparent); background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc(25% - 0.5px), color-mix(in oklch, currentColor 14%, transparent) calc(25% - 0.5px), color-mix(in oklch, currentColor 14%, transparent) 25%); } .ds-belt-bar { display: flex; gap: 3px; padding: 3px 5px; background: var(--belt-black, oklch(0.3 0.03 162)); } .ds-stripe { width: 5px; background: transparent; } .ds-stripe-on { background: var(--tape, oklch(0.985 0.008 100)); } .ds-stripe-fresh { background: var(--highlight, oklch(0.88 0.12 95)); animation: ds-tape-on 420ms cubic-bezier(0.16, 1, 0.3, 1) both; } @keyframes ds-tape-on { from { clip-path: inset(0 0 100% 0); transform: translateY(-6px); } to { clip-path: inset(0 0 0 0); transform: translateY(0); } } @media (prefers-reduced-motion: reduce) { .ds-stripe-fresh { animation: none; } }"
+    },
+    {
+      "name": "Examiner's Seal",
+      "kind": "custom",
+      "refersTo": "seal",
+      "description": "Square jade stamp, rotated -7deg, pressed onto passed work with the seal-stamp motion. The only uppercase lettering in the system.",
+      "html": "<div class=\"ds-seal\" role=\"img\" aria-label=\"Passed: Drill 1\"><div class=\"ds-seal-inner\"><span class=\"ds-seal-label\">Passed</span><span class=\"ds-seal-detail\">Drill 1</span></div></div>",
+      "css": ".ds-seal { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; padding: 3px; border: 3px solid var(--seal, oklch(0.52 0.11 162)); color: var(--seal, oklch(0.52 0.11 162)); transform: rotate(-7deg); font-family: Archivo, system-ui, sans-serif; font-variation-settings: \"wdth\" 72; animation: ds-seal-stamp 520ms cubic-bezier(0.16, 1, 0.3, 1) both; } .ds-seal-inner { display: flex; flex-direction: column; align-items: center; padding: 6px 12px; border: 1px solid var(--seal, oklch(0.52 0.11 162)); } .ds-seal-label { font-size: 1.25rem; line-height: 1; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; } .ds-seal-detail { margin-top: 4px; font-size: 0.625rem; line-height: 1; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; } @keyframes ds-seal-stamp { 0% { opacity: 0; transform: rotate(-7deg) scale(1.35); filter: blur(2px); } 60% { opacity: 1; transform: rotate(-7deg) scale(0.96); filter: blur(0); } 100% { opacity: 1; transform: rotate(-7deg) scale(1); } } @media (prefers-reduced-motion: reduce) { .ds-seal { animation: none; } }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Grading Syllabus",
+    "overview": "pylearn is set like the printed syllabus of a martial-arts school, rendered in jade and straw. Python is a discipline you are graded in: the Python track counts kyu down from white belt to black belt, and AI automation continues in dan ranks. Every visual device serves that idea. Belts are woven cloth (stitch rows, a keyline edge, a rank bar at the tail). Passed work gets a tilted, square examiner's seal. Progress is tape stripes pressed onto a belt. Content is ruled into syllabus rows, not boxed into cards.\n\nThe palette is balanced: soft enough to live with for a 90-minute evening session, with enough colour to feel alive. The ground is green-tinted cotton and the ink is deep forest green. One jade accent carries every action and the seal. A straw-yellow highlight appears only where the learner stands or has just earned something. Belt dyes are rank data and nothing else. In dark mode the ground becomes forest-green cloth in an evening training hall. The jade lightens to stay legible and the dyes stay soft. Loud, saturated accents (red in particular) and flat grey or slate were both tried and rejected by the owner. That rejection is part of the system.\n\nDensity is that of a well-set reference document. There are large condensed headings and generous section bands (80 to 112px), and inside them compact ruled rows with tabular meta. The surface is flat. Depth comes from two tones of cloth (ground and sheet) and hairlines, never from shadow.",
+    "keyCharacteristics": [
+      "One family, Archivo, used across its width axis: condensed for ranks and headings, normal for reading. JetBrains Mono is for code only.",
+      "A jade accent is the single action colour. Straw marks position and the moment of earning.",
+      "Belt dyes (white, yellow, green, blue, brown, black) appear only as rank data.",
+      "Square-cut geometry with 0 to 3px corners, keylined belt bands, and a square seal.",
+      "Flat cloth: tonal layering and hairline rules, with no drop shadows.",
+      "Motion is reserved for earning: the tape-on stripe and the seal stamp."
+    ],
+    "rules": [
+      {
+        "name": "The Jade Voice Rule",
+        "body": "Jade is the only colour that means \"act\". Primary buttons, links, the seal, focus and selection use it. No second action colour exists.",
+        "section": "colors"
+      },
+      {
+        "name": "The Straw Is Earned Rule",
+        "body": "Straw marks where the learner stands and what they just earned: the here-tag, the fresh stripe, and the dan bars still to come. It is never a button, a heading colour, a section band or decoration.",
+        "section": "colors"
+      },
+      {
+        "name": "The Dye Is Data Rule",
+        "body": "Belt dyes appear only where they encode rank. They are never category colours, chart series, difficulty labels or decorative fills.",
+        "section": "colors"
+      },
+      {
+        "name": "The Balanced Chroma Rule",
+        "body": "Accents sit near chroma 0.11 to 0.12, and no colour in the system exceeds 0.13. Every neutral keeps a green tint (chroma 0.006 or more). A new colour that is louder than jade, or greyer than the hairline, is off-system.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Family Rule",
+        "body": "Archivo carries everything except code. Width communicates role: condensed (`wdth` 72) for ranks, headings, belt names and meta; semicondensed (86) only for the wordmark; normal for reading. Don't add a second display face.",
+        "section": "typography"
+      },
+      {
+        "name": "The Sentence Case Rule",
+        "body": "Labels, meta, nav, form labels, menu items and dialog titles are sentence case at normal tracking. Letter-spaced uppercase belongs only to the stamped lettering inside the Seal (0.06em and 0.08em), because a stamp is the one object in this world that is lettered that way.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Count Rule",
+        "body": "Every number that counts (kyu, module index, lesson count, hours, line numbers, streak length) uses tabular figures.",
+        "section": "typography"
+      },
+      {
+        "name": "The Syllabus Row Rule",
+        "body": "Collections of modules, lessons, exercises or achievements are ruled rows with index, title and meta. They are not grids of boxed cards. A panel (sheet with a hairline border) is for one interactive or framed object, such as a drill, a record or a code comparison.",
+        "section": "layout"
+      },
+      {
+        "name": "The Flat Cloth Rule",
+        "body": "Nothing casts a shadow. To lift something, change its tone (ground to sheet, or sheet to Jade Wash) and give it a hairline. Hard offset shadows and ambient glows are off-system.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Square Cut Rule",
+        "body": "Corners stay between 0 and 3px. Nothing in the system is a pill or a circle, whether a badge, avatar frame, progress ring or level token. Progress is linear or striped.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "Do use Jade (oklch(0.52 0.11 162)) for every primary action and link, and keep it the only action colour on any screen.",
+      "Do reserve Straw (oklch(0.88 0.12 95)) for the learner's current position and the moment of earning: the here-tag, the fresh stripe and pending dan bars.",
+      "Do show rank and progress as stripes on a Belt Band. Show counts as a condensed tabular Numeral with a small muted unit (\"9 kyu\").",
+      "Do set lists of modules, lessons, exercises and achievements as ruled syllabus rows with index, title and right-aligned tabular meta.",
+      "Do separate regions with hairlines and the ground/sheet tone shift. Give a framed object 3px corners and a 1px hairline.",
+      "Do keep labels, headings and menu items in sentence case at normal tracking, in condensed Archivo for meta.",
+      "Do play tape-on (420ms) or seal-stamp (520ms) only when the learner earns something, and keep every other state change at 150ms on colour, opacity or a 1px press.",
+      "Do honour `prefers-reduced-motion`: animations and transitions collapse to 0.01ms and smooth scroll turns off. Celebrations and confetti must respect it too.",
+      "Do design dark mode as forest-green cloth with Night Jade, not as an inverted light theme, and check both themes for every new surface.",
+      "Do use Lucide line icons at 16px, muted by default and ink on hover, with `aria-hidden` when they are decorative."
+    ],
+    "donts": [
+      "Don't introduce saturated or dominant accents. Saturated red was explicitly rejected. Clay (oklch(0.54 0.13 30)) is for errors only, as text or a thin border, never a fill.",
+      "Don't use flat grey or slate neutrals. Every neutral carries the green tint.",
+      "Don't use belt dyes for categories, difficulty, charts or decoration. Dye means rank.",
+      "Don't use drop shadows, glows or hard offset shadows. The input focus halo is the only shadow.",
+      "Don't use pills, circles or radii above 3px, including circular progress rings, rounded-full level badges and pill tabs.",
+      "Don't use letter-spaced uppercase labels, eyebrows or kickers. The Seal's stamped lettering is the only uppercase in the system.",
+      "Don't use emoji as icons or status (no 🔥 streaks, no trophy glyphs).",
+      "Don't build dashboards as grids of stat cards. Put numbers in a record figure or a ruled row.",
+      "Don't hardcode Tailwind palette colours (amber, emerald, red, blue and so on) or hex values in components. Use the tokens.",
+      "Don't fabricate social proof. Example data must be labelled as an example, as the training-record figure is."
+    ]
+  }
+}
