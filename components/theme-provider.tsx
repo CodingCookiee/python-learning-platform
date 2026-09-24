@@ -5,21 +5,9 @@ import { ThemeProvider as NextThemesProvider } from "next-themes";
 
 type ThemeProviderProps = Parameters<typeof NextThemesProvider>[0];
 
+// Rendered on the server too, so next-themes' inline script sets the theme
+// class before first paint (no light flash for dark-mode users).
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
-  const [mounted, setMounted] = React.useState(false);
-  const initRef = React.useRef<boolean | null>(null);
-
-  React.useEffect(() => {
-    if (initRef.current == null) {
-      initRef.current = true;
-      setMounted(true);
-    }
-  }, []);
-
-  if (!mounted) {
-    return <>{children}</>;
-  }
-
   return (
     <NextThemesProvider
       attribute="class"

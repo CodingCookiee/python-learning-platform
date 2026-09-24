@@ -254,7 +254,7 @@ export function SearchBar() {
                         />
                         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-semibold tracking-widest uppercase text-muted-foreground">
+                            <span className="text-xs font-medium text-muted-foreground">
                               {TYPE_LABELS[r.type]}
                             </span>
                             {r.isLocked && (

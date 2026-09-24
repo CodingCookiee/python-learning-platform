@@ -153,7 +153,7 @@ export function MobileMenu({
                     <Link
                       key={href}
                       href={href}
-                      className={`flex items-center gap-2.5 rounded-sm px-3 py-2.5 text-xs font-semibold tracking-widest uppercase transition-colors min-h-[44px] ${
+                      className={`flex items-center gap-2.5 rounded-sm px-3 py-2.5 text-sm font-medium transition-colors min-h-[44px] ${
                         pathname === href
                           ? "bg-primary/5 text-foreground"
                           : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -181,7 +181,7 @@ export function MobileMenu({
                     <Link
                       key={href}
                       href={href}
-                      className="px-3 py-2.5 text-xs font-semibold tracking-widest uppercase text-muted-foreground transition-colors hover:text-foreground min-h-[44px] flex items-center"
+                      className="px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground min-h-[44px] flex items-center"
                     >
                       {label}
                     </Link>

@@ -1,501 +1,409 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import hljs from "highlight.js/lib/core";
+import javascript from "highlight.js/lib/languages/javascript";
+import python from "highlight.js/lib/languages/python";
+import { ArrowRight, Check } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import {
-  BookOpen,
-  Code2,
-  Zap,
-  Trophy,
-  Users,
-  ArrowRight,
-  CheckCircle2,
-  Star,
-  GitBranch,
-  Database,
-  Globe,
-  Terminal,
-} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { BeltBand } from "@/components/brand/belt";
+import { Seal } from "@/components/brand/seal";
+import { Hero } from "@/components/landing/hero";
+import { SiteFooter, SiteHeader } from "@/components/landing/site-chrome";
+import { BELTS, DAN_TRACK, beltForModule, kyuRange, ordinal } from "@/lib/ranks";
 
-const features = [
+hljs.registerLanguage("javascript", javascript);
+hljs.registerLanguage("python", python);
+
+function highlight(code: string, language: "javascript" | "python") {
+  return hljs.highlight(code, { language }).value;
+}
+
+const BRIDGE: Array<{ concept: string; js: string; py: string }> = [
   {
-    icon: GitBranch,
-    title: "JavaScript Bridge",
-    description:
-      "Side-by-side comparisons of JavaScript and Python concepts so you can leverage everything you already know.",
+    concept: "Transform a list",
+    js: "const doubled = nums.map((n) => n * 2);",
+    py: "doubled = [n * 2 for n in nums]",
   },
   {
-    icon: Code2,
-    title: "Interactive Exercises",
-    description:
-      "Write and run real Python code directly in your browser with instant feedback and automated test cases.",
+    concept: "Destructure",
+    js: "const [first, ...rest] = items;",
+    py: "first, *rest = items",
   },
   {
-    icon: Trophy,
-    title: "Gamified Progress",
-    description:
-      "Earn XP, unlock badges, and keep streaks alive. Learning Python should feel like leveling up.",
+    concept: "Run requests concurrently",
+    js: "await Promise.all([getUser(), getOrders()]);",
+    py: "await asyncio.gather(get_user(), get_orders())",
   },
   {
-    icon: Database,
-    title: "Full-Stack Python",
-    description:
-      "FastAPI, SQLAlchemy, async patterns — everything you need to build production-grade Python backends.",
-  },
-  {
-    icon: Globe,
-    title: "Modern Tooling",
-    description:
-      "Poetry, mypy, Pydantic, pytest — the same quality-first mindset you bring to your TypeScript projects.",
-  },
-  {
-    icon: Zap,
-    title: "Accelerated Pace",
-    description:
-      "Skip the beginner fluff. The curriculum is designed for developers who already understand programming.",
+    concept: "Validate data",
+    js: "const User = z.object({ email: z.string() });",
+    py: "class User(BaseModel):\n    email: str",
   },
 ];
 
-const testimonials = [
-  {
-    name: "Alex Chen",
-    role: "Full-Stack Engineer",
-    avatar: "AC",
-    content:
-      "The JavaScript Bridge sections saved me weeks. I stopped fighting Python and started enjoying it within days.",
-    stars: 5,
-  },
-  {
-    name: "Maria Santos",
-    role: "React Developer",
-    avatar: "MS",
-    content:
-      "Coming from TypeScript, the type hints module was exactly what I needed. Pydantic just clicks after Zod.",
-    stars: 5,
-  },
-  {
-    name: "Jordan Kim",
-    role: "Node.js Engineer",
-    avatar: "JK",
-    content:
-      "The async module is phenomenal. asyncio finally made sense when compared to Promises side by side.",
-    stars: 5,
-  },
-];
-
-const curriculumPhases = [
-  { phase: "Phase 1", label: "Foundations", modules: "Modules 1-3", weeks: "Week 1" },
-  { phase: "Phase 2", label: "Intermediate", modules: "Modules 4-7", weeks: "Week 2" },
-  { phase: "Phase 3", label: "Advanced Python", modules: "Modules 8-10", weeks: "Week 3" },
-  { phase: "Phase 4", label: "Applied Python", modules: "Modules 11-16", weeks: "Week 4" },
-];
-
-const topicTags = [
-  "Data Structures",
-  "OOP",
-  "asyncio",
-  "FastAPI",
-  "SQLAlchemy",
-  "pytest",
-  "Type Hints",
-  "Pydantic",
-  "NumPy & Pandas",
-  "Docker",
-  "Poetry",
-  "Decorators",
-  "Generators",
-  "Metaclasses",
-  "Web3.py",
-  "Performance Tuning",
-];
+// Illustrative streak for the example record: 1 = trained that day
+const EXAMPLE_STREAK = [1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1];
 
 export default async function LandingPage() {
   const session = await auth();
   if (session?.user) redirect("/dashboard");
 
-  const [moduleCount, lessonCount, projectCount, exerciseCount] = await Promise.all([
-    prisma.module.count(),
+  const [modules, lessonCount, achievements, achievementCount] = await Promise.all([
+    prisma.module.findMany({
+      orderBy: { order: "asc" },
+      select: { id: true, order: true, title: true, duration: true, _count: { select: { lessons: true } } },
+    }),
     prisma.lesson.count(),
-    prisma.project.count(),
-    prisma.exercise.count(),
+    prisma.achievement.findMany({
+      where: { tier: { in: ["Bronze", "Silver", "Gold"] } },
+      orderBy: { xpReward: "asc" },
+      select: { name: true, description: true },
+      take: 3,
+    }),
+    prisma.achievement.count(),
   ]);
 
-  const stats = [
-    { value: String(moduleCount), label: "Modules live" },
-    { value: String(lessonCount), label: "Lessons live" },
-    { value: String(projectCount), label: "Projects live" },
-    { value: String(exerciseCount), label: "Exercises live" },
-  ];
-
   return (
-    <div className="flex min-h-full flex-col bg-background text-foreground">
-      {/* Navbar */}
-      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2">
-            <Terminal className="size-5 text-primary" aria-hidden="true" />
-            <span className="font-heading text-sm font-semibold tracking-widest uppercase">
-              PyLearn
-            </span>
-          </div>
-          <nav
-            className="hidden items-center gap-6 text-xs font-semibold tracking-widest uppercase text-muted-foreground md:flex"
-            aria-label="Main navigation"
-          >
-            <a href="#features" className="transition-colors hover:text-foreground">
-              Features
-            </a>
-            <a href="#curriculum" className="transition-colors hover:text-foreground">
-              Curriculum
-            </a>
-            <a href="#testimonials" className="transition-colors hover:text-foreground">
-              Reviews
-            </a>
-          </nav>
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/auth/signin">Sign In</Link>
-            </Button>
-            <Button size="sm" asChild>
-              <Link href="/auth/signup">
-                Get Started
-                <ArrowRight data-icon="inline-end" aria-hidden="true" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </header>
+    <div className="flex min-h-full flex-col">
+      <SiteHeader />
 
       <main className="flex-1">
-        {/* Hero */}
+        <Hero moduleCount={modules.length} lessonCount={lessonCount} />
+
+        {/* ── Syllabus ───────────────────────────────────────────────── */}
         <section
-          className="relative overflow-hidden px-4 py-24 sm:px-6 sm:py-32 lg:px-8 lg:py-40"
-          aria-labelledby="hero-heading"
+          id="syllabus"
+          aria-labelledby="syllabus-heading"
+          className="scroll-mt-16 border-t border-border bg-sheet px-4 py-20 sm:px-6 lg:px-8 lg:py-28"
         >
-          {/* Animated gradient background */}
-          <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
-            <div className="landing-hero-gradient absolute inset-0" />
-            <div className="landing-blob landing-blob-1 absolute -top-32 -left-32 size-[600px] rounded-full blur-3xl" />
-            <div className="landing-blob landing-blob-2 absolute -bottom-32 -right-32 size-[500px] rounded-full blur-3xl" />
-            <div className="landing-blob landing-blob-3 absolute top-1/2 left-1/2 size-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl" />
+          <div className="mx-auto max-w-7xl">
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:gap-16">
+              <h2
+                id="syllabus-heading"
+                className="font-condensed text-5xl leading-none font-extrabold tracking-[-0.02em] sm:text-6xl"
+              >
+                The syllabus
+              </h2>
+              <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground lg:pt-2">
+                Each belt is a set of modules. Pass a module&apos;s grading and a stripe goes on
+                your belt. Fill the belt and you&apos;re promoted. Sixteen modules take you from 16
+                kyu to black belt.
+              </p>
+            </div>
+
+            <div className="mt-14 flex flex-col">
+              {BELTS.map((belt) => {
+                const beltModules = modules.filter((m) => beltForModule(m.order).key === belt.key);
+                const span = belt.toModule - belt.fromModule + 1;
+                return (
+                  <article
+                    key={belt.key}
+                    className="grid gap-6 border-t border-border py-8 md:grid-cols-[14rem_minmax(0,1fr)] md:gap-12"
+                    aria-labelledby={`belt-${belt.key}`}
+                  >
+                    <div className="flex flex-col gap-3">
+                      <BeltBand belt={belt.key} slots={span} filled={0} />
+                      <div className="flex items-baseline justify-between gap-3">
+                        <h3 id={`belt-${belt.key}`} className="font-condensed text-2xl font-bold">
+                          {belt.label}
+                        </h3>
+                        <span className="font-condensed tabular text-sm text-muted-foreground">
+                          {kyuRange(belt)}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{belt.summary}</p>
+                    </div>
+                    <ol className="flex flex-col">
+                      {beltModules.map((m) => (
+                        <li
+                          key={m.id}
+                          className="grid grid-cols-[2.25rem_minmax(0,1fr)_auto] items-baseline gap-x-3 border-b border-border/70 py-3 last:border-b-0"
+                        >
+                          <span className="font-condensed tabular text-sm text-muted-foreground">
+                            {String(m.order).padStart(2, "0")}
+                          </span>
+                          <span className="font-medium">{m.title}</span>
+                          <span className="font-condensed tabular text-sm whitespace-nowrap text-muted-foreground">
+                            {m._count.lessons} lessons · ~{m.duration} h
+                          </span>
+                        </li>
+                      ))}
+                    </ol>
+                  </article>
+                );
+              })}
+
+              {/* Black belt */}
+              <article
+                className="grid gap-6 border-t border-border py-8 md:grid-cols-[14rem_minmax(0,1fr)] md:gap-12"
+                aria-labelledby="belt-black"
+              >
+                <div className="flex flex-col gap-3">
+                  <BeltBand belt="black" />
+                  <div className="flex items-baseline justify-between gap-3">
+                    <h3 id="belt-black" className="font-condensed text-2xl font-bold">
+                      Black belt
+                    </h3>
+                    <span className="font-condensed text-sm text-muted-foreground">1st dan</span>
+                  </div>
+                </div>
+                <p className="max-w-2xl self-center text-lg leading-relaxed">
+                  Every Python grading passed, plus three capstone projects that pass their
+                  acceptance tests. At this point you can build and ship real Python, not just
+                  read it.
+                </p>
+              </article>
+
+              {/* AI automation dan ranks */}
+              <article
+                className="grid gap-6 border-t border-border py-8 md:grid-cols-[14rem_minmax(0,1fr)] md:gap-12"
+                aria-labelledby="belt-dan"
+              >
+                <div className="flex flex-col gap-3">
+                  <h3 id="belt-dan" className="font-condensed text-2xl font-bold">
+                    AI automation
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Dan ranks for black belts. In preparation, and not yet open.
+                  </p>
+                </div>
+                <ol className="grid gap-x-10 sm:grid-cols-2">
+                  {DAN_TRACK.map((d) => (
+                    <li
+                      key={d.dan}
+                      className="grid grid-cols-[3.25rem_minmax(0,1fr)] items-baseline gap-x-3 border-b border-border/70 py-3"
+                    >
+                      <span className="font-condensed tabular text-sm text-muted-foreground">
+                        {ordinal(d.dan)} dan
+                      </span>
+                      <span className="text-muted-foreground">{d.title}</span>
+                    </li>
+                  ))}
+                </ol>
+              </article>
+            </div>
           </div>
+        </section>
 
-          <div className="mx-auto max-w-4xl text-center">
-            <Badge className="mb-6 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Zap className="size-3 text-yellow-500" aria-hidden="true" />
-              Built for JS developers &middot; No fluff, pure signal
-            </Badge>
-
-            <h1
-              id="hero-heading"
-              className="font-heading text-4xl font-semibold leading-tight tracking-tight sm:text-5xl lg:text-6xl"
+        {/* ── How rank is earned ─────────────────────────────────────── */}
+        <section
+          id="rank"
+          aria-labelledby="rank-heading"
+          className="scroll-mt-16 border-t border-border px-4 py-20 sm:px-6 lg:px-8 lg:py-28"
+        >
+          <div className="mx-auto max-w-7xl">
+            <h2
+              id="rank-heading"
+              className="font-condensed max-w-3xl text-5xl leading-none font-extrabold tracking-[-0.02em] sm:text-6xl"
             >
-              Python mastery for <span className="landing-gradient-text">JavaScript devs</span>
-            </h1>
+              Rank is earned, not clicked.
+            </h2>
 
-            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
-              Stop Googling &ldquo;Python equivalent of&hellip;&rdquo;. This curriculum bridges your
-              existing JavaScript and TypeScript knowledge directly to Python &mdash; with
-              side-by-side code comparisons, real projects, and zero repetition of things you
-              already know.
-            </p>
+            <ol className="mt-14 grid gap-px overflow-hidden rounded-md border border-border bg-border md:grid-cols-2 lg:grid-cols-4">
+              <li className="flex flex-col gap-4 bg-background p-6">
+                <h3 className="text-lg font-semibold">Learn the technique</h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  Short lessons with examples you run in place. Change them, break them, run them
+                  again.
+                </p>
+                <pre className="mt-auto rounded-sm border border-border bg-sheet p-3 font-mono text-[0.8125rem] leading-6">
+                  <span className="text-muted-foreground">&gt;&gt;&gt; </span>
+                  [n * 2 for n in range(3)]{"\n"}
+                  <span className="text-muted-foreground">[0, 2, 4]</span>
+                </pre>
+              </li>
+              <li className="flex flex-col gap-4 bg-background p-6">
+                <h3 className="text-lg font-semibold">Drill it</h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  Graded exercises checked against real tests. Hints are there when you need them.
+                  Each one costs a little XP.
+                </p>
+                <div className="mt-auto flex flex-col rounded-sm border border-border bg-sheet font-mono text-[0.8125rem]">
+                  {['greet("Ada")', 'greet("Grace Hopper")'].map((t) => (
+                    <span
+                      key={t}
+                      className="flex items-center gap-2 border-b border-border/70 px-3 py-2 last:border-b-0"
+                    >
+                      <Check className="size-4 shrink-0 text-success" aria-hidden="true" />
+                      <span className="truncate">{t}</span>
+                      <span className="ml-auto text-muted-foreground">passed</span>
+                    </span>
+                  ))}
+                </div>
+              </li>
+              <li className="flex flex-col gap-4 bg-background p-6">
+                <h3 className="text-lg font-semibold">Pass the grading</h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  Every module ends with a grading: no hints, no solutions, 80% to pass. Pass it and
+                  the seal goes on your record.
+                </p>
+                <div className="mt-auto flex h-[5.25rem] items-center justify-center rounded-sm border border-border bg-sheet">
+                  <Seal label="Passed" detail="Module grading" />
+                </div>
+              </li>
+              <li className="flex flex-col gap-4 bg-background p-6">
+                <h3 className="text-lg font-semibold">Keep it sharp</h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  Skills you haven&apos;t used in a while fade. A short daily review brings them back
+                  before they&apos;re gone.
+                </p>
+                <div className="mt-auto flex flex-col gap-2 rounded-sm border border-border bg-sheet p-3">
+                  <BeltBand belt="green" slots={3} filled={3} faded={1} />
+                  <span className="text-xs text-muted-foreground">
+                    Third stripe fading: decorators are due for review
+                  </span>
+                </div>
+              </li>
+            </ol>
+          </div>
+        </section>
 
-            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+        {/* ── JS bridge ──────────────────────────────────────────────── */}
+        <section
+          id="bridge"
+          aria-labelledby="bridge-heading"
+          className="scroll-mt-16 border-t border-border bg-sheet px-4 py-20 sm:px-6 lg:px-8 lg:py-28"
+        >
+          <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] lg:gap-16">
+            <div className="flex flex-col gap-5">
+              <h2
+                id="bridge-heading"
+                className="font-condensed text-5xl leading-none font-extrabold tracking-[-0.02em] sm:text-6xl"
+              >
+                You already know half of this.
+              </h2>
+              <p className="text-lg leading-relaxed text-muted-foreground">
+                If you write JavaScript or TypeScript, lessons put the Python right next to the code
+                you already use, so you learn the differences instead of starting over.
+              </p>
+            </div>
+
+            <div className="overflow-hidden rounded-md border border-border bg-background">
+              <div className="grid grid-cols-2 border-b border-border text-sm font-semibold">
+                <span className="px-4 py-2.5">JavaScript</span>
+                <span className="border-l border-border px-4 py-2.5">Python</span>
+              </div>
+              {BRIDGE.map((row) => (
+                <div key={row.concept} className="border-b border-border last:border-b-0">
+                  <p className="px-4 pt-3 text-xs text-muted-foreground">{row.concept}</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2">
+                    <pre
+                      className="hljs overflow-x-auto px-4 pt-1.5 pb-3 font-mono text-[0.8125rem] leading-6"
+                      dangerouslySetInnerHTML={{ __html: highlight(row.js, "javascript") }}
+                    />
+                    <pre
+                      className="hljs overflow-x-auto px-4 pt-1.5 pb-3 font-mono text-[0.8125rem] leading-6 sm:border-l sm:border-border"
+                      dangerouslySetInnerHTML={{ __html: highlight(row.py, "python") }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Training record ───────────────────────────────────────── */}
+        <section
+          aria-labelledby="record-heading"
+          className="border-t border-border px-4 py-20 sm:px-6 lg:px-8 lg:py-28"
+        >
+          <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2 lg:gap-16">
+            <div className="flex flex-col gap-5">
+              <h2
+                id="record-heading"
+                className="font-condensed text-5xl leading-none font-extrabold tracking-[-0.02em] sm:text-6xl"
+              >
+                Every session goes on your record.
+              </h2>
+              <p className="text-lg leading-relaxed text-muted-foreground">
+                Daily streaks, XP, levels and {achievementCount} achievements keep you training.
+                Rank is the one thing you can&apos;t grind: it only moves when you pass a grading.
+              </p>
+            </div>
+
+            <figure className="rounded-md border border-border bg-sheet">
+              <div className="flex items-end justify-between gap-6 border-b border-border p-6">
+                <div className="flex items-end gap-3">
+                  <span className="font-condensed tabular text-[5.5rem] leading-[0.8] font-extrabold tracking-[-0.03em]">
+                    9
+                  </span>
+                  <span className="font-condensed pb-1 text-2xl font-bold">kyu</span>
+                </div>
+                <div className="flex w-40 flex-col gap-2 pb-1">
+                  <BeltBand belt="green" slots={3} filled={1} />
+                  <span className="text-xs text-muted-foreground">Green belt · 1 of 3 stripes</span>
+                </div>
+              </div>
+              <div className="grid gap-6 p-6 sm:grid-cols-2">
+                <div className="flex flex-col gap-3">
+                  <span className="text-sm font-semibold">
+                    18-day streak <span className="font-normal text-muted-foreground">· last 21 days</span>
+                  </span>
+                  <div className="grid w-fit grid-cols-7 gap-1" aria-hidden="true">
+                    {EXAMPLE_STREAK.map((day, i) => (
+                      <span
+                        key={i}
+                        className={
+                          day
+                            ? "size-4 rounded-[2px] bg-primary/70"
+                            : "size-4 rounded-[2px] border border-border bg-transparent"
+                        }
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="flex flex-col gap-3">
+                  <span className="text-sm font-semibold">Recent achievements</span>
+                  <ul className="flex flex-col gap-2">
+                    {achievements.map((a) => (
+                      <li key={a.name} className="flex flex-col">
+                        <span className="text-sm font-medium">{a.name}</span>
+                        <span className="text-xs text-muted-foreground">{a.description}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+              <figcaption className="border-t border-border px-6 py-3 text-xs text-muted-foreground">
+                Example record. Yours starts at 16 kyu, white belt.
+              </figcaption>
+            </figure>
+          </div>
+        </section>
+
+        {/* ── Close ─────────────────────────────────────────────────── */}
+        <section
+          aria-labelledby="close-heading"
+          className="border-t border-border bg-sheet px-4 py-24 sm:px-6 lg:px-8 lg:py-32"
+        >
+          <div className="mx-auto flex max-w-7xl flex-col items-start gap-8">
+            <h2
+              id="close-heading"
+              className="font-condensed text-[clamp(3rem,8vw,6rem)] leading-[0.92] font-extrabold tracking-[-0.025em]"
+            >
+              Tie on the white belt.
+            </h2>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
               <Button size="lg" asChild>
                 <Link href="/auth/signup">
-                  Start Learning Free
+                  Create your account
                   <ArrowRight data-icon="inline-end" aria-hidden="true" />
                 </Link>
               </Button>
-              <Button variant="outline" size="lg" asChild>
-                <a href="#curriculum">Browse Curriculum</a>
-              </Button>
-            </div>
-
-            {/* <p className="mt-10 text-xs font-semibold tracking-widest uppercase text-muted-foreground">
-              Trusted by engineers at
-            </p>
-            <div
-              className="mt-3 flex flex-wrap items-center justify-center gap-x-8 gap-y-2"
-              aria-label="Companies"
-            >
-              {["Stripe", "Vercel", "Linear", "Supabase", "Fly.io"].map((co) => (
-                <span
-                  key={co}
-                  className="text-xs font-semibold tracking-widest uppercase text-muted-foreground/50"
-                >
-                  {co}
-                </span>
-              ))}
-            </div> */}
-          </div>
-        </section>
-
-        {/* Stats */}
-        <section aria-label="Program statistics">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 gap-px overflow-hidden border border-border bg-border sm:grid-cols-4">
-              {stats.map(({ value, label }) => (
-                <div
-                  key={label}
-                  className="flex flex-col items-center justify-center gap-1 bg-background px-6 py-10"
-                >
-                  <span className="font-heading text-3xl font-semibold sm:text-4xl">{value}</span>
-                  <span className="text-xs font-semibold tracking-widest uppercase text-muted-foreground">
-                    {label}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Features */}
-        <section
-          id="features"
-          className="px-4 py-24 sm:px-6 sm:py-32 lg:px-8"
-          aria-labelledby="features-heading"
-        >
-          <div className="mx-auto max-w-7xl">
-            <div className="mb-16 text-center">
-              <Badge className="mb-4 text-muted-foreground">
-                <BookOpen className="size-3" aria-hidden="true" />
-                How it works
-              </Badge>
-              <h2
-                id="features-heading"
-                className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl"
+              <Link
+                href="/auth/signin"
+                className="text-sm font-semibold underline decoration-foreground/30 hover:decoration-foreground"
               >
-                Everything you need to go deep
-              </h2>
-              <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
-                Designed around how experienced developers actually learn &mdash; fast ramp, deep
-                coverage, and immediate practical application.
-              </p>
-            </div>
-
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {features.map(({ icon: Icon, title, description }) => (
-                <Card key={title} className="group transition-shadow duration-300 hover:shadow-md">
-                  <CardContent className="flex flex-col gap-4 pt-8">
-                    <div className="flex size-10 shrink-0 items-center justify-center bg-muted ring-1 ring-border transition-colors group-hover:bg-primary group-hover:text-primary-foreground group-hover:ring-primary">
-                      <Icon className="size-4" aria-hidden="true" />
-                    </div>
-                    <div>
-                      <h3 className="font-heading text-sm font-semibold tracking-widest uppercase">
-                        {title}
-                      </h3>
-                      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                        {description}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Curriculum */}
-        <section
-          id="curriculum"
-          className="border-y border-border bg-muted/30 px-4 py-24 sm:px-6 sm:py-32 lg:px-8"
-          aria-labelledby="curriculum-heading"
-        >
-          <div className="mx-auto max-w-7xl">
-            <div className="mb-16 text-center">
-              <Badge className="mb-4 text-muted-foreground">
-                <Terminal className="size-3" aria-hidden="true" />
-                The curriculum
-              </Badge>
-              <h2
-                id="curriculum-heading"
-                className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl"
-              >
-                Current release and roadmap
-              </h2>
-              <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
-                All phases are live. The full roadmap is designed as a focused 3-4 week sprint, so
-                learners can see what comes next without being sold a marathon.
-              </p>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {curriculumPhases.map(({ phase, label, modules, weeks }, i) => (
-                <div
-                  key={phase}
-                  className="relative overflow-hidden border border-border bg-background p-6"
-                >
-                  <span
-                    className="pointer-events-none absolute -top-4 -right-2 font-heading text-8xl font-semibold text-border/60 select-none"
-                    aria-hidden="true"
-                  >
-                    {i + 1}
-                  </span>
-                  <Badge className="mb-4 text-xs text-muted-foreground">{phase}</Badge>
-                  <h3 className="font-heading text-sm font-semibold tracking-widest uppercase">
-                    {label}
-                  </h3>
-                  <p className="mt-2 text-xs text-muted-foreground">{modules}</p>
-                  <p className="text-xs text-muted-foreground">{weeks}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-12 border border-border bg-background p-8">
-              <h3 className="mb-6 font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground">
-                Topics covered
-              </h3>
-              <ul className="flex flex-wrap gap-3" aria-label="Curriculum topics">
-                {topicTags.map((topic) => (
-                  <li
-                    key={topic}
-                    className="inline-flex items-center gap-1.5 border border-border px-3 py-1.5 text-xs font-semibold tracking-widest uppercase text-muted-foreground"
-                  >
-                    <CheckCircle2 className="size-3 shrink-0 text-primary" aria-hidden="true" />
-                    {topic}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </section>
-
-        {/* Testimonials */}
-        <section
-          id="testimonials"
-          className="px-4 py-24 sm:px-6 sm:py-32 lg:px-8"
-          aria-labelledby="testimonials-heading"
-        >
-          <div className="mx-auto max-w-7xl">
-            <div className="mb-16 text-center">
-              <Badge className="mb-4 text-muted-foreground">
-                <Users className="size-3" aria-hidden="true" />
-                What developers say
-              </Badge>
-              <h2
-                id="testimonials-heading"
-                className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl"
-              >
-                Built for devs, loved by devs
-              </h2>
-            </div>
-
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {testimonials.map(({ name, role, avatar, content, stars }) => (
-                <Card key={name}>
-                  <CardContent className="flex flex-col gap-4 pt-8">
-                    <div
-                      className="flex gap-0.5"
-                      aria-label={`Rated ${stars} out of 5 stars`}
-                      role="img"
-                    >
-                      {Array.from({ length: stars }).map((_, i) => (
-                        <Star
-                          key={i}
-                          className="size-3.5 fill-yellow-400 text-yellow-400"
-                          aria-hidden="true"
-                        />
-                      ))}
-                    </div>
-                    <p className="text-sm leading-relaxed text-muted-foreground">
-                      &ldquo;{content}&rdquo;
-                    </p>
-                    <div className="mt-auto flex items-center gap-3 border-t border-border pt-4">
-                      <div
-                        className="flex size-8 shrink-0 items-center justify-center bg-primary text-[0.625rem] font-semibold tracking-widest text-primary-foreground"
-                        aria-hidden="true"
-                      >
-                        {avatar}
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold tracking-widest uppercase">{name}</p>
-                        <p className="text-xs text-muted-foreground">{role}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Bottom CTA */}
-        <section
-          className="relative overflow-hidden border-t border-border bg-primary px-4 py-24 text-primary-foreground sm:px-6 sm:py-32 lg:px-8"
-          aria-labelledby="cta-heading"
-        >
-          <div className="pointer-events-none absolute inset-0 opacity-10" aria-hidden="true">
-            <div className="landing-cta-grid absolute inset-0" />
-          </div>
-          <div className="mx-auto max-w-2xl text-center">
-            <h2
-              id="cta-heading"
-              className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl"
-            >
-              Ready to add Python to your stack?
-            </h2>
-            <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed opacity-80">
-              Join developers who made the leap from JavaScript to Python without starting from
-              scratch.
-            </p>
-            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Button
-                size="lg"
-                asChild
-                className="bg-primary-foreground text-primary hover:bg-primary-foreground/90"
-              >
-                <Link href="/auth/signup">
-                  Start for Free
-                  <ArrowRight data-icon="inline-end" aria-hidden="true" />
-                </Link>
-              </Button>
-              <Button
-                variant="ghost"
-                size="lg"
-                asChild
-                className="border border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
-              >
-                <Link href="/auth/signin">Sign In</Link>
-              </Button>
+                I already have one
+              </Link>
             </div>
           </div>
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-border px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 sm:flex-row">
-          <div className="flex items-center gap-2">
-            <Terminal className="size-4 text-muted-foreground" aria-hidden="true" />
-            <span className="text-xs font-semibold tracking-widest uppercase text-muted-foreground">
-              PyLearn
-            </span>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} PyLearn. Built for JavaScript developers.
-          </p>
-          <nav className="flex gap-4" aria-label="Footer navigation">
-            <Link
-              href="/auth/signin"
-              className="text-xs font-semibold tracking-widest uppercase text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/auth/signup"
-              className="text-xs font-semibold tracking-widest uppercase text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Sign Up
-            </Link>
-          </nav>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
