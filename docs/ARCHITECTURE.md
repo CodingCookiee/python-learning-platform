@@ -441,14 +441,40 @@ Each milestone is shippable and leaves the app better than before.
 
 ---
 
-## 13. Open decisions (owner: Raza)
+## 13. Decisions (2026-09-24)
 
-1. **Existing data**: is there a production DB with progress worth keeping? If yes, content sync maps
-   old lessons to new slugs by title. If no, we reset once.
-2. **Audience at launch**: just you, invite-only, or public? This decides when `GRADING_MODE=server`,
-   email verification, and strict cost caps become mandatory.
-3. **Sandbox**: E2B (managed, pay per use, fastest to build) or a self-hosted runner (cheaper at scale,
-   more ops)?
-4. **LLM access for learners**: platform-paid gateway with quotas, BYOK, or both?
-5. **Budget**: monthly ceiling for Claude + sandbox + hosting.
-6. **Hosting**: stay on Vercel + Neon/Supabase + Upstash?
+| # | Question | Decision | Consequence |
+|---|----------|----------|-------------|
+| 1 | Existing data | Fresh Neon DB, nothing to keep | Clean baseline migration `20260924000000_init` |
+| 2 | Audience | Raza first, then public | `GRADING_MODE=client` now. Server grading, email verification, and rate limits are required before opening signups (M7) |
+| 3 | Sandbox | **No paid sandbox.** Browser-first | See §14 |
+| 4 | LLM access | **Bring your own key (BYOK)** | The platform pays $0 for AI. See §14 |
+| 5 | Budget | ~$0/month | Free tiers only: Vercel Hobby, Neon free, Upstash free |
+| 6 | Hosting | Vercel | Serverless limits shape the grader (§14). Note that Vercel Hobby is for non-commercial use, so charging learners later means upgrading to Pro |
+
+## 14. Zero-budget adjustments (overrides §5.5, §7, §11 where they differ)
+
+**Code execution without a paid sandbox**
+- Tier 1 (the Pyodide worker in the browser) does as much as possible. HTTP exercises call
+  **same-origin mock APIs** served by the app (`/api/mock/*`), so there's no CORS problem and no
+  sandbox is needed. Pyodide can reach them through `pyodide.http` / `pyfetch`.
+- **Server grading** (M4, before public launch) runs Pyodide *inside a Vercel Node function* against
+  hidden tests. It's free within Hobby limits and needs no extra service. Heavy exercises stay
+  browser-graded.
+- Things that genuinely need a real machine (`pip install`, subprocess, Docker, running a FastAPI
+  server, Playwright, MCP servers) become **local labs**. The learner runs them on their own computer
+  and the platform verifies the result: webhook callbacks, probing a deployed URL, or a GitHub repo
+  whose GitHub Actions run the acceptance tests for free and report back.
+- `ExecutionProvider` stays as an interface, so E2B or a self-hosted runner can be added later if
+  there's budget.
+
+**AI with learners' own keys**
+- Learners paste their own Anthropic key in Settings. It's encrypted at rest with AES-256-GCM using
+  `ENCRYPTION_KEY`, decrypted only server-side per request, never sent back to the browser, and
+  deletable at any time.
+- The tutor, error explainer, and project reviewer all run on the learner's key. Without a key, those
+  features show a "Add your API key" prompt and everything else still works.
+- `LlmUsage` still logs tokens and estimated cost per call, so learners see what they spend. That's
+  the roadmap's "always track cost" rule.
+- The platform needs **no** `ANTHROPIC_API_KEY`. An optional platform key can be added later to give
+  new learners a small free trial.

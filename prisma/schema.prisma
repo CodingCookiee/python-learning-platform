@@ -12,6 +12,12 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  LEARNER
+  AUTHOR
+  ADMIN
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -30,6 +36,10 @@ model User {
 
   xp            Int       @default(0)
   level         Int       @default(1)
+  role          Role      @default(LEARNER)
+
+  exerciseSubmissions ExerciseSubmission[]
+  projectSubmissions  ProjectSubmission[]
 
   @@map("users")
 }
@@ -180,8 +190,10 @@ model ExerciseSubmission {
   attempts    Int      @default(1)
   submittedAt DateTime @default(now())
 
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
 
+  @@index([userId, exerciseId])
   @@map("exercise_submissions")
 }
 
@@ -195,8 +207,10 @@ model ProjectSubmission {
   submittedAt DateTime @default(now())
   evaluatedAt DateTime?
 
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
+  @@index([userId, projectId])
   @@map("project_submissions")
 }
 

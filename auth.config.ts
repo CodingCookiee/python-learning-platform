@@ -1,64 +1,85 @@
 import type { NextAuthConfig } from "next-auth";
+import type { Provider } from "next-auth/providers";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { env, isBootstrapAdmin } from "@/lib/env";
 
 /**
  * NextAuth.js v5 configuration
- * Supports credentials (email/password) and OAuth (GitHub, Google)
+ * Supports credentials (email/password) and OAuth (GitHub, Google when configured)
  */
 
+const providers: Provider[] = [
+  // Credentials provider for email/password login
+  Credentials({
+    name: "credentials",
+    credentials: {
+      email: { label: "Email", type: "email" },
+      password: { label: "Password", type: "password" },
+    },
+    async authorize(credentials) {
+      if (!credentials?.email || !credentials?.password) {
+        return null;
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { email: credentials.email as string },
+      });
+
+      if (!user || !user.password) {
+        return null;
+      }
+
+      const isPasswordValid = await compare(credentials.password as string, user.password);
+
+      if (!isPasswordValid) {
+        return null;
+      }
+
+      return {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        image: user.image,
+      };
+    },
+  }),
+];
+
+// OAuth providers are only registered when their credentials exist
+if (env().AUTH_GITHUB_ID && env().AUTH_GITHUB_SECRET) {
+  providers.push(
+    GitHub({ clientId: env().AUTH_GITHUB_ID, clientSecret: env().AUTH_GITHUB_SECRET })
+  );
+}
+if (env().AUTH_GOOGLE_ID && env().AUTH_GOOGLE_SECRET) {
+  providers.push(
+    Google({ clientId: env().AUTH_GOOGLE_ID, clientSecret: env().AUTH_GOOGLE_SECRET })
+  );
+}
+
+/**
+ * Load the user's role, promoting the bootstrap admin on first sight.
+ */
+async function resolveRole(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true, role: true },
+  });
+  if (!user) return "LEARNER" as const;
+
+  if (user.role !== "ADMIN" && isBootstrapAdmin(user.email)) {
+    await prisma.user.update({ where: { id: userId }, data: { role: "ADMIN" } });
+    return "ADMIN" as const;
+  }
+  return user.role;
+}
+
 export const authConfig = {
-  providers: [
-    // Credentials provider for email/password login
-    Credentials({
-      name: "credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
-
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string },
-        });
-
-        if (!user || !user.password) {
-          return null;
-        }
-
-        const isPasswordValid = await compare(credentials.password as string, user.password);
-
-        if (!isPasswordValid) {
-          return null;
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          image: user.image,
-        };
-      },
-    }),
-
-    // GitHub OAuth provider
-    GitHub({
-      clientId: process.env.GITHUB_CLIENT_ID,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET,
-    }),
-
-    // Google OAuth provider
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    }),
-  ],
+  providers,
 
   pages: {
     signIn: "/auth/signin",
@@ -93,21 +114,27 @@ export const authConfig = {
         session.user.email = token.email!;
         session.user.name = token.name;
         session.user.image = token.picture;
+        session.user.role = token.role ?? "LEARNER";
       }
       return session;
     },
 
     async jwt({ token, user, trigger, session }) {
-      if (user) {
+      if (user?.id) {
         token.sub = user.id;
         token.email = user.email;
         token.name = user.name;
         token.picture = user.image;
+        token.role = await resolveRole(user.id);
       }
 
-      // Update token on session update
-      if (trigger === "update" && session) {
-        token = { ...token, ...session };
+      // Client-triggered updates may only change display fields. Identity
+      // fields (sub, email, role) must never come from the client.
+      if (trigger === "update" && token.sub) {
+        const data = (session ?? {}) as { name?: unknown; image?: unknown };
+        if (typeof data.name === "string") token.name = data.name;
+        if (typeof data.image === "string") token.picture = data.image;
+        token.role = await resolveRole(token.sub);
       }
 
       return token;
@@ -117,13 +144,11 @@ export const authConfig = {
   events: {
     async signIn({ user, isNewUser }) {
       // Create streak record for new users
-      if (isNewUser) {
-        await prisma.streak.create({
-          data: {
-            userId: user.id!,
-            currentStreak: 0,
-            longestStreak: 0,
-          },
+      if (isNewUser && user.id) {
+        await prisma.streak.upsert({
+          where: { userId: user.id },
+          update: {},
+          create: { userId: user.id, currentStreak: 0, longestStreak: 0 },
         });
       }
     },
@@ -142,5 +167,5 @@ export const authConfig = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: env().AUTH_SECRET,
 } satisfies NextAuthConfig;

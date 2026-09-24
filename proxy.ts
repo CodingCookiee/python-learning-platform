@@ -9,22 +9,36 @@ import { NextResponse } from "next/server";
 export async function proxy(req: NextRequest) {
   const token = await getToken({
     req,
-    secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+    secret: process.env.AUTH_SECRET,
     secureCookie: req.nextUrl.protocol === "https:",
   });
   const isAuthenticated = !!token;
   const pathname = req.nextUrl.pathname;
 
   // API routes that require authentication
-  const protectedApiRoutes = ["/api/progress", "/api/exercises/submit", "/api/user"];
+  // (API handlers also enforce auth themselves via withAuth)
+  const protectedApiRoutes = ["/api/progress", "/api/exercises", "/api/profile", "/api/settings"];
   const isProtectedApi = protectedApiRoutes.some((route) => pathname.startsWith(route));
 
   // Protected app routes
-  const protectedRoutes = ["/dashboard", "/modules", "/lessons", "/profile"];
+  const protectedRoutes = [
+    "/dashboard",
+    "/modules",
+    "/lessons",
+    "/exercises",
+    "/projects",
+    "/achievements",
+    "/profile",
+    "/settings",
+  ];
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
 
+  if (!isAuthenticated && isProtectedApi) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   // Redirect unauthenticated users to sign in
-  if (!isAuthenticated && (isProtectedRoute || isProtectedApi)) {
+  if (!isAuthenticated && isProtectedRoute) {
     const signInUrl = new URL("/auth/signin", req.url);
     signInUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(signInUrl);
@@ -38,13 +52,9 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
-  // Admin route protection - redirect non-admins to dashboard
-  if (isAuthenticated && pathname.startsWith("/admin")) {
-    const adminEmails = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim());
-    const userEmail = token?.email as string | undefined;
-    if (!userEmail || !adminEmails.includes(userEmail)) {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
-    }
+  // Admin route protection (optimistic; pages re-check with isAdmin)
+  if (isAuthenticated && pathname.startsWith("/admin") && token?.role !== "ADMIN") {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
   // Unauthenticated users trying to access admin get sent to sign-in

@@ -17,20 +17,24 @@ Before deploying, configure these environment variables in your Vercel project d
 DATABASE_URL=postgresql://user:password@host:5432/dbname
 ```
 
-### Authentication (NextAuth.js)
+> The full, current list lives in `.env.example` and `docs/ARCHITECTURE.md` §11.
+> Set `DIRECT_URL` too: the Vercel build runs `prisma migrate deploy` with it.
+
+### Authentication (Auth.js v5)
 
 ```
-NEXTAUTH_URL=https://your-domain.vercel.app
-NEXTAUTH_SECRET=generate-with-openssl-rand-base64-32
+AUTH_URL=https://your-domain.vercel.app
+AUTH_SECRET=generate-with-openssl-rand-base64-32
+ADMIN_BOOTSTRAP_EMAIL=you@example.com   # this account becomes ADMIN on first sign-in
 ```
 
-### OAuth Providers (Optional for MVP)
+### OAuth Providers (optional; enabled only when both values are set)
 
 ```
-GITHUB_CLIENT_ID=your-github-client-id
-GITHUB_CLIENT_SECRET=your-github-client-secret
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
+AUTH_GITHUB_ID=your-github-client-id
+AUTH_GITHUB_SECRET=your-github-client-secret
+AUTH_GOOGLE_ID=your-google-client-id
+AUTH_GOOGLE_SECRET=your-google-client-secret
 ```
 
 ### Redis (Upstash)
@@ -89,18 +93,15 @@ Copy the output and set it as `NEXTAUTH_SECRET` in Vercel.
 
 After deploying, run migrations in Vercel:
 
+Migrations run automatically during the Vercel build (`prisma migrate deploy`).
+To apply them manually and seed content:
+
 ```bash
-# Using Vercel CLI
-vercel env pull .env.local
-npm run db:push
+npm run db:deploy
 npm run db:seed
 ```
 
-Or use Prisma Migrate in production:
-
-```bash
-npx prisma migrate deploy
-```
+For schema changes during development, use `npm run db:migrate -- --name <change>`.
 
 ### 6. Deploy to Vercel
 

@@ -23,15 +23,16 @@ export function withAuth<TParams extends Record<string, string> = Record<string,
 ) {
   return async (req: NextRequest, routeContext?: { params: Promise<TParams> }) => {
     const session = await auth();
+    const sessionUserId = session?.user?.id;
 
-    if (!session?.user?.email) {
+    if (!sessionUserId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get user ID from database
+    // Confirm the user still exists (e.g. account deleted with a live token)
     const { prisma } = await import("@/lib/prisma");
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
+      where: { id: sessionUserId },
       select: { id: true },
     });
 
@@ -54,12 +55,10 @@ export async function isAdmin(userId: string): Promise<boolean> {
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { email: true },
+    select: { role: true },
   });
 
-  // For MVP, check if email matches admin list
-  const adminEmails = process.env.ADMIN_EMAILS?.split(",") || [];
-  return adminEmails.includes(user?.email || "");
+  return user?.role === "ADMIN";
 }
 
 /**
@@ -77,52 +76,4 @@ export function withAdmin<TParams extends Record<string, string> = Record<string
 
     return handler(req, context);
   });
-}
-
-/**
- * Rate limiting helper (simple in-memory implementation)
- */
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
-
-export function rateLimit(
-  identifier: string,
-  limit: number = 10,
-  windowMs: number = 60000
-): boolean {
-  const now = Date.now();
-  const record = rateLimitMap.get(identifier);
-
-  if (!record || now > record.resetTime) {
-    rateLimitMap.set(identifier, {
-      count: 1,
-      resetTime: now + windowMs,
-    });
-    return true;
-  }
-
-  if (record.count >= limit) {
-    return false;
-  }
-
-  record.count++;
-  return true;
-}
-
-/**
- * Wrapper for API routes with rate limiting
- */
-export function withRateLimit(
-  handler: (req: NextRequest) => Promise<Response>,
-  limit: number = 10,
-  windowMs: number = 60000
-) {
-  return async (req: NextRequest) => {
-    const identifier = req.headers.get("x-forwarded-for") || "anonymous";
-
-    if (!rateLimit(identifier, limit, windowMs)) {
-      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
-    }
-
-    return handler(req);
-  };
 }

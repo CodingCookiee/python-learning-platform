@@ -1,134 +1,36 @@
 import { Redis } from "@upstash/redis";
+import { isRedisConfigured, env } from "@/lib/env";
 
 /**
- * Redis client for caching
- * Uses Upstash Redis for Vercel deployment
+ * Redis client for caching (Upstash REST, works on Vercel serverless).
+ *
+ * When Upstash isn't configured, a no-op client is used instead so the app
+ * keeps working without a cache rather than erroring on every call.
  */
 
-// Create Redis client using REST API (works with Vercel serverless)
-export const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL || "",
-  token: process.env.UPSTASH_REDIS_REST_TOKEN || "",
-});
+type RedisLike = Pick<Redis, "get" | "set" | "setex" | "del" | "keys" | "exists" | "expire">;
 
-/**
- * Cache utility functions
- */
-
-export const cache = {
-  /**
-   * Get data from cache
-   */
-  async get<T>(key: string): Promise<T | null> {
-    try {
-      const data = await redis.get(key);
-      return data as T | null;
-    } catch (error) {
-      console.error("Redis GET error:", error);
-      return null;
-    }
-  },
-
-  /**
-   * Set data in cache with optional TTL (in seconds)
-   */
-  async set(key: string, value: unknown, ttl?: number): Promise<boolean> {
-    try {
-      if (ttl) {
-        await redis.setex(key, ttl, JSON.stringify(value));
-      } else {
-        await redis.set(key, JSON.stringify(value));
-      }
-      return true;
-    } catch (error) {
-      console.error("Redis SET error:", error);
-      return false;
-    }
-  },
-
-  /**
-   * Delete data from cache
-   */
-  async delete(key: string): Promise<boolean> {
-    try {
-      await redis.del(key);
-      return true;
-    } catch (error) {
-      console.error("Redis DELETE error:", error);
-      return false;
-    }
-  },
-
-  /**
-   * Delete multiple keys matching a pattern
-   */
-  async deletePattern(pattern: string): Promise<boolean> {
-    try {
-      const keys = await redis.keys(pattern);
-      if (keys.length > 0) {
-        await redis.del(...keys);
-      }
-      return true;
-    } catch (error) {
-      console.error("Redis DELETE PATTERN error:", error);
-      return false;
-    }
-  },
-
-  /**
-   * Check if key exists
-   */
-  async exists(key: string): Promise<boolean> {
-    try {
-      const result = await redis.exists(key);
-      return result === 1;
-    } catch (error) {
-      console.error("Redis EXISTS error:", error);
-      return false;
-    }
-  },
-
-  /**
-   * Set expiration time on a key
-   */
-  async expire(key: string, seconds: number): Promise<boolean> {
-    try {
-      await redis.expire(key, seconds);
-      return true;
-    } catch (error) {
-      console.error("Redis EXPIRE error:", error);
-      return false;
-    }
-  },
+const noopRedis: RedisLike = {
+  get: (async () => null) as unknown as Redis["get"],
+  set: (async () => "OK") as unknown as Redis["set"],
+  setex: (async () => "OK") as unknown as Redis["setex"],
+  del: (async () => 0) as unknown as Redis["del"],
+  keys: (async () => []) as unknown as Redis["keys"],
+  exists: (async () => 0) as unknown as Redis["exists"],
+  expire: (async () => 0) as unknown as Redis["expire"],
 };
 
-/**
- * Cache key generators for consistent naming
- */
-export const cacheKeys = {
-  // Content caching
-  module: (id: string) => `module:${id}`,
-  modules: () => "modules:all",
-  lesson: (id: string) => `lesson:${id}`,
-  lessons: (moduleId: string) => `lessons:module:${moduleId}`,
-  exercise: (id: string) => `exercise:${id}`,
+function createRedis(): RedisLike {
+  if (!isRedisConfigured()) {
+    if (env().NODE_ENV !== "test") {
+      console.warn("[redis] Upstash not configured; caching is disabled.");
+    }
+    return noopRedis;
+  }
+  return new Redis({
+    url: env().UPSTASH_REDIS_REST_URL!,
+    token: env().UPSTASH_REDIS_REST_TOKEN!,
+  });
+}
 
-  // User progress caching
-  userProgress: (userId: string) => `progress:user:${userId}`,
-  userStreak: (userId: string) => `streak:user:${userId}`,
-  userAchievements: (userId: string) => `achievements:user:${userId}`,
-
-  // Session caching
-  session: (sessionId: string) => `session:${sessionId}`,
-};
-
-/**
- * Cache TTL constants (in seconds)
- */
-export const cacheTTL = {
-  SHORT: 60 * 5, // 5 minutes
-  MEDIUM: 60 * 30, // 30 minutes
-  LONG: 60 * 60, // 1 hour
-  DAY: 60 * 60 * 24, // 24 hours
-  WEEK: 60 * 60 * 24 * 7, // 7 days
-};
+export const redis = createRedis();

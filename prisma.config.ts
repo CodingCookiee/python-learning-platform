@@ -8,7 +8,9 @@ export default defineConfig({
   migrations: {
     path: "prisma/migrations",
   },
+  // The CLI (migrate/studio) uses the direct connection; the app uses the
+  // pooled DATABASE_URL at runtime via the pg adapter (lib/prisma.ts).
   datasource: {
-    url: process.env["DATABASE_URL"],
+    url: process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"],
   },
 });
