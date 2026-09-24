@@ -6,7 +6,6 @@ import { Check, X, Circle, RotateCcw, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Seal } from "@/components/brand/seal";
 import { usePyodide } from "@/lib/pyodide";
-import { cn } from "@/lib/utils";
 
 const STARTER = `def greet(name):
     # Return a greeting, e.g. "Hello, Raza!"
@@ -174,26 +173,32 @@ export function LiveDrill({ onPass }: { onPass?: () => void }) {
           return (
             <li
               key={c.arg}
-              className="flex items-center gap-3 border-b border-border/70 px-5 py-2 font-mono text-[0.8125rem] last:border-b-0"
+              className="flex items-start gap-3 border-b border-border/70 px-5 py-2 font-mono text-[0.8125rem] last:border-b-0 sm:items-center"
             >
-              {r ? (
-                r.passed ? (
-                  <Check className="size-4 shrink-0 text-success" aria-label="Passed" />
+              <span className="flex h-5 items-center">
+                {r ? (
+                  r.passed ? (
+                    <Check className="size-4 shrink-0 text-success" aria-label="Passed" />
+                  ) : (
+                    <X className="size-4 shrink-0 text-destructive" aria-label="Failed" />
+                  )
                 ) : (
-                  <X className="size-4 shrink-0 text-destructive" aria-label="Failed" />
-                )
-              ) : (
-                <Circle className="size-3.5 shrink-0 text-muted-foreground/50" aria-hidden="true" />
-              )}
-              <span className="min-w-0 truncate">
-                greet(<span className="text-(--code-string)">&quot;{c.arg}&quot;</span>)
-              </span>
-              <span className="ml-auto flex min-w-0 items-center gap-2 truncate text-muted-foreground">
-                {r && !r.passed ? (
-                  <span className="truncate text-destructive">got {r.got}</span>
-                ) : (
-                  <span className="truncate">&quot;{c.expected}&quot;</span>
+                  <Circle className="size-3.5 shrink-0 text-muted-foreground/50" aria-hidden="true" />
                 )}
+              </span>
+              <span className="flex min-w-0 flex-1 flex-col sm:flex-row sm:items-center sm:gap-4">
+                <span className="min-w-0 wrap-break-word">
+                  greet(<span className="text-(--code-string)">&quot;{c.arg}&quot;</span>)
+                </span>
+                <span className="min-w-0 wrap-break-word text-muted-foreground sm:ml-auto sm:text-right">
+                  {r && !r.passed ? (
+                    <span className="text-destructive">got {r.got}</span>
+                  ) : (
+                    <>
+                      <span className="sm:hidden">→ </span>&quot;{c.expected}&quot;
+                    </>
+                  )}
+                </span>
               </span>
             </li>
           );
@@ -222,24 +227,16 @@ export function LiveDrill({ onPass }: { onPass?: () => void }) {
       </div>
 
       {status === "passed" && (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border bg-accent/50 px-5 py-4">
-          <p className="text-sm">
+        <div className="flex items-center gap-5 border-t border-border bg-accent/60 px-5 py-4">
+          <p className="min-w-0 flex-1 text-sm">
             <span className="font-semibold">Stripe earned.</span>{" "}
             <Link href="/auth/signup" className="text-primary underline">
               Create an account
             </Link>{" "}
             to keep it and start the white belt syllabus.
           </p>
+          <Seal label="Passed" detail="Drill 1" animate className="shrink-0" />
         </div>
-      )}
-
-      {status === "passed" && (
-        <Seal
-          label="Passed"
-          detail="Drill 1"
-          animate
-          className={cn("pointer-events-none absolute -top-5 right-5 bg-sheet")}
-        />
       )}
     </div>
   );

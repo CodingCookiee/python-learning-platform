@@ -21,13 +21,16 @@ export function SiteHeader() {
             For JS developers
           </Link>
         </nav>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           <ThemeToggle />
-          <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
+          <Button variant="ghost" size="sm" asChild>
             <Link href="/auth/signin">Sign in</Link>
           </Button>
           <Button size="sm" asChild>
-            <Link href="/auth/signup">Start at white belt</Link>
+            <Link href="/auth/signup">
+              <span className="sm:hidden">Start</span>
+              <span className="hidden sm:inline">Start at white belt</span>
+            </Link>
           </Button>
         </div>
       </div>

@@ -40,7 +40,7 @@ Success means a learner can do the thing again without hints. Finishing content 
 ## Brand Commitments
 
 - Name: **pylearn** (lowercase wordmark). The logo is a belt-knot mark (`components/brand/logo.tsx`, `app/icon.svg`).
-- **Soft color only.** Low-saturation, washed tones. No loud, vibrant or dominant accents; saturated red in particular was explicitly rejected (2026-09-24).
+- **Balanced color: soft, but with life.** No loud, vibrant or dominant accents; saturated red was explicitly rejected. Flat greys and slate also read as dull and were rejected. The chosen balance is a jade-green accent with a warm straw-yellow highlight, over green-tinted neutrals (2026-09-24).
 
 ## Evidence on Hand
 

@@ -18,7 +18,7 @@ export function BeltBand({
   belt: BeltKey;
   slots?: number;
   filled?: number;
-  /** Index of a stripe that was just earned; it animates on */
+  /** Index of a stripe that was just earned; it animates on in straw yellow */
   fresh?: number;
   /** How many of the earned stripes are fading (skill due for review) */
   faded?: number;
@@ -51,7 +51,7 @@ export function BeltBand({
               key={i}
               className={cn(
                 "w-1.25",
-                i < filled ? "bg-tape" : "bg-transparent",
+                i < filled ? (i === fresh ? "bg-highlight" : "bg-tape") : "bg-transparent",
                 i < filled && i >= filled - faded && "opacity-35",
                 i === fresh && "animate-tape-on"
               )}
@@ -63,14 +63,68 @@ export function BeltBand({
   );
 }
 
-export interface LadderModule {
-  order: number;
-  title: string;
+/** Dashed band for the AI track's dan ranks, which are not open yet */
+function DanBand({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn(
+        "belt-cloth relative flex h-6 items-stretch justify-start border border-dashed border-(--keyline)/70",
+        className
+      )}
+      style={{ color: "var(--keyline)" }}
+      aria-hidden="true"
+    >
+      {Array.from({ length: 8 }).map((_, i) => (
+        <span key={i} className="my-1.25 ml-1.5 w-1 bg-highlight/80" />
+      ))}
+    </div>
+  );
+}
+
+/** The tag tied onto the learner's current belt */
+function HereTag({ label }: { label: string }) {
+  return (
+    <span className="inline-flex w-fit items-center rounded-t-sm bg-highlight px-2 py-0.5 text-xs leading-4 font-semibold whitespace-nowrap text-highlight-foreground">
+      {label}
+    </span>
+  );
+}
+
+type Rung = {
+  key: string;
+  label: string;
+  range: string;
+  span: number;
+  kind: "belt" | "dan";
+  belt?: BeltKey;
+};
+
+function rungs(showDan: boolean): Rung[] {
+  const list: Rung[] = BELTS.map((b) => ({
+    key: b.key,
+    label: b.label,
+    range: kyuRange(b),
+    span: b.toModule - b.fromModule + 1,
+    kind: "belt",
+    belt: b.key,
+  }));
+  list.push({ key: "black", label: "Black belt", range: "1st dan", span: 2.2, kind: "belt", belt: "black" });
+  if (showDan) {
+    list.push({
+      key: "dan",
+      label: "AI automation",
+      range: "2nd–9th dan · in preparation",
+      span: 3,
+      kind: "dan",
+    });
+  }
+  return list;
 }
 
 /**
  * The full belt ladder: every Python belt sized by its modules, then black
- * belt, then the dan ranks of the AI track.
+ * belt, then the dan ranks of the AI track. Horizontal from `sm` up; a
+ * vertical list on phones so every label stays whole.
  */
 export function BeltLadder({
   currentBelt = "white",
@@ -87,84 +141,73 @@ export function BeltLadder({
   className?: string;
   hereLabel?: string;
 }) {
+  const items = rungs(showDan);
+
+  function band(r: Rung, isCurrent: boolean, extra?: string) {
+    if (r.kind === "dan") return <DanBand className={extra} />;
+    const isPythonBelt = r.belt !== "black";
+    return (
+      <BeltBand
+        belt={r.belt!}
+        slots={isPythonBelt ? r.span : 0}
+        filled={isCurrent ? stripes : 0}
+        fresh={isCurrent ? fresh : undefined}
+        className={extra}
+      />
+    );
+  }
+
   return (
     <div className={cn("w-full", className)}>
-      <ol className="flex w-full items-end gap-1.5 sm:gap-2" aria-label="Belt ranks">
-        {BELTS.map((belt) => {
-          const span = belt.toModule - belt.fromModule + 1;
-          const isCurrent = belt.key === currentBelt;
+      {/* Horizontal ladder */}
+      <ol className="hidden w-full items-end gap-2 sm:flex" aria-label="Belt ranks">
+        {items.map((r) => {
+          const isCurrent = r.kind === "belt" && r.belt === currentBelt;
           return (
             <li
-              key={belt.key}
-              className="flex min-w-0 flex-col gap-2"
-              style={{ flexGrow: span, flexBasis: 0 }}
+              key={r.key}
+              className="flex min-w-0 flex-col"
+              style={{ flexGrow: r.span, flexBasis: 0 }}
               aria-current={isCurrent ? "step" : undefined}
             >
-              <span
-                className={cn(
-                  "font-condensed h-4 truncate text-[0.6875rem] font-semibold uppercase tracking-[0.04em]",
-                  isCurrent ? "text-seal" : "invisible"
-                )}
-              >
-                {isCurrent ? hereLabel : ""}
-              </span>
-              <BeltBand
-                belt={belt.key}
-                slots={span}
-                filled={isCurrent ? stripes : 0}
-                fresh={isCurrent ? fresh : undefined}
-              />
-              <span className="flex min-w-0 flex-col">
+              <span className="flex h-5 items-end">{isCurrent && <HereTag label={hereLabel} />}</span>
+              {band(r, isCurrent)}
+              <span className="mt-2 flex min-w-0 flex-col">
                 <span className="font-condensed truncate text-sm leading-tight font-bold">
-                  {belt.label}
+                  {r.label}
                 </span>
                 <span className="font-condensed tabular truncate text-xs text-muted-foreground">
-                  {kyuRange(belt)}
+                  {r.range}
                 </span>
               </span>
             </li>
           );
         })}
-        <li className="flex min-w-0 flex-col gap-2" style={{ flexGrow: 2.2, flexBasis: 0 }}>
-          <span className="h-4" aria-hidden="true" />
-          <BeltBand belt="black" />
-          <span className="flex min-w-0 flex-col">
-            <span className="font-condensed truncate text-sm leading-tight font-bold">
-              Black belt
-            </span>
-            <span className="font-condensed truncate text-xs text-muted-foreground">
-              1st dan
-            </span>
-          </span>
-        </li>
-        {showDan && (
-          <li
-            className="hidden min-w-0 flex-col gap-2 md:flex"
-            style={{ flexGrow: 3, flexBasis: 0 }}
-          >
-            <span className="h-4" aria-hidden="true" />
-            <div
-              className="belt-cloth relative flex h-6 items-stretch justify-start border border-dashed border-(--keyline)/70"
-              style={{ color: "var(--keyline)" }}
+      </ol>
+
+      {/* Vertical ladder on phones */}
+      <ol className="flex flex-col gap-3 sm:hidden" aria-label="Belt ranks">
+        {items.map((r) => {
+          const isCurrent = r.kind === "belt" && r.belt === currentBelt;
+          return (
+            <li
+              key={r.key}
+              className="grid grid-cols-[6.5rem_minmax(0,1fr)] items-center gap-4"
+              aria-current={isCurrent ? "step" : undefined}
             >
-              {Array.from({ length: 8 }).map((_, i) => (
-                <span
-                  key={i}
-                  className="my-1.25 ml-1.5 w-1 bg-(--belt-yellow)/70"
-                  aria-hidden="true"
-                />
-              ))}
-            </div>
-            <span className="flex min-w-0 flex-col">
-              <span className="font-condensed truncate text-sm leading-tight font-bold">
-                AI automation
+              {band(r, isCurrent, "h-5")}
+              <span className="flex min-w-0 flex-wrap items-baseline gap-x-2">
+                <span className="font-condensed text-sm font-bold">{r.label}</span>
+                <span className="font-condensed tabular text-xs text-muted-foreground">{r.range}</span>
+                {isCurrent && (
+                  <span className="rounded-sm bg-highlight px-1.5 text-xs font-semibold text-highlight-foreground">
+                    {stripes > 0 ? "Stripe earned" : hereLabel}
+                  </span>
+                )}
               </span>
-              <span className="font-condensed truncate text-xs text-muted-foreground">
-                2nd–9th dan · in preparation
-              </span>
-            </span>
-          </li>
-        )}
+            </li>
+          );
+        })}
       </ol>
     </div>
   );

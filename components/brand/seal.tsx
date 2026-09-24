@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 /**
- * The examiner's seal: a square vermilion stamp pressed onto passed work.
+ * The examiner's seal: a square jade stamp pressed onto passed work.
  */
 export function Seal({
   label = "Passed",

@@ -5,10 +5,11 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   pylearn: the Grading Syllabus, in washed indigo
-   Cool cotton ground, indigo-charcoal ink, faded belt dyes as rank data, and
-   one soft indigo (aizome) accent for action and the examiner's seal.
-   Everything stays low-chroma: soft, never loud.
+   pylearn: the Grading Syllabus, in jade and straw
+   Green-tinted cotton ground and deep green ink, a jade accent for action and
+   the examiner's seal, a straw-yellow highlight used sparingly, and belt dyes
+   as rank data. Balanced: soft enough to live with, with enough colour to feel
+   alive.
    ───────────────────────────────────────────────────────────────────────── */
 
 @theme inline {
@@ -49,6 +50,8 @@
   --color-success: var(--success);
   --color-seal: var(--seal);
   --color-seal-foreground: var(--seal-foreground);
+  --color-highlight: var(--highlight);
+  --color-highlight-foreground: var(--highlight-foreground);
   --color-sheet: var(--sheet);
 
   /* Belt cloth, used only as rank data */
@@ -74,98 +77,104 @@
 :root {
   --radius: 0.25rem;
 
-  /* Washed cotton gi in daylight */
-  --background: oklch(0.968 0.004 250);
-  --foreground: oklch(0.27 0.022 262);
-  --sheet: oklch(0.988 0.003 250);
-  --card: oklch(0.988 0.003 250);
-  --card-foreground: oklch(0.27 0.022 262);
-  --popover: oklch(0.988 0.003 250);
-  --popover-foreground: oklch(0.27 0.022 262);
-  --primary: oklch(0.47 0.07 262);
-  --primary-foreground: oklch(0.98 0.005 250);
-  --secondary: oklch(0.93 0.008 250);
-  --secondary-foreground: oklch(0.27 0.022 262);
-  --muted: oklch(0.94 0.006 250);
-  --muted-foreground: oklch(0.47 0.018 262);
-  --accent: oklch(0.93 0.012 255);
-  --accent-foreground: oklch(0.27 0.022 262);
-  --destructive: oklch(0.52 0.09 25);
-  --success: oklch(0.5 0.06 155);
-  --seal: oklch(0.47 0.07 262);
-  --seal-foreground: oklch(0.98 0.005 250);
-  --border: oklch(0.885 0.009 255);
-  --input: oklch(0.82 0.012 255);
-  --ring: oklch(0.55 0.07 262);
+  /* Fresh cotton in daylight */
+  --background: oklch(0.972 0.012 145);
+  --foreground: oklch(0.27 0.035 162);
+  --sheet: oklch(0.99 0.006 145);
+  --card: oklch(0.99 0.006 145);
+  --card-foreground: oklch(0.27 0.035 162);
+  --popover: oklch(0.99 0.006 145);
+  --popover-foreground: oklch(0.27 0.035 162);
+  --primary: oklch(0.52 0.11 162);
+  --primary-foreground: oklch(0.985 0.01 145);
+  --secondary: oklch(0.935 0.02 145);
+  --secondary-foreground: oklch(0.27 0.035 162);
+  --muted: oklch(0.94 0.016 145);
+  --muted-foreground: oklch(0.45 0.035 160);
+  --accent: oklch(0.925 0.035 150);
+  --accent-foreground: oklch(0.27 0.035 162);
+  --highlight: oklch(0.88 0.12 95);
+  --highlight-foreground: oklch(0.33 0.06 80);
+  --destructive: oklch(0.54 0.13 30);
+  --success: oklch(0.52 0.11 150);
+  --seal: oklch(0.52 0.11 162);
+  --seal-foreground: oklch(0.985 0.01 145);
+  --border: oklch(0.875 0.022 148);
+  --input: oklch(0.8 0.03 150);
+  --ring: oklch(0.56 0.11 162);
 
-  /* Faded belt dyes */
-  --belt-white: oklch(0.985 0.004 95);
-  --belt-yellow: oklch(0.87 0.07 88);
-  --belt-green: oklch(0.72 0.06 152);
-  --belt-blue: oklch(0.67 0.065 250);
-  --belt-brown: oklch(0.58 0.045 55);
-  --belt-black: oklch(0.32 0.018 262);
-  --tape: oklch(0.975 0.004 95);
-  --keyline: oklch(0.42 0.02 262);
+  /* Belt dyes */
+  --belt-white: oklch(0.99 0.008 100);
+  --belt-yellow: oklch(0.88 0.11 93);
+  --belt-green: oklch(0.72 0.1 145);
+  --belt-blue: oklch(0.66 0.085 240);
+  --belt-brown: oklch(0.57 0.065 60);
+  --belt-black: oklch(0.3 0.03 162);
+  --belt-black-mark: oklch(0.3 0.03 162);
+  --tape: oklch(0.985 0.008 100);
+  --keyline: oklch(0.4 0.035 162);
 
-  --chart-1: var(--belt-green);
+  --chart-1: var(--primary);
   --chart-2: var(--belt-blue);
-  --chart-3: var(--belt-yellow);
+  --chart-3: var(--highlight);
   --chart-4: var(--belt-brown);
-  --chart-5: var(--seal);
+  --chart-5: var(--belt-green);
 
-  --sidebar: oklch(0.955 0.006 250);
-  --sidebar-foreground: oklch(0.27 0.022 262);
-  --sidebar-primary: oklch(0.47 0.07 262);
-  --sidebar-primary-foreground: oklch(0.98 0.005 250);
-  --sidebar-accent: oklch(0.93 0.012 255);
-  --sidebar-accent-foreground: oklch(0.27 0.022 262);
-  --sidebar-border: oklch(0.885 0.009 255);
-  --sidebar-ring: oklch(0.55 0.07 262);
+  --sidebar: oklch(0.96 0.015 145);
+  --sidebar-foreground: oklch(0.27 0.035 162);
+  --sidebar-primary: oklch(0.52 0.11 162);
+  --sidebar-primary-foreground: oklch(0.985 0.01 145);
+  --sidebar-accent: oklch(0.925 0.035 150);
+  --sidebar-accent-foreground: oklch(0.27 0.035 162);
+  --sidebar-border: oklch(0.875 0.022 148);
+  --sidebar-ring: oklch(0.56 0.11 162);
 }
 
-/* Indigo-dyed cloth in the evening training hall */
+/* Forest-green cloth in the evening training hall */
 .dark {
-  --background: oklch(0.2 0.014 262);
-  --foreground: oklch(0.93 0.006 250);
-  --sheet: oklch(0.235 0.016 262);
-  --card: oklch(0.235 0.016 262);
-  --card-foreground: oklch(0.93 0.006 250);
-  --popover: oklch(0.25 0.017 262);
-  --popover-foreground: oklch(0.93 0.006 250);
-  --primary: oklch(0.78 0.055 258);
-  --primary-foreground: oklch(0.22 0.02 262);
-  --secondary: oklch(0.28 0.017 262);
-  --secondary-foreground: oklch(0.93 0.006 250);
-  --muted: oklch(0.265 0.016 262);
-  --muted-foreground: oklch(0.74 0.014 255);
-  --accent: oklch(0.3 0.024 262);
-  --accent-foreground: oklch(0.93 0.006 250);
-  --destructive: oklch(0.74 0.08 25);
-  --success: oklch(0.76 0.06 155);
-  --seal: oklch(0.78 0.055 258);
-  --seal-foreground: oklch(0.22 0.02 262);
-  --border: oklch(0.34 0.018 262);
-  --input: oklch(0.42 0.02 262);
-  --ring: oklch(0.78 0.055 258);
+  --background: oklch(0.205 0.024 165);
+  --foreground: oklch(0.945 0.016 140);
+  --sheet: oklch(0.24 0.026 165);
+  --card: oklch(0.24 0.026 165);
+  --card-foreground: oklch(0.945 0.016 140);
+  --popover: oklch(0.255 0.027 165);
+  --popover-foreground: oklch(0.945 0.016 140);
+  --primary: oklch(0.8 0.12 156);
+  --primary-foreground: oklch(0.22 0.035 165);
+  --secondary: oklch(0.28 0.026 165);
+  --secondary-foreground: oklch(0.945 0.016 140);
+  --muted: oklch(0.27 0.024 165);
+  --muted-foreground: oklch(0.77 0.035 150);
+  --accent: oklch(0.31 0.04 162);
+  --accent-foreground: oklch(0.945 0.016 140);
+  --highlight: oklch(0.86 0.12 95);
+  --highlight-foreground: oklch(0.26 0.045 80);
+  --destructive: oklch(0.76 0.11 30);
+  --success: oklch(0.8 0.11 150);
+  --seal: oklch(0.8 0.12 156);
+  --seal-foreground: oklch(0.22 0.035 165);
+  --border: oklch(0.35 0.03 165);
+  --input: oklch(0.44 0.035 165);
+  --ring: oklch(0.8 0.12 156);
 
-  --belt-white: oklch(0.9 0.006 95);
-  --belt-yellow: oklch(0.8 0.065 88);
-  --belt-green: oklch(0.66 0.055 152);
-  --belt-blue: oklch(0.62 0.06 250);
-  --belt-brown: oklch(0.52 0.04 55);
-  --belt-black: oklch(0.15 0.012 262);
-  --tape: oklch(0.92 0.006 95);
-  --keyline: oklch(0.6 0.018 258);
+  --belt-white: oklch(0.93 0.01 100);
+  --belt-yellow: oklch(0.84 0.1 93);
+  --belt-green: oklch(0.7 0.095 145);
+  --belt-blue: oklch(0.65 0.08 240);
+  --belt-brown: oklch(0.53 0.06 60);
+  --belt-black: oklch(0.14 0.02 165);
+  --belt-black-mark: oklch(0.945 0.016 140);
+  --tape: oklch(0.94 0.01 100);
+  --keyline: oklch(0.63 0.04 155);
 
-  --sidebar: oklch(0.225 0.015 262);
-  --sidebar-foreground: oklch(0.93 0.006 250);
-  --sidebar-primary: oklch(0.78 0.055 258);
-  --sidebar-primary-foreground: oklch(0.22 0.02 262);
-  --sidebar-accent: oklch(0.3 0.024 262);
-  --sidebar-accent-foreground: oklch(0.93 0.006 250);
-  --sidebar-border: oklch(0.34 0.018 262);
-  --sidebar-ring: oklch(0.78 0.055 258);
+  --sidebar: oklch(0.225 0.025 165);
+  --sidebar-foreground: oklch(0.945 0.016 140);
+  --sidebar-primary: oklch(0.8 0.12 156);
+  --sidebar-primary-foreground: oklch(0.22 0.035 165);
+  --sidebar-accent: oklch(0.31 0.04 162);
+  --sidebar-accent-foreground: oklch(0.945 0.016 140);
+  --sidebar-border: oklch(0.35 0.03 165);
+  --sidebar-ring: oklch(0.8 0.12 156);
 }
 
 @layer base {
@@ -293,18 +302,18 @@
   }
 }
 
-/* ── Code (highlight.js): the belt dyes, deepened for legibility ───────── */
+/* ── Code (highlight.js): the palette, deepened for legibility ─────────── */
 :root {
-  --code-keyword: oklch(0.45 0.075 262);
-  --code-string: oklch(0.46 0.06 152);
-  --code-number: oklch(0.5 0.07 45);
-  --code-attr: oklch(0.47 0.05 70);
+  --code-keyword: oklch(0.45 0.1 165);
+  --code-string: oklch(0.5 0.1 100);
+  --code-number: oklch(0.52 0.11 45);
+  --code-attr: oklch(0.47 0.08 245);
 }
 .dark {
-  --code-keyword: oklch(0.8 0.06 258);
-  --code-string: oklch(0.8 0.06 152);
-  --code-number: oklch(0.82 0.06 55);
-  --code-attr: oklch(0.85 0.06 88);
+  --code-keyword: oklch(0.82 0.11 158);
+  --code-string: oklch(0.87 0.11 95);
+  --code-number: oklch(0.82 0.09 55);
+  --code-attr: oklch(0.8 0.08 240);
 }
 .hljs {
   color: var(--foreground);

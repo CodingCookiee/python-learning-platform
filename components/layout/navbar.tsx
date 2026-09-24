@@ -46,7 +46,7 @@ export async function Navbar() {
             className="rounded-sm"
             aria-label={rank ? `pylearn home, ${rank.label} ${rank.beltLabel}` : "pylearn home"}
           >
-            <Logo belt={rank?.belt ?? "black"} />
+            <Logo belt={rank?.belt ?? "accent"} />
           </Link>
 
           {user && (

@@ -2,20 +2,29 @@ import type { CSSProperties } from "react";
 import { cn } from "@/lib/utils";
 import { beltVar, type BeltKey } from "@/lib/ranks";
 
+export type MarkColor = BeltKey | "accent";
+
+function markFill(color: MarkColor): string {
+  if (color === "accent") return "var(--primary)";
+  // A black belt must keep its mass on the dark ground too
+  if (color === "black") return "var(--belt-black-mark)";
+  return beltVar(color);
+}
+
 /**
- * The pylearn mark: a tied belt knot. Its cloth takes the learner's current
- * belt, so the mark is also a rank badge.
+ * The pylearn mark: a tied belt knot. Signed-in learners see it in their
+ * current belt; everyone else sees it in the jade accent.
  */
 export function BeltKnot({
-  belt = "black",
+  belt = "accent",
   className,
   title,
 }: {
-  belt?: BeltKey;
+  belt?: MarkColor;
   className?: string;
   title?: string;
 }) {
-  const style = { "--mark-belt": beltVar(belt) } as CSSProperties;
+  const style = { "--mark-belt": markFill(belt) } as CSSProperties;
   return (
     <svg
       viewBox="0 0 32 32"
@@ -46,11 +55,11 @@ export function BeltKnot({
 }
 
 export function Logo({
-  belt = "black",
+  belt = "accent",
   className,
   markClassName,
 }: {
-  belt?: BeltKey;
+  belt?: MarkColor;
   className?: string;
   markClassName?: string;
 }) {

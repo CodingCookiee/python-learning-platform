@@ -33,8 +33,8 @@ const BRIDGE: Array<{ concept: string; js: string; py: string }> = [
   },
   {
     concept: "Run requests concurrently",
-    js: "await Promise.all([getUser(), getOrders()]);",
-    py: "await asyncio.gather(get_user(), get_orders())",
+    js: "await Promise.all([user(), orders()]);",
+    py: "await asyncio.gather(user(), orders())",
   },
   {
     concept: "Validate data",
@@ -105,12 +105,15 @@ export default async function LandingPage() {
                   >
                     <div className="flex flex-col gap-3">
                       <BeltBand belt={belt.key} slots={span} filled={0} />
-                      <div className="flex items-baseline justify-between gap-3">
+                      <div className="flex items-end justify-between gap-3">
                         <h3 id={`belt-${belt.key}`} className="font-condensed text-2xl font-bold">
                           {belt.label}
                         </h3>
-                        <span className="font-condensed tabular text-sm text-muted-foreground">
-                          {kyuRange(belt)}
+                        <span className="font-condensed tabular leading-none whitespace-nowrap">
+                          <span className="text-4xl font-extrabold tracking-[-0.02em]">
+                            {kyuRange(belt).replace(" kyu", "")}
+                          </span>
+                          <span className="ml-1 text-sm font-semibold text-muted-foreground">kyu</span>
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground">{belt.summary}</p>
@@ -126,7 +129,8 @@ export default async function LandingPage() {
                           </span>
                           <span className="font-medium">{m.title}</span>
                           <span className="font-condensed tabular text-sm whitespace-nowrap text-muted-foreground">
-                            {m._count.lessons} lessons · ~{m.duration} h
+                            {m._count.lessons} {m._count.lessons === 1 ? "lesson" : "lessons"} · ~
+                            {m.duration} h
                           </span>
                         </li>
                       ))}
@@ -146,7 +150,10 @@ export default async function LandingPage() {
                     <h3 id="belt-black" className="font-condensed text-2xl font-bold">
                       Black belt
                     </h3>
-                    <span className="font-condensed text-sm text-muted-foreground">1st dan</span>
+                    <span className="font-condensed leading-none whitespace-nowrap">
+                      <span className="text-4xl font-extrabold tracking-[-0.02em]">1st</span>
+                      <span className="ml-1 text-sm font-semibold text-muted-foreground">dan</span>
+                    </span>
                   </div>
                 </div>
                 <p className="max-w-2xl self-center text-lg leading-relaxed">
@@ -201,62 +208,68 @@ export default async function LandingPage() {
               Rank is earned, not clicked.
             </h2>
 
-            <ol className="mt-14 grid gap-px overflow-hidden rounded-md border border-border bg-border md:grid-cols-2 lg:grid-cols-4">
-              <li className="flex flex-col gap-4 bg-background p-6">
-                <h3 className="text-lg font-semibold">Learn the technique</h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  Short lessons with examples you run in place. Change them, break them, run them
-                  again.
-                </p>
-                <pre className="mt-auto rounded-sm border border-border bg-sheet p-3 font-mono text-[0.8125rem] leading-6">
-                  <span className="text-muted-foreground">&gt;&gt;&gt; </span>
-                  [n * 2 for n in range(3)]{"\n"}
-                  <span className="text-muted-foreground">[0, 2, 4]</span>
-                </pre>
-              </li>
-              <li className="flex flex-col gap-4 bg-background p-6">
-                <h3 className="text-lg font-semibold">Drill it</h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  Graded exercises checked against real tests. Hints are there when you need them.
-                  Each one costs a little XP.
-                </p>
-                <div className="mt-auto flex flex-col rounded-sm border border-border bg-sheet font-mono text-[0.8125rem]">
-                  {['greet("Ada")', 'greet("Grace Hopper")'].map((t) => (
-                    <span
-                      key={t}
-                      className="flex items-center gap-2 border-b border-border/70 px-3 py-2 last:border-b-0"
-                    >
-                      <Check className="size-4 shrink-0 text-success" aria-hidden="true" />
-                      <span className="truncate">{t}</span>
-                      <span className="ml-auto text-muted-foreground">passed</span>
+            {/* The sequence runs along one belt; the grading is where the stripe goes on */}
+            <div className="mt-14">
+              <BeltBand belt="white" slots={4} filled={1} className="hidden h-4 lg:flex" />
+              <ol className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.5fr)_minmax(0,1fr)] lg:gap-0">
+                <li className="flex flex-col gap-4 lg:border-l lg:border-(--keyline)/40 lg:pt-7 lg:pr-8 lg:pl-5">
+                  <h3 className="text-lg font-semibold">Learn the technique</h3>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    Short lessons with examples you run in place. Change them, break them, run them
+                    again.
+                  </p>
+                  <pre className="mt-auto rounded-sm border border-border bg-sheet p-3 font-mono text-[0.8125rem] leading-6">
+                    <span className="text-muted-foreground">&gt;&gt;&gt; </span>
+                    [n * 2 for n in range(3)]{"\n"}
+                    <span className="text-muted-foreground">[0, 2, 4]</span>
+                  </pre>
+                </li>
+                <li className="flex flex-col gap-4 lg:border-l lg:border-(--keyline)/40 lg:pt-7 lg:pr-8 lg:pl-5">
+                  <h3 className="text-lg font-semibold">Drill it</h3>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    Graded exercises checked against real tests. Hints are there when you need
+                    them. Each one costs a little XP.
+                  </p>
+                  <div className="mt-auto flex flex-col rounded-sm border border-border bg-sheet font-mono text-[0.8125rem]">
+                    {['greet("Ada")', 'greet("Grace Hopper")'].map((t) => (
+                      <span
+                        key={t}
+                        className="flex items-center gap-2 border-b border-border/70 px-3 py-2 last:border-b-0"
+                      >
+                        <Check className="size-4 shrink-0 text-success" aria-hidden="true" />
+                        <span className="truncate">{t}</span>
+                        <span className="ml-auto text-muted-foreground">passed</span>
+                      </span>
+                    ))}
+                  </div>
+                </li>
+                <li className="flex flex-col gap-5 rounded-md bg-accent/70 p-6 lg:mx-3 lg:mt-3 lg:rounded-t-none lg:px-8 lg:pt-7">
+                  <h3 className="font-condensed text-4xl leading-none font-extrabold tracking-[-0.02em]">
+                    Pass the grading
+                  </h3>
+                  <p className="leading-relaxed">
+                    Every module ends with a grading: no hints, no solutions, 80% to pass. Pass it
+                    and the seal goes on your record, and a stripe goes on your belt.
+                  </p>
+                  <div className="mt-auto flex items-center justify-center py-6">
+                    <Seal label="Passed" detail="Module grading" className="origin-center scale-150" />
+                  </div>
+                </li>
+                <li className="flex flex-col gap-4 lg:border-l lg:border-(--keyline)/40 lg:pt-7 lg:pr-2 lg:pl-5">
+                  <h3 className="text-lg font-semibold">Keep it sharp</h3>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    Skills you haven&apos;t used in a while fade. A short daily review brings them
+                    back before they&apos;re gone.
+                  </p>
+                  <div className="mt-auto flex flex-col gap-2 rounded-sm border border-border bg-sheet p-3">
+                    <BeltBand belt="green" slots={3} filled={3} faded={1} />
+                    <span className="text-xs text-muted-foreground">
+                      Third stripe fading: decorators are due for review
                     </span>
-                  ))}
-                </div>
-              </li>
-              <li className="flex flex-col gap-4 bg-background p-6">
-                <h3 className="text-lg font-semibold">Pass the grading</h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  Every module ends with a grading: no hints, no solutions, 80% to pass. Pass it and
-                  the seal goes on your record.
-                </p>
-                <div className="mt-auto flex h-[5.25rem] items-center justify-center rounded-sm border border-border bg-sheet">
-                  <Seal label="Passed" detail="Module grading" />
-                </div>
-              </li>
-              <li className="flex flex-col gap-4 bg-background p-6">
-                <h3 className="text-lg font-semibold">Keep it sharp</h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  Skills you haven&apos;t used in a while fade. A short daily review brings them back
-                  before they&apos;re gone.
-                </p>
-                <div className="mt-auto flex flex-col gap-2 rounded-sm border border-border bg-sheet p-3">
-                  <BeltBand belt="green" slots={3} filled={3} faded={1} />
-                  <span className="text-xs text-muted-foreground">
-                    Third stripe fading: decorators are due for review
-                  </span>
-                </div>
-              </li>
-            </ol>
+                  </div>
+                </li>
+              </ol>
+            </div>
           </div>
         </section>
 
@@ -281,7 +294,7 @@ export default async function LandingPage() {
             </div>
 
             <div className="overflow-hidden rounded-md border border-border bg-background">
-              <div className="grid grid-cols-2 border-b border-border text-sm font-semibold">
+              <div className="hidden grid-cols-2 border-b border-border text-sm font-semibold sm:grid">
                 <span className="px-4 py-2.5">JavaScript</span>
                 <span className="border-l border-border px-4 py-2.5">Python</span>
               </div>
@@ -289,14 +302,22 @@ export default async function LandingPage() {
                 <div key={row.concept} className="border-b border-border last:border-b-0">
                   <p className="px-4 pt-3 text-xs text-muted-foreground">{row.concept}</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2">
-                    <pre
-                      className="hljs overflow-x-auto px-4 pt-1.5 pb-3 font-mono text-[0.8125rem] leading-6"
-                      dangerouslySetInnerHTML={{ __html: highlight(row.js, "javascript") }}
-                    />
-                    <pre
-                      className="hljs overflow-x-auto px-4 pt-1.5 pb-3 font-mono text-[0.8125rem] leading-6 sm:border-l sm:border-border"
-                      dangerouslySetInnerHTML={{ __html: highlight(row.py, "python") }}
-                    />
+                    {(
+                      [
+                        ["JavaScript", row.js, "javascript"],
+                        ["Python", row.py, "python"],
+                      ] as const
+                    ).map(([lang, code, id], i) => (
+                      <div key={lang} className={i === 1 ? "sm:border-l sm:border-border" : undefined}>
+                        <span className="block px-4 pt-2 text-[0.6875rem] font-semibold text-muted-foreground sm:hidden">
+                          {lang}
+                        </span>
+                        <pre
+                          className="hljs overflow-x-auto px-4 pt-1.5 pb-3 font-mono text-[0.8125rem] leading-6"
+                          dangerouslySetInnerHTML={{ __html: highlight(code, id) }}
+                        />
+                      </div>
+                    ))}
                   </div>
                 </div>
               ))}
@@ -318,7 +339,7 @@ export default async function LandingPage() {
                 Every session goes on your record.
               </h2>
               <p className="text-lg leading-relaxed text-muted-foreground">
-                Daily streaks, XP, levels and {achievementCount} achievements keep you training.
+                Daily streaks, XP, levels and {`${achievementCount} achievements`} keep you training.
                 Rank is the one thing you can&apos;t grind: it only moves when you pass a grading.
               </p>
             </div>
