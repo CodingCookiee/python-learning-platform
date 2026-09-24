@@ -116,7 +116,7 @@ export function LessonCompleteButton({
             className={cn(
               "w-full sm:w-auto transition-all",
               completed &&
-                "border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/5"
+                "border-success/40 text-success hover:bg-success/5"
             )}
             aria-label={
               isLocked
@@ -129,7 +129,7 @@ export function LessonCompleteButton({
             {isLoading ? (
               <Loader2 className="size-4 animate-spin" aria-hidden="true" />
             ) : completed ? (
-              <CheckCircle2 className="size-4 text-emerald-500" aria-hidden="true" />
+              <CheckCircle2 className="size-4 text-success" aria-hidden="true" />
             ) : (
               <Circle className="size-4" aria-hidden="true" />
             )}
@@ -153,7 +153,7 @@ export function LessonCompleteButton({
                 animate={{ opacity: 0, y: -28 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 1.8, ease: "easeOut" }}
-                className="pointer-events-none absolute -top-1 left-1/2 -translate-x-1/2 font-heading text-xs font-semibold text-emerald-600 dark:text-emerald-400 whitespace-nowrap"
+                className="pointer-events-none absolute -top-1 left-1/2 -translate-x-1/2 font-heading text-xs font-semibold text-success whitespace-nowrap"
                 aria-hidden="true"
               >
                 +{xpGained} XP
@@ -171,11 +171,11 @@ export function LessonCompleteButton({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="text-xs text-emerald-600 dark:text-emerald-400"
+              className="text-xs text-success"
             >
               {nextLessonId
-                ? "Nice work! You can review this lesson anytime."
-                : "Lesson complete! Great job 🎉"}
+                ? "Lesson complete. You can come back to it any time."
+                : "Lesson complete. That was the last lesson in this module."}
             </motion.p>
           )}
           {status === "error" && (

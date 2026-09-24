@@ -182,7 +182,7 @@ export function EvaluateClient({ submission }: EvaluateClientProps) {
                   href={filesPayload.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 underline underline-offset-3 hover:text-blue-700 dark:text-blue-400"
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-primary underline underline-offset-3 hover:text-primary/80"
                   aria-label="Open GitHub repository"
                 >
                   {filesPayload.url}
@@ -299,8 +299,8 @@ export function EvaluateClient({ submission }: EvaluateClientProps) {
                         <span
                           className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-sm border transition-colors ${
                             checked
-                              ? "border-emerald-500 bg-emerald-500 text-white"
-                              : "border-border bg-background group-hover:border-emerald-500/60"
+                              ? "border-success bg-success text-primary-foreground"
+                              : "border-border bg-background group-hover:border-success/60"
                           }`}
                           aria-hidden="true"
                         >
@@ -354,7 +354,7 @@ export function EvaluateClient({ submission }: EvaluateClientProps) {
                 {feedbackTrimmed.length} / 20 minimum characters
               </p>
               {!allPassed && (
-                <p className="text-xs text-amber-600 dark:text-amber-400">
+                <p className="text-xs text-highlight-foreground">
                   {passCount === 0
                     ? "No criteria marked as passed"
                     : `${checklistValues.length - passCount} criteria not yet passed`}
@@ -396,7 +396,7 @@ export function EvaluateClient({ submission }: EvaluateClientProps) {
         <Button
           onClick={() => handleDecisionClick("approved")}
           disabled={!feedbackValid || isSubmitting}
-          className="flex items-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+          className="flex items-center gap-2 bg-success text-primary-foreground hover:bg-success/85"
           aria-label="Approve submission"
         >
           <CheckCircle2 className="size-4" aria-hidden="true" />
@@ -448,7 +448,7 @@ export function EvaluateClient({ submission }: EvaluateClientProps) {
               disabled={isSubmitting}
               className={
                 pendingDecision === "approved"
-                  ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                  ? "bg-success text-primary-foreground hover:bg-success/85"
                   : ""
               }
               variant={pendingDecision === "rejected" ? "destructive" : "default"}

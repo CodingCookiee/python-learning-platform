@@ -5,7 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LevelBadge } from "@/components/gamification/level-badge";
 import { EditProfileForm } from "./edit-profile-form";
-import { BookOpen, Trophy, CheckCircle2 } from "lucide-react";
+import { BookOpen, CheckCircle2 } from "lucide-react";
+import { SealMark } from "@/components/brand/marks";
 
 interface ProfileCardProps {
   initials: string;
@@ -46,7 +47,7 @@ export function ProfileCard({
           <p className="text-sm text-muted-foreground">{email}</p>
           <div className="flex flex-wrap gap-3">
             <Badge variant="outline" className="flex items-center gap-1.5 text-xs">
-              <Trophy className="size-3 text-yellow-500" aria-hidden="true" />
+              <SealMark className="size-3.5 text-primary" />
               {achievements} achievements
             </Badge>
             <Badge variant="outline" className="flex items-center gap-1.5 text-xs">
@@ -54,7 +55,7 @@ export function ProfileCard({
               {lessonsCompleted} lessons done
             </Badge>
             <Badge variant="outline" className="flex items-center gap-1.5 text-xs">
-              <CheckCircle2 className="size-3 text-emerald-500" aria-hidden="true" />
+              <CheckCircle2 className="size-3 text-success" aria-hidden="true" />
               {completionPercentage}% complete
             </Badge>
           </div>

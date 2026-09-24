@@ -1,17 +1,18 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
-import { motion } from "framer-motion";
-import * as LucideIcons from "lucide-react";
-import { Lock } from "lucide-react";
+import type { CSSProperties } from "react";
 import { cn } from "@/lib/utils";
+import { renderAchievementIcon } from "@/lib/achievement-icon";
+import { tierStyle } from "@/lib/achievement-tier";
+import { LockedMark } from "@/components/brand/marks";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export interface AchievementBadgeProps {
   name: string;
   description: string;
   icon: string;
-  tier: "bronze" | "silver" | "gold" | "platinum";
+  tier: string;
   category: string;
   xpReward: number;
   unlockedAt?: Date | string | null;
@@ -20,41 +21,64 @@ export interface AchievementBadgeProps {
   className?: string;
 }
 
-const tierStyles: Record<string, string> = {
-  bronze: "border-amber-700/40 bg-amber-700/5",
-  silver: "border-slate-400/40 bg-slate-400/5",
-  gold: "border-yellow-500/40 bg-yellow-500/5",
-  platinum: "border-violet-400/40 bg-violet-400/5",
-};
-
-const tierTextStyles: Record<string, string> = {
-  bronze: "text-amber-700",
-  silver: "text-slate-400",
-  gold: "text-yellow-500",
-  platinum: "text-violet-400",
-};
-
 const sizeConfig = {
-  sm: { container: "w-16 h-16", iconSize: 24 },
-  md: { container: "w-24 h-24", iconSize: 40 },
-  lg: { container: "w-32 h-32", iconSize: 48 },
+  sm: { box: "size-14", icon: 22 },
+  md: { box: "size-20", icon: 32 },
+  lg: { box: "size-28", icon: 44 },
 };
 
-const iconAliases: Record<string, keyof typeof LucideIcons> = {
-  Snake: "Code2",
-  Flow: "Workflow",
-};
+/**
+ * An achievement as an embroidered patch: square-cut cloth in the tier's
+ * colour with an inner stitch line. Locked patches are dashed outlines, like
+ * the ranks still in preparation.
+ */
+export function AchievementPatch({
+  icon,
+  tier,
+  locked = false,
+  size = "md",
+  label,
+  className,
+}: {
+  icon: string;
+  tier: string;
+  locked?: boolean;
+  size?: "sm" | "md" | "lg";
+  label?: string;
+  className?: string;
+}) {
+  const t = tierStyle(tier);
+  const s = sizeConfig[size];
+  const style = locked
+    ? undefined
+    : ({ backgroundColor: t.fill, borderColor: t.thread, color: t.ink } as CSSProperties);
 
-function renderIconComponent(iconName: string, size: number, className: string) {
-  const resolvedIconName = iconAliases[iconName] ?? iconName;
-  const IconComponent = LucideIcons[
-    resolvedIconName as keyof typeof LucideIcons
-  ] as React.ComponentType<{
-    size: number;
-    className: string;
-  }>;
-  if (!IconComponent) return null;
-  return <IconComponent size={size} className={className} aria-hidden="true" />;
+  return (
+    <span
+      className={cn(
+        "relative inline-flex shrink-0 items-center justify-center rounded-sm border-2 p-1",
+        locked && "border-dashed border-(--keyline)/50 bg-transparent text-muted-foreground/60",
+        s.box,
+        className
+      )}
+      style={style}
+      role={label ? "img" : undefined}
+      aria-label={label}
+    >
+      <span
+        className={cn(
+          "flex size-full items-center justify-center border border-dashed",
+          locked ? "border-transparent" : "border-current/35"
+        )}
+      >
+        {locked ? (
+          <LockedMark style={{ width: s.icon * 0.8, height: s.icon * 0.8 }} />
+        ) : (
+          renderAchievementIcon({ iconName: icon, size: s.icon })
+        )}
+      </span>
+    </span>
+  );
 }
 
 export function AchievementBadge({
@@ -68,45 +92,17 @@ export function AchievementBadge({
   showTooltip = true,
   className,
 }: AchievementBadgeProps) {
-  const isLocked = unlockedAt == null;
-  const tierClass = tierStyles[tier] ?? "border-border bg-muted";
-  const tierText = tierTextStyles[tier] ?? "text-muted-foreground";
-  const sizes = sizeConfig[size];
-
+  const locked = unlockedAt == null;
+  const t = tierStyle(tier);
   const badge = (
-    <motion.div
-      initial={{ scale: 0.8 }}
-      animate={{ scale: 1 }}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
-      className={cn(
-        "relative flex flex-col items-center justify-between border p-1.5",
-        sizes.container,
-        tierClass,
-        isLocked && "opacity-50 grayscale",
-        className
-      )}
-    >
-      {/* Icon */}
-      <div className="flex flex-1 items-center justify-center" role="img" aria-label={name}>
-        {renderIconComponent(icon, sizes.iconSize, "text-current")}
-      </div>
-      {/* Name strip */}
-      <span
-        className={cn(
-          "font-heading w-full truncate text-center font-semibold tracking-widest uppercase",
-          "text-[0.5rem] leading-none",
-          isLocked ? "text-muted-foreground" : tierText
-        )}
-      >
-        {name}
-      </span>
-      {/* Lock overlay */}
-      {isLocked && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Lock className="size-4 text-muted-foreground" aria-hidden="true" />
-        </div>
-      )}
-    </motion.div>
+    <AchievementPatch
+      icon={icon}
+      tier={tier}
+      locked={locked}
+      size={size}
+      label={locked ? `${name} (locked)` : name}
+      className={className}
+    />
   );
 
   if (!showTooltip) return badge;
@@ -115,14 +111,14 @@ export function AchievementBadge({
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="inline-flex">{badge}</div>
+          <span className="inline-flex">{badge}</span>
         </TooltipTrigger>
         <TooltipContent>
-          <div className="max-w-48 space-y-1">
+          <div className="flex max-w-52 flex-col gap-1">
             <p className="font-semibold">{name}</p>
-            <p className="text-xs text-muted-foreground">{description}</p>
-            <p className="text-xs">
-              {tier} · {xpReward} XP
+            <p className="text-xs opacity-80">{description}</p>
+            <p className="font-condensed tabular text-xs">
+              {t.label} · {xpReward} XP{locked ? " · locked" : ""}
             </p>
           </div>
         </TooltipContent>

@@ -62,11 +62,11 @@ export function LessonSidebar({
             >
               {lesson.completed ? (
                 <CheckCircle2
-                  className="mt-0.5 size-4 shrink-0 text-emerald-500"
+                  className="mt-0.5 size-4 shrink-0 text-success"
                   aria-hidden="true"
                 />
               ) : !isUnlocked ? (
-                <Lock className="mt-0.5 size-4 shrink-0 text-amber-500" aria-hidden="true" />
+                <Lock className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
               ) : (
                 <Circle
                   className="mt-0.5 size-4 shrink-0 text-muted-foreground"
@@ -84,7 +84,7 @@ export function LessonSidebar({
                   {lesson.title}
                 </span>
                 {!isUnlocked && (
-                  <span className="text-[10px] font-semibold tracking-widest uppercase text-amber-600 dark:text-amber-400">
+                  <span className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">
                     Locked
                   </span>
                 )}

@@ -1,8 +1,6 @@
-﻿"use client";
-
 import * as React from "react";
-import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { StreakMark } from "@/components/brand/marks";
 
 export interface StreakDisplayProps {
   currentStreak: number;
@@ -18,39 +16,28 @@ export function StreakDisplay({
   size = "md",
 }: StreakDisplayProps) {
   const isSmall = size === "sm";
+  const active = currentStreak > 0;
 
   return (
-    <div className={cn("flex flex-col items-start gap-0.5", className)}>
-      <div className={cn("flex items-center", isSmall ? "gap-1.5" : "gap-2")}>
-        {/* Pulsing fire emoji */}
-        <motion.span
-          aria-hidden="true"
-          className={cn("inline-block", isSmall ? "text-lg" : "text-2xl")}
-          animate={{ scale: [1, 1.15, 1] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-        >
-          🔥
-        </motion.span>
-
-        {/* Current streak number */}
-        <span className={cn("font-heading font-semibold", isSmall ? "text-xl" : "text-3xl")}>
-          {currentStreak}
-        </span>
-
-        {/* "day streak" label */}
+    <div className={cn("flex flex-col items-start gap-1", className)}>
+      <div className="flex items-end gap-2">
+        <StreakMark
+          className={cn(isSmall ? "size-5" : "size-7", active ? "text-primary" : "text-muted-foreground")}
+        />
         <span
           className={cn(
-            "font-heading font-semibold tracking-widest uppercase text-muted-foreground",
-            isSmall ? "text-[0.55rem]" : "text-xs"
+            "font-condensed tabular leading-[0.85] font-extrabold tracking-[-0.02em]",
+            isSmall ? "text-2xl" : "text-4xl"
           )}
         >
-          day streak
+          {currentStreak}
+        </span>
+        <span className={cn("pb-0.5 font-semibold", isSmall ? "text-xs" : "text-sm")}>
+          {currentStreak === 1 ? "day" : "days"} in a row
         </span>
       </div>
-
-      {/* Best streak */}
-      <p className={cn("text-muted-foreground", isSmall ? "text-[0.6rem]" : "text-xs")}>
-        Best: {longestStreak} days
+      <p className={cn("tabular text-muted-foreground", isSmall ? "text-xs" : "text-sm")}>
+        Longest: {longestStreak} {longestStreak === 1 ? "day" : "days"}
       </p>
     </div>
   );

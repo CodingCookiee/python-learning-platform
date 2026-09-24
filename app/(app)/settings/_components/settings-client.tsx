@@ -37,7 +37,7 @@ function StatusBanner({ status }: { status: Status }) {
         initial={{ opacity: 0, y: -4 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0 }}
-        className={`flex items-center gap-2 text-sm ${status.type === "success" ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}`}
+        className={`flex items-center gap-2 text-sm ${status.type === "success" ? "text-success" : "text-destructive"}`}
         role="status"
       >
         {status.type === "success" ? (

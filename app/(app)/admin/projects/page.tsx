@@ -93,7 +93,7 @@ export default async function AdminProjectsPage() {
                         <Badge variant="secondary" className="text-xs">
                           {submission.project.moduleTitle}
                         </Badge>
-                        <Badge className="flex items-center gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 text-xs">
+                        <Badge className="flex items-center gap-1 bg-highlight/10 text-highlight-foreground border-highlight/20 text-xs">
                           <Clock className="size-3" aria-hidden="true" />
                           Pending Review
                         </Badge>

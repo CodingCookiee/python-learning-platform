@@ -159,7 +159,7 @@ export function StreakCalendar({ activeDates, className }: StreakCalendarProps) 
                 <div
                   key={cell.dateStr}
                   title={cell.dateStr}
-                  className={cn(CELL, isActive ? "bg-emerald-500 dark:bg-emerald-400" : "bg-muted")}
+                  className={cn(CELL, isActive ? "bg-primary/75" : "bg-muted")}
                   aria-label={`${cell.dateStr}${isActive ? " — active" : ""}`}
                 />
               );

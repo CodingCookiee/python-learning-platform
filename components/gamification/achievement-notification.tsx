@@ -1,17 +1,8 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import { AchievementUnlockModal } from "./achievement-unlock-modal";
 import type { UnlockedAchievement } from "@/lib/achievements";
-
-type ValidTier = "bronze" | "silver" | "gold" | "platinum";
-
-function toValidTier(tier: string): ValidTier {
-  if (tier === "bronze" || tier === "silver" || tier === "gold" || tier === "platinum") {
-    return tier;
-  }
-  return "bronze";
-}
 
 export interface AchievementNotificationQueueProps {
   achievements: UnlockedAchievement[];
@@ -41,7 +32,8 @@ export function AchievementNotificationQueue({ achievements }: AchievementNotifi
               name: current.name,
               description: current.description,
               icon: current.icon,
-              tier: toValidTier(current.tier),
+              // Tier is normalised by tierStyle ("Gold" and "gold" both work)
+              tier: current.tier,
               category: "",
               xpReward: current.xpReward,
             }

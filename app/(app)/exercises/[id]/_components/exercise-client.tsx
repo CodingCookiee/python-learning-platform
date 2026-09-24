@@ -20,11 +20,11 @@ import type { UnlockedAchievement } from "@/lib/achievements";
 import { useToast } from "@/components/ui/toast";
 
 const ENCOURAGING_MESSAGES = [
-  "So close! Give it another shot 💪",
-  "Keep going, you're learning! 🚀",
-  "Every bug fixed makes you stronger 🔧",
-  "Almost there! Check the hints if you're stuck 💡",
-  "Great effort! Try a different approach 🤔",
+  "Not yet. Read the failing test's expected value, then try again.",
+  "Close. Compare what you returned with what the test expects.",
+  "Every failed run is information. Change one thing and run it again.",
+  "Stuck? A hint costs a little XP and keeps you moving.",
+  "Try printing the value inside your function to see what it really is.",
 ];
 
 // Types
@@ -70,11 +70,11 @@ export interface ExerciseData {
 function getDifficultyBadgeClass(difficulty: string): string {
   switch (difficulty.toLowerCase()) {
     case "easy":
-      return "border-emerald-500/30 text-emerald-600 dark:text-emerald-400";
+      return "border-success/30 text-success";
     case "medium":
-      return "border-yellow-500/30 text-yellow-600 dark:text-yellow-400";
+      return "border-highlight/30 text-highlight-foreground";
     case "hard":
-      return "border-red-500/30 text-red-600 dark:text-red-400";
+      return "border-destructive/30 text-destructive";
     default:
       return "text-muted-foreground";
   }
@@ -154,12 +154,12 @@ function InstructionsPanel({
                     {result !== null ? (
                       result.passed ? (
                         <CheckCircle2
-                          className="mt-0.5 size-4 shrink-0 text-emerald-500"
+                          className="mt-0.5 size-4 shrink-0 text-success"
                           aria-label="Passed"
                         />
                       ) : (
                         <XCircle
-                          className="mt-0.5 size-4 shrink-0 text-red-500"
+                          className="mt-0.5 size-4 shrink-0 text-destructive"
                           aria-label="Failed"
                         />
                       )
@@ -176,7 +176,7 @@ function InstructionsPanel({
                     <code className="rounded bg-muted px-1 py-0.5 font-mono">{tc.expected}</code>
                   </p>
                   {result !== null && !result.passed && result.actual && (
-                    <p className="pl-6 text-xs text-red-600 dark:text-red-400">
+                    <p className="pl-6 text-xs text-destructive">
                       Got:{" "}
                       <code className="rounded bg-muted px-1 py-0.5 font-mono">
                         {result.actual.trim() || "(empty)"}
@@ -255,7 +255,7 @@ function EditorPanel({
               initial={{ opacity: 0.4 }}
               animate={{ opacity: 0 }}
               transition={{ duration: 0.8, delay: 0.1 }}
-              className="pointer-events-none absolute inset-0 bg-emerald-400/10"
+              className="pointer-events-none absolute inset-0 bg-success/10"
               aria-hidden="true"
             />
           )}
@@ -287,7 +287,7 @@ function EditorPanel({
 
         {solved && (
           <Badge
-            className="flex items-center gap-1 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+            className="flex items-center gap-1 border-success/30 text-success"
             variant="outline"
           >
             <CheckCircle2 className="size-3" aria-hidden="true" />
@@ -307,14 +307,14 @@ function EditorPanel({
             className="overflow-hidden"
           >
             <div
-              className={`border ${allPassed ? "border-emerald-500/30 bg-emerald-500/5" : "border-border bg-card"} p-4`}
+              className={`border ${allPassed ? "border-success/30 bg-success/5" : "border-border bg-card"} p-4`}
               aria-live="polite"
               role="status"
             >
               <p
-                className={`mb-3 font-heading text-sm font-semibold ${allPassed ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"}`}
+                className={`mb-3 font-heading text-sm font-semibold ${allPassed ? "text-success" : "text-foreground"}`}
               >
-                {allPassed ? "✓ " : ""}
+                {allPassed && <CheckCircle2 className="mr-1.5 inline size-4 align-[-3px]" aria-hidden="true" />}
                 {passedCount}/{totalCount} tests passed
               </p>
 
@@ -323,17 +323,17 @@ function EditorPanel({
                   <li key={i} className="flex items-start gap-2 text-xs">
                     {r.passed ? (
                       <CheckCircle2
-                        className="mt-0.5 size-3.5 shrink-0 text-emerald-500"
+                        className="mt-0.5 size-3.5 shrink-0 text-success"
                         aria-label="Passed"
                       />
                     ) : (
                       <XCircle
-                        className="mt-0.5 size-3.5 shrink-0 text-red-500"
+                        className="mt-0.5 size-3.5 shrink-0 text-destructive"
                         aria-label="Failed"
                       />
                     )}
                     <span
-                      className={r.passed ? "text-foreground" : "text-red-600 dark:text-red-400"}
+                      className={r.passed ? "text-foreground" : "text-destructive"}
                     >
                       {r.description}
                     </span>
@@ -354,7 +354,7 @@ function EditorPanel({
       {exercise.hints.length > 0 && (
         <section aria-labelledby="hints-heading" className="border border-border bg-card p-4">
           <div className="flex items-center gap-2">
-            <Lightbulb className="size-4 text-yellow-500" aria-hidden="true" />
+            <Lightbulb className="size-4 text-highlight-foreground" aria-hidden="true" />
             <h2
               id="hints-heading"
               className="font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground"

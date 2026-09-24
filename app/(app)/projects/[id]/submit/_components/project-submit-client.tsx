@@ -174,9 +174,9 @@ export function ProjectSubmitClient({ projectId, projectTitle }: ProjectSubmitCl
               initial={{ scale: 0 }}
               animate={{ scale: [0, 1.2, 1] }}
               transition={{ duration: 0.5, times: [0, 0.6, 1] }}
-              className="flex size-16 items-center justify-center rounded-full bg-emerald-500/10"
+              className="flex size-16 items-center justify-center rounded-full bg-success/10"
             >
-              <CheckCircle2 className="size-8 text-emerald-500" aria-hidden="true" />
+              <CheckCircle2 className="size-8 text-success" aria-hidden="true" />
             </motion.div>
             <div className="flex flex-col gap-2">
               <h2 className="font-heading text-xl font-semibold">Submission Received!</h2>

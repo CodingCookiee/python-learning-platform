@@ -17,9 +17,11 @@ import { XpProgressBar } from "@/components/gamification/xp-progress-bar";
 import { StreakCalendar } from "@/components/gamification/streak-calendar";
 import { LevelBadge } from "@/components/gamification/level-badge";
 import { MilestoneTracker } from "@/components/gamification/milestone-tracker";
-import { BookOpen, Trophy, Flame, ArrowRight, Clock } from "lucide-react";
+import { BookOpen, ArrowRight, Check } from "lucide-react";
+import { SealMark, StreakMark } from "@/components/brand/marks";
+import { AchievementPatch } from "@/components/gamification/achievement-badge";
+import { tierStyle } from "@/lib/achievement-tier";
 import { getCurriculumPhaseLabel, getCurriculumPhases } from "@/lib/curriculum";
-import { renderAchievementIcon } from "@/lib/achievement-icon";
 
 interface ProgressData {
   user: {
@@ -213,19 +215,6 @@ async function getProgressData(userId: string): Promise<ProgressData | null> {
   }
 }
 
-function getTierColor(tier: string): string {
-  switch (tier.toLowerCase()) {
-    case "gold":
-      return "text-yellow-500";
-    case "silver":
-      return "text-slate-400";
-    case "bronze":
-      return "text-amber-700";
-    default:
-      return "text-muted-foreground";
-  }
-}
-
 export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user) redirect("/auth/signin");
@@ -269,16 +258,16 @@ export default async function DashboardPage() {
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex flex-col gap-1">
               <h1 className="font-heading text-2xl font-semibold sm:text-3xl">
-                Welcome back, {user.name ?? "there"} 👋
+                Welcome back{user.name ? `, ${user.name.split(" ")[0]}` : ""}.
               </h1>
               <p className="text-sm text-muted-foreground">
                 Keep going — you&apos;re {completion.overall}% of the way through the curriculum.
               </p>
             </div>
-            <Badge className="mt-2 flex w-fit items-center gap-1.5 text-sm sm:mt-0">
-              <Flame className="size-3.5 text-orange-500" aria-hidden="true" />
-              <span>🔥 {streak.current} day streak</span>
-            </Badge>
+            <span className="font-condensed tabular mt-2 inline-flex w-fit items-center gap-1.5 rounded-sm border border-border bg-sheet px-2 py-1 text-sm font-semibold sm:mt-0">
+              <StreakMark className={streak.current > 0 ? "text-primary" : "text-muted-foreground"} />
+              {streak.current} {streak.current === 1 ? "day" : "days"} in a row
+            </span>
             <LevelBadge level={user.level} size="sm" className="mt-2 sm:mt-0" />
           </div>
         </FadeIn>
@@ -428,12 +417,8 @@ export default async function DashboardPage() {
                       key={lesson.id}
                       className="flex items-center gap-3 border border-border bg-card px-4 py-3"
                     >
-                      <BookOpen
-                        className="size-3.5 shrink-0 text-muted-foreground"
-                        aria-hidden="true"
-                      />
+                      <Check className="size-4 shrink-0 text-success" aria-hidden="true" />
                       <p className="flex-1 truncate text-sm">{lesson.title}</p>
-                      <Clock className="size-3 shrink-0 text-muted-foreground" aria-hidden="true" />
                     </div>
                   ))}
                 </div>
@@ -460,33 +445,22 @@ export default async function DashboardPage() {
                       key={achievement.id}
                       className="flex items-center gap-3 border border-border bg-card px-4 py-3"
                     >
-                      {renderAchievementIcon({
-                        iconName: achievement.icon,
-                        size: 20,
-                        className: "text-muted-foreground text-xl",
-                        ariaLabel: achievement.name,
-                      })}
+                      <AchievementPatch icon={achievement.icon} tier={achievement.tier} size="sm" />
                       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                         <p className="truncate text-sm font-semibold">{achievement.name}</p>
-                        <p
-                          className={`text-xs uppercase tracking-widest ${getTierColor(achievement.tier)}`}
-                        >
-                          {achievement.tier}
+                        <p className="font-condensed text-xs text-muted-foreground">
+                          {tierStyle(achievement.tier).label} · {achievement.xpReward} XP
                         </p>
                       </div>
-                      <Trophy
-                        className={`size-3.5 shrink-0 ${getTierColor(achievement.tier)}`}
-                        aria-hidden="true"
-                      />
                     </div>
                   ))}
                 </div>
               ) : (
                 <Card>
                   <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
-                    <Trophy className="size-7 text-muted-foreground" aria-hidden="true" />
+                    <SealMark className="size-7 text-muted-foreground" />
                     <p className="text-xs leading-relaxed text-muted-foreground">
-                      Complete your first lesson to earn achievements
+                      Finish your first lesson to earn your first patch.
                     </p>
                   </CardContent>
                 </Card>

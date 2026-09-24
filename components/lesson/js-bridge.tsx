@@ -58,13 +58,13 @@ function CodePanel({ language, code }: CodePanelProps) {
       <div
         className={cn(
           "flex items-center gap-2 px-4 py-2 border-b",
-          isJs ? "bg-yellow-500/10 border-yellow-500/20" : "bg-blue-500/10 border-blue-500/20"
+          isJs ? "bg-(--belt-yellow)/15 border-(--belt-yellow)/45" : "bg-(--belt-blue)/12 border-(--belt-blue)/40"
         )}
       >
         <span
           className={cn(
             "font-heading text-xs font-semibold tracking-widest uppercase",
-            isJs ? "text-yellow-700 dark:text-yellow-400" : "text-blue-700 dark:text-blue-400"
+            isJs ? "text-highlight-foreground dark:text-(--code-string)" : "text-(--code-attr)"
           )}
         >
           {isJs ? "JS" : "PY"}
@@ -73,8 +73,8 @@ function CodePanel({ language, code }: CodePanelProps) {
           className={cn(
             "text-xs",
             isJs
-              ? "text-yellow-700/70 dark:text-yellow-400/70"
-              : "text-blue-700/70 dark:text-blue-400/70"
+              ? "text-highlight-foreground/75 dark:text-(--code-string)/75"
+              : "text-(--code-attr)/75"
           )}
         >
           {isJs ? "JavaScript" : "Python"}

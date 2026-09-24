@@ -1,14 +1,16 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import { motion } from "framer-motion";
+import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SealMark } from "@/components/brand/marks";
 
 const MILESTONES = [
   { value: 25, label: "25%" },
   { value: 50, label: "50%" },
   { value: 75, label: "75%" },
-  { value: 100, label: "Complete!" },
+  { value: 100, label: "Complete" },
 ] as const;
 
 interface MilestoneTrackerProps {
@@ -45,29 +47,29 @@ export function MilestoneTracker({ value, className }: MilestoneTrackerProps) {
             return (
               <div key={milestone.value} className="flex flex-col items-center gap-2">
                 <div className="relative flex items-center justify-center">
-                  {isCurrent && (
-                    <span
-                      className="absolute inline-flex size-8 rounded-none bg-primary opacity-30 animate-ping"
-                      aria-hidden="true"
-                    />
-                  )}
                   <div
                     className={cn(
-                      "relative z-10 flex size-8 items-center justify-center text-[0.6rem] font-semibold font-heading tracking-widest border",
+                      "font-condensed tabular relative z-10 flex size-8 items-center justify-center rounded-sm border text-xs font-bold",
                       reached
                         ? "bg-primary text-primary-foreground border-primary"
                         : isCurrent
                           ? "bg-background text-primary border-primary"
-                          : "bg-muted text-muted-foreground border-muted"
+                          : "bg-sheet text-muted-foreground border-border"
                     )}
                     aria-label={`${milestone.label}${reached ? " — reached" : isCurrent ? " — in progress" : " — not yet reached"}`}
                   >
-                    {reached ? "✓" : milestone.value === 100 ? "★" : `${milestone.value}`}
+                    {milestone.value === 100 ? (
+                      <SealMark className="size-4" />
+                    ) : reached ? (
+                      <Check className="size-4" aria-hidden="true" />
+                    ) : (
+                      milestone.value
+                    )}
                   </div>
                 </div>
                 <span
                   className={cn(
-                    "font-heading text-[0.6rem] tracking-widest uppercase whitespace-nowrap",
+                    "font-condensed text-xs font-semibold whitespace-nowrap",
                     reached ? "text-foreground" : "text-muted-foreground"
                   )}
                 >

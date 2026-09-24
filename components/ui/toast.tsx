@@ -62,13 +62,13 @@ export function useToast() {
 // ─── Individual toast ─────────────────────────────────────────────────────────
 
 const iconMap: Record<ToastType, React.ReactNode> = {
-  success: <CheckCircle2 className="size-4 shrink-0 text-emerald-500" aria-hidden="true" />,
+  success: <CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden="true" />,
   error: <AlertCircle className="size-4 shrink-0 text-destructive" aria-hidden="true" />,
   info: <Info className="size-4 shrink-0 text-blue-500" aria-hidden="true" />,
 };
 
 const borderMap: Record<ToastType, string> = {
-  success: "border-emerald-500/20",
+  success: "border-success/20",
   error: "border-destructive/20",
   info: "border-blue-500/20",
 };

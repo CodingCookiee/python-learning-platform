@@ -1,10 +1,80 @@
 import * as React from "react";
-import * as LucideIcons from "lucide-react";
-import { cn } from "@/lib/utils";
+import {
+  Blocks,
+  BookOpen,
+  Braces,
+  Building,
+  Calculator,
+  SquareCheck,
+  Cog,
+  Crown,
+  Database,
+  Diamond,
+  FileStack,
+  GitBranch,
+  Globe,
+  Hammer,
+  Layers,
+  Link,
+  Lock,
+  Microscope,
+  Network,
+  Package,
+  Rocket,
+  Send,
+  Server,
+  Shield,
+  Sparkles,
+  TestTube,
+  Type,
+  Wind,
+  Workflow,
+  Code,
+  type LucideIcon,
+} from "lucide-react";
+import { SealMark, StreakMark, TapeMark } from "@/components/brand/marks";
 
-const iconAliases: Record<string, keyof typeof LucideIcons> = {
-  Snake: "Code2",
-  Flow: "Workflow",
+type IconComponent = LucideIcon | ((props: { className?: string }) => React.ReactNode);
+
+/**
+ * Curated icon set for achievements, keyed by the `icon` column in the seed.
+ * Concepts pylearn owns (streaks, XP) use its authored marks; subject matter
+ * uses lucide at the same stroke. Unknown names fall back to the seal.
+ */
+const ACHIEVEMENT_ICONS: Record<string, IconComponent> = {
+  Blocks,
+  BookOpen,
+  Braces,
+  Building,
+  Calculator,
+  CheckSquare: SquareCheck,
+  Cog,
+  Crown,
+  Database,
+  Diamond,
+  FileStack,
+  Flame: StreakMark,
+  GitBranch,
+  Globe,
+  Hammer,
+  Layers,
+  Link,
+  Lock,
+  Microscope,
+  Network,
+  Package,
+  Rocket,
+  Send,
+  Server,
+  Shield,
+  Sparkles,
+  TestTube,
+  Type,
+  Wind,
+  Workflow,
+  Flow: Workflow,
+  Snake: Code,
+  Zap: TapeMark,
 };
 
 type AchievementIconProps = {
@@ -20,24 +90,17 @@ export function renderAchievementIcon({
   className,
   ariaLabel,
 }: AchievementIconProps): React.ReactNode {
-  const resolvedIconName = iconAliases[iconName] ?? iconName;
-  const IconComponent = LucideIcons[resolvedIconName as keyof typeof LucideIcons] as
-    | React.ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean }>
-    | undefined;
-
-  if (IconComponent) {
-    return (
-      <IconComponent size={size} className={className} aria-hidden={ariaLabel ? undefined : true} />
-    );
-  }
-
+  const Icon = ACHIEVEMENT_ICONS[iconName] ?? SealMark;
+  const node = (
+    <Icon
+      className={className}
+      {...({ style: { width: size, height: size }, strokeWidth: 1.75 } as Record<string, unknown>)}
+    />
+  );
+  if (!ariaLabel) return node;
   return (
-    <span
-      className={cn("inline-flex items-center justify-center leading-none", className)}
-      role={ariaLabel ? "img" : undefined}
-      aria-label={ariaLabel}
-    >
-      {resolvedIconName}
+    <span role="img" aria-label={ariaLabel} className="inline-flex">
+      {node}
     </span>
   );
 }

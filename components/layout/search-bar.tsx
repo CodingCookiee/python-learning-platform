@@ -50,6 +50,12 @@ export function SearchBar() {
   const [results, setResults] = React.useState<SearchResult[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [selectedIdx, setSelectedIdx] = React.useState(-1);
+  // Show the shortcut the learner will actually press (Ctrl on Windows/Linux)
+  const modKey = React.useSyncExternalStore(
+    () => () => {},
+    () => (/Mac|iPhone|iPad/.test(navigator.platform) ? "⌘" : "Ctrl"),
+    () => "Ctrl"
+  );
   const inputRef = React.useRef<HTMLInputElement>(null);
   const resultsId = React.useId();
   const router = useRouter();
@@ -140,12 +146,12 @@ export function SearchBar() {
       <button
         onClick={() => setOpen(true)}
         className="hidden md:flex items-center gap-2 h-9 px-3 text-xs text-muted-foreground border border-border bg-muted/30 hover:bg-muted transition-colors rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        aria-label="Search (Cmd+K)"
+        aria-label={`Search (${modKey === "⌘" ? "Cmd" : "Ctrl"}+K)`}
       >
         <Search className="size-3.5" aria-hidden="true" />
         <span>Search</span>
         <kbd className="ml-2 hidden sm:inline-flex h-5 items-center gap-0.5 rounded border border-border bg-background px-1.5 font-mono text-[0.6rem] font-medium text-muted-foreground">
-          <span>⌘</span>
+          <span>{modKey}</span>
           <span>K</span>
         </kbd>
       </button>
@@ -258,7 +264,7 @@ export function SearchBar() {
                               {TYPE_LABELS[r.type]}
                             </span>
                             {r.isLocked && (
-                              <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400">
+                              <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
                                 <Lock className="size-3" aria-hidden="true" />
                                 Locked
                               </span>

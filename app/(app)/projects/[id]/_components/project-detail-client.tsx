@@ -55,7 +55,7 @@ function SubmissionStatusBadge({ status }: { status: string }) {
   switch (status.toLowerCase()) {
     case "approved":
       return (
-        <Badge className="flex items-center gap-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
+        <Badge className="flex items-center gap-1.5 bg-success/10 text-success border-success/20">
           <CheckCircle2 className="size-3" aria-hidden="true" />
           Approved
         </Badge>
@@ -204,7 +204,7 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
                   {project.successCriteria.map((criterion, i) => (
                     <li key={i} className="flex items-start gap-3 text-sm">
                       <CheckCircle2
-                        className="mt-0.5 size-4 shrink-0 text-emerald-500"
+                        className="mt-0.5 size-4 shrink-0 text-success"
                         aria-hidden="true"
                       />
                       <span className="leading-relaxed">{criterion}</span>
@@ -294,8 +294,8 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
               {isCompleted ? (
                 <>
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="size-4 text-emerald-500" aria-hidden="true" />
-                    <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2 className="size-4 text-success" aria-hidden="true" />
+                    <p className="text-sm font-semibold text-success">
                       Project Complete
                     </p>
                   </div>
@@ -303,7 +303,7 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
                     You have successfully completed this project.
                   </p>
                   <Button
-                    className="w-full bg-emerald-600 text-white hover:bg-emerald-700"
+                    className="w-full bg-success text-primary-foreground hover:bg-success/85"
                     disabled
                   >
                     Complete
@@ -331,8 +331,8 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
               ) : needsRevision ? (
                 <>
                   <div className="flex items-center gap-2">
-                    <Clock className="size-4 text-amber-500" aria-hidden="true" />
-                    <p className="text-sm font-semibold text-amber-600 dark:text-amber-400">
+                    <Clock className="size-4 text-highlight-foreground" aria-hidden="true" />
+                    <p className="text-sm font-semibold text-highlight-foreground">
                       Needs Revision
                     </p>
                   </div>

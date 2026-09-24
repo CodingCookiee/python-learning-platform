@@ -1,12 +1,12 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Confetti } from "./confetti";
-import { cn } from "@/lib/utils";
-import { renderAchievementIcon } from "@/lib/achievement-icon";
+import { AchievementPatch } from "./achievement-badge";
+import { tierStyle } from "@/lib/achievement-tier";
+import { TapeMark } from "@/components/brand/marks";
 
 export interface AchievementUnlockModalProps {
   open: boolean;
@@ -15,113 +15,71 @@ export interface AchievementUnlockModalProps {
     name: string;
     description: string;
     icon: string;
-    tier: "bronze" | "silver" | "gold" | "platinum";
+    tier: string;
     category: string;
     xpReward: number;
   } | null;
 }
 
-const tierBgStyles: Record<string, string> = {
-  gold: "bg-yellow-500/5",
-  silver: "bg-slate-400/5",
-  bronze: "bg-amber-700/5",
-  platinum: "bg-violet-400/5",
-};
-
-const tierTextStyles: Record<string, string> = {
-  gold: "text-yellow-500",
-  silver: "text-slate-400",
-  bronze: "text-amber-700",
-  platinum: "text-violet-400",
-};
-
-export function AchievementUnlockModal({
-  open,
-  onClose,
-  achievement,
-}: AchievementUnlockModalProps) {
-  const tier = achievement?.tier ?? "bronze";
-  const tierBg = tierBgStyles[tier] ?? "";
-  const tierText = tierTextStyles[tier] ?? "text-muted-foreground";
-
-  if (!open || !achievement) {
-    return null;
-  }
+export function AchievementUnlockModal({ open, onClose, achievement }: AchievementUnlockModalProps) {
+  if (!open || !achievement) return null;
+  const t = tierStyle(achievement.tier);
 
   return (
-    <>
-      {/* Overlay */}
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="achievement-title"
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="achievement-title"
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="relative w-[calc(100%-2rem)] max-w-sm overflow-hidden rounded-md border border-border bg-sheet p-7"
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Modal Content */}
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0, y: 50 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.8, opacity: 0, y: 50 }}
-          transition={{ type: "spring", stiffness: 300, damping: 25 }}
-          className={cn(
-            "relative w-[calc(100%-2rem)] max-w-sm overflow-hidden rounded-lg border border-border bg-background p-6 shadow-xl",
-            tierBg
-          )}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Confetti */}
-          <Confetti active={open} />
+        <Confetti active={open} />
 
-          {/* Content */}
-          <div className="flex flex-col items-center gap-5 text-center">
-            {/* Animated icon */}
-            <motion.div
-              key={achievement.name}
-              className="flex size-16 items-center justify-center text-5xl"
-              initial={{ scale: 0 }}
-              animate={{ scale: [0, 1.2, 1] }}
-              transition={{ type: "spring", stiffness: 300, damping: 18 }}
+        <div className="flex flex-col items-center gap-6 text-center">
+          {/* The patch is sewn on: it settles into place */}
+          <motion.div
+            key={achievement.name}
+            initial={{ opacity: 0, scale: 1.25, rotate: -6 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+          >
+            <AchievementPatch icon={achievement.icon} tier={achievement.tier} size="lg" />
+          </motion.div>
+
+          <div className="flex flex-col items-center gap-2">
+            <h2
+              id="achievement-title"
+              className="font-condensed text-3xl leading-none font-extrabold tracking-[-0.02em]"
             >
-              {renderAchievementIcon({
-                iconName: achievement.icon,
-                size: 48,
-                className: "text-foreground",
-                ariaLabel: achievement.name,
-              })}
-            </motion.div>
-
-            {/* Header */}
-            <div className="flex flex-col items-center gap-1">
-              <p className="font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground">
-                Achievement Unlocked!
-              </p>
-              <h2
-                id="achievement-title"
-                className="font-heading text-xl font-normal tracking-normal"
-              >
-                {achievement.name}
-              </h2>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                {achievement.description}
-              </p>
-            </div>
-
-            {/* Tier + XP row */}
-            <div className="flex items-center gap-3">
-              <Badge className={cn("border px-2 py-0.5", tierText)}>{achievement.tier}</Badge>
-              <Badge className="border border-yellow-500/40 bg-yellow-500/10 px-2 py-0.5 text-yellow-600 dark:text-yellow-400">
-                +{achievement.xpReward} XP
-              </Badge>
-            </div>
-
-            {/* Close button */}
-            <Button className="w-full" onClick={onClose}>
-              Awesome!
-            </Button>
+              {achievement.name}
+            </h2>
+            <p className="text-sm leading-relaxed text-muted-foreground">{achievement.description}</p>
           </div>
-        </motion.div>
-      </div>
-    </>
+
+          <div className="flex items-center gap-3 text-sm">
+            <span
+              className="font-condensed rounded-sm border-2 px-2 py-0.5 font-bold"
+              style={{ borderColor: t.thread, color: t.key === "legendary" ? undefined : t.ink }}
+            >
+              {t.label} patch
+            </span>
+            <span className="font-condensed tabular inline-flex items-center gap-1.5 rounded-sm bg-highlight px-2 py-0.5 font-bold text-highlight-foreground">
+              <TapeMark className="size-3.5" />+{achievement.xpReward} XP
+            </span>
+          </div>
+
+          <Button className="w-full" size="lg" onClick={onClose}>
+            Keep training
+          </Button>
+        </div>
+      </motion.div>
+    </div>
   );
 }

@@ -1,8 +1,6 @@
-"use client";
-
 import * as React from "react";
-import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { TapeMark } from "@/components/brand/marks";
 
 export interface LevelBadgeProps {
   level: number;
@@ -11,34 +9,26 @@ export interface LevelBadgeProps {
 }
 
 const sizeStyles = {
-  sm: {
-    wrapper: "px-1.5 py-0.5 gap-1 text-[0.6rem]",
-    icon: "size-2.5",
-  },
-  md: {
-    wrapper: "px-2 py-1 gap-1.5 text-xs",
-    icon: "size-3",
-  },
-  lg: {
-    wrapper: "px-3 py-1.5 gap-2 text-sm",
-    icon: "size-4",
-  },
+  sm: { wrapper: "h-6 gap-1 px-1.5 text-xs", icon: "size-3.5" },
+  md: { wrapper: "h-7 gap-1.5 px-2 text-sm", icon: "size-4" },
+  lg: { wrapper: "h-9 gap-2 px-3 text-base", icon: "size-5" },
 };
 
+/** XP level, shown as a strip of tape: level is what XP builds up */
 export function LevelBadge({ level, size = "md", className }: LevelBadgeProps) {
   const styles = sizeStyles[size];
 
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full bg-primary text-primary-foreground font-heading font-semibold tracking-widest uppercase",
+        "inline-flex w-fit items-center rounded-sm border border-border bg-sheet font-semibold",
         styles.wrapper,
         className
       )}
       aria-label={`Level ${level}`}
     >
-      <Star className={cn(styles.icon, "shrink-0")} aria-hidden="true" />
-      Lvl {level}
+      <TapeMark className={cn(styles.icon, "text-primary")} />
+      <span className="font-condensed tabular">Level {level}</span>
     </span>
   );
 }

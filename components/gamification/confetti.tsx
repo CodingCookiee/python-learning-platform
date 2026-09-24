@@ -16,13 +16,14 @@ export interface ConfettiProps {
   className?: string;
 }
 
+// Palette only: belt dyes, jade, straw and tape (canvas can't read CSS vars)
 const COLORS = [
-  "oklch(0.75 0.12 260)",
-  "oklch(0.72 0.14 310)",
-  "oklch(0.8 0.1 200)",
-  "oklch(0.85 0.15 80)",
-  "oklch(0.7 0.18 30)",
-  "oklch(0.78 0.16 150)",
+  "oklch(0.6 0.11 162)", // jade
+  "oklch(0.88 0.12 95)", // straw
+  "oklch(0.72 0.1 145)", // leaf belt
+  "oklch(0.66 0.085 240)", // denim belt
+  "oklch(0.57 0.065 60)", // cocoa belt
+  "oklch(0.97 0.008 100)", // tape
 ];
 
 interface Particle {

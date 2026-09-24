@@ -216,7 +216,7 @@ export default async function ProfilePage() {
                     {recentLessons.map(({ lesson, completedAt }) => (
                       <li key={lesson.id} className="flex items-start gap-3">
                         <CheckCircle2
-                          className="mt-0.5 size-4 shrink-0 text-emerald-500"
+                          className="mt-0.5 size-4 shrink-0 text-success"
                           aria-hidden="true"
                         />
                         <div className="flex flex-col gap-0.5 min-w-0">

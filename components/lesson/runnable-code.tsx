@@ -141,7 +141,7 @@ export function RunnableCode({
                 className={cn(
                   "p-4 text-sm font-mono overflow-x-auto whitespace-pre-wrap",
                   status === "success"
-                    ? "text-foreground bg-emerald-500/5"
+                    ? "text-foreground bg-success/5"
                     : "text-destructive bg-destructive/5"
                 )}
               >
@@ -159,7 +159,7 @@ export function RunnableCode({
             initial={{ opacity: 0.4 }}
             animate={{ opacity: 0 }}
             transition={{ duration: 0.8, delay: 0.1 }}
-            className="pointer-events-none absolute inset-0 bg-emerald-400/10"
+            className="pointer-events-none absolute inset-0 bg-success/10"
             aria-hidden="true"
           />
         )}

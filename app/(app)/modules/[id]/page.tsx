@@ -190,11 +190,11 @@ export default async function ModuleDetailPage({ params }: PageProps) {
                       <div className="flex items-center gap-3 bg-card px-4 py-3">
                         {lesson.completed ? (
                           <CheckCircle2
-                            className="size-4 shrink-0 text-emerald-500"
+                            className="size-4 shrink-0 text-success"
                             aria-hidden="true"
                           />
                         ) : !lessonUnlocked ? (
-                          <Lock className="size-4 shrink-0 text-amber-500" aria-hidden="true" />
+                          <Lock className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                         ) : (
                           <Circle
                             className="size-4 shrink-0 text-muted-foreground"
@@ -207,7 +207,7 @@ export default async function ModuleDetailPage({ params }: PageProps) {
                           {lesson.title}
                         </span>
                         {!lessonUnlocked && (
-                          <span className="shrink-0 text-[10px] font-semibold tracking-widest uppercase text-amber-600 dark:text-amber-400">
+                          <span className="shrink-0 text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">
                             Locked
                           </span>
                         )}
@@ -261,21 +261,21 @@ export default async function ModuleDetailPage({ params }: PageProps) {
                               );
                               if (state === "approved") {
                                 return (
-                                  <span className="shrink-0 text-xs font-semibold tracking-widest uppercase text-emerald-500">
+                                  <span className="shrink-0 text-xs font-semibold tracking-widest uppercase text-success">
                                     Complete
                                   </span>
                                 );
                               }
                               if (state === "pending") {
                                 return (
-                                  <span className="shrink-0 text-xs font-semibold tracking-widest uppercase text-amber-500">
+                                  <span className="shrink-0 text-xs font-semibold tracking-widest uppercase text-highlight-foreground">
                                     Under Review
                                   </span>
                                 );
                               }
                               if (state === "rejected") {
                                 return (
-                                  <span className="shrink-0 text-xs font-semibold tracking-widest uppercase text-red-500">
+                                  <span className="shrink-0 text-xs font-semibold tracking-widest uppercase text-destructive">
                                     Needs Revision
                                   </span>
                                 );
@@ -329,13 +329,13 @@ export default async function ModuleDetailPage({ params }: PageProps) {
                   ) : completionPercentage === 100 ? (
                     <>
                       <div className="flex items-center gap-2">
-                        <CheckCircle2 className="size-4 text-emerald-500" aria-hidden="true" />
-                        <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                        <CheckCircle2 className="size-4 text-success" aria-hidden="true" />
+                        <p className="text-sm font-semibold text-success">
                           Module Complete
                         </p>
                       </div>
                       <Button
-                        className="w-full bg-emerald-600 text-white hover:bg-emerald-700"
+                        className="w-full bg-success text-primary-foreground hover:bg-success/85"
                         disabled
                       >
                         Module Complete

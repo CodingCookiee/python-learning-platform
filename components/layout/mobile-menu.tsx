@@ -9,11 +9,11 @@ import {
   Search,
   LayoutDashboard,
   BookOpen,
-  Trophy,
   User,
   Settings,
   ShieldCheck,
 } from "lucide-react";
+import { SealMark } from "@/components/brand/marks";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -36,7 +36,7 @@ const authLinks = [
   { href: "/search", label: "Search", Icon: Search },
   { href: "/dashboard", label: "Dashboard", Icon: LayoutDashboard },
   { href: "/modules", label: "Modules", Icon: BookOpen },
-  { href: "/achievements", label: "Achievements", Icon: Trophy },
+  { href: "/achievements", label: "Achievements", Icon: SealMark },
   { href: "/profile", label: "Profile", Icon: User },
   { href: "/settings", label: "Settings", Icon: Settings },
 ];

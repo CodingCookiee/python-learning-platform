@@ -100,11 +100,11 @@ async function getModuleLessons(
 function getDifficultyColor(difficulty: string): string {
   switch (difficulty.toLowerCase()) {
     case "easy":
-      return "text-emerald-600 dark:text-emerald-400";
+      return "text-success";
     case "medium":
-      return "text-yellow-600 dark:text-yellow-400";
+      return "text-highlight-foreground";
     case "hard":
-      return "text-red-600 dark:text-red-400";
+      return "text-destructive";
     default:
       return "text-muted-foreground";
   }
@@ -172,7 +172,7 @@ export default async function LessonPage({ params }: PageProps) {
               <div className="flex flex-col gap-3">
                 <div className="flex flex-wrap items-center gap-3">
                   {lesson.completed && (
-                    <Badge className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                    <Badge className="flex items-center gap-1.5 text-success">
                       <CheckCircle2 className="size-3" aria-hidden="true" />
                       Completed
                     </Badge>
@@ -197,14 +197,14 @@ export default async function LessonPage({ params }: PageProps) {
               </div>
 
               {lessonLocked && (
-                <Card className="border-amber-500/30 bg-amber-500/5">
+                <Card className="border-highlight/30 bg-highlight/5">
                   <CardContent className="flex flex-col gap-4 pt-6">
                     <div className="flex items-center gap-2">
                       <Lock
-                        className="size-4 text-amber-600 dark:text-amber-400"
+                        className="size-4 text-muted-foreground"
                         aria-hidden="true"
                       />
-                      <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">
+                      <p className="text-sm font-semibold text-highlight-foreground">
                         This lesson is locked
                       </p>
                     </div>
@@ -274,7 +274,7 @@ export default async function LessonPage({ params }: PageProps) {
                             </div>
                             {exercise.hasSubmission && (
                               <CheckCircle2
-                                className="size-4 shrink-0 text-emerald-500 mt-0.5"
+                                className="size-4 shrink-0 text-success mt-0.5"
                                 aria-label="Submitted"
                               />
                             )}

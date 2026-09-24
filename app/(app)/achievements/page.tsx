@@ -4,10 +4,9 @@ import { auth } from "@/auth";
 import { getAppOrigin } from "@/lib/server-url";
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
-import { AchievementBadge } from "@/components/gamification";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Trophy } from "lucide-react";
+import { AchievementPatch } from "@/components/gamification/achievement-badge";
+import { tierStyle } from "@/lib/achievement-tier";
+import { SealMark } from "@/components/brand/marks";
 
 interface Achievement {
   id: string;
@@ -39,26 +38,6 @@ async function getAchievements(cookieHeader: string): Promise<AchievementsData |
   }
 }
 
-function toValidTier(tier: string): "bronze" | "silver" | "gold" | "platinum" {
-  if (tier === "bronze" || tier === "silver" || tier === "gold" || tier === "platinum") return tier;
-  return "bronze";
-}
-
-function getTierColor(tier: string): string {
-  switch (tier.toLowerCase()) {
-    case "gold":
-      return "text-yellow-500 border-yellow-500/40 bg-yellow-500/10";
-    case "silver":
-      return "text-slate-400 border-slate-400/40 bg-slate-400/10";
-    case "bronze":
-      return "text-amber-700 border-amber-700/40 bg-amber-700/10";
-    case "platinum":
-      return "text-violet-400 border-violet-400/40 bg-violet-400/10";
-    default:
-      return "text-muted-foreground";
-  }
-}
-
 export default async function AchievementsPage() {
   const session = await auth();
   if (!session?.user) redirect("/auth/signin");
@@ -85,50 +64,48 @@ export default async function AchievementsPage() {
   const unlockedCount = data?.total ?? 0;
   const totalCount = allAchievements.length;
 
+  const pct = totalCount > 0 ? Math.round((unlockedCount / totalCount) * 100) : 0;
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-      <StaggerContainer className="flex flex-col gap-8">
+      <StaggerContainer className="flex flex-col gap-10">
         <Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Achievements" }]} />
         <FadeIn>
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex flex-col gap-1">
-                <h1 className="font-heading text-2xl font-semibold sm:text-3xl">Achievements</h1>
-                <p className="text-sm text-muted-foreground">
-                  {unlockedCount} of {totalCount} achievements unlocked
+          <header className="flex flex-col gap-6 border-b border-border pb-8">
+            <div className="flex flex-wrap items-end justify-between gap-6">
+              <div className="flex flex-col gap-2">
+                <h1 className="font-condensed text-5xl leading-none font-extrabold tracking-[-0.02em]">
+                  Achievements
+                </h1>
+                <p className="max-w-xl text-muted-foreground">
+                  Every patch is sewn on for something you actually did: lessons finished,
+                  modules passed, streaks kept.
                 </p>
               </div>
-              <Badge className="flex items-center gap-1.5 text-sm">
-                <Trophy className="size-3.5 text-yellow-500" aria-hidden="true" />
-                {unlockedCount} / {totalCount}
-              </Badge>
+              <p className="font-condensed tabular leading-none">
+                <span className="text-6xl font-extrabold tracking-[-0.03em]">{unlockedCount}</span>
+                <span className="ml-1 text-2xl font-bold text-muted-foreground">/ {totalCount}</span>
+              </p>
             </div>
             <div
-              className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
+              className="h-2 w-full overflow-hidden rounded-sm bg-muted"
               role="progressbar"
+              aria-label="Achievements earned"
               aria-valuenow={unlockedCount}
               aria-valuemin={0}
               aria-valuemax={totalCount}
             >
-              <div
-                className="h-full rounded-full bg-primary transition-all duration-700"
-                style={{
-                  width:
-                    totalCount > 0 ? `${Math.round((unlockedCount / totalCount) * 100)}%` : "0%",
-                }}
-              />
+              <div className="h-full bg-primary transition-[width] duration-700" style={{ width: `${pct}%` }} />
             </div>
-          </div>
+          </header>
         </FadeIn>
 
         {allAchievements.length === 0 && (
           <FadeIn delay={0.05}>
-            <Card>
-              <CardContent className="flex flex-col items-center gap-4 py-16 text-center">
-                <Trophy className="size-8 text-muted-foreground" aria-hidden="true" />
-                <p className="text-sm font-semibold">Complete lessons to earn achievements</p>
-              </CardContent>
-            </Card>
+            <div className="flex flex-col items-center gap-4 rounded-md border border-dashed border-border py-16 text-center">
+              <SealMark className="size-8 text-muted-foreground" />
+              <p className="font-semibold">Finish your first lesson to earn your first patch.</p>
+            </div>
           </FadeIn>
         )}
 
@@ -136,46 +113,41 @@ export default async function AchievementsPage() {
           const catUnlocked = achievements.filter((a) => unlockedIds.has(a.id)).length;
           return (
             <FadeIn key={category} delay={0.05 * (catIdx + 1)}>
-              <section aria-labelledby={`cat-${category}`}>
-                <div className="mb-4 flex items-center justify-between">
-                  <h2
-                    id={`cat-${category}`}
-                    className="font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground"
-                  >
+              <section aria-labelledby={`cat-${category}`} className="flex flex-col gap-5">
+                <div className="flex items-baseline justify-between gap-4">
+                  <h2 id={`cat-${category}`} className="text-xl font-semibold">
                     {category}
                   </h2>
-                  <span className="text-xs text-muted-foreground">
-                    {catUnlocked} / {achievements.length}
+                  <span className="font-condensed tabular text-sm text-muted-foreground">
+                    {catUnlocked} of {achievements.length}
                   </span>
                 </div>
-                <div className="flex flex-wrap gap-4">
+                <ul className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
                   {achievements.map((achievement) => {
                     const unlocked = unlockedMap.get(achievement.id);
+                    const t = tierStyle(achievement.tier);
                     return (
-                      <div key={achievement.id} className="flex flex-col items-center gap-2">
-                        <AchievementBadge
-                          name={achievement.name}
-                          description={achievement.description}
+                      <li key={achievement.id} className="flex items-center gap-4">
+                        <AchievementPatch
                           icon={achievement.icon}
-                          tier={toValidTier(achievement.tier)}
-                          category={achievement.category}
-                          xpReward={achievement.xpReward}
-                          unlockedAt={unlocked?.unlockedAt ?? null}
-                          size="md"
-                          showTooltip
+                          tier={achievement.tier}
+                          locked={!unlocked}
+                          size="sm"
                         />
-                        {unlocked && (
-                          <Badge
-                            variant="outline"
-                            className={`text-[0.6rem] px-1.5 py-0 ${getTierColor(achievement.tier)}`}
-                          >
-                            {achievement.tier}
-                          </Badge>
-                        )}
-                      </div>
+                        <div className="flex min-w-0 flex-col gap-0.5">
+                          <span className={unlocked ? "font-semibold" : "font-semibold text-muted-foreground"}>
+                            {achievement.name}
+                          </span>
+                          <span className="text-sm text-muted-foreground">{achievement.description}</span>
+                          <span className="font-condensed tabular text-xs text-muted-foreground">
+                            {t.label} · {achievement.xpReward} XP
+                            {unlocked ? "" : " · not yet earned"}
+                          </span>
+                        </div>
+                      </li>
                     );
                   })}
-                </div>
+                </ul>
               </section>
             </FadeIn>
           );

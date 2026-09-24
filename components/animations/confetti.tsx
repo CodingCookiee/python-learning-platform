@@ -15,7 +15,15 @@ interface ConfettiPiece {
   isCircle: boolean;
 }
 
-const COLORS = ["#f59e0b", "#10b981", "#3b82f6", "#8b5cf6", "#ec4899", "#f97316", "#06b6d4"];
+// Palette only: belt dyes, jade, straw and tape
+const COLORS = [
+  "oklch(0.6 0.11 162)", // jade
+  "oklch(0.88 0.12 95)", // straw
+  "oklch(0.72 0.1 145)", // leaf belt
+  "oklch(0.66 0.085 240)", // denim belt
+  "oklch(0.57 0.065 60)", // cocoa belt
+  "oklch(0.97 0.008 100)", // tape
+];
 
 function generatePieces(count: number): ConfettiPiece[] {
   return Array.from({ length: count }, (_, i) => ({

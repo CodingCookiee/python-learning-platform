@@ -39,7 +39,7 @@ export function SuccessCheck({ visible, size = 48, className }: SuccessCheckProp
               r="20"
               stroke="currentColor"
               strokeWidth="3"
-              className="text-emerald-500"
+              className="text-success"
               transition={{ duration: 0.4, ease: "easeOut" }}
             />
             {/* Checkmark */}
@@ -49,7 +49,7 @@ export function SuccessCheck({ visible, size = 48, className }: SuccessCheckProp
               strokeWidth="3"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="text-emerald-500"
+              className="text-success"
               transition={{ duration: 0.35, delay: 0.3, ease: "easeOut" }}
             />
           </svg>
