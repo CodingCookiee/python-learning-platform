@@ -2,10 +2,11 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Check, X, Circle, RotateCcw, LoaderCircle } from "lucide-react";
+import { Check, X, Circle, RotateCcw, LoaderCircle, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Seal } from "@/components/brand/seal";
 import { usePyodide } from "@/lib/pyodide";
+import { cn } from "@/lib/utils";
 
 const STARTER = `def greet(name):
     # Return a greeting, e.g. "Hello, Raza!"
@@ -21,7 +22,7 @@ const CASES: Array<{ arg: string; expected: string }> = [
 const MARKER = "__PYLEARN_RESULT__";
 
 type CaseResult = { passed: boolean; got: string };
-type Status = "idle" | "running" | "passed" | "failed" | "error";
+type Status = "idle" | "passed" | "failed" | "error";
 
 function buildHarness(code: string): string {
   const cases = JSON.stringify(CASES.map((c) => [c.arg, c.expected]));
@@ -53,16 +54,28 @@ print("${MARKER}" + _json.dumps(_payload))
 export function LiveDrill({ onPass }: { onPass?: () => void }) {
   const { run, loading } = usePyodide();
   const [code, setCode] = React.useState(STARTER);
+  // `status` is the last graded outcome; `running` is separate so the previous
+  // result stays on screen (no layout jump) until the new one replaces it.
   const [status, setStatus] = React.useState<Status>("idle");
+  const [running, setRunning] = React.useState(false);
   const [results, setResults] = React.useState<CaseResult[] | null>(null);
   const [error, setError] = React.useState<string | null>(null);
+  const runningRef = React.useRef(false);
   const passedOnce = React.useRef(false);
   const lines = code.split("\n").length;
 
+  function settle(next: { status: Status; results: CaseResult[] | null; error: string | null }) {
+    setResults(next.results);
+    setError(next.error);
+    setStatus(next.status);
+    setRunning(false);
+    runningRef.current = false;
+  }
+
   async function submit() {
-    if (status === "running") return;
-    setStatus("running");
-    setError(null);
+    if (runningRef.current) return;
+    runningRef.current = true;
+    setRunning(true);
 
     const { output, error: runError } = await run(buildHarness(code), 8000);
     const line = output
@@ -71,9 +84,11 @@ export function LiveDrill({ onPass }: { onPass?: () => void }) {
       .find((l) => l.startsWith(MARKER));
 
     if (runError || !line) {
-      setResults(null);
-      setError(runError ?? "Something went wrong running your code.");
-      setStatus("error");
+      settle({
+        status: "error",
+        results: null,
+        error: runError ?? "Something went wrong running your code.",
+      });
       return;
     }
 
@@ -82,15 +97,12 @@ export function LiveDrill({ onPass }: { onPass?: () => void }) {
       cases: CaseResult[];
     };
     if (payload.error) {
-      setResults(null);
-      setError(payload.error);
-      setStatus("error");
+      settle({ status: "error", results: null, error: payload.error });
       return;
     }
 
-    setResults(payload.cases);
     const allPassed = payload.cases.every((c) => c.passed);
-    setStatus(allPassed ? "passed" : "failed");
+    settle({ status: allPassed ? "passed" : "failed", results: payload.cases, error: null });
     if (allPassed && !passedOnce.current) {
       passedOnce.current = true;
       onPass?.();
@@ -98,10 +110,9 @@ export function LiveDrill({ onPass }: { onPass?: () => void }) {
   }
 
   function reset() {
+    if (runningRef.current) return;
     setCode(STARTER);
-    setStatus("idle");
-    setResults(null);
-    setError(null);
+    settle({ status: "idle", results: null, error: null });
   }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -122,7 +133,7 @@ export function LiveDrill({ onPass }: { onPass?: () => void }) {
     }
   }
 
-  const busy = status === "running" || loading;
+  const busy = running || loading;
 
   return (
     <div className="relative rounded-md border border-border bg-sheet">
@@ -167,7 +178,14 @@ export function LiveDrill({ onPass }: { onPass?: () => void }) {
       </div>
 
       {/* Test cases */}
-      <ul className="flex flex-col border-t border-border" aria-live="polite">
+      <ul
+        className={cn(
+          "flex flex-col border-t border-border transition-opacity duration-150",
+          running && "opacity-55"
+        )}
+        aria-live="polite"
+        aria-busy={running}
+      >
         {CASES.map((c, i) => {
           const r = results?.[i];
           return (
@@ -206,18 +224,33 @@ export function LiveDrill({ onPass }: { onPass?: () => void }) {
       </ul>
 
       {error && (
-        <p className="border-t border-border px-5 py-3 font-mono text-[0.8125rem] text-destructive">
+        <p
+          className={cn(
+            "border-t border-border px-5 py-3 font-mono text-[0.8125rem] text-destructive transition-opacity duration-150",
+            running && "opacity-55"
+          )}
+        >
           {error}
         </p>
       )}
 
       {/* Actions */}
       <div className="flex flex-wrap items-center gap-3 border-t border-border px-5 py-4">
-        <Button onClick={() => void submit()} disabled={busy}>
-          {busy && <LoaderCircle className="animate-spin" aria-hidden="true" />}
-          {loading ? "Loading Python…" : status === "running" ? "Grading…" : "Submit drill"}
+        {/* Same size and opacity in every state, so re-grading never blinks */}
+        <Button
+          onClick={() => void submit()}
+          aria-disabled={busy}
+          aria-busy={busy}
+          className={cn("min-w-38 justify-start", busy && "cursor-progress")}
+        >
+          {busy ? (
+            <LoaderCircle className="animate-spin" aria-hidden="true" />
+          ) : (
+            <Play aria-hidden="true" />
+          )}
+          {loading ? "Loading Python…" : running ? "Grading…" : "Submit drill"}
         </Button>
-        <Button variant="ghost" size="sm" onClick={reset} disabled={busy || code === STARTER}>
+        <Button variant="ghost" size="sm" onClick={reset} disabled={code === STARTER}>
           <RotateCcw aria-hidden="true" />
           Reset
         </Button>

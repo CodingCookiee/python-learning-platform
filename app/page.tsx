@@ -231,7 +231,7 @@ export default async function LandingPage() {
                     them. Each one costs a little XP.
                   </p>
                   <div className="mt-auto flex flex-col rounded-sm border border-border bg-sheet font-mono text-[0.8125rem]">
-                    {['greet("Ada")', 'greet("Grace Hopper")'].map((t) => (
+                    {['greet("Ada")', 'greet("Linus")'].map((t) => (
                       <span
                         key={t}
                         className="flex items-center gap-2 border-b border-border/70 px-3 py-2 last:border-b-0"
@@ -313,7 +313,7 @@ export default async function LandingPage() {
                           {lang}
                         </span>
                         <pre
-                          className="hljs overflow-x-auto px-4 pt-1.5 pb-3 font-mono text-[0.8125rem] leading-6"
+                          className="hljs overflow-x-auto px-4 pt-1.5 pb-3 font-mono text-[0.8125rem] leading-6 whitespace-pre-wrap sm:whitespace-pre"
                           dangerouslySetInnerHTML={{ __html: highlight(code, id) }}
                         />
                       </div>
@@ -339,7 +339,7 @@ export default async function LandingPage() {
                 Every session goes on your record.
               </h2>
               <p className="text-lg leading-relaxed text-muted-foreground">
-                Daily streaks, XP, levels and {`${achievementCount} achievements`} keep you training.
+                Daily streaks, XP, levels and {achievementCount} achievements{" "}keep you training.
                 Rank is the one thing you can&apos;t grind: it only moves when you pass a grading.
               </p>
             </div>

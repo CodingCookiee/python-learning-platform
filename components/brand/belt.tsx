@@ -170,7 +170,9 @@ export function BeltLadder({
               style={{ flexGrow: r.span, flexBasis: 0 }}
               aria-current={isCurrent ? "step" : undefined}
             >
-              <span className="flex h-5 items-end">{isCurrent && <HereTag label={hereLabel} />}</span>
+              <span className="flex h-5 items-end">
+                {isCurrent && <HereTag label={stripes > 0 ? "Stripe earned" : hereLabel} />}
+              </span>
               {band(r, isCurrent)}
               <span className="mt-2 flex min-w-0 flex-col">
                 <span className="font-condensed truncate text-sm leading-tight font-bold">
