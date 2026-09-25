@@ -1,0 +1,8 @@
+title: An order service built from parts
+type: function
+difficulty: core
+tags: [composition, design, dataclasses, duck-typing]
+hints:
+  - OrderService doesn't create its repository or notifier; it's handed them in __init__ and keeps them as attributes. place() only calls their save and send methods.
+  - Keep the id counter on the service instance (self._next_id), so two services number their orders independently.
+  - Check the lines first and raise ValueError before saving or sending anything.

@@ -150,7 +150,7 @@ answer: 1
 explain: "import inventory.stock would make you write inventory.stock.reorder(). from inventory import reorder only works if inventory/__init__.py itself defines or imports reorder."
 ```
 
-## __name__ and the main guard
+## `__name__` and the main guard
 
 Every module has a name, stored in `__name__`. An imported module's `__name__` is its import name,
 like `"math"` or `"expenses.ledger"`. But the file you actually **run** gets the special name

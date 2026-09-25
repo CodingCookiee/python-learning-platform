@@ -5,7 +5,7 @@ hours: 4
 xp: 150
 requirements:
   - "splitter.py is a library of functions: to_pence, format_pence, split_evenly, parse_expense, balances and settle, each with a docstring"
-  - "cli.py imports from splitter.py and holds the program in main(), called only under if __name__ == \"__main__\":"
+  - 'cli.py imports from splitter.py and holds the program in main(), called only under `if __name__ == "__main__":`'
   - "The program reads the group's names, then expense lines of the form \"<name> paid <amount> for <description> [split <name> ...]\" until a blank line"
   - An expense without "split" is shared by the whole group; one with "split" is shared only by the names listed
   - All money is handled as whole pence (ints); leftover pence from an uneven split go one each to the first people listed
@@ -16,6 +16,6 @@ criteria:
   - Following the printed payments brings every balance to zero, with at most one payment fewer than the number of people
   - Importing splitter.py or cli.py prints nothing and asks for nothing
   - No global variables are changed at run time and there are no mutable default arguments
-  - "format_pence takes sign as a keyword-only argument"
+  - format_pence takes sign as a keyword-only argument
   - Functions are small, named for what they return, and documented with docstrings
   - The sample run in the brief produces exactly the output shown

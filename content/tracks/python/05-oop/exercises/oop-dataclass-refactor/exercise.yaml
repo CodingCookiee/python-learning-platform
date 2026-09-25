@@ -4,4 +4,4 @@ difficulty: warm-up
 tags: [dataclasses, refactoring]
 hints:
   - "from dataclasses import dataclass, then @dataclass above the class and one annotated line per field: name: str."
-  - The default goes on the field line, lead_time_days: int = 14. Delete __init__, __repr__ and __eq__, and keep ships_within.
+  - "The default goes on the field line, lead_time_days: int = 14. Delete __init__, __repr__ and __eq__, and keep ships_within."

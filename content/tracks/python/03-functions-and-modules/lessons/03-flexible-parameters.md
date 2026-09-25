@@ -16,7 +16,7 @@ exercises:
 your own functions can do all three, and knowing how makes the signatures in the standard library
 readable at a glance.
 
-## *args: any number of positional arguments
+## `*args`: any number of positional arguments
 
 A parameter written `*name` collects every **extra positional argument** into a tuple. The name
 `args` is only a convention; pick one that says what's in it.
@@ -42,7 +42,7 @@ invoice_line("Stationery", 4.5, 2.25, 1.0)
 > Coming from JavaScript: `*amounts` is a rest parameter, like `...amounts`. It gives you a tuple
 > instead of an array, so it can't be changed in place.
 
-## **kwargs: any number of keyword arguments
+## `**kwargs`: any number of keyword arguments
 
 A parameter written `**name` collects every **keyword argument that doesn't match another
 parameter** into a dict, in the order the caller wrote them.
@@ -90,7 +90,7 @@ options:
   - "()"
   - "[]"
 answer: 1
-explain: "*rows always collects a tuple, which is empty when there are no extra positional arguments. **options would likewise be an empty dict, {}."
+explain: "`*rows` always collects a tuple, which is empty when there are no extra positional arguments. `**options` would likewise be an empty dict, `{}`."
 ```
 
 ## Keyword-only parameters

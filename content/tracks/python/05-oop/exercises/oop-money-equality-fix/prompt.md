@@ -5,7 +5,8 @@ Money(5, "EUR") == 5
 # AttributeError: 'int' object has no attribute 'amount'   ← should just be False
 
 unique_prices([Money(5, "EUR"), Money(5, "EUR"), Money(7, "EUR")])
-# TypeError: unhashable type: 'Money'   ← should be [Money(5, 'EUR'), Money(7, 'EUR')]
+# TypeError: cannot use 'Money' as a dict key (unhashable type: 'Money')
+# ← should be [Money(5, 'EUR'), Money(7, 'EUR')]
 ```
 
 Fix `Money` so that comparing it with anything that isn't `Money` gives `False`, and so equal

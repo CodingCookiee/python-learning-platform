@@ -179,7 +179,7 @@ options:
   - "The first string literal inside the body"
   - "Any string literal anywhere in the body"
 answer: 1
-explain: Only a string that is the very first statement of the body becomes __doc__. A string further down is just an expression that does nothing, and a comment is thrown away when the code is read.
+explain: Only a string that is the very first statement of the body becomes `__doc__`. A string further down is just an expression that does nothing, and a comment is thrown away when the code is read.
 ```
 
 ## Where this leaves you

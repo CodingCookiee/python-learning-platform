@@ -1,0 +1,20 @@
+slug: log-analyzer
+title: Log analyzer
+summary: Parse a web server's access log into a report of top paths, error rates and the busiest hours in any time zone.
+hours: 5
+xp: 150
+requirements:
+  - "log_analyzer.py runs as `python log_analyzer.py <log file> [time zone]`, with the zone defaulting to UTC, and prints the report"
+  - "parse_line(line) uses one compiled regular expression with named groups and returns a dict of ip, time (an aware datetime), method, path (without its query string), status and size, or None for a line that isn't a log entry"
+  - "summarise(lines, zone) returns a dict with the request count, unique visitors, malformed line count, first and last request times in the zone, the top 5 paths, counts per status class (2xx to 5xx), the 3 paths with the most errors and the 3 busiest hours of the day"
+  - "format_report(name, zone, summary) builds the report text from that dict, and only main() reads files or prints"
+  - Percentages are shown to 1 decimal place, and the error rate counts both 4xx and 5xx responses
+  - Blank lines are ignored, and lines that don't parse are counted as malformed and skipped, never crashing the program
+  - Busiest hours are hours of the day in the chosen time zone, looked up with zoneinfo, with ties going to the earlier hour
+criteria:
+  - The sample log in the brief produces exactly the figures shown in the sample report, in UTC and in Europe/London
+  - Counting and grouping use Counter or defaultdict, not hand-written "if key in dict" loops
+  - Every datetime is aware; hours are converted with astimezone and a ZoneInfo, never by adding a fixed offset
+  - No input file crashes the program, including an empty file, one with only malformed lines and one with a bad time zone name
+  - The regular expression is a raw string, compiled once at module level, with named groups
+  - Functions are small and pure apart from main(), and importing log_analyzer.py prints nothing

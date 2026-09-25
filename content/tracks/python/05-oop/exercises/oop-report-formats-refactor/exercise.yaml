@@ -1,0 +1,8 @@
+title: Six report classes into four parts
+type: refactor
+difficulty: stretch
+tags: [composition, design, refactoring, inheritance]
+hints:
+  - Split the two choices apart. CsvFormat and JsonFormat each hold an extension and a render(title, rows) method; EmailDelivery and ArchiveDelivery each hold their destination and a deliver(filename, text, outbox) method.
+  - Report keeps title and rows, is handed a format and a delivery, and its publish builds the filename, asks the format for the text, and passes both to the delivery.
+  - None of the new classes needs a parent. Delete all six old classes once Report does their job.
