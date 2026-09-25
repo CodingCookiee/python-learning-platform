@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAdmin } from "@/lib/api-auth";
-import { getModuleDisplayDuration } from "@/lib/module-duration";
 import { z } from "zod";
 
 const createSchema = z.object({
@@ -20,7 +19,7 @@ export const GET = withAdmin(async () => {
     return NextResponse.json({
       modules: modules.map((module) => ({
         ...module,
-        duration: getModuleDisplayDuration(module.title, module.duration),
+        duration: module.duration,
       })),
     });
   } catch (error) {

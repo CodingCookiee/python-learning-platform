@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
 import { getCached, CacheKeys } from "@/lib/cache";
 import { getLessonEstimatedTime } from "@/lib/lesson-content";
-import { getModuleDisplayDuration } from "@/lib/module-duration";
 import { formatProjectEstimatedTime } from "@/lib/project-time";
 import { getLessonAccessState, getSequentialModuleUnlockMap } from "@/lib/module-access";
 
@@ -20,13 +19,15 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: 
     const response = await getCached(
       cacheKey,
       async () => {
-        const learningModule = await prisma.module.findUnique({
-          where: { id },
+        const learningModule = await prisma.module.findFirst({
+          where: { id, archivedAt: null, trackId: { not: null } },
           include: {
             lessons: {
+              where: { archivedAt: null },
               orderBy: { order: "asc" },
               include: {
                 exercises: {
+                  where: { archivedAt: null },
                   select: {
                     id: true,
                     title: true,
@@ -44,6 +45,7 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: 
               },
             },
             projects: {
+              where: { archivedAt: null },
               include: {
                 submissions: {
                   where: { userId: context.userId },
@@ -53,6 +55,7 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: 
               },
             },
             prerequisites: {
+              where: { archivedAt: null },
               select: {
                 id: true,
                 title: true,
@@ -60,6 +63,7 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: 
               },
             },
             dependents: {
+              where: { archivedAt: null },
               select: {
                 id: true,
                 title: true,
@@ -102,7 +106,7 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: 
           description: learningModule.description,
           phase: learningModule.phase,
           order: learningModule.order,
-          duration: getModuleDisplayDuration(learningModule.title, learningModule.duration),
+          duration: learningModule.duration,
           completionPercentage,
           isUnlocked,
           prerequisites: learningModule.prerequisites,

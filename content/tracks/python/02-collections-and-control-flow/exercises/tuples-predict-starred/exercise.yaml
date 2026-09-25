@@ -1,0 +1,7 @@
+title: "Predict: starred unpacking"
+type: predict
+difficulty: core
+tags: [tuples, unpacking, starred]
+hints:
+  - A starred name always collects a list, even when it collects nothing at all.
+  - "In the last assignment, the right side is worked out first: (b, a + b) is (2, 3)."

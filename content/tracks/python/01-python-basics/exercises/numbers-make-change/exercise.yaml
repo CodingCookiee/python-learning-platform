@@ -1,0 +1,7 @@
+title: Make change
+type: function
+difficulty: core
+tags: [numbers, divmod, division]
+hints:
+  - Start with the biggest coin. How many 25s fit in the amount, and how much is left over after them?
+  - "quarters, cents = divmod(cents, 25) gives both at once. Repeat with 10 and 5 on what's left; the rest is pennies."

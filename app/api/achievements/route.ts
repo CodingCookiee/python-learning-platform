@@ -10,9 +10,12 @@ import { NextRequest } from "next/server";
 export const GET = withAuth(async (_req: NextRequest, context: AuthContext) => {
   try {
     const [allAchievements, userAchievements] = await Promise.all([
-      prisma.achievement.findMany({ orderBy: [{ category: "asc" }, { name: "asc" }] }),
+      prisma.achievement.findMany({
+        where: { archivedAt: null },
+        orderBy: [{ category: "asc" }, { name: "asc" }],
+      }),
       prisma.userAchievement.findMany({
-        where: { userId: context.userId },
+        where: { userId: context.userId, achievement: { archivedAt: null } },
         include: {
           achievement: { select: { id: true } },
         },

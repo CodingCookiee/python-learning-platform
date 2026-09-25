@@ -1,0 +1,8 @@
+title: The missing cent
+type: fix
+difficulty: stretch
+tags: [numbers, decimal, rounding, money]
+hints:
+  - The prices arrive as strings. Build Decimals from them directly, with Decimal(price), and never go through float.
+  - round() rounds halves to even, even on a Decimal. quantize(Decimal("0.01"), rounding=ROUND_HALF_UP) rounds them up.
+  - "from decimal import Decimal, ROUND_HALF_UP at the top, then: (Decimal(price) * (1 + Decimal(tax_rate))).quantize(Decimal(\"0.01\"), rounding=ROUND_HALF_UP)"

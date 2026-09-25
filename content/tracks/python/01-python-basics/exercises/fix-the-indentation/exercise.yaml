@@ -1,0 +1,7 @@
+title: Fix the indentation
+type: program
+difficulty: warm-up
+tags: [indentation, if]
+hints:
+  - Python groups the lines of a block by indenting them under the line that ends with a colon.
+  - Both messages belong to the if, so both need the same four-space indent. The last line belongs to neither.

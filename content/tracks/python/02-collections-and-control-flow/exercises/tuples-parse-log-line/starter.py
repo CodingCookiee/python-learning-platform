@@ -1,0 +1,3 @@
+def parse_entry(line):
+    """Split "DATE TIME LEVEL message..." into (date, time, level, message)."""
+    ...

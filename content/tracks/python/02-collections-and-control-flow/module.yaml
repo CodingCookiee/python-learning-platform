@@ -1,0 +1,18 @@
+slug: collections-and-control-flow
+title: Collections and control flow
+summary: Store data in lists, tuples, dicts and sets, and walk through it with loops, comprehensions and match.
+description: >
+  Real programs spend most of their time moving through collections of things: orders, log lines,
+  scores, inventory. This module covers Python's four built-in collections and when to reach for
+  each, the loops that walk them (with enumerate, zip and the often-missed for-else), the
+  comprehensions that replace most of those loops, and match statements that take apart structured
+  data by its shape. Along the way you'll learn why sort() returns None, why dicts remember their
+  insertion order, and why removing items from a list while you loop over it skips some of them.
+hours: 8
+outcomes:
+  - Choose between mutating a list and building a new one, and predict which operations do which
+  - Slice and sort lists, and unpack tuples with starred targets and nested patterns
+  - Count, group and merge data with dicts using get, setdefault and the | operator
+  - Use sets for fast membership tests, de-duplication and comparing groups
+  - Write loops with range, enumerate, zip, break, continue and else, and replace simple ones with comprehensions
+  - Take apart commands and JSON-like payloads with match statements, patterns and guards

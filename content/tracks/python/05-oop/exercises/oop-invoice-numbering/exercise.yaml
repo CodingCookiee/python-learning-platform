@@ -1,0 +1,8 @@
+title: Numbered invoices
+type: function
+difficulty: core
+tags: [class-attributes, attribute-lookup, f-strings]
+hints:
+  - The counter must be written through the class, Invoice.next_number += 1. Writing self.next_number would only create an attribute on one invoice.
+  - "Format the number with a zero-padded format spec: f\"INV-{Invoice.next_number:04d}\"."
+  - Read the rate as self.vat_rate. Lookup finds an instance's own override first and falls back to the class default otherwise.

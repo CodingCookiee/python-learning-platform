@@ -1,0 +1,7 @@
+title: Your first program
+type: program
+difficulty: warm-up
+tags: [print]
+hints:
+  - Each call to print() writes one line.
+  - Match the text exactly, including the comma, the apostrophe and the full stop.

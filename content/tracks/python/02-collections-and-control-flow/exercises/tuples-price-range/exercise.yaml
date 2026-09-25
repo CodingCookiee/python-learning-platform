@@ -1,0 +1,7 @@
+title: Price range
+type: function
+difficulty: warm-up
+tags: [tuples, min-max]
+hints:
+  - min() and max() take a whole collection and return its smallest and largest item.
+  - "return min(prices), max(prices)"

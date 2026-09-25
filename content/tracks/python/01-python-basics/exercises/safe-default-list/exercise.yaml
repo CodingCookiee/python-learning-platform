@@ -1,0 +1,7 @@
+title: Copy before you change it
+type: fix
+difficulty: stretch
+tags: [references, mutability, lists]
+hints:
+  - The function appends to the list it was given, so the caller's list changes too.
+  - Make a new list first, for example with list(tasks) or tasks.copy(), then append to that.

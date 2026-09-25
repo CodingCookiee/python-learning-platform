@@ -3,10 +3,11 @@ import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
 import { invalidateUserCache, invalidateCache, CacheKeys } from "@/lib/cache";
 import { checkAndUnlockAchievements, updateStreak, updateUserLevel } from "@/lib/achievements";
+import { SOLUTION_AFTER_ATTEMPTS } from "@/lib/drills";
 import { z } from "zod";
 
 const submitSchema = z.object({
-  code: z.string().min(1, "Code is required"),
+  code: z.string().max(100_000),
   passed: z.boolean(),
   testResults: z.string(),
   hintsUsed: z.number().int().min(0).default(0),
@@ -32,7 +33,7 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
 
     const { code, passed, testResults, hintsUsed } = validation.data;
 
-    const exercise = await prisma.exercise.findUnique({ where: { id: exerciseId } });
+    const exercise = await prisma.exercise.findFirst({ where: { id: exerciseId, archivedAt: null } });
     if (!exercise) {
       return NextResponse.json({ error: "Exercise not found" }, { status: 404 });
     }
@@ -126,6 +127,9 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
       achievements: newAchievements,
       levelUp,
       newLevel,
+      // The reference solution unlocks on a pass, or after enough honest attempts
+      solution:
+        passed || submission.attempts >= SOLUTION_AFTER_ATTEMPTS ? exercise.solution : null,
     });
   } catch (error) {
     console.error("Error submitting exercise:", error);

@@ -1,0 +1,7 @@
+title: "Predict: sep and end"
+type: predict
+difficulty: core
+tags: [print]
+hints:
+  - sep goes between the values in one print() call. end goes after the last value, instead of a newline.
+  - The second print ends with "!" and a newline, so "done" starts on its own line.

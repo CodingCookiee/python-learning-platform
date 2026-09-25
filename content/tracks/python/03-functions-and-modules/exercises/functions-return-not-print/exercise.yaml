@@ -1,0 +1,8 @@
+title: Return it, don't print it
+type: fix
+difficulty: core
+tags: [functions, return, none]
+hints:
+  - print() shows a value on screen but the function still returns None. The caller needs return.
+  - shipping_cost has two branches, and each needs its own return. order_total builds the right number, then throws it away.
+  - "In order_total: return round(subtotal + shipping_cost(weight_kg), 2)"

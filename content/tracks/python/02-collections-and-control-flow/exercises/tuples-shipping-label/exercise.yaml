@@ -1,0 +1,8 @@
+title: Unpack the shipping label
+type: refactor
+difficulty: stretch
+tags: [tuples, unpacking, nested-unpacking, f-strings]
+hints:
+  - The address is a tuple inside the order tuple. Nested unpacking can pull both apart in one line.
+  - "order_id, name, (street, city, postcode) = order"
+  - Then build the label with an f-string, using \n for the line breaks.

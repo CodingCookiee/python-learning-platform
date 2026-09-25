@@ -1,0 +1,3 @@
+def rotate_left(items, n):
+    """Return a new list: items rotated left by n places (n may be large or negative)."""
+    ...

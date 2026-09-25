@@ -7,9 +7,11 @@ import type { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import rehypeHighlight from "rehype-highlight";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Info, Lightbulb, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CodeBlock } from "@/components/lesson/code-block";
+import { QuizCheck } from "@/components/lesson/quiz-check";
+import remarkPylearn from "@/components/lesson/remark-pylearn";
 
 // Helpers
 
@@ -114,17 +116,54 @@ function H3({ children, ...props }: ComponentPropsWithoutRef<"h3">) {
   );
 }
 
+/** A small JS mark: the two letters in a square, for "Coming from JavaScript" asides */
+function JsMark({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 16 16" className={className} aria-hidden="true">
+      <rect x="1.25" y="1.25" width="13.5" height="13.5" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <text x="8" y="11.4" textAnchor="middle" fontSize="7.5" fontWeight="700" fill="currentColor" fontFamily="inherit">
+        JS
+      </text>
+    </svg>
+  );
+}
+
+const CALLOUTS = {
+  js: {
+    label: "Coming from JavaScript",
+    Icon: JsMark,
+    className: "border-border bg-sheet text-foreground [&>svg]:text-muted-foreground",
+  },
+  note: {
+    label: "Note",
+    Icon: Info,
+    className: "border-border bg-accent/45 text-foreground [&>svg]:text-primary",
+  },
+  tip: {
+    label: "Tip",
+    Icon: Lightbulb,
+    className: "border-border bg-accent/45 text-foreground [&>svg]:text-(--code-string)",
+  },
+  warning: {
+    label: "Watch out",
+    Icon: TriangleAlert,
+    className: "border-destructive/30 bg-destructive/5 text-foreground [&>svg]:text-destructive",
+  },
+} as const;
+
 // Defined once at module level: a new object per render would give React a
 // new component type for every code block and remount them, wiping their output.
 const components: Components = {
   pre({ children }: ComponentPropsWithoutRef<"pre">) {
-    const child = isValidElement<{ className?: string; children?: ReactNode }>(children)
+    const child = isValidElement<{ className?: string; children?: ReactNode; "data-meta"?: string }>(children)
       ? children
       : null;
     const language = /language-(\w+)/.exec(child?.props.className ?? "")?.[1] ?? "";
     const code = nodeText(child?.props.children).replace(/\n$/, "");
+    if (language === "quiz") return <QuizCheck source={code} />;
+    const meta = child?.props["data-meta"] ?? "";
     return (
-      <CodeBlock code={code} language={language}>
+      <CodeBlock code={code} language={language} norun={/\bnorun\b/.test(meta)}>
         {children}
       </CodeBlock>
     );
@@ -153,7 +192,26 @@ const components: Components = {
   h2: H2,
   h3: H3,
 
-  blockquote({ children, ...props }: ComponentPropsWithoutRef<"blockquote">) {
+  blockquote({ children, ...props }: ComponentPropsWithoutRef<"blockquote"> & { "data-callout"?: string }) {
+    const kind = props["data-callout"];
+    if (kind && kind in CALLOUTS) {
+      const { label, Icon, className } = CALLOUTS[kind as keyof typeof CALLOUTS];
+      return (
+        <aside
+          className={cn(
+            "my-6 flex gap-3 rounded-md border px-4 py-3.5 [&_p]:mb-0 [&_p]:text-[0.9875rem] [&_p]:leading-relaxed [&_p+p]:mt-2",
+            className
+          )}
+          aria-label={label}
+        >
+          <Icon className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          <div className="min-w-0">
+            <span className="font-condensed mb-0.5 block text-xs font-semibold">{label}</span>
+            {children}
+          </div>
+        </aside>
+      );
+    }
     return (
       <blockquote
         className="my-6 rounded-md bg-accent/50 px-5 py-4 text-foreground [&>p:last-child]:mb-0"
@@ -286,7 +344,7 @@ export function LessonContent({ content, className }: LessonContentProps) {
           </details>
         )}
         <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
+          remarkPlugins={[remarkGfm, remarkPylearn]}
           rehypePlugins={[rehypeRaw, [rehypeHighlight, { detect: true }]]}
           components={components}
         >

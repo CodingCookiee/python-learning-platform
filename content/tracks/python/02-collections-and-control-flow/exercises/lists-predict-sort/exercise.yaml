@@ -1,0 +1,7 @@
+title: "Predict: sort or sorted?"
+type: predict
+difficulty: core
+tags: [lists, sorting, mutability]
+hints:
+  - sorted() builds a new list and leaves stock alone. sort() reorders stock itself and returns None.
+  - After the sort, stock is [12, 5, 3] and ordered is still [3, 5, 12].

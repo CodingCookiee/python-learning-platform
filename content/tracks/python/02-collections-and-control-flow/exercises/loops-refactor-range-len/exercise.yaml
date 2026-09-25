@@ -1,0 +1,8 @@
+title: Leaderboard without indexes
+type: refactor
+difficulty: core
+tags: [loops, enumerate, zip, unpacking]
+hints:
+  - zip(names, scores) walks both lists together and gives you (name, score) pairs.
+  - enumerate can number anything you can loop over, including what zip gives you. Count from 1 with start=1.
+  - "for rank, (name, score) in enumerate(zip(names, scores), start=1):"

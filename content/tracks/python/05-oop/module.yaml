@@ -1,0 +1,19 @@
+slug: oop
+title: Object-oriented Python
+summary: Classes, properties, inheritance, dunders and dataclasses, and when a plain function beats them all.
+description: >
+  Python's classes are simpler than they look once you see the mechanism: self is just the
+  instance passed in explicitly, and attribute lookup falls back from the instance to its class
+  and then along the MRO. This module builds on that to cover class attributes (and the shared
+  mutable trap), alternative constructors, properties with validation, inheritance and super(),
+  composition, the dunders that make objects print, compare and sort properly, dataclasses, and
+  abstract base classes. It ends with the judgement call that matters most: when a function or a
+  dict is the better design.
+hours: 9
+outcomes:
+  - Write classes whose methods, instance attributes and class attributes behave as intended, and explain what self is
+  - Add alternative constructors with @classmethod and validated attributes with @property
+  - Use inheritance, super() and the MRO deliberately, and prefer composition when a class only needs a part
+  - Give objects a useful repr, correct equality and hashing, and a full ordering with total_ordering
+  - Model data with dataclasses, using default_factory, frozen, __post_init__, order and slots
+  - Decide when a function, a dict or a dataclass is a better fit than a hand-written class

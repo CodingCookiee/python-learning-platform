@@ -1,0 +1,7 @@
+title: Orders that share their lines
+type: fix
+difficulty: core
+tags: [class-attributes, mutability, init]
+hints:
+  - self.lines.append(...) reads self.lines, finds no instance attribute, and falls back to the one list on the class.
+  - Give each order its own list by creating it in __init__ with self.lines = []. The status string can stay on the class; it's immutable, and assigning self.status creates an instance attribute anyway.

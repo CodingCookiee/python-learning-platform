@@ -1,0 +1,7 @@
+title: "Predict: try, except and else"
+type: predict
+difficulty: warm-up
+tags: [eafp, exceptions]
+hints:
+  - The else block runs only when the try block raised nothing. The except block runs only when it did.
+  - int() ignores spaces around a number, but it refuses "3.5" because that isn't a whole number.

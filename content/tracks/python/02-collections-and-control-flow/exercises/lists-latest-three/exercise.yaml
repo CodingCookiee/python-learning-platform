@@ -1,0 +1,7 @@
+title: The latest three orders
+type: function
+difficulty: warm-up
+tags: [lists, slicing]
+hints:
+  - A slice with a step of -1 walks the list backwards.
+  - "Reverse first, then take three: orders[::-1][:3]. Slices never raise for being too short."

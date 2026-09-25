@@ -1,0 +1,8 @@
+title: Rotate the on-call rota
+type: function
+difficulty: stretch
+tags: [lists, slicing, modulo]
+hints:
+  - Rotating left by n is "everything from index n onwards, then everything before n". Two slices and a +.
+  - Rotating four people by 5 is the same as rotating them by 1. The % operator from module 1 gives you that, and it also turns -1 into 3.
+  - An empty list has no length to take a remainder by, so handle it first.

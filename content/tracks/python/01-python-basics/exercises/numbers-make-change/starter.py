@@ -1,0 +1,3 @@
+def make_change(cents):
+    """Return (25s, 10s, 5s, 1s): the coins to pay out cents, biggest coins first."""
+    ...

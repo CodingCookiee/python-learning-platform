@@ -2,6 +2,12 @@
 import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
 import { getCached, CacheKeys } from "@/lib/cache";
+import type { Prisma } from "@/lib/generated/prisma/client";
+
+/** Live content only: archived rows and pre-content legacy modules (no track) stay hidden */
+const LIVE_MODULE = { archivedAt: null, trackId: { not: null } } satisfies Prisma.ModuleWhereInput;
+const LIVE_LESSON = { archivedAt: null, module: LIVE_MODULE } satisfies Prisma.LessonWhereInput;
+const LIVE_PROJECT = { archivedAt: null, module: LIVE_MODULE } satisfies Prisma.ProjectWhereInput;
 
 /**
  * GET /api/progress
@@ -35,6 +41,7 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
           where: {
             userId: context.userId,
             completed: true,
+            lesson: LIVE_LESSON,
           },
           include: {
             lesson: {
@@ -53,6 +60,7 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
           where: {
             userId: context.userId,
             passed: true,
+            exercise: { archivedAt: null, lesson: LIVE_LESSON },
           },
           distinct: ["exerciseId"],
           select: {
@@ -66,6 +74,7 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
           where: {
             userId: context.userId,
             status: "approved",
+            project: LIVE_PROJECT,
           },
           include: {
             project: {
@@ -81,7 +90,7 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
 
         // Get unlocked achievements
         const unlockedAchievements = await prisma.userAchievement.findMany({
-          where: { userId: context.userId },
+          where: { userId: context.userId, achievement: { archivedAt: null } },
           include: {
             achievement: true,
           },
@@ -146,8 +155,8 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
         const activeDates = Array.from(activeDateSet).sort();
 
         // Calculate overall completion
-        const totalLessons = await prisma.lesson.count();
-        const totalProjects = await prisma.project.count();
+        const totalLessons = await prisma.lesson.count({ where: LIVE_LESSON });
+        const totalProjects = await prisma.project.count({ where: LIVE_PROJECT });
 
         const overallCompletion = {
           lessons: {
@@ -174,12 +183,15 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
 
         // Module-by-module progress
         const modules = await prisma.module.findMany({
-          orderBy: { order: "asc" },
+          where: LIVE_MODULE,
+          orderBy: [{ track: { order: "asc" } }, { order: "asc" }],
           include: {
             lessons: {
+              where: { archivedAt: null },
               select: { id: true },
             },
             projects: {
+              where: { archivedAt: null },
               select: { id: true },
             },
           },

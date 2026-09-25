@@ -52,17 +52,26 @@ export default async function LandingPage() {
 
   const [modules, lessonCount, achievements, achievementCount] = await Promise.all([
     prisma.module.findMany({
+      where: { archivedAt: null, track: { slug: "python", archivedAt: null } },
       orderBy: { order: "asc" },
-      select: { id: true, order: true, title: true, duration: true, _count: { select: { lessons: true } } },
+      select: {
+        id: true,
+        order: true,
+        title: true,
+        duration: true,
+        _count: { select: { lessons: { where: { archivedAt: null } } } },
+      },
     }),
-    prisma.lesson.count(),
+    prisma.lesson.count({
+      where: { archivedAt: null, module: { archivedAt: null, track: { slug: "python", archivedAt: null } } },
+    }),
     prisma.achievement.findMany({
-      where: { tier: { in: ["Bronze", "Silver", "Gold"] } },
+      where: { archivedAt: null, tier: { in: ["Bronze", "Silver", "Gold"] } },
       orderBy: { xpReward: "asc" },
       select: { name: true, description: true },
       take: 3,
     }),
-    prisma.achievement.count(),
+    prisma.achievement.count({ where: { archivedAt: null } }),
   ]);
 
   return (

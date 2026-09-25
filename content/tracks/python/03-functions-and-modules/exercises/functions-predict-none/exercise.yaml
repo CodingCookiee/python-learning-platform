@@ -1,0 +1,7 @@
+title: "Predict: where did the value go?"
+type: predict
+difficulty: core
+tags: [functions, return, none]
+hints:
+  - For each call, follow the path through the body. Does that path reach a return?
+  - "The 50–99 branch works out a number but never returns it, and log_order prints but returns nothing. Both give back None."

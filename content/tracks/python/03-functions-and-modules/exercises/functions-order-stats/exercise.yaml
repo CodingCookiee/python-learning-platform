@@ -1,0 +1,8 @@
+title: Order stats in one call
+type: function
+difficulty: stretch
+tags: [functions, return, tuples, guard-clause]
+hints:
+  - Handle the empty list first with an early return, so the rest of the function never divides by zero.
+  - len() and sum() give you the count and the total. return count, total, average sends back all three as a tuple.
+  - "if not amounts: return 0, 0.0, None"

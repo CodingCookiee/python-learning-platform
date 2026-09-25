@@ -1,0 +1,7 @@
+title: "Predict: division and rounding"
+type: predict
+difficulty: warm-up
+tags: [numbers, division, rounding]
+hints:
+  - "/ always gives a float. // rounds down to a whole number, and % is what's left over."
+  - "-17 / 5 is -3.4, and // rounds down, towards minus infinity. round() sends halves to the even neighbour."

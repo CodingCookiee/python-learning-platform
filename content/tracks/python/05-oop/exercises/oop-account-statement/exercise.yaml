@@ -1,0 +1,8 @@
+title: Account statement
+type: function
+difficulty: stretch
+tags: [classes, methods, state, f-strings]
+hints:
+  - Keep the opening balance and a list of (memo, signed amount) pairs on self. The statement is built from those; withdrawals are stored as negative amounts.
+  - Walk the transactions with a running total that starts at the opening balance, adding one formatted line per transaction.
+  - "The format specs you need: f\"{memo[:12]:<12}{amount:>+11,.2f}{running:>11,.2f}\" for a transaction, and f\"{'Opening':<12}{'':>11}{opening:>11,.2f}\" for the first and last lines."

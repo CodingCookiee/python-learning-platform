@@ -1,0 +1,8 @@
+title: Group orders by customer
+type: function
+difficulty: stretch
+tags: [parameters, defaults, mutability, dicts]
+hints:
+  - "groups needs a default so callers can leave it out. A {} default would be shared by every call, so use None and build the dict in the body."
+  - Loop over the orders with unpacking, for customer, order_id in orders, and append each id to that customer's list.
+  - "groups.setdefault(customer, []).append(order_id) creates a customer's list the first time it's needed."

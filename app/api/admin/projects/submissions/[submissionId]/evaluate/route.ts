@@ -64,7 +64,7 @@ export const POST = withAuth<{ submissionId: string }>(
               moduleId: true,
               module: {
                 select: {
-                  lessons: { select: { id: true } },
+                  lessons: { where: { archivedAt: null }, select: { id: true } },
                 },
               },
             },

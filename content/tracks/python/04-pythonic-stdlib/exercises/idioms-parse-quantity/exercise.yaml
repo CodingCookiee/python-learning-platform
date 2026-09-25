@@ -1,0 +1,7 @@
+title: Parse a quantity, or fall back
+type: function
+difficulty: warm-up
+tags: [eafp, exceptions, int]
+hints:
+  - Don't check the text first. Let int() decide, and handle the case where it can't.
+  - "Put return int(text) inside try, and return default from except ValueError."

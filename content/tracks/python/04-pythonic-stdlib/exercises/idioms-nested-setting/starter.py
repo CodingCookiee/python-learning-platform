@@ -1,0 +1,3 @@
+def get_setting(config, path, default=None):
+    """The value at a dotted path like "database.host", or default if there isn't one."""
+    ...

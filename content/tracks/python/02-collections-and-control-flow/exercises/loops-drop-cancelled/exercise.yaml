@@ -1,0 +1,8 @@
+title: Drop the cancelled orders
+type: fix
+difficulty: core
+tags: [loops, lists, mutability]
+hints:
+  - Try it with two cancelled orders next to each other. Removing an item shifts the rest left, and the loop's position moves on past one of them.
+  - The function also changes the caller's list, which it promised not to do.
+  - Start with an empty list and append the orders you want to keep, leaving orders alone.

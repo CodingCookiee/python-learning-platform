@@ -26,8 +26,8 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: 
     const response = await getCached(
       cacheKey,
       async () => {
-        const project = await prisma.project.findUnique({
-          where: { id },
+        const project = await prisma.project.findFirst({
+          where: { id, archivedAt: null, module: { archivedAt: null } },
           include: {
             module: {
               select: {

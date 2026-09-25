@@ -1,0 +1,8 @@
+title: Parse a log line
+type: function
+difficulty: core
+tags: [tuples, unpacking, starred, strings]
+hints:
+  - line.split() gives you a list of words. The first three always mean the same thing.
+  - A starred name collects the remaining words into a list, which is empty when there are none.
+  - "date, time, level, *words = line.split(), then \" \".join(words) rebuilds the message."

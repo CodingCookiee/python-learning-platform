@@ -5,26 +5,7 @@ import { Check, Copy, LoaderCircle, Pencil, Play, RotateCcw } from "lucide-react
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { usePyodide } from "@/lib/pyodide";
-
-/** Modules available in the browser's Python (Pyodide standard library) */
-const BROWSER_SAFE_MODULES = new Set(
-  (
-    "sys os math random json re datetime collections itertools functools dataclasses enum typing " +
-    "abc string statistics time decimal fractions operator copy pprint textwrap heapq bisect " +
-    "contextlib csv io uuid hashlib base64 secrets array numbers types inspect warnings logging " +
-    "unittest doctest timeit calendar pathlib struct weakref zlib traceback"
-  ).split(" ")
-);
-
-/**
- * Whether a Python example can run in the browser as written: standard-library
- * imports only, and no input, file access, async entry points or main guards.
- */
-export function isBrowserRunnable(code: string): boolean {
-  const imports = [...code.matchAll(/^\s*(?:from|import)\s+([A-Za-z_]\w*)/gm)].map((m) => m[1]!);
-  if (imports.some((m) => !BROWSER_SAFE_MODULES.has(m))) return false;
-  return !/\binput\(|\bopen\(|\bawait\s|asyncio\.run|__name__/.test(code);
-}
+import { isBrowserRunnable } from "@/lib/content/runnable";
 
 type RunState = {
   status: "idle" | "running" | "ok" | "error";
@@ -40,13 +21,15 @@ const SHOW_MARKER = "__PYLEARN_SHOW__";
  * call changed (so `fruits.append("x")` shows `fruits`).
  */
 const HARNESS = String.raw`
-import ast as _a, json as _j
+import ast as _a, json as _j, inspect as _i
 _tree = _a.parse(_src)
-_ns = {"__name__": "__example__"}
+_ns = {"__name__": "__main__"}
 _body = _tree.body
 _last = _body[-1] if _body else None
 _tail_expr = isinstance(_last, _a.Expr)
-exec(compile(_a.Module(body=_body[:-1] if _tail_expr else _body, type_ignores=[]), "example.py", "exec"), _ns)
+_r = eval(compile(_a.Module(body=_body[:-1] if _tail_expr else _body, type_ignores=[]), "example.py", "exec", flags=_a.PyCF_ALLOW_TOP_LEVEL_AWAIT), _ns)
+if _i.iscoroutine(_r):
+    await _r
 def _base(node):
     while isinstance(node, (_a.Subscript, _a.Attribute)):
         node = node.value
@@ -68,7 +51,9 @@ for _st in _body:
                     _names.append(_n)
 _show = [[_n, repr(_ns[_n])] for _n in _names if _n in _ns][:8]
 if _tail_expr:
-    _value = eval(compile(_a.Expression(_last.value), "example.py", "eval"), _ns)
+    _value = eval(compile(_a.Expression(_last.value), "example.py", "eval", flags=_a.PyCF_ALLOW_TOP_LEVEL_AWAIT), _ns)
+    if _i.iscoroutine(_value):
+        _value = await _value
     if _value is not None:
         _show.append(["", repr(_value)])
 print("\n__PYLEARN_SHOW__" + _j.dumps(_show))
@@ -81,14 +66,17 @@ function buildExampleHarness(code: string): string {
 export function CodeBlock({
   code,
   language,
+  norun = false,
   children,
 }: {
   code: string;
   language: string;
+  /** Author opted out of the Run button (```python norun) */
+  norun?: boolean;
   /** The highlighted <code> element for display */
   children: React.ReactNode;
 }) {
-  const runnable = language === "python" && isBrowserRunnable(code);
+  const runnable = language === "python" && !norun && isBrowserRunnable(code);
   const { run, loading } = usePyodide();
   const [copied, setCopied] = React.useState(false);
   const [editing, setEditing] = React.useState(false);
@@ -106,7 +94,8 @@ export function CodeBlock({
     if (runningRef.current) return;
     runningRef.current = true;
     setResult((r) => ({ ...r, status: "running" }));
-    const { output, error } = await run(buildExampleHarness(editing ? draft : code), 8000);
+    const source = editing ? draft : code;
+    const { output, error } = await run(buildExampleHarness(source), 8000, { scanImports: source });
     if (error) {
       // The last line of a traceback is the part that names the problem
       const message = error.trim().split("\n").filter(Boolean).at(-1) ?? error;

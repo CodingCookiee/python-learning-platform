@@ -1,0 +1,7 @@
+title: The price check that lets bad prices through
+type: fix
+difficulty: core
+tags: [eafp, lbyl, exceptions, float]
+hints:
+  - The isdigit() check is a guess at what float() accepts, and it guesses wrong in both directions.
+  - Remove the check. Call float(text) inside try, and return None from an except ValueError block.

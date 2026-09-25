@@ -1,0 +1,7 @@
+title: Number the checklist
+type: function
+difficulty: warm-up
+tags: [loops, enumerate]
+hints:
+  - enumerate(tasks, start=1) gives you (number, task) pairs, counting from 1.
+  - Start with an empty list, append an f-string for each pair, and return the list.

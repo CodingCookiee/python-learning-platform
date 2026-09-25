@@ -1,0 +1,18 @@
+slug: functions-and-modules
+title: Functions and modules
+summary: Define functions with precise parameters, pass them around as values, and split code into modules.
+description: >
+  Functions are where Python code starts to have structure. You'll define them, give them exactly
+  the parameters they need (including the ones that can only be passed by keyword or by position),
+  and learn the rules Python uses to find a name: the reason a closure remembers its variables and
+  the reason a list default argument remembers every call. Then you'll pass functions to sorted(),
+  min() and max(), and finish by splitting code into modules with a proper entry point, which is
+  how every real Python project is laid out.
+hours: 8
+outcomes:
+  - Write functions that return values, with docstrings, and predict when one returns None
+  - Choose positional, keyword, default, keyword-only and positional-only parameters, and avoid the mutable-default trap
+  - Accept and forward any number of arguments with *args and **kwargs
+  - Explain LEGB lookup, and write closures that keep state with nonlocal
+  - Pass functions as values to sorted(), min() and max(), and choose between map/filter and a comprehension
+  - Import from the standard library and structure a file as both an importable module and a script

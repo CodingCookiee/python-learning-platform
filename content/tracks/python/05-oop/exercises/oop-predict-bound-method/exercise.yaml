@@ -1,0 +1,7 @@
+title: "Predict: who is self?"
+type: predict
+difficulty: core
+tags: [classes, self, methods]
+hints:
+  - "Counter.hit(about) is the same call as about.hit(): self is whatever is passed first."
+  - "record = home.hit stores a method that remembers home, so record() adds to home's count, not about's."

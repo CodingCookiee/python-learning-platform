@@ -1,0 +1,3 @@
+def latest_three(orders):
+    """Return the three most recent orders (orders is oldest first), newest first."""
+    return orders[::-1][:3]

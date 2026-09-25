@@ -96,13 +96,20 @@ def _ordinal_suffix(n: int) -> str:
     return {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
 
 
-def run_program(stdin: Iterable[str] = (), *, include_prompts: bool = False) -> ProgramResult:
+def run_program(
+    stdin: Iterable[str] = (),
+    *,
+    include_prompts: bool = False,
+    source: str | None = None,
+) -> ProgramResult:
     """Run the learner's file as a script, feeding it `stdin` lines, and return what it printed.
 
     Input prompts (the text passed to input()) are left out of the result unless
     include_prompts=True, so tests can compare just the program's own output.
+    Pass `source` to run a modified copy instead, e.g.
+    run_program(source=solution_source().replace("total = 150", "total = 50")).
     """
-    source = _SOLUTION["source"]
+    source = _SOLUTION["source"] if source is None else source
     filename = _SOLUTION["filename"]
     feed = _InputFeed(stdin)
     out = io.StringIO()
@@ -157,3 +164,131 @@ def source_uses(*, node: str | None = None, call: str | None = None, name: str |
 def source_avoids(*, node: str | None = None, call: str | None = None, name: str | None = None) -> bool:
     """The opposite of source_uses."""
     return not source_uses(node=node, call=call, name=name)
+
+
+# pytest: grading drills where the learner writes the tests (needs packages: [pytest])
+
+
+class PytestResult:
+    def __init__(self, passed: list[str], failed: list[str], errors: list[str], output: str):
+        self.passed = passed
+        self.failed = failed
+        self.errors = errors
+        self.output = output
+
+    @property
+    def total(self) -> int:
+        return len(self.passed) + len(self.failed) + len(self.errors)
+
+    def __repr__(self) -> str:
+        return f"<{len(self.passed)} passed, {len(self.failed)} failed, {len(self.errors)} errors>"
+
+
+_pytest_runs = 0
+
+
+def pytest_run(files: dict[str, str]) -> PytestResult:
+    """Write `files` ({"pricing.py": ..., "test_pricing.py": ...}) to a fresh folder and run
+    pytest on it. Returns which tests passed and failed.
+
+    Typical use: run the learner's tests (solution_source()) against a correct
+    implementation (they should all pass) and against planted bugs (some should fail).
+    """
+    global _pytest_runs
+    import os
+    import sys
+    import tempfile
+
+    import pytest
+
+    _pytest_runs += 1
+    folder = tempfile.mkdtemp(prefix=f"plp_pytest_{_pytest_runs}_")
+    for name, source in files.items():
+        with open(os.path.join(folder, name), "w", encoding="utf8") as fh:
+            fh.write(source)
+
+    # The files' modules must be imported fresh every run (a planted bug replaces the real one)
+    stems = {os.path.splitext(name)[0] for name in files if name.endswith(".py")}
+    for stem in stems:
+        sys.modules.pop(stem, None)
+
+    outcome: dict[str, list[str]] = {"passed": [], "failed": [], "errors": []}
+
+    class _Collector:
+        def pytest_runtest_logreport(self, report):
+            if report.when == "call":
+                bucket = "passed" if report.passed else "failed" if report.failed else None
+                if bucket:
+                    outcome[bucket].append(report.nodeid.split("::", 1)[-1])
+            elif report.failed:  # setup or teardown blew up (e.g. a broken fixture)
+                outcome["errors"].append(report.nodeid.split("::", 1)[-1])
+
+        def pytest_collectreport(self, report):
+            if report.failed:
+                outcome["errors"].append(f"collecting {report.nodeid or 'tests'}")
+
+    out = io.StringIO()
+    cwd = os.getcwd()
+    sys.path.insert(0, folder)
+    try:
+        os.chdir(folder)
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(out):
+            pytest.main(
+                # fd-level capture and faulthandler need real OS file descriptors, which Pyodide lacks
+                [folder, "-q", "--no-header", "--capture=sys", "-p", "no:cacheprovider", "-p", "no:faulthandler"],
+                plugins=[_Collector()],
+            )
+    finally:
+        os.chdir(cwd)
+        sys.path.remove(folder)
+        for stem in stems:
+            sys.modules.pop(stem, None)
+    return PytestResult(outcome["passed"], outcome["failed"], outcome["errors"], out.getvalue())
+
+
+# mypy: grading type-hint drills (needs packages: [mypy])
+
+
+class TypecheckResult:
+    def __init__(self, errors: list[str], output: str):
+        self.errors = errors
+        self.output = output
+
+    @property
+    def ok(self) -> bool:
+        return not self.errors
+
+    def __repr__(self) -> str:
+        return f"<{len(self.errors)} type error(s)>"
+
+
+def typecheck(source: str | None = None, *, strict: bool = False, extra_files: dict[str, str] | None = None) -> TypecheckResult:
+    """Run mypy on the learner's code (or `source`). Returns the error lines, e.g.
+    'solution.py:4: error: Argument 1 to "total" has incompatible type "str"; expected "int"'."""
+    import os
+    import tempfile
+
+    from mypy import api
+
+    folder = tempfile.mkdtemp(prefix="plp_mypy_")
+    target = os.path.join(folder, "solution.py")
+    with open(target, "w", encoding="utf8") as fh:
+        fh.write(_SOLUTION["source"] if source is None else source)
+    for name, text in (extra_files or {}).items():
+        with open(os.path.join(folder, name), "w", encoding="utf8") as fh:
+            fh.write(text)
+    args = [target, "--no-incremental", "--no-error-summary", "--hide-error-context", "--show-error-codes"]
+    if strict:
+        args.append("--strict")
+    cwd = os.getcwd()
+    try:
+        os.chdir(folder)
+        stdout, stderr, _status = api.run(args)
+    finally:
+        os.chdir(cwd)
+    lines = [
+        line.replace(target, "solution.py").replace(folder + os.sep, "")
+        for line in stdout.splitlines()
+        if ": error:" in line
+    ]
+    return TypecheckResult(lines, stdout + stderr)

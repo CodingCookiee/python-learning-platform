@@ -31,7 +31,9 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
 
     const { exerciseId, code, passed, testResults, hintsUsed } = validation.data;
 
-    const exercise = await prisma.exercise.findUnique({ where: { id: exerciseId } });
+    const exercise = await prisma.exercise.findFirst({
+      where: { id: exerciseId, archivedAt: null, lesson: { archivedAt: null, module: { archivedAt: null } } },
+    });
     if (!exercise) {
       return NextResponse.json({ error: "Exercise not found" }, { status: 404 });
     }

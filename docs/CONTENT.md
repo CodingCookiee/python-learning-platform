@@ -54,6 +54,7 @@ slug: python
 title: Python
 summary: From zero to advanced, one kyu grade per module.
 grade: kyu          # kyu (counts down from 16) or dan (counts up from 2)
+order: 1            # position among tracks
 ```
 
 ## `module.yaml`
@@ -105,6 +106,12 @@ sum(prices)
 
 ```python norun
 # Shown only, no Run button (for code that needs files, the network or a server)
+```
+
+```python raises
+# Runnable, and meant to fail: shows the learner a real error message.
+# The validator checks that it really does raise.
+"total: " + 42
 ```
 
 ```text
@@ -161,7 +168,7 @@ explain: Multiplying a list repeats it. Use a comprehension to double each item.
 
 ```yaml
 title: Swap without a temporary variable
-type: function       # function | program | predict | fix | refactor
+type: function       # function | program | predict | fix | refactor | tests
 difficulty: core     # warm-up | core | stretch
 xp: 20               # optional; defaults: warm-up 10, core 20, stretch 30
 tags: [unpacking, tuples]   # concept tags for the skill map
@@ -179,6 +186,7 @@ hints:               # revealed one at a time; the last hint is the closest to t
 | `fix` | repairs broken code | the broken code | `tests.py` |
 | `refactor` | rewrites working code idiomatically | the working but clumsy code | `tests.py`, often with `source_uses()` checks |
 | `predict` | says what code prints | the code to predict | the learner's answer compared with the real output |
+| `tests` | writes pytest tests for given code | a test file skeleton | `tests.py` using `pytest_run()`: the learner's tests must pass on the correct code and fail on planted bugs |
 
 - **`prompt.md`** is the task, in markdown. State the function signature, the input and the output,
   and give one worked example. Don't give away the approach; that's what hints are for.
@@ -225,6 +233,12 @@ def _():
 - **`source_uses(node="ListComp")` / `source_avoids(call="range")`** inspect the learner's code with
   `ast`, for refactor drills.
 - **`async def` tests** are awaited, so asyncio code can be tested directly.
+- **`pytest_run({"pricing.py": CORRECT, "test_pricing.py": solution_source()})`** runs pytest on
+  those files and returns `.passed`, `.failed` and `.errors` (lists of test names). Use it for `tests`
+  drills: run the learner's tests against the real module, then against each planted bug. Needs
+  `packages: [pytest]`.
+- **`typecheck(strict=False)`** runs mypy on the learner's code and returns `.errors` (mypy's error
+  lines) and `.ok`. Needs `packages: [mypy]`.
 - Each test gets its own stdout capture, so learners' `print()` calls never break a test.
 - Put the edge cases in `@hidden` tests so solutions can't be written to match the visible ones.
 - Write 3–8 tests per drill. The first test is the example from `prompt.md`.
@@ -262,6 +276,16 @@ criteria:              # how it's graded (the reviewer's checklist)
 goals, and how to submit. `starter.py` is optional.
 
 ---
+
+## Commands
+
+| Command | Does |
+|---------|------|
+| `npm run content:validate` | Checks every file, runs every drill's solution and starter, and runs every lesson example |
+| `npm run content:validate -- --only <slug>` | The same for one module, lesson or drill |
+| `npm run content:validate -- --quick` | Structure only, no Python |
+| `npm run content:try -- <exercise dir> [--solution]` | Shows exactly what a learner sees when running the starter (or solution) |
+| `npm run content:sync` | Copies content into the database (archives removed items, keeps progress) |
 
 ## Checklist before you open a PR
 

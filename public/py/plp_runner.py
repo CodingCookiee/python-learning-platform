@@ -167,7 +167,26 @@ _OPS = {
 }
 
 
-def _explain_assertion(exc: AssertionError, tests_tree: ast.Module) -> str:
+async def _evaluate(node: ast.expr, env: dict) -> object:
+    value = eval(
+        compile(ast.Expression(node), "tests.py", "eval", flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT), env
+    )
+    if inspect.iscoroutine(value):
+        value = await value
+    return value
+
+
+def _subject(node: ast.expr) -> tuple[str, str]:
+    """How to name the checked value: ("Your program", "printed") for run_program output."""
+    src = ast.unparse(node)
+    if "run_program(" in src:
+        return "Your program", "printed"
+    if isinstance(node, ast.Await):
+        return src.removeprefix("await "), "returned"
+    return src, "returned" if isinstance(node, ast.Call) else "is"
+
+
+async def _explain_assertion(exc: AssertionError, tests_tree: ast.Module) -> str:
     """Turn a bare `assert a == b` failure into 'a returned X, expected Y'."""
     if exc.args and str(exc.args[0]):
         return str(exc.args[0])
@@ -193,17 +212,18 @@ def _explain_assertion(exc: AssertionError, tests_tree: ast.Module) -> str:
         try:
             env = {**frame.f_globals, **frame.f_locals}
             with contextlib.redirect_stdout(io.StringIO()):
-                left = eval(compile(ast.Expression(test.left), "tests.py", "eval"), env)
-                right = eval(compile(ast.Expression(test.comparators[0]), "tests.py", "eval"), env)
+                left = await _evaluate(test.left, env)
+                right = await _evaluate(test.comparators[0], env)
         except Exception:
             return f"Expected {left_src} {op} {right_src}"
-        verb = "returned" if isinstance(test.left, ast.Call) else "is"
+        subject, verb = _subject(test.left)
         if op == "==":
-            return f"{left_src} {verb} {_short_repr(left)}, expected {_short_repr(right)}"
+            return f"{subject} {verb} {_short_repr(left)}, expected {_short_repr(right)}"
         if op == "!=":
-            return f"{left_src} {verb} {_short_repr(left)}, which it shouldn't be"
+            return f"{subject} {verb} {_short_repr(left)}, which it shouldn't be"
         if op in ("in", "not in"):
-            return f"Expected {_short_repr(left)} {op} {right_src}"
+            container = "your program's output" if "run_program(" in right_src else right_src
+            return f"Expected {_short_repr(left)} {op} {container}"
         return f"Expected {left_src} {op} {_short_repr(right)}, but it {verb} {_short_repr(left)}"
     if isinstance(test, ast.Call):
         return f"Expected {ast.unparse(test)} to be true"
@@ -220,8 +240,13 @@ def _fresh_module(name: str, filename: str, source: str) -> types.ModuleType:
     return module
 
 
-async def run_tests(solution: str, tests: str) -> dict:
-    """Import the learner's code as `solution`, then run every registered test."""
+async def run_tests(solution: str, tests: str, import_solution: bool = True) -> dict:
+    """Import the learner's code as `solution`, then run every registered test.
+
+    Program drills pass import_solution=False: their code is a script (it calls
+    input() at the top level), so tests only run it through plp.run_program().
+    Its syntax is still checked up front.
+    """
     plp._REGISTRY.clear()
     plp._SOLUTION.update(source=solution, filename="solution.py")
     for name in ("solution", "tests"):
@@ -234,9 +259,10 @@ async def run_tests(solution: str, tests: str) -> dict:
     module = _fresh_module("solution", "solution.py", solution)
     try:
         code_obj = compile(solution, "solution.py", "exec")
-        sys.modules["solution"] = module
-        with contextlib.redirect_stdout(load_out), _patched_input(_NoInput()):
-            exec(code_obj, module.__dict__)
+        if import_solution:
+            sys.modules["solution"] = module
+            with contextlib.redirect_stdout(load_out), _patched_input(_NoInput()):
+                exec(code_obj, module.__dict__)
     except BaseException as exc:  # noqa: BLE001
         sys.modules.pop("solution", None)
         return {
@@ -281,11 +307,16 @@ async def run_tests(solution: str, tests: str) -> dict:
                     await outcome
             passed = True
         except AssertionError as exc:
-            message = _explain_assertion(exc, tests_tree)
+            message = await _explain_assertion(exc, tests_tree)
         except BaseException as exc:  # noqa: BLE001
             error = _describe_exception(exc, files=("solution.py",))
             where = f" (line {error['line']})" if error["line"] else ""
-            message = f"Your code raised {error['type']}{where}: {error['message']}".rstrip(": ")
+            if error["line"] is not None:
+                message = f"Your code raised {error['type']}{where}: {error['message']}"
+            else:
+                # Raised in the test itself, usually while inspecting what the code returned
+                message = f"{error['type']} while checking your result: {error['message']}"
+            message = message.rstrip(": ")
         results.append(
             {
                 "name": entry["name"],

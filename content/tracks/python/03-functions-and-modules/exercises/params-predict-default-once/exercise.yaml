@@ -1,0 +1,7 @@
+title: "Predict: when is a default worked out?"
+type: predict
+difficulty: core
+tags: [parameters, defaults, mutability]
+hints:
+  - A default is evaluated once, when the def runs. Changing discount afterwards doesn't change the stored default.
+  - "remember's seen list is created once and shared by every call that leaves seen out. The call that passes [] uses its own list."

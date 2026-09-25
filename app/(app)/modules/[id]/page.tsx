@@ -7,7 +7,6 @@ import { FadeIn, StaggerContainer } from "@/components/animations";
 import { Button } from "@/components/ui/button";
 import { getLessonEstimatedTime } from "@/lib/lesson-content";
 import { formatProjectEstimatedTime } from "@/lib/project-time";
-import { getModuleDisplayDuration } from "@/lib/module-duration";
 import { getLessonAccessState, getSequentialModuleUnlockMap } from "@/lib/module-access";
 import { ArrowLeft, ArrowRight, Check, Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -114,7 +113,7 @@ export default async function ModuleDetailPage({ params }: PageProps) {
 
   const firstIncompleteLesson = lessons.find((l) => !l.completed);
   const firstLesson = lessons[0] ?? null;
-  const displayDuration = getModuleDisplayDuration(learningModule.title, learningModule.duration);
+  const displayDuration = learningModule.duration;
   const belt = beltForModule(learningModule.order);
   const stripeNumber = learningModule.order - belt.fromModule + 1;
   const stripeSlots = belt.toModule - belt.fromModule + 1;

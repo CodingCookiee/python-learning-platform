@@ -18,8 +18,8 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: 
     const response = await getCached(
       cacheKey,
       async () => {
-        const lesson = await prisma.lesson.findUnique({
-          where: { id },
+        const lesson = await prisma.lesson.findFirst({
+          where: { id, archivedAt: null, module: { archivedAt: null } },
           include: {
             module: {
               select: {
@@ -29,6 +29,7 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: 
               },
             },
             exercises: {
+              where: { archivedAt: null },
               orderBy: { order: "asc" },
               include: {
                 submissions: {
@@ -57,7 +58,7 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: 
 
         // Get previous and next lessons for navigation
         const siblingLessons = await prisma.lesson.findMany({
-          where: { moduleId: lesson.moduleId },
+          where: { moduleId: lesson.moduleId, archivedAt: null },
           orderBy: { order: "asc" },
           select: {
             id: true,

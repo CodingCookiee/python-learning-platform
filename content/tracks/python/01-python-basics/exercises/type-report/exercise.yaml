@@ -1,0 +1,7 @@
+title: Type report
+type: function
+difficulty: core
+tags: [types, type]
+hints:
+  - "type(value) gives the type object, and every type has a __name__ attribute: type(3).__name__ is 'int'."
+  - "Combine them with an f-string: f\"{value!r} is a {type(value).__name__}\". The !r shows strings with quotes."

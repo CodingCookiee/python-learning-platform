@@ -1,0 +1,8 @@
+title: Fix the shared tag list
+type: fix
+difficulty: core
+tags: [parameters, defaults, mutability]
+hints:
+  - The default list is created once, when the def runs, and every call that leaves tags out appends to that same list.
+  - Make the default None, and create the new list inside the function, where it runs on every call.
+  - "def add_tag(tag, tags=None): then if tags is None: tags = []. Check with is None, not truthiness, so an empty list passed in is still used."

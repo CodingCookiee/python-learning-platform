@@ -1,0 +1,7 @@
+title: Put self back
+type: fix
+difficulty: warm-up
+tags: [classes, self, init]
+hints:
+  - Inside a method, a bare name is a local variable. Only self.name is stored on the instance.
+  - There are three bugs. Two assignments in __init__ are missing self., and total() is missing its self parameter.

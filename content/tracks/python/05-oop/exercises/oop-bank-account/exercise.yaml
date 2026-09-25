@@ -1,0 +1,7 @@
+title: Bank account
+type: function
+difficulty: core
+tags: [classes, methods, state, validation]
+hints:
+  - Check the amount first and raise ValueError before changing anything, so a refused withdrawal leaves the balance alone.
+  - transfer_to(other, amount) can reuse your own methods; self.withdraw(amount) then other.deposit(amount). Withdrawing first means a refused transfer changes neither account.

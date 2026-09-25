@@ -1,0 +1,7 @@
+title: Order labels with defaults
+type: function
+difficulty: warm-up
+tags: [parameters, defaults, f-strings]
+hints:
+  - "Give prefix and width default values in the def line: prefix=\"ORD\", width=5."
+  - "A format spec can use another value for its width: f\"{order_id:0{width}d}\" pads with zeros to width digits."

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getCurriculumState } from "@/lib/curriculum-state";
 
 export interface PrerequisiteStatus {
   id: string;
@@ -28,7 +29,7 @@ export async function getPrerequisiteStatuses(
   return Promise.all(
     prerequisites.map(async (prereq) => {
       const prereqLessons = await prisma.lesson.findMany({
-        where: { moduleId: prereq.id },
+        where: { moduleId: prereq.id, archivedAt: null },
         select: { id: true },
       });
 
@@ -88,40 +89,10 @@ export function canCompleteLesson(
   return moduleIsUnlocked && priorLessons.every((lesson) => lesson.completed);
 }
 
+/** Module id → unlocked, for every live module in every track (see lib/curriculum-state.ts). */
 export async function getSequentialModuleUnlockMap(userId: string): Promise<Map<string, boolean>> {
-  const modules = await prisma.module.findMany({
-    orderBy: { order: "asc" },
-    select: {
-      id: true,
-      order: true,
-      lessons: {
-        select: { id: true },
-      },
-    },
-  });
-
-  const completedLessons = await prisma.progress.findMany({
-    where: {
-      userId,
-      completed: true,
-    },
-    select: { lessonId: true },
-  });
-  const completedLessonIds = new Set(completedLessons.map((lesson) => lesson.lessonId));
-
+  const tracks = await getCurriculumState(userId);
   const unlockMap = new Map<string, boolean>();
-  let priorModulesCompleted = true;
-
-  for (const curriculumModule of modules) {
-    unlockMap.set(curriculumModule.id, priorModulesCompleted);
-
-    const moduleLessonIds = curriculumModule.lessons.map((lesson) => lesson.id);
-    const moduleCompleted =
-      moduleLessonIds.length === 0 ||
-      moduleLessonIds.every((lessonId) => completedLessonIds.has(lessonId));
-
-    priorModulesCompleted = priorModulesCompleted && moduleCompleted;
-  }
-
+  for (const track of tracks) for (const m of track.modules) unlockMap.set(m.id, m.unlocked);
   return unlockMap;
 }

@@ -1,0 +1,7 @@
+title: Boxes needed
+type: function
+difficulty: warm-up
+tags: [numbers, division, math]
+hints:
+  - "items // per_box counts the full boxes. A leftover (items % per_box) needs one more box."
+  - "math.ceil(items / per_box) rounds the division up. Remember to import math at the top."

@@ -1,0 +1,8 @@
+title: Daily sales tally
+type: program
+difficulty: stretch
+tags: [loops, while, break, continue, input]
+hints:
+  - "A while True: loop that reads one line per pass works well here. break when the line is blank or done."
+  - '"12".isdigit() is True and "twelve".isdigit() is False. Use continue to skip a bad line after printing the message.'
+  - Keep the valid numbers in a list. sum(), max() and len() then give you most of the summary; enumerate(days, start=1) finds the first day with the best number.

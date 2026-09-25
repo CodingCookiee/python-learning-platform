@@ -1,0 +1,7 @@
+title: Flags to any() and all()
+type: refactor
+difficulty: core
+tags: [any, all, idioms, refactoring]
+hints:
+  - Each function sets a flag in a loop. all() answers "does every item pass?" and any() answers "does at least one?".
+  - "return all(line[\"in_stock\"] for line in order[\"lines\"]), and the same shape with any() in the second function."

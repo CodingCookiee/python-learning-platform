@@ -1,0 +1,8 @@
+title: Write a proper docstring
+type: refactor
+difficulty: core
+tags: [functions, docstrings]
+hints:
+  - A docstring is a triple-quoted string that is the first statement inside the def, not a comment above it.
+  - "The first line is a short command ending with a full stop, such as \"Return the late fee for an unpaid invoice.\" Then a blank line, then the details."
+  - The details should name amount_due and days_late and say what they mean, and mention the 25% cap.

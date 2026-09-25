@@ -1,0 +1,3 @@
+def numbered(tasks):
+    """Return ["1. first task", "2. second task", ...]."""
+    ...

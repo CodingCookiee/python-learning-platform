@@ -1,0 +1,8 @@
+title: Top three prices
+type: fix
+difficulty: core
+tags: [lists, sorting, mutability]
+hints:
+  - Read the error message. What does prices.sort() return, and what is prices after that line?
+  - sort() changes the caller's list and returns None. sorted() returns a new list and changes nothing.
+  - "return sorted(prices, reverse=True)[:3]"

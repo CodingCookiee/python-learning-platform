@@ -1,0 +1,7 @@
+title: "Predict: rebind or mutate?"
+type: predict
+difficulty: warm-up
+tags: [references, mutability]
+hints:
+  - Ask of each line whether it rebinds a name (=) or changes the list object itself (append).
+  - "b = b + [4] builds a new list for b. From then on, a and b are different lists."

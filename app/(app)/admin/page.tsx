@@ -8,6 +8,10 @@ import { FadeIn, StaggerContainer } from "@/components/animations";
 import { Button } from "@/components/ui/button";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { SealMark } from "@/components/brand/marks";
+import type { Prisma } from "@/lib/generated/prisma/client";
+
+/** Live content only: archived rows and pre-content legacy modules (no track) are not counted */
+const LIVE_MODULE = { archivedAt: null, trackId: { not: null } } satisfies Prisma.ModuleWhereInput;
 
 function formatDate(d: Date): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -40,10 +44,10 @@ export default async function AdminDashboardPage() {
         take: 5,
         select: { id: true, name: true, email: true, xp: true, level: true, createdAt: true },
       }),
-      prisma.module.count(),
-      prisma.lesson.count(),
-      prisma.exercise.count(),
-      prisma.project.count(),
+      prisma.module.count({ where: LIVE_MODULE }),
+      prisma.lesson.count({ where: { archivedAt: null, module: LIVE_MODULE } }),
+      prisma.exercise.count({ where: { archivedAt: null, lesson: { archivedAt: null, module: LIVE_MODULE } } }),
+      prisma.project.count({ where: { archivedAt: null, module: LIVE_MODULE } }),
       prisma.projectSubmission.count({ where: { status: "approved" } }),
     ]);
 

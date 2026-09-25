@@ -83,27 +83,57 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
-model Module {
-  id          String   @id @default(cuid())
-  title       String
-  description String
-  phase       String
-  order       Int      @unique
-  duration    Int
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+/// A course, e.g. Python (kyu grades) or AI Automation (dan grades). Synced from content/.
+model Track {
+  id         String    @id @default(cuid())
+  slug       String    @unique
+  title      String
+  summary    String
+  /// "kyu" or "dan": how modules in this track map to grades
+  grade      String
+  order      Int       @unique
+  archivedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
+  modules Module[]
+
+  @@map("tracks")
+}
+
+model Module {
+  id          String    @id @default(cuid())
+  /// Stable identity from content/ (null only for pre-content legacy rows)
+  slug        String?   @unique
+  trackId     String?
+  title       String
+  summary     String    @default("")
+  description String
+  outcomes    String[]  @default([])
+  phase       String
+  /// Position within the track
+  order       Int
+  duration    Int
+  /// Set when the module disappears from content/; learner history stays
+  archivedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  track       Track?    @relation(fields: [trackId], references: [id])
   lessons     Lesson[]
   projects    Project[]
 
   prerequisites Module[] @relation("ModulePrerequisites")
   dependents    Module[] @relation("ModulePrerequisites")
 
+  @@unique([trackId, order])
   @@map("modules")
 }
 
 model Lesson {
   id            String   @id @default(cuid())
+  slug          String?  @unique
+  archivedAt    DateTime?
   moduleId      String
   title         String
   description   String
@@ -123,15 +153,29 @@ model Lesson {
 
 model Exercise {
   id            String   @id @default(cuid())
+  slug          String?  @unique
   lessonId      String
   title         String
   description   String
+  /// The prompt, in markdown
   instructions  String   @db.Text
   starterCode   String   @db.Text
   solution      String   @db.Text
+  /// JSON [{ name, hidden }]: the test list shown before the first run
   testCases     String   @db.Text
+  /// The drill's plp tests.py source
+  tests         String   @db.Text @default("")
+  /// function | program | predict | fix | refactor
+  type          String   @default("function")
   hints         String   @db.Text
+  /// warm-up | core | stretch
   difficulty    String
+  tags          String[] @default([])
+  packages      String[] @default([])
+  timeoutMs     Int      @default(5000)
+  /// Required drills gate lesson completion; optional ones are extra practice
+  required      Boolean  @default(true)
+  archivedAt    DateTime?
   order         Int
   xpReward      Int      @default(25)
   createdAt     DateTime @default(now())
@@ -146,8 +190,12 @@ model Exercise {
 
 model Project {
   id              String   @id @default(cuid())
+  slug            String?  @unique
+  archivedAt      DateTime?
   moduleId        String
   title           String
+  summary         String   @default("")
+  /// The brief, in markdown
   description     String
   requirements    String   @db.Text
   successCriteria String   @db.Text
@@ -216,6 +264,9 @@ model ProjectSubmission {
 
 model Achievement {
   id          String   @id @default(cuid())
+  slug        String?  @unique
+  archivedAt  DateTime?
+  order       Int      @default(0)
   name        String   @unique
   description String
   icon        String

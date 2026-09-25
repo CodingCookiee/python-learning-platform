@@ -63,8 +63,8 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
     const data = validation.data;
 
     // Check project exists
-    const project = await prisma.project.findUnique({
-      where: { id: projectId },
+    const project = await prisma.project.findFirst({
+      where: { id: projectId, archivedAt: null, module: { archivedAt: null } },
       select: { id: true },
     });
     if (!project) {

@@ -15,8 +15,8 @@ interface ProjectInfo {
 }
 
 async function getProject(id: string): Promise<ProjectInfo | null> {
-  const project = await prisma.project.findUnique({
-    where: { id },
+  const project = await prisma.project.findFirst({
+    where: { id, archivedAt: null, module: { archivedAt: null } },
     select: {
       id: true,
       title: true,

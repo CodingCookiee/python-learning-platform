@@ -1,0 +1,7 @@
+title: "Predict: instance or class?"
+type: predict
+difficulty: warm-up
+tags: [class-attributes, attribute-lookup]
+hints:
+  - Reading an attribute checks the instance first, then the class. Assigning through an instance always creates or changes the instance's own attribute.
+  - "pro.price = 25 shadows the class value for pro only. After del pro.price, pro falls back to Plan.price again."

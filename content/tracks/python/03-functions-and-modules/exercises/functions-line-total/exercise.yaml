@@ -1,0 +1,7 @@
+title: Invoice line total
+type: function
+difficulty: warm-up
+tags: [functions, return, round]
+hints:
+  - Multiply the two parameters, then send the result back with return.
+  - "return round(quantity * unit_price, 2)"

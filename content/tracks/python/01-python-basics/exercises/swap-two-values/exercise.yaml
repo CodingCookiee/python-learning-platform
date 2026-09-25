@@ -1,0 +1,7 @@
+title: Swap two values
+type: function
+difficulty: warm-up
+tags: [tuples, unpacking]
+hints:
+  - A function can return two values at once, separated by a comma.
+  - "return b, a"

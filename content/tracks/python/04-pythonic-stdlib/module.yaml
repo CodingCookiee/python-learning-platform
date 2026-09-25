@@ -1,0 +1,17 @@
+slug: pythonic-stdlib
+title: Pythonic idioms and the standard library
+summary: Write Python the way experienced Python developers do, with the standard library doing the heavy lifting.
+description: >
+  You can already write Python that works. This module is about writing Python that reads well and
+  doesn't reinvent anything. You'll learn when to just try something and handle the failure, then
+  meet the standard-library tools that replace most hand-rolled loops: counters and grouping dicts,
+  lazy iterator tools, caching, dates and time zones, regular expressions, paths, JSON and enums.
+  It ends with a log analyzer that uses nearly all of them at once.
+hours: 9
+outcomes:
+  - Choose between EAFP and LBYL, and write narrow try/except blocks that catch only what you expect
+  - Replace counting and grouping loops with Counter, defaultdict, deque, namedtuple and ChainMap
+  - Chain, slice, batch, pair and group data with itertools, avoiding the groupby sort-first trap
+  - Use partial, reduce and caching from functools, and summarise or sample data with statistics and random
+  - Parse, compare, convert and format timezone-aware datetimes with datetime and zoneinfo
+  - Extract and rewrite text with regular expressions, and work with files, JSON and enums

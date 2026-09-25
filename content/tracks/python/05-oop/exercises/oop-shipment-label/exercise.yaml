@@ -1,0 +1,7 @@
+title: A shipment with a label
+type: function
+difficulty: warm-up
+tags: [classes, init, methods]
+hints:
+  - "__init__(self, tracking, weight_kg) should store both arguments on self, e.g. self.tracking = tracking."
+  - "label(self) builds its text from the instance: return f\"{self.tracking} ({self.weight_kg} kg)\""

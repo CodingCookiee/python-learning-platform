@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
 import { getCached, CacheKeys } from "@/lib/cache";
-import { getModuleDisplayDuration } from "@/lib/module-duration";
 import { getLessonAccessState, getSequentialModuleUnlockMap } from "@/lib/module-access";
 
 /**
@@ -18,9 +17,11 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
       cacheKey,
       async () => {
         const modules = await prisma.module.findMany({
-          orderBy: { order: "asc" },
+          where: { archivedAt: null, trackId: { not: null } },
+          orderBy: [{ track: { order: "asc" } }, { order: "asc" }],
           include: {
             lessons: {
+              where: { archivedAt: null },
               select: {
                 id: true,
                 title: true,
@@ -29,12 +30,14 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
               orderBy: { order: "asc" },
             },
             projects: {
+              where: { archivedAt: null },
               select: {
                 id: true,
                 title: true,
               },
             },
             prerequisites: {
+              where: { archivedAt: null },
               select: {
                 id: true,
                 title: true,
@@ -43,8 +46,8 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
             },
             _count: {
               select: {
-                lessons: true,
-                projects: true,
+                lessons: { where: { archivedAt: null } },
+                projects: { where: { archivedAt: null } },
               },
             },
           },
@@ -102,7 +105,7 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
               description: module.description,
               phase: module.phase,
               order: module.order,
-              duration: getModuleDisplayDuration(module.title, module.duration),
+              duration: module.duration,
               lessonCount: module._count.lessons,
               projectCount: module._count.projects,
               completionPercentage,

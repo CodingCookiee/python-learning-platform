@@ -1,0 +1,8 @@
+title: Read a nested setting
+type: function
+difficulty: stretch
+tags: [eafp, dicts, exceptions]
+hints:
+  - Split the path on "." and step into the config one key at a time.
+  - Two different things can go wrong part-way along the path, a missing key and a value that isn't a dict. Catch both exceptions in one except clause.
+  - "Wrap the loop in try, and use except (KeyError, TypeError): return default. Don't use `or default`: a stored False or 0 is a real value."

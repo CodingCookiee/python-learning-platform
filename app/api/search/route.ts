@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
 import { canCompleteLesson, getSequentialModuleUnlockMap } from "@/lib/module-access";
+import type { Prisma } from "@/lib/generated/prisma/client";
+
+/** Live modules only: not archived and part of a track (legacy rows have no track) */
+const LIVE_MODULE = { archivedAt: null, trackId: { not: null } } satisfies Prisma.ModuleWhereInput;
 
 export interface SearchResult {
   id: string;
@@ -24,6 +28,7 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
     const [modules, lessons, exercises] = await Promise.all([
       prisma.module.findMany({
         where: {
+          ...LIVE_MODULE,
           OR: [
             { title: { contains: q, mode: "insensitive" } },
             { description: { contains: q, mode: "insensitive" } },
@@ -35,6 +40,7 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
           description: true,
           order: true,
           prerequisites: {
+            where: { archivedAt: null },
             select: {
               id: true,
               title: true,
@@ -46,6 +52,8 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
       }),
       prisma.lesson.findMany({
         where: {
+          archivedAt: null,
+          module: LIVE_MODULE,
           OR: [
             { title: { contains: q, mode: "insensitive" } },
             { description: { contains: q, mode: "insensitive" } },
@@ -61,6 +69,7 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
               id: true,
               title: true,
               prerequisites: {
+                where: { archivedAt: null },
                 select: {
                   id: true,
                   title: true,
@@ -74,6 +83,8 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
       }),
       prisma.exercise.findMany({
         where: {
+          archivedAt: null,
+          lesson: { archivedAt: null, module: LIVE_MODULE },
           OR: [
             { title: { contains: q, mode: "insensitive" } },
             { description: { contains: q, mode: "insensitive" } },
@@ -93,6 +104,7 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
                   id: true,
                   title: true,
                   prerequisites: {
+                    where: { archivedAt: null },
                     select: {
                       id: true,
                       title: true,
@@ -154,7 +166,7 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
       lessons.map(async (lesson) => {
         const moduleUnlocked = moduleUnlockMap.get(lesson.module.id) ?? false;
         const siblingLessons = await prisma.lesson.findMany({
-          where: { moduleId: lesson.module.id },
+          where: { moduleId: lesson.module.id, archivedAt: null },
           orderBy: { order: "asc" },
           select: {
             id: true,
@@ -192,7 +204,7 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext) => {
       exercises.map(async (exercise) => {
         const moduleUnlocked = moduleUnlockMap.get(exercise.lesson.module.id) ?? false;
         const siblingLessons = await prisma.lesson.findMany({
-          where: { moduleId: exercise.lesson.module.id },
+          where: { moduleId: exercise.lesson.module.id, archivedAt: null },
           orderBy: { order: "asc" },
           select: {
             id: true,

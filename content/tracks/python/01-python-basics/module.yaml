@@ -1,0 +1,16 @@
+slug: python-basics
+title: Python for developers
+summary: Run Python, name things, and work with numbers, strings and truthiness.
+description: >
+  Everything else in the course stands on this module. You'll run Python three ways, learn what a
+  variable really is (a label on an object, which explains a whole class of surprising bugs),
+  and get precise with numbers, text, truthiness and input. If you already write another language,
+  the "Coming from JavaScript" notes point out exactly where Python behaves differently.
+hours: 6
+outcomes:
+  - Run Python from the REPL, a script file, and the browser editor
+  - Explain the difference between rebinding a name and mutating an object, and between == and is
+  - Choose between int, float and Decimal, and predict what //, % and round() return
+  - Slice, search and format text precisely with string methods and f-strings
+  - Write conditions that rely on truthiness without falling into its traps
+  - Build a small interactive program that reads input and prints formatted output

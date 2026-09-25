@@ -1,0 +1,13 @@
+class CurrentAccount:
+    def __init__(self, owner, opening_balance=0):
+        ...
+
+    def deposit(self, amount, memo):
+        ...
+
+    def withdraw(self, amount, memo):
+        ...
+
+    def statement(self):
+        """Return the statement: a header, an Opening line, one line per transaction, a Closing line."""
+        ...
