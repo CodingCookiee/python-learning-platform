@@ -36,8 +36,9 @@ export function withAuth<TParams extends Record<string, string> = Record<string,
       select: { id: true },
     });
 
+    // A valid token for an account that no longer exists is not a session
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Provide an empty resolved params promise when there are no route params

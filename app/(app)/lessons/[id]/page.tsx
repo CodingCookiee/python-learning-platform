@@ -1,4 +1,4 @@
-﻿import { notFound, redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { auth } from "@/auth";
@@ -11,10 +11,9 @@ import {
   LessonCompleteButton,
 } from "@/components/lesson";
 import { FadeIn, StaggerContainer } from "@/components/animations";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { CheckCircle2, Clock, Zap, BookOpen, Lock, ChevronRight } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { LockedMark, TapeMark } from "@/components/brand/marks";
 
 // Types
 
@@ -97,16 +96,16 @@ async function getModuleLessons(
 
 // Helpers
 
-function getDifficultyColor(difficulty: string): string {
+function getDifficultyClass(difficulty: string): string {
   switch (difficulty.toLowerCase()) {
     case "easy":
-      return "text-success";
+      return "bg-success/12 text-success";
     case "medium":
-      return "text-highlight-foreground";
+      return "bg-highlight text-highlight-foreground";
     case "hard":
-      return "text-destructive";
+      return "bg-destructive/10 text-destructive";
     default:
-      return "text-muted-foreground";
+      return "bg-muted text-muted-foreground";
   }
 }
 
@@ -139,6 +138,8 @@ export default async function LessonPage({ params }: PageProps) {
 
   const sidebarLessons: ModuleLessonItem[] = moduleData?.lessons ?? [];
 
+  const lessonIndex = Math.max(1, sidebarLessons.findIndex((l) => l.id === lesson.id) + 1);
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       <StaggerContainer className="flex flex-col gap-8">
@@ -146,17 +147,16 @@ export default async function LessonPage({ params }: PageProps) {
           <Breadcrumb
             items={[
               { label: "Home", href: "/" },
-              { label: "Modules", href: "/modules" },
+              { label: "Syllabus", href: "/modules" },
               { label: lesson.module.title, href: `/modules/${lesson.module.id}` },
               { label: lesson.title },
             ]}
           />
         </FadeIn>
 
-        <FadeIn delay={0.05}>
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
-            {/* Sidebar */}
-            <aside className="hidden lg:block lg:col-span-1">
+        <FadeIn delay={0.04}>
+          <div className="grid grid-cols-1 gap-10 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-12">
+            <aside className="hidden lg:block">
               <LessonSidebar
                 currentLessonId={lesson.id}
                 moduleId={lesson.module.id}
@@ -166,144 +166,105 @@ export default async function LessonPage({ params }: PageProps) {
               />
             </aside>
 
-            {/* Main content */}
-            <div className="lg:col-span-3 flex flex-col gap-8">
-              {/* Lesson header */}
-              <div className="flex flex-col gap-3">
-                <div className="flex flex-wrap items-center gap-3">
-                  {lesson.completed && (
-                    <Badge className="flex items-center gap-1.5 text-success">
-                      <CheckCircle2 className="size-3" aria-hidden="true" />
-                      Completed
-                    </Badge>
-                  )}
-                  <Badge className="flex items-center gap-1.5 text-muted-foreground">
-                    <Clock className="size-3" aria-hidden="true" />
-                    {lesson.estimatedTime} min
-                  </Badge>
-                  {lesson.exercises.length > 0 && (
-                    <Badge className="flex items-center gap-1.5 text-muted-foreground">
-                      <BookOpen className="size-3" aria-hidden="true" />
-                      {lesson.exercises.length} exercise{lesson.exercises.length !== 1 ? "s" : ""}
-                    </Badge>
-                  )}
-                </div>
-                <h1 className="font-heading text-2xl font-semibold sm:text-3xl">{lesson.title}</h1>
+            <article className="flex min-w-0 flex-col gap-10">
+              <header className="flex max-w-[70ch] flex-col gap-4 border-b border-border pb-8">
+                <h1 className="font-condensed text-4xl leading-[0.98] font-extrabold tracking-[-0.02em] sm:text-5xl">
+                  {lesson.title}
+                </h1>
                 {lesson.description && (
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {lesson.description}
-                  </p>
+                  <p className="text-lg leading-relaxed text-muted-foreground">{lesson.description}</p>
                 )}
-              </div>
+                <p className="font-condensed tabular flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                  <span>
+                    Lesson {lessonIndex} of {sidebarLessons.length || "?"}
+                  </span>
+                  <span>~{lesson.estimatedTime} min</span>
+                  {lesson.exercises.length > 0 && (
+                    <span>
+                      {lesson.exercises.length} {lesson.exercises.length === 1 ? "drill" : "drills"}
+                    </span>
+                  )}
+                  {lesson.completed && (
+                    <span className="inline-flex items-center gap-1 font-sans font-semibold text-success">
+                      <Check className="size-4" aria-hidden="true" />
+                      Finished
+                    </span>
+                  )}
+                </p>
+              </header>
 
               {lessonLocked && (
-                <Card className="border-highlight/30 bg-highlight/5">
-                  <CardContent className="flex flex-col gap-4 pt-6">
-                    <div className="flex items-center gap-2">
-                      <Lock
-                        className="size-4 text-muted-foreground"
-                        aria-hidden="true"
-                      />
-                      <p className="text-sm font-semibold text-highlight-foreground">
-                        This lesson is locked
-                      </p>
-                    </div>
+                <div className="flex max-w-[70ch] items-start gap-3 rounded-md border border-dashed border-border bg-sheet p-5">
+                  <LockedMark className="mt-0.5 size-5 text-muted-foreground" />
+                  <div className="flex flex-col gap-1">
+                    <p className="font-semibold">Not open yet</p>
                     <p className="text-sm text-muted-foreground">
                       {lockedPrerequisites.length > 0
-                        ? `Complete the prerequisite module${lockedPrerequisites.length > 1 ? "s" : ""} first.`
-                        : "Complete the previous lessons in this module first."}
+                        ? `Pass ${lockedPrerequisites.map((p) => p.title).join(", ")} first. You can still read ahead.`
+                        : "Finish the earlier lessons in this module first. You can still read ahead."}
                     </p>
-                    {lockedPrerequisites.length > 0 ? (
-                      <ul className="flex flex-col gap-2">
-                        {lockedPrerequisites.map((prereq) => (
-                          <li key={prereq.id}>
-                            <Button variant="outline" size="sm" asChild className="justify-start">
-                              <Link href={`/modules/${prereq.id}`}>
-                                <BookOpen className="size-3.5" aria-hidden="true" />
-                                {prereq.title}
-                                <ChevronRight className="size-3" aria-hidden="true" />
-                              </Link>
-                            </Button>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">
-                        The next lesson unlocks after you complete the earlier lessons.
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               )}
 
-              {/* Lesson content (markdown) */}
               <LessonContent content={lesson.content} />
 
-              {/* Exercises */}
               {lesson.exercises.length > 0 && (
-                <section aria-labelledby="exercises-heading">
-                  <h2
-                    id="exercises-heading"
-                    className="mb-4 font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground"
-                  >
-                    Exercises ({lesson.exercises.length})
+                <section aria-labelledby="drills-heading" className="flex max-w-[70ch] flex-col gap-4">
+                  <h2 id="drills-heading" className="text-2xl font-semibold">
+                    Drills
                   </h2>
-                  <div className="flex flex-col gap-3">
+                  <ul className="flex flex-col border-t border-border">
                     {lesson.exercises.map((exercise) => (
-                      <Link key={exercise.id} href={`/exercises/${exercise.id}`}>
-                        <Card className="transition-colors hover:bg-muted/50 cursor-pointer">
-                          <CardContent className="flex items-start justify-between gap-4 pt-5 pb-5">
-                            <div className="flex min-w-0 flex-1 flex-col gap-1">
-                              <p className="text-sm font-semibold">{exercise.title}</p>
-                              {exercise.description && (
-                                <p className="text-xs text-muted-foreground line-clamp-2">
-                                  {exercise.description}
-                                </p>
-                              )}
-                              <div className="flex flex-wrap items-center gap-3 mt-1">
-                                <span
-                                  className={`font-heading text-[10px] font-semibold tracking-widest uppercase ${getDifficultyColor(exercise.difficulty)}`}
-                                >
-                                  {exercise.difficulty}
-                                </span>
-                                <span className="flex items-center gap-1 font-heading text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">
-                                  <Zap className="size-3" aria-hidden="true" />
-                                  {exercise.xpReward} XP
-                                </span>
-                              </div>
-                            </div>
-                            {exercise.hasSubmission && (
-                              <CheckCircle2
-                                className="size-4 shrink-0 text-success mt-0.5"
-                                aria-label="Submitted"
-                              />
+                      <li key={exercise.id}>
+                        <Link
+                          href={`/exercises/${exercise.id}`}
+                          className="-mx-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 rounded-sm border-b border-border px-3 py-4 hover:bg-accent/50"
+                        >
+                          <span className="flex min-w-0 flex-col gap-1">
+                            <span className="font-semibold">{exercise.title}</span>
+                            {exercise.description && (
+                              <span className="line-clamp-1 text-sm text-muted-foreground">
+                                {exercise.description}
+                              </span>
                             )}
-                          </CardContent>
-                        </Card>
-                      </Link>
+                            <span className="font-condensed tabular flex items-center gap-3 text-xs text-muted-foreground">
+                              <span className={cn("rounded-sm px-1.5 font-sans font-semibold", getDifficultyClass(exercise.difficulty))}>
+                                {exercise.difficulty}
+                              </span>
+                              <span className="inline-flex items-center gap-1">
+                                <TapeMark className="size-3.5" />
+                                {exercise.xpReward} XP
+                              </span>
+                            </span>
+                          </span>
+                          {exercise.hasSubmission ? (
+                            <Check className="size-5 text-success" aria-label="Attempted" />
+                          ) : (
+                            <ArrowRight className="size-4 text-muted-foreground" aria-hidden="true" />
+                          )}
+                        </Link>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 </section>
               )}
-              {/* Mark as Complete */}
-              <LessonCompleteButton
-                lessonId={lesson.id}
-                nextLessonId={lesson.navigation.next?.id ?? null}
-                initialCompleted={lesson.completed}
-                isLocked={lessonLocked}
-                lockedMessage={
-                  lockedPrerequisites.length > 0
-                    ? `Complete ${lockedPrerequisites.map((prereq) => prereq.title).join(", ")} before this lesson can be marked complete.`
-                    : "Complete the previous lessons in this module before this lesson can be marked complete."
-                }
-              />
 
-              {/* Navigation */}
-              <LessonNavigation
-                previous={lesson.navigation.previous}
-                next={lesson.navigation.next}
-              />
-            </div>
+              <div className="flex max-w-[70ch] flex-col gap-8 border-t border-border pt-8">
+                <LessonCompleteButton
+                  lessonId={lesson.id}
+                  nextLessonId={lesson.navigation.next?.id ?? null}
+                  initialCompleted={lesson.completed}
+                  isLocked={lessonLocked}
+                  lockedMessage={
+                    lockedPrerequisites.length > 0
+                      ? `Pass ${lockedPrerequisites.map((prereq) => prereq.title).join(", ")} before this lesson can be marked complete.`
+                      : "Finish the earlier lessons in this module before this one can be marked complete."
+                  }
+                />
+                <LessonNavigation previous={lesson.navigation.previous} next={lesson.navigation.next} />
+              </div>
+            </article>
           </div>
         </FadeIn>
       </StaggerContainer>

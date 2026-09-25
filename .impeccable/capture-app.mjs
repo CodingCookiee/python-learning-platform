@@ -78,32 +78,111 @@ await ev(`(() => {
 })()`);
 await sleep(300);
 await ev(`document.querySelector('form button[type=submit]').click()`);
-for (let i = 0; i < 40; i++) {
+for (let i = 0; i < 120; i++) {
   if ((await ev("location.pathname")) === "/dashboard") break;
   await sleep(500);
 }
 await sleep(3000);
 
+const ids = JSON.parse((await import("node:fs")).readFileSync(process.env.TEMP + "/review-ids.json", "utf8"));
+if (process.env.RUNTEST) {
+  await go(`/lessons/${ids.lesson}`, 6000);
+  const report = await ev(`(async () => {
+    const blocks = [...document.querySelectorAll('div.my-6')];
+    const target = blocks.filter(b => [...b.querySelectorAll('button')].some(x => x.textContent.trim() === 'Run'))[1];
+    if (!target) return 'no second runnable block';
+    const btn = [...target.querySelectorAll('button')].find(x => x.textContent.trim() === 'Run');
+    target.scrollIntoView({ block: 'center' });
+    btn.click();
+    const t0 = performance.now();
+    for (let i = 0; i < 120; i++) {
+      await new Promise(r => setTimeout(r, 500));
+      const out = target.querySelector('[aria-live=polite]');
+      if (out && !out.className.includes('opacity-55')) {
+        return 'after ' + Math.round((performance.now() - t0) / 1000) + 's: ' + out.textContent.slice(0, 160);
+      }
+    }
+    return 'timeout; button now: ' + btn.textContent.trim();
+  })()`);
+  console.log("RUNTEST", report);
+  console.log(
+    "RUNTEST resources:",
+    await ev(`performance.getEntriesByType('resource').filter(r => r.name.includes('pyodide')).map(r => r.name.split('/').pop() + ' ' + Math.round(r.duration) + 'ms ' + r.transferSize + 'B').join(' | ')`)
+  );
+  console.log("RUNTEST console:", issues.length ? [...new Set(issues)].map((x) => x.slice(0, 400)) : "none");
+  console.log(
+    "RUNTEST direct load:",
+    await ev(`(async () => {
+      const t0 = performance.now();
+      try {
+        const race = await Promise.race([
+          window.loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.27.0/full/" }).then(() => "loaded"),
+          new Promise((r) => setTimeout(() => r("still pending"), 60000)),
+        ]);
+        return race + " after " + Math.round((performance.now() - t0) / 1000) + "s";
+      } catch (e) {
+        return "threw: " + e.message;
+      }
+    })()`)
+  );
+  console.log(
+    "RUNTEST pyodide:",
+    await ev(`JSON.stringify({ script: !!document.querySelector('script[src*="pyodide"]'), loader: typeof window.loadPyodide })`)
+  );
+  await sleep(400);
+  const r = await send("Page.captureScreenshot", { format: "png" });
+  writeFileSync(new URL("lesson-run.png", OUT), Buffer.from(r.result.data, "base64"));
+  ws.close();
+  chrome.kill();
+  process.exit(0);
+}
+if (process.env.PROBE) {
+  for (const url of [`/api/lessons/${ids.lesson}`, `/api/modules/${ids.module}`]) {
+    const out = await ev(
+      `fetch(${JSON.stringify(url)}).then(async (r) => r.status + " " + (await r.text()).slice(0, 500))`
+    );
+    console.log("PROBE", url, "->", out);
+  }
+  ws.close();
+  chrome.kill();
+  process.exit(0);
+}
 const pages = [
   ["/dashboard", "dashboard"],
-  ["/profile", "profile"],
-  ["/settings", "settings"],
-  ["/achievements", "achievements"],
-  ["/admin", "admin"],
-  ["/admin/projects", "admin-submissions"],
-  ["/admin/content", "admin-content"],
+  ["/modules", "syllabus"],
+  [`/modules/${ids.module}`, "module"],
+  [`/lessons/${ids.lesson}`, "lesson"],
+  [`/projects/${ids.project}`, "project"],
 ];
 for (const [path, name] of pages) {
   await go(path);
   await shot(`${name}.png`);
 }
+// Run the first runnable example on the lesson page
+await go(`/lessons/${ids.lesson}`);
+const ran = await ev(`(async () => {
+  const btn = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Run');
+  if (!btn) return 'no runnable block';
+  btn.scrollIntoView({ block: 'center' });
+  btn.click();
+  for (let i = 0; i < 60; i++) {
+    await new Promise(r => setTimeout(r, 500));
+    const out = [...document.querySelectorAll('[aria-live=polite]')].find(e => /Output|Error/.test(e.textContent));
+    if (out && !out.className.includes('opacity-55')) return out.textContent.slice(0, 200);
+  }
+  return 'timeout';
+})()`);
+console.log("run result:", ran);
+await sleep(500);
+const res = await send("Page.captureScreenshot", { format: "png" });
+writeFileSync(new URL("lesson-run.png", OUT), Buffer.from(res.result.data, "base64"));
 await setup(1440, 900, "dark");
-for (const [path, name] of [["/dashboard", "dashboard"], ["/profile", "profile"], ["/admin", "admin"]]) {
+for (const [path, name] of [[`/lessons/${ids.lesson}`, "lesson"], ["/modules", "syllabus"]]) {
   await go(path);
   await shot(`${name}-dark.png`);
 }
 await setup(390, 844, "light");
-for (const [path, name] of [["/profile", "profile"], ["/settings", "settings"]]) {
+for (const [path, name] of [[`/lessons/${ids.lesson}`, "lesson"], [`/modules/${ids.module}`, "module"]]) {
   await go(path);
   await shot(`${name}-mobile.png`);
 }

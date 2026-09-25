@@ -45,11 +45,7 @@ export default async function ExercisePage({ params }: PageProps) {
           <Breadcrumb
             items={[
               { label: "Home", href: "/" },
-              { label: "Modules", href: "/modules" },
-              {
-                label: exercise.lesson.title,
-                href: `/modules/${exercise.lesson.moduleId}`,
-              },
+              { label: "Syllabus", href: "/modules" },
               {
                 label: exercise.lesson.title,
                 href: `/lessons/${exercise.lesson.id}`,

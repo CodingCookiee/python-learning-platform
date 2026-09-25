@@ -113,10 +113,10 @@ export function LessonCompleteButton({
             onClick={handleToggle}
             disabled={isLoading || isLocked || isReadOnly}
             variant={completed ? "outline" : "default"}
+            size="lg"
             className={cn(
-              "w-full sm:w-auto transition-all",
-              completed &&
-                "border-success/40 text-success hover:bg-success/5"
+              "w-full sm:w-auto",
+              completed && "border-success/40 text-success disabled:opacity-100"
             )}
             aria-label={
               isLocked
@@ -134,14 +134,12 @@ export function LessonCompleteButton({
               <Circle className="size-4" aria-hidden="true" />
             )}
             {isLoading
-              ? "Saving..."
-              : isLocked
-                ? completed
-                  ? "Completed"
-                  : "Locked"
-                : completed
-                  ? "Completed for review"
-                  : "Mark as Complete"}
+              ? "Saving…"
+              : completed
+                ? "Lesson complete"
+                : isLocked
+                  ? "Finish earlier lessons first"
+                  : "Mark lesson complete"}
           </Button>
 
           {/* XP gained float */}
@@ -153,7 +151,7 @@ export function LessonCompleteButton({
                 animate={{ opacity: 0, y: -28 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 1.8, ease: "easeOut" }}
-                className="pointer-events-none absolute -top-1 left-1/2 -translate-x-1/2 font-heading text-xs font-semibold text-success whitespace-nowrap"
+                className="font-condensed tabular pointer-events-none absolute -top-1 left-1/2 -translate-x-1/2 rounded-sm bg-highlight px-1.5 text-sm font-bold whitespace-nowrap text-highlight-foreground"
                 aria-hidden="true"
               >
                 +{xpGained} XP
@@ -171,7 +169,7 @@ export function LessonCompleteButton({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="text-xs text-success"
+              className="text-sm text-success"
             >
               {nextLessonId
                 ? "Lesson complete. You can come back to it any time."
@@ -185,9 +183,9 @@ export function LessonCompleteButton({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="text-xs text-destructive"
+              className="text-sm text-destructive"
             >
-              {isLocked ? lockedCopy : (errorMessage ?? "Something went wrong. Please try again.")}
+              {isLocked ? lockedCopy : (errorMessage ?? "That didn't save. Check your connection and try again.")}
             </motion.p>
           )}
         </AnimatePresence>

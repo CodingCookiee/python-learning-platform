@@ -3,26 +3,17 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
-import { AnimatedProgressBar } from "@/components/progress";
 import { FadeIn, StaggerContainer } from "@/components/animations";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getLessonEstimatedTime } from "@/lib/lesson-content";
 import { formatProjectEstimatedTime } from "@/lib/project-time";
 import { getModuleDisplayDuration } from "@/lib/module-duration";
-import { getCurriculumPhaseLabel } from "@/lib/curriculum";
 import { getLessonAccessState, getSequentialModuleUnlockMap } from "@/lib/module-access";
-import {
-  CheckCircle2,
-  Circle,
-  Clock,
-  BookOpen,
-  Lock,
-  ArrowRight,
-  ExternalLink,
-  ChevronRight,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Circle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { BeltBand } from "@/components/brand/belt";
+import { LockedMark } from "@/components/brand/marks";
+import { beltForModule } from "@/lib/ranks";
 
 function getProjectSubmissionState(
   status?: string | null
@@ -79,8 +70,6 @@ export default async function ModuleDetailPage({ params }: PageProps) {
           },
         },
       },
-      prerequisites: { select: { id: true, title: true, order: true } },
-      dependents: { select: { id: true, title: true, order: true } },
     },
   });
 
@@ -89,8 +78,6 @@ export default async function ModuleDetailPage({ params }: PageProps) {
   // Calculate completion
   const totalLessons = learningModule.lessons.length;
   const completedCount = learningModule.lessons.filter((l) => l.progress[0]?.completed).length;
-  const completionPercentage =
-    totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
 
   const moduleUnlockMap = await getSequentialModuleUnlockMap(userId);
   const isUnlocked = moduleUnlockMap.get(learningModule.id) ?? false;
@@ -128,337 +115,266 @@ export default async function ModuleDetailPage({ params }: PageProps) {
   const firstIncompleteLesson = lessons.find((l) => !l.completed);
   const firstLesson = lessons[0] ?? null;
   const displayDuration = getModuleDisplayDuration(learningModule.title, learningModule.duration);
+  const belt = beltForModule(learningModule.order);
+  const stripeNumber = learningModule.order - belt.fromModule + 1;
+  const stripeSlots = belt.toModule - belt.fromModule + 1;
+  const isPassed = totalLessons > 0 && completedCount === totalLessons;
+
+  const [prevModule, nextModule] = await Promise.all([
+    prisma.module.findFirst({
+      where: { order: { lt: learningModule.order } },
+      orderBy: { order: "desc" },
+      select: { id: true, title: true, order: true },
+    }),
+    prisma.module.findFirst({
+      where: { order: { gt: learningModule.order } },
+      orderBy: { order: "asc" },
+      select: { id: true, title: true, order: true },
+    }),
+  ]);
+
+  const action = !isUnlocked
+    ? null
+    : isPassed
+      ? { label: "Review lessons", href: firstLesson ? `/lessons/${firstLesson.id}` : null, variant: "outline" as const }
+      : completedCount === 0
+        ? { label: "Start module", href: firstLesson ? `/lessons/${firstLesson.id}` : null, variant: "default" as const }
+        : {
+            label: "Continue",
+            href: firstIncompleteLesson ? `/lessons/${firstIncompleteLesson.id}` : null,
+            variant: "default" as const,
+          };
+
+  const projectStatus: Record<ReturnType<typeof getProjectSubmissionState>, { label: string; className: string }> = {
+    approved: { label: "Approved", className: "bg-success/12 text-success" },
+    pending: { label: "Under review", className: "bg-highlight text-highlight-foreground" },
+    rejected: { label: "Needs revision", className: "bg-destructive/10 text-destructive" },
+    none: { label: "Not started", className: "bg-muted text-muted-foreground" },
+  };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-      <StaggerContainer className="flex flex-col gap-8">
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+      <StaggerContainer className="flex flex-col gap-10">
         <FadeIn>
           <Breadcrumb
             items={[
               { label: "Home", href: "/" },
-              { label: "Modules", href: "/modules" },
+              { label: "Syllabus", href: "/modules" },
               { label: learningModule.title },
             ]}
           />
         </FadeIn>
 
-        <FadeIn delay={0.05}>
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="flex flex-col gap-2">
-                <div className="flex flex-wrap items-center gap-3">
-                  <Badge className="text-muted-foreground">
-                    {getCurriculumPhaseLabel(learningModule.phase)}
-                  </Badge>
-                  {!isUnlocked && (
-                    <Badge variant="secondary" className="flex items-center gap-1">
-                      <Lock className="size-2.5" aria-hidden="true" />
-                      Locked
-                    </Badge>
-                  )}
-                </div>
-                <h1 className="font-heading text-2xl font-semibold sm:text-3xl">
-                  {learningModule.title}
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  <Clock className="mr-1 inline size-3" aria-hidden="true" />
-                  {displayDuration}h estimated
-                </p>
+        {/* Module sheet header */}
+        <FadeIn delay={0.03}>
+          <header className="grid gap-8 border-b border-border pb-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:gap-14">
+            <div className="flex flex-col gap-4">
+              <h1 className="font-condensed text-5xl leading-[0.95] font-extrabold tracking-[-0.02em] sm:text-6xl">
+                {learningModule.title}
+              </h1>
+              <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground">
+                {learningModule.description}
+              </p>
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+                <span className="flex items-center gap-2">
+                  <BeltBand
+                    belt={belt.key}
+                    slots={stripeSlots}
+                    filled={isPassed ? stripeNumber : stripeNumber - 1}
+                    className="h-4 w-20"
+                  />
+                  <span>
+                    Module {learningModule.order} · stripe {stripeNumber} of {stripeSlots} on the{" "}
+                    {belt.label.toLowerCase()}
+                  </span>
+                </span>
+                <span className="font-condensed tabular text-muted-foreground">
+                  {totalLessons} {totalLessons === 1 ? "lesson" : "lessons"} · ~{displayDuration} h
+                </span>
               </div>
-              <span className="font-heading text-2xl font-semibold text-muted-foreground">
-                {completionPercentage}% complete
-              </span>
             </div>
-            <AnimatedProgressBar value={completionPercentage} className="mt-4" />
-          </div>
+
+            <div className="flex flex-col gap-4 lg:min-w-64 lg:items-end">
+              {isUnlocked ? (
+                <>
+                  <p className="font-condensed tabular leading-none lg:text-right">
+                    <span className="text-6xl font-extrabold tracking-[-0.03em]">{completedCount}</span>
+                    <span className="text-2xl font-bold text-muted-foreground"> / {totalLessons}</span>
+                    <span className="mt-1 block text-sm font-semibold text-muted-foreground">
+                      {isPassed ? "passed" : "lessons done"}
+                    </span>
+                  </p>
+                  {action?.href && (
+                    <Button asChild size="lg" variant={action.variant}>
+                      <Link href={action.href}>
+                        {action.label}
+                        <ArrowRight data-icon="inline-end" aria-hidden="true" />
+                      </Link>
+                    </Button>
+                  )}
+                </>
+              ) : (
+                <div className="flex max-w-xs flex-col gap-2 rounded-md border border-dashed border-border p-5">
+                  <span className="flex items-center gap-2 font-semibold">
+                    <LockedMark className="size-5 text-muted-foreground" />
+                    Not open yet
+                  </span>
+                  <p className="text-sm text-muted-foreground">
+                    Modules open in order. Pass
+                    {prevModule ? ` module ${prevModule.order}, ${prevModule.title},` : " the previous module"} to
+                    open this one.
+                  </p>
+                </div>
+              )}
+            </div>
+          </header>
         </FadeIn>
 
-        <FadeIn delay={0.1}>
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-            <div className="flex flex-col gap-8 lg:col-span-2">
-              <section aria-labelledby="lessons-heading">
-                <h2
-                  id="lessons-heading"
-                  className="mb-4 font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground"
-                >
-                  Lessons ({lessons.length})
-                </h2>
-                <div className="flex flex-col divide-y divide-border ring-1 ring-foreground/5">
-                  {lessons.map((lesson) => {
-                    const lessonUnlocked = lessonAccessMap.get(lesson.id) ?? false;
-                    const inner = (
-                      <div className="flex items-center gap-3 bg-card px-4 py-3">
-                        {lesson.completed ? (
-                          <CheckCircle2
-                            className="size-4 shrink-0 text-success"
-                            aria-hidden="true"
-                          />
-                        ) : !lessonUnlocked ? (
-                          <Lock className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                        ) : (
-                          <Circle
-                            className="size-4 shrink-0 text-muted-foreground"
-                            aria-hidden="true"
-                          />
-                        )}
-                        <span
-                          className={`flex-1 truncate text-sm font-medium${!lessonUnlocked ? " text-muted-foreground" : ""}`}
-                        >
-                          {lesson.title}
-                        </span>
-                        {!lessonUnlocked && (
-                          <span className="shrink-0 text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">
-                            Locked
+        {/* Lessons */}
+        <FadeIn delay={0.06}>
+          <section aria-labelledby="lessons-heading" className="flex flex-col gap-4">
+            <h2 id="lessons-heading" className="text-xl font-semibold">
+              Lessons
+            </h2>
+            <ol className="flex flex-col border-t border-border">
+              {lessons.map((lesson) => {
+                const lessonUnlocked = lessonAccessMap.get(lesson.id) ?? false;
+                const isNext = isUnlocked && lesson.id === firstIncompleteLesson?.id;
+                const row = (
+                  <>
+                    <span className="font-condensed tabular pt-0.5 text-lg font-bold text-muted-foreground">
+                      {String(lesson.order).padStart(2, "0")}
+                    </span>
+                    <span className="flex min-w-0 flex-col gap-0.5">
+                      <span className={cn("font-semibold", !lessonUnlocked && "text-muted-foreground")}>
+                        {lesson.title}
+                        {isNext && (
+                          <span className="ml-2 rounded-sm bg-highlight px-1.5 align-middle text-xs font-semibold text-highlight-foreground">
+                            Up next
                           </span>
                         )}
-                        <span className="ml-auto flex shrink-0 items-center gap-3 text-xs text-muted-foreground">
-                          <span>{lesson.estimatedTime}min</span>
-                          <span>{lesson.exerciseCount} exercises</span>
+                      </span>
+                      <span className="line-clamp-1 text-sm text-muted-foreground">
+                        {lesson.description}
+                      </span>
+                    </span>
+                    <span className="font-condensed tabular flex items-center gap-4 self-center text-sm whitespace-nowrap text-muted-foreground">
+                      <span>{lesson.estimatedTime} min</span>
+                      {lesson.exerciseCount > 0 && (
+                        <span>
+                          {lesson.exerciseCount} {lesson.exerciseCount === 1 ? "drill" : "drills"}
+                        </span>
+                      )}
+                      <span className="flex w-5 justify-end">
+                        {lesson.completed ? (
+                          <Check className="size-4 text-success" aria-label="Finished" />
+                        ) : !lessonUnlocked ? (
+                          <LockedMark className="size-4" title="Locked" />
+                        ) : (
+                          <Circle className="size-3.5" aria-label="Not started" />
+                        )}
+                      </span>
+                    </span>
+                  </>
+                );
+                const rowClass =
+                  "grid grid-cols-[2.75rem_minmax(0,1fr)_auto] items-start gap-x-3 border-b border-border py-4";
+                return (
+                  <li key={lesson.id}>
+                    {lessonUnlocked ? (
+                      <Link
+                        href={`/lessons/${lesson.id}`}
+                        className={cn(rowClass, "-mx-3 rounded-sm px-3 hover:bg-accent/50", isNext && "bg-accent/40")}
+                      >
+                        {row}
+                      </Link>
+                    ) : (
+                      <div className={cn(rowClass, "opacity-75")} aria-disabled="true">
+                        {row}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+        </FadeIn>
+
+        {/* Capstone */}
+        {projects.length > 0 && (
+          <FadeIn delay={0.09}>
+            <section aria-labelledby="projects-heading" className="flex flex-col gap-4">
+              <h2 id="projects-heading" className="text-xl font-semibold">
+                Capstone project
+              </h2>
+              <ul className="flex flex-col border-t border-border">
+                {projects.map((project) => {
+                  const status = projectStatus[getProjectSubmissionState(project.latestSubmission?.status)];
+                  return (
+                    <li
+                      key={project.id}
+                      className="grid gap-4 border-b border-border py-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+                    >
+                      <div className="flex min-w-0 flex-col gap-1">
+                        <span className="flex flex-wrap items-center gap-2">
+                          <span className="font-semibold">{project.title}</span>
+                          <span className={cn("rounded-sm px-1.5 text-xs font-semibold", status.className)}>
+                            {status.label}
+                          </span>
+                        </span>
+                        <span className="line-clamp-2 max-w-3xl text-sm text-muted-foreground">
+                          {project.description}
+                        </span>
+                        <span className="font-condensed tabular text-xs text-muted-foreground">
+                          ~{project.estimatedTime} h · {project.xpReward} XP on approval
                         </span>
                       </div>
-                    );
-                    if (!lessonUnlocked)
-                      return (
-                        <div key={lesson.id} aria-disabled="true">
-                          {inner}
-                        </div>
-                      );
-                    return (
-                      <Link
-                        key={lesson.id}
-                        href={`/lessons/${lesson.id}`}
-                        className="transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      >
-                        {inner}
-                      </Link>
-                    );
-                  })}
-                </div>
-              </section>
-
-              {projects.length > 0 && (
-                <section aria-labelledby="projects-heading">
-                  <h2
-                    id="projects-heading"
-                    className="mb-4 font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground"
-                  >
-                    Projects ({projects.length})
-                  </h2>
-                  <div className="flex flex-col gap-3">
-                    {projects.map((project) => (
-                      <Card key={project.id}>
-                        <CardContent className="flex flex-col gap-3 pt-6">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex min-w-0 flex-1 flex-col gap-1">
-                              <p className="font-heading text-sm font-semibold">{project.title}</p>
-                              <p className="line-clamp-2 text-sm text-muted-foreground">
-                                {project.description}
-                              </p>
-                            </div>
-                            {(() => {
-                              const state = getProjectSubmissionState(
-                                project.latestSubmission?.status
-                              );
-                              if (state === "approved") {
-                                return (
-                                  <span className="shrink-0 text-xs font-semibold tracking-widest uppercase text-success">
-                                    Complete
-                                  </span>
-                                );
-                              }
-                              if (state === "pending") {
-                                return (
-                                  <span className="shrink-0 text-xs font-semibold tracking-widest uppercase text-highlight-foreground">
-                                    Under Review
-                                  </span>
-                                );
-                              }
-                              if (state === "rejected") {
-                                return (
-                                  <span className="shrink-0 text-xs font-semibold tracking-widest uppercase text-destructive">
-                                    Needs Revision
-                                  </span>
-                                );
-                              }
-                              return (
-                                <span className="shrink-0 text-xs font-semibold tracking-widest uppercase text-muted-foreground">
-                                  Not started
-                                </span>
-                              );
-                            })()}
-                          </div>
-                          <div className="flex flex-wrap items-center gap-3">
-                            <Badge variant="secondary" className="flex items-center gap-1">
-                              <Clock className="size-2.5" aria-hidden="true" />
-                              {project.estimatedTime}h
-                            </Badge>
-                            <Badge variant="secondary">{project.xpReward} XP</Badge>
-                          </div>
-                          {isUnlocked && (
-                            <Button variant="outline" size="sm" className="w-fit" asChild>
-                              <Link href={`/projects/${project.id}`}>
-                                View Project
-                                <ArrowRight className="size-3" aria-hidden="true" />
-                              </Link>
-                            </Button>
-                          )}
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </section>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
-              <Card>
-                <CardContent className="flex flex-col gap-4 pt-6">
-                  {!isUnlocked ? (
-                    <>
-                      <div className="flex items-center gap-2">
-                        <Lock className="size-4 text-muted-foreground" aria-hidden="true" />
-                        <p className="text-sm font-semibold">Prerequisites not met</p>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Complete the required modules before starting this one.
-                      </p>
-                      <Button disabled className="w-full">
-                        Locked
-                      </Button>
-                    </>
-                  ) : completionPercentage === 100 ? (
-                    <>
-                      <div className="flex items-center gap-2">
-                        <CheckCircle2 className="size-4 text-success" aria-hidden="true" />
-                        <p className="text-sm font-semibold text-success">
-                          Module Complete
-                        </p>
-                      </div>
-                      <Button
-                        className="w-full bg-success text-primary-foreground hover:bg-success/85"
-                        disabled
-                      >
-                        Module Complete
-                      </Button>
-                      {firstLesson && (
-                        <Button variant="outline" className="w-full" asChild>
-                          <Link href={`/lessons/${firstLesson.id}`}>
-                            Review lessons
-                            <ExternalLink
-                              data-icon="inline-end"
-                              className="size-3"
-                              aria-hidden="true"
-                            />
-                          </Link>
-                        </Button>
-                      )}
-                    </>
-                  ) : completionPercentage === 0 ? (
-                    <>
-                      <p className="text-sm text-muted-foreground">
-                        Ready to start? Dive into the first lesson.
-                      </p>
-                      {firstLesson && (
-                        <Button className="w-full" asChild>
-                          <Link href={`/lessons/${firstLesson.id}`}>
-                            Start Module
+                      {isUnlocked && (
+                        <Button variant="outline" asChild>
+                          <Link href={`/projects/${project.id}`}>
+                            Open project
                             <ArrowRight data-icon="inline-end" aria-hidden="true" />
                           </Link>
                         </Button>
                       )}
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-sm text-muted-foreground">
-                        Keep going, you are {completionPercentage}% through this module.
-                      </p>
-                      {firstIncompleteLesson && (
-                        <Button className="w-full" asChild>
-                          <Link href={`/lessons/${firstIncompleteLesson.id}`}>
-                            Continue Module
-                            <ArrowRight data-icon="inline-end" aria-hidden="true" />
-                          </Link>
-                        </Button>
-                      )}
-                    </>
-                  )}
-                </CardContent>
-              </Card>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          </FadeIn>
+        )}
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Overview</CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-4">
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    {learningModule.description}
-                  </p>
-                  <div className="grid grid-cols-3 gap-3 border-t border-border pt-4">
-                    <div className="flex flex-col gap-0.5 text-center">
-                      <span className="font-heading text-lg font-semibold">{lessons.length}</span>
-                      <span className="text-xs text-muted-foreground">lessons</span>
-                    </div>
-                    <div className="flex flex-col gap-0.5 text-center">
-                      <span className="font-heading text-lg font-semibold">{projects.length}</span>
-                      <span className="text-xs text-muted-foreground">projects</span>
-                    </div>
-                    <div className="flex flex-col gap-0.5 text-center">
-                      <span className="font-heading text-lg font-semibold">{displayDuration}h</span>
-                      <span className="text-xs text-muted-foreground">total</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {learningModule.prerequisites.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Prerequisites</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="flex flex-col divide-y divide-border">
-                      {learningModule.prerequisites.map((prereq) => (
-                        <li key={prereq.id}>
-                          <Link
-                            href={`/modules/${prereq.id}`}
-                            className="flex items-center gap-2 py-2.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                          >
-                            <BookOpen className="size-3.5 shrink-0" aria-hidden="true" />
-                            <span className="flex-1">{prereq.title}</span>
-                            <ChevronRight className="size-3 shrink-0" aria-hidden="true" />
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              )}
-
-              {learningModule.dependents.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Unlocks</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="flex flex-col divide-y divide-border">
-                      {learningModule.dependents.map((dep) => (
-                        <li key={dep.id}>
-                          <Link
-                            href={`/modules/${dep.id}`}
-                            className="flex items-center gap-2 py-2.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                          >
-                            <BookOpen className="size-3.5 shrink-0" aria-hidden="true" />
-                            <span className="flex-1">{dep.title}</span>
-                            <ChevronRight className="size-3 shrink-0" aria-hidden="true" />
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </div>
+        {/* Neighbouring modules */}
+        <FadeIn delay={0.12}>
+          <nav aria-label="Other modules" className="grid gap-4 border-t border-border pt-6 sm:grid-cols-2">
+            {prevModule ? (
+              <Link
+                href={`/modules/${prevModule.id}`}
+                className="group flex items-center gap-3 rounded-md border border-border p-4 hover:bg-accent/50"
+              >
+                <ArrowLeft className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                <span className="flex min-w-0 flex-col">
+                  <span className="text-sm text-muted-foreground">Module {prevModule.order}</span>
+                  <span className="truncate font-semibold">{prevModule.title}</span>
+                </span>
+              </Link>
+            ) : (
+              <span />
+            )}
+            {nextModule && (
+              <Link
+                href={`/modules/${nextModule.id}`}
+                className="group flex items-center justify-end gap-3 rounded-md border border-border p-4 text-right hover:bg-accent/50"
+              >
+                <span className="flex min-w-0 flex-col">
+                  <span className="text-sm text-muted-foreground">Module {nextModule.order}</span>
+                  <span className="truncate font-semibold">{nextModule.title}</span>
+                </span>
+                <ArrowRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              </Link>
+            )}
+          </nav>
         </FadeIn>
       </StaggerContainer>
     </div>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -174,12 +174,12 @@ export function ProjectSubmitClient({ projectId, projectTitle }: ProjectSubmitCl
               initial={{ scale: 0 }}
               animate={{ scale: [0, 1.2, 1] }}
               transition={{ duration: 0.5, times: [0, 0.6, 1] }}
-              className="flex size-16 items-center justify-center rounded-full bg-success/10"
+              className="flex size-16 items-center justify-center rounded-md bg-success/12"
             >
               <CheckCircle2 className="size-8 text-success" aria-hidden="true" />
             </motion.div>
             <div className="flex flex-col gap-2">
-              <h2 className="font-heading text-xl font-semibold">Submission Received!</h2>
+              <h2 className="font-condensed text-3xl font-extrabold tracking-[-0.02em]">Submitted for grading.</h2>
               <p className="text-sm text-muted-foreground">
                 Your project has been submitted for review.
               </p>

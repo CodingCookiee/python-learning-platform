@@ -1,13 +1,12 @@
-﻿export { LessonSidebar } from "./lesson-sidebar";
+export { LessonSidebar } from "./lesson-sidebar";
 export type { LessonSidebarProps } from "./lesson-sidebar";
 export { LessonNavigation } from "./lesson-navigation";
 export type { LessonNavigationProps } from "./lesson-navigation";
 export { LessonContent } from "./lesson-content";
 export type { LessonContentProps } from "./lesson-content";
+export { CodeBlock } from "./code-block";
 export { JsBridge } from "./js-bridge";
 export type { JsBridgeProps } from "./js-bridge";
-export { RunnableCode } from "./runnable-code";
-export type { RunnableCodeProps } from "./runnable-code";
 export { PythonEditor } from "./monaco-editor";
 export type { PythonEditorProps } from "./monaco-editor";
 export { LessonCompleteButton } from "./lesson-complete-button";

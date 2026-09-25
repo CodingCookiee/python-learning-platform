@@ -43,7 +43,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
           <Breadcrumb
             items={[
               { label: "Home", href: "/" },
-              { label: "Modules", href: "/modules" },
+              { label: "Syllabus", href: "/modules" },
               { label: project.module.title, href: `/modules/${project.module.id}` },
               { label: project.title },
             ]}

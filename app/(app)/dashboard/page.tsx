@@ -2,11 +2,9 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import {
-  ModuleProgressCard,
   AnimatedNumber,
 } from "@/components/progress";
 import { StreakDisplay } from "@/components/gamification/streak-display";
@@ -14,11 +12,13 @@ import { XpProgressBar } from "@/components/gamification/xp-progress-bar";
 import { StreakCalendar } from "@/components/gamification/streak-calendar";
 import { MilestoneTracker } from "@/components/gamification/milestone-tracker";
 import { Check } from "lucide-react";
-import { SealMark, StreakMark } from "@/components/brand/marks";
+import { SealMark } from "@/components/brand/marks";
 import { AchievementPatch } from "@/components/gamification/achievement-badge";
 import { tierStyle } from "@/lib/achievement-tier";
 import { RankCard } from "@/components/brand/rank-card";
 import { getLearnerRank } from "@/lib/learner-rank";
+import { getSyllabusProgress } from "@/lib/syllabus";
+import { SyllabusProgress } from "@/components/brand/syllabus-progress";
 
 interface ProgressData {
   user: {
@@ -222,7 +222,11 @@ export default async function DashboardPage() {
   });
   if (!dbUser) redirect("/auth/signin");
 
-  const [data, rank] = await Promise.all([getProgressData(dbUser.id), getLearnerRank(dbUser.id)]);
+  const [data, rank, syllabus] = await Promise.all([
+    getProgressData(dbUser.id),
+    getLearnerRank(dbUser.id),
+    getSyllabusProgress(dbUser.id),
+  ]);
 
   if (!data) {
     return (
@@ -239,28 +243,24 @@ export default async function DashboardPage() {
     );
   }
 
-  const { user, streak, completion, modules, recentActivity, achievements } = data;
-  const recentLessons = recentActivity.lessons.slice(0, 3);
+  const { user, streak, completion, recentActivity, achievements } = data;
+  const recentLessons = recentActivity.lessons.slice(0, 6);
   const recentAchievements = achievements.unlocked.slice(0, 4);
+  const passedCount = syllabus.filter((m) => m.state === "passed").length;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       <StaggerContainer className="flex flex-col gap-8">
         <FadeIn>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-            <div className="flex flex-col gap-1">
-              <h1 className="font-heading text-2xl font-semibold sm:text-3xl">
-                Welcome back{user.name ? `, ${user.name.split(" ")[0]}` : ""}.
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Keep going — you&apos;re {completion.overall}% of the way through the curriculum.
-              </p>
-            </div>
-            <span className="font-condensed tabular mt-2 inline-flex w-fit items-center gap-1.5 rounded-sm border border-border bg-sheet px-2 py-1 text-sm font-semibold sm:mt-0">
-              <StreakMark className={streak.current > 0 ? "text-primary" : "text-muted-foreground"} />
-              {streak.current} {streak.current === 1 ? "day" : "days"} in a row
-            </span>
-          </div>
+          <header className="flex flex-col gap-2">
+            <h1 className="font-condensed text-5xl leading-none font-extrabold tracking-[-0.02em]">
+              Welcome back{user.name ? `, ${user.name.split(" ")[0]}` : ""}.
+            </h1>
+            <p className="text-muted-foreground">
+              {passedCount} of {syllabus.length} modules passed. One lesson a day keeps the streak
+              and the stripes coming.
+            </p>
+          </header>
         </FadeIn>
         <FadeIn delay={0.04}>
           <RankCard rank={rank} />
@@ -294,104 +294,85 @@ export default async function DashboardPage() {
           </dl>
         </FadeIn>
 
-        {/* Streak calendar */}
-        <FadeIn delay={0.07}>
-          <Card>
-            <CardContent className="flex flex-col gap-4 pt-6">
-              <p className="font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground">
-                Activity
-              </p>
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+          <FadeIn delay={0.08}>
+            <section aria-labelledby="log-heading" className="flex flex-col gap-4">
+              <h2 id="log-heading" className="text-xl font-semibold">
+                Training log
+              </h2>
               <StreakCalendar activeDates={streak.activeDates ?? []} />
-            </CardContent>
-          </Card>
-        </FadeIn>
+            </section>
+          </FadeIn>
 
-        <FadeIn delay={0.1}>
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div className="flex flex-col gap-4 lg:col-span-2">
-              {recentLessons.length > 0 && (
-                <div className="flex flex-col gap-2">
-                  <p className="font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground">
-                    Recently Completed
-                  </p>
-                  {recentLessons.map(({ lesson }) => (
-                    <div
-                      key={lesson.id}
-                      className="flex items-center gap-3 border border-border bg-card px-4 py-3"
-                    >
-                      <Check className="size-4 shrink-0 text-success" aria-hidden="true" />
-                      <p className="flex-1 truncate text-sm">{lesson.title}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <h2 className="font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground">
-                  Achievements
+          <FadeIn delay={0.1}>
+            <section aria-labelledby="ach-heading" className="flex flex-col gap-4">
+              <div className="flex items-baseline justify-between gap-4">
+                <h2 id="ach-heading" className="text-xl font-semibold">
+                  Recent achievements
                 </h2>
-                {achievements.total > 0 && (
-                  <Link
-                    href="/achievements"
-                    className="text-xs font-semibold tracking-widest uppercase text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    View all
-                  </Link>
-                )}
+                <Link href="/achievements" className="text-sm font-medium text-primary underline">
+                  All achievements
+                </Link>
               </div>
               {recentAchievements.length > 0 ? (
-                <div className="flex flex-col gap-3">
-                  {recentAchievements.map((achievement) => (
-                    <div
-                      key={achievement.id}
-                      className="flex items-center gap-3 border border-border bg-card px-4 py-3"
-                    >
-                      <AchievementPatch icon={achievement.icon} tier={achievement.tier} size="sm" />
-                      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                        <p className="truncate text-sm font-semibold">{achievement.name}</p>
-                        <p className="font-condensed text-xs text-muted-foreground">
-                          {tierStyle(achievement.tier).label} · {achievement.xpReward} XP
-                        </p>
+                <ul className="flex flex-col border-t border-border">
+                  {recentAchievements.map((a) => (
+                    <li key={a.id} className="flex items-center gap-4 border-b border-border py-3">
+                      <AchievementPatch icon={a.icon} tier={a.tier} size="sm" />
+                      <div className="flex min-w-0 flex-col">
+                        <span className="truncate font-semibold">{a.name}</span>
+                        <span className="font-condensed tabular text-xs text-muted-foreground">
+                          {tierStyle(a.tier).label} · {a.xpReward} XP
+                        </span>
                       </div>
-                    </div>
+                    </li>
                   ))}
-                </div>
+                </ul>
               ) : (
-                <Card>
-                  <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
-                    <SealMark className="size-7 text-muted-foreground" />
-                    <p className="text-xs leading-relaxed text-muted-foreground">
-                      Finish your first lesson to earn your first patch.
-                    </p>
-                  </CardContent>
-                </Card>
+                <div className="flex items-center gap-3 rounded-md border border-dashed border-border p-5 text-sm text-muted-foreground">
+                  <SealMark className="size-5" />
+                  Finish your first lesson to earn your first achievement.
+                </div>
               )}
+            </section>
+          </FadeIn>
+        </div>
+
+        {recentLessons.length > 0 && (
+          <FadeIn delay={0.12}>
+            <section aria-labelledby="recent-heading" className="flex flex-col gap-4">
+              <h2 id="recent-heading" className="text-xl font-semibold">
+                Recently finished
+              </h2>
+              <ol className="grid border-t border-border sm:grid-cols-2 sm:gap-x-10 lg:grid-cols-3">
+                {recentLessons.map(({ lesson }) => (
+                  <li key={lesson.id} className="border-b border-border">
+                    <Link
+                      href={`/lessons/${lesson.id}`}
+                      className="flex items-center gap-3 py-3 hover:text-primary"
+                    >
+                      <Check className="size-4 shrink-0 text-success" aria-hidden="true" />
+                      <span className="truncate">{lesson.title}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          </FadeIn>
+        )}
+
+        <FadeIn delay={0.14}>
+          <section aria-labelledby="syllabus-heading" className="flex flex-col gap-2">
+            <div className="flex items-baseline justify-between gap-4">
+              <h2 id="syllabus-heading" className="text-xl font-semibold">
+                Your syllabus
+              </h2>
+              <Link href="/modules" className="text-sm font-medium text-primary underline">
+                Open the syllabus
+              </Link>
             </div>
-          </div>
-        </FadeIn>
-        <FadeIn delay={0.15}>
-          <div className="flex flex-col gap-4">
-            <h2 className="font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground">
-              All Modules
-            </h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {modules.map((module) => (
-                <ModuleProgressCard
-                  key={module.moduleId}
-                  moduleId={module.moduleId}
-                  title={module.moduleTitle}
-                  phase={module.modulePhase}
-                  completionPercentage={module.completionPercentage}
-                  lessonsCompleted={module.lessonsCompleted}
-                  lessonsTotal={module.lessonsTotal}
-                  projectsCompleted={module.projectsCompleted}
-                  projectsTotal={module.projectsTotal}
-                  isLocked={module.completionPercentage === 0}
-                />
-              ))}
-            </div>
-          </div>
+            <SyllabusProgress modules={syllabus} compact />
+          </section>
         </FadeIn>
         <MilestoneTracker overallPercentage={completion.overall} />
       </StaggerContainer>

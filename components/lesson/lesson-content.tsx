@@ -1,15 +1,14 @@
-﻿"use client";
+"use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { ComponentPropsWithoutRef } from "react";
+import { isValidElement, useEffect, useRef, useState } from "react";
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import type { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import rehypeHighlight from "rehype-highlight";
-import { Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { CodeBlock } from "@/components/lesson/code-block";
 
 // Helpers
 
@@ -21,13 +20,24 @@ function slugify(text: string): string {
     .replace(/\s+/g, "-");
 }
 
+/** Plain text of a React node tree (highlighted code is nested spans) */
+function nodeText(node: ReactNode): string {
+  if (node == null || typeof node === "boolean") return "";
+  if (typeof node === "string" || typeof node === "number") return String(node);
+  if (Array.isArray(node)) return node.map(nodeText).join("");
+  if (isValidElement<{ children?: ReactNode }>(node)) return nodeText(node.props.children);
+  return "";
+}
+
 function extractTocItems(markdown: string): TocItem[] {
+  // Ignore headings inside fenced code blocks
+  const withoutCode = markdown.replace(/(```|~~~)[\s\S]*?\1/g, "");
   const regex = /^(#{2,3})\s+(.+)/gm;
   const items: TocItem[] = [];
   let match: RegExpExecArray | null;
-  while ((match = regex.exec(markdown)) !== null) {
-    const level = match[1].length as 2 | 3;
-    const text = match[2].trim();
+  while ((match = regex.exec(withoutCode)) !== null) {
+    const level = match[1]!.length as 2 | 3;
+    const text = match[2]!.replace(/`/g, "").trim();
     items.push({ level, text, slug: slugify(text) });
   }
   return items;
@@ -46,83 +56,203 @@ export interface LessonContentProps {
   className?: string;
 }
 
-// CopyButton
-
-function CopyButton({ code }: { code: string }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = useCallback(async () => {
-    await navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }, [code]);
-
+function TocList({ items, activeSlug }: { items: TocItem[]; activeSlug: string | null }) {
   return (
-    <Button
-      variant="ghost"
-      size="icon-xs"
-      onClick={handleCopy}
-      aria-label={copied ? "Copied!" : "Copy code"}
-      className="absolute right-2 top-2 opacity-60 hover:opacity-100"
+    <ul className="flex flex-col gap-1.5 border-l border-border">
+      {items.map((item) => (
+        <li key={item.slug}>
+          <a
+            href={`#${item.slug}`}
+            className={cn(
+              "-ml-px block border-l-2 py-0.5 text-sm leading-snug transition-colors hover:text-foreground",
+              item.level === 3 ? "pl-6" : "pl-3",
+              activeSlug === item.slug
+                ? "border-primary font-medium text-foreground"
+                : "border-transparent text-muted-foreground"
+            )}
+          >
+            {item.text}
+          </a>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+// Headings carry ids for the table of contents
+
+function H1({ children, ...props }: ComponentPropsWithoutRef<"h2">) {
+  return (
+    <h2
+      id={slugify(nodeText(children))}
+      className="mt-12 mb-4 scroll-mt-24 text-3xl leading-tight font-semibold tracking-[-0.015em]"
+      {...props}
     >
-      {copied ? (
-        <Check className="size-3" aria-hidden="true" />
-      ) : (
-        <Copy className="size-3" aria-hidden="true" />
-      )}
-    </Button>
+      {children}
+    </h2>
   );
 }
 
-// TableOfContents
-
-interface TocProps {
-  items: TocItem[];
-  activeSlug: string | null;
-}
-
-function TableOfContents({ items, activeSlug }: TocProps) {
+function H2({ children, ...props }: ComponentPropsWithoutRef<"h2">) {
   return (
-    <nav aria-label="Table of contents" className="sticky top-24 self-start w-full">
-      <p className="mb-3 font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground">
-        On this page
-      </p>
-      <ul className="flex flex-col gap-1">
-        {items.map((item) => (
-          <li key={item.slug} className={item.level === 3 ? "pl-3" : ""}>
-            <a
-              href={`#${item.slug}`}
-              className={cn(
-                "block text-xs leading-relaxed transition-colors hover:text-foreground",
-                activeSlug === item.slug ? "font-semibold text-foreground" : "text-muted-foreground"
-              )}
-            >
-              {item.text}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </nav>
+    <h2
+      id={slugify(nodeText(children))}
+      className="mt-12 mb-4 scroll-mt-24 text-2xl leading-tight font-semibold tracking-[-0.01em]"
+      {...props}
+    >
+      {children}
+    </h2>
   );
 }
+
+function H3({ children, ...props }: ComponentPropsWithoutRef<"h3">) {
+  return (
+    <h3 id={slugify(nodeText(children))} className="mt-8 mb-3 scroll-mt-24 text-lg font-semibold" {...props}>
+      {children}
+    </h3>
+  );
+}
+
+// Defined once at module level: a new object per render would give React a
+// new component type for every code block and remount them, wiping their output.
+const components: Components = {
+  pre({ children }: ComponentPropsWithoutRef<"pre">) {
+    const child = isValidElement<{ className?: string; children?: ReactNode }>(children)
+      ? children
+      : null;
+    const language = /language-(\w+)/.exec(child?.props.className ?? "")?.[1] ?? "";
+    const code = nodeText(child?.props.children).replace(/\n$/, "");
+    return (
+      <CodeBlock code={code} language={language}>
+        {children}
+      </CodeBlock>
+    );
+  },
+
+  code({ children, className: codeClassName, ...props }: ComponentPropsWithoutRef<"code">) {
+    if (/language-/.test(codeClassName ?? "")) {
+      return (
+        <code className={cn(codeClassName, "hljs")} {...props}>
+          {children}
+        </code>
+      );
+    }
+    return (
+      <code
+        className="rounded-[3px] bg-accent/70 px-1.5 py-0.5 font-mono text-[0.875em] text-foreground"
+        {...props}
+      >
+        {children}
+      </code>
+    );
+  },
+
+  // The page supplies the lesson title as <h1>; a markdown h1 is demoted
+  h1: H1,
+  h2: H2,
+  h3: H3,
+
+  blockquote({ children, ...props }: ComponentPropsWithoutRef<"blockquote">) {
+    return (
+      <blockquote
+        className="my-6 rounded-md bg-accent/50 px-5 py-4 text-foreground [&>p:last-child]:mb-0"
+        {...props}
+      >
+        {children}
+      </blockquote>
+    );
+  },
+
+  table({ children, ...props }: ComponentPropsWithoutRef<"table">) {
+    return (
+      <div className="my-6 overflow-x-auto rounded-md border border-border">
+        <table className="w-full border-collapse text-sm" {...props}>
+          {children}
+        </table>
+      </div>
+    );
+  },
+  th({ children, ...props }: ComponentPropsWithoutRef<"th">) {
+    return (
+      <th className="border-b border-border bg-sheet px-3 py-2 text-left font-semibold" {...props}>
+        {children}
+      </th>
+    );
+  },
+  td({ children, ...props }: ComponentPropsWithoutRef<"td">) {
+    return (
+      <td className="border-b border-border/70 px-3 py-2 align-top" {...props}>
+        {children}
+      </td>
+    );
+  },
+
+  a({ children, href, ...props }: ComponentPropsWithoutRef<"a">) {
+    const external = href?.startsWith("http");
+    return (
+      <a
+        href={href}
+        className="text-primary underline decoration-primary/40 underline-offset-4 hover:decoration-primary"
+        target={external ? "_blank" : undefined}
+        rel={external ? "noopener noreferrer" : undefined}
+        {...props}
+      >
+        {children}
+      </a>
+    );
+  },
+
+  p({ children, ...props }: ComponentPropsWithoutRef<"p">) {
+    return (
+      <p className="mb-5 text-[1.0625rem] leading-[1.75] text-foreground" {...props}>
+        {children}
+      </p>
+    );
+  },
+  ul({ children, ...props }: ComponentPropsWithoutRef<"ul">) {
+    return (
+      <ul className="mb-5 flex list-disc flex-col gap-1.5 pl-6 marker:text-primary" {...props}>
+        {children}
+      </ul>
+    );
+  },
+  ol({ children, ...props }: ComponentPropsWithoutRef<"ol">) {
+    return (
+      <ol
+        className="mb-5 flex list-decimal flex-col gap-1.5 pl-6 marker:font-semibold marker:text-muted-foreground"
+        {...props}
+      >
+        {children}
+      </ol>
+    );
+  },
+  li({ children, ...props }: ComponentPropsWithoutRef<"li">) {
+    return (
+      <li className="pl-1 text-[1.0625rem] leading-[1.7] text-foreground" {...props}>
+        {children}
+      </li>
+    );
+  },
+  hr() {
+    return <hr className="my-10 border-border" />;
+  },
+};
 
 // LessonContent
 
 export function LessonContent({ content, className }: LessonContentProps) {
+  // The page renders the lesson title; drop a leading markdown h1 that repeats it
+  content = content.replace(/^\s*#\s+[^\n]*\n+/, "");
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const tocItems = extractTocItems(content);
   const hasToc = tocItems.length >= 3;
 
   useEffect(() => {
-    if (!hasToc) return;
-    const headingEls: Element[] = [];
-    if (contentRef.current) {
-      tocItems.forEach(({ slug }) => {
-        const el = contentRef.current?.querySelector(`#${slug}`);
-        if (el) headingEls.push(el);
-      });
-    }
+    if (!hasToc || !contentRef.current) return;
+    const headingEls = tocItems
+      .map(({ slug }) => contentRef.current?.querySelector(`#${CSS.escape(slug)}`))
+      .filter((el): el is Element => Boolean(el));
     if (headingEls.length === 0) return;
     const observer = new IntersectionObserver(
       (entries) => {
@@ -140,211 +270,16 @@ export function LessonContent({ content, className }: LessonContentProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content, hasToc]);
 
-  const components: Components = {
-    pre({ children, ...props }: ComponentPropsWithoutRef<"pre">) {
-      type CodeEl = React.ReactElement<ComponentPropsWithoutRef<"code">>;
-      let codeText = "";
-      let language = "";
-      const child = children as CodeEl | null;
-      if (child && typeof child === "object" && "props" in child) {
-        const codeProps = child.props;
-        if (typeof codeProps.children === "string") {
-          codeText = codeProps.children;
-        }
-        const classNameVal = typeof codeProps.className === "string" ? codeProps.className : "";
-        const langMatch = /language-(\w+)/.exec(classNameVal);
-        if (langMatch) language = langMatch[1];
-      }
-      return (
-        <div className="relative my-4 group">
-          {language && (
-            <span className="absolute left-4 top-2 font-heading text-[10px] font-semibold tracking-widest uppercase text-muted-foreground select-none pointer-events-none">
-              {language}
-            </span>
-          )}
-          <CopyButton code={codeText} />
-          <pre
-            {...props}
-            className={cn(
-              "bg-muted/50 border border-border p-4 overflow-x-auto text-sm font-mono",
-              language && "pt-8"
-            )}
-          >
-            {children}
-          </pre>
-        </div>
-      );
-    },
-
-    code({ children, className: codeClassName, ...props }: ComponentPropsWithoutRef<"code">) {
-      const isBlock = /language-/.test(codeClassName ?? "");
-      if (isBlock) {
-        return (
-          <code className={codeClassName} {...props}>
-            {children}
-          </code>
-        );
-      }
-      return (
-        <code
-          className="bg-muted px-1.5 py-0.5 font-mono text-sm text-foreground dark:text-foreground"
-          {...props}
-        >
-          {children}
-        </code>
-      );
-    },
-
-    h1({ children, ...props }: ComponentPropsWithoutRef<"h1">) {
-      const text = typeof children === "string" ? children : "";
-      return (
-        <h1
-          id={slugify(text)}
-          className="font-heading text-2xl font-semibold mt-8 mb-4 scroll-mt-24"
-          {...props}
-        >
-          {children}
-        </h1>
-      );
-    },
-
-    h2({ children, ...props }: ComponentPropsWithoutRef<"h2">) {
-      const text = typeof children === "string" ? children : "";
-      return (
-        <h2
-          id={slugify(text)}
-          className="font-heading text-xl font-semibold mt-8 mb-3 scroll-mt-24"
-          {...props}
-        >
-          {children}
-        </h2>
-      );
-    },
-
-    h3({ children, ...props }: ComponentPropsWithoutRef<"h3">) {
-      const text = typeof children === "string" ? children : "";
-      return (
-        <h3
-          id={slugify(text)}
-          className="font-heading text-lg font-semibold mt-6 mb-2 scroll-mt-24"
-          {...props}
-        >
-          {children}
-        </h3>
-      );
-    },
-
-    blockquote({ children, ...props }: ComponentPropsWithoutRef<"blockquote">) {
-      return (
-        <blockquote
-          className="border-l-4 border-primary pl-4 italic text-muted-foreground my-4"
-          {...props}
-        >
-          {children}
-        </blockquote>
-      );
-    },
-
-    table({ children, ...props }: ComponentPropsWithoutRef<"table">) {
-      return (
-        <div className="overflow-x-auto my-4">
-          <table className="w-full border-collapse" {...props}>
-            {children}
-          </table>
-        </div>
-      );
-    },
-
-    td({ children, ...props }: ComponentPropsWithoutRef<"td">) {
-      return (
-        <td className="border border-border px-3 py-2 text-sm" {...props}>
-          {children}
-        </td>
-      );
-    },
-
-    th({ children, ...props }: ComponentPropsWithoutRef<"th">) {
-      return (
-        <th
-          className="border border-border px-3 py-2 text-sm font-semibold text-left bg-muted/50"
-          {...props}
-        >
-          {children}
-        </th>
-      );
-    },
-
-    a({ children, href, ...props }: ComponentPropsWithoutRef<"a">) {
-      return (
-        <a
-          href={href}
-          className="text-primary underline underline-offset-4 hover:text-primary/80"
-          target={href?.startsWith("http") ? "_blank" : undefined}
-          rel={href?.startsWith("http") ? "noopener noreferrer" : undefined}
-          {...props}
-        >
-          {children}
-        </a>
-      );
-    },
-
-    p({ children, ...props }: ComponentPropsWithoutRef<"p">) {
-      return (
-        <p className="text-foreground leading-relaxed mb-4" {...props}>
-          {children}
-        </p>
-      );
-    },
-
-    ul({ children, ...props }: ComponentPropsWithoutRef<"ul">) {
-      return (
-        <ul className="list-disc pl-6 mb-4 flex flex-col gap-1" {...props}>
-          {children}
-        </ul>
-      );
-    },
-
-    ol({ children, ...props }: ComponentPropsWithoutRef<"ol">) {
-      return (
-        <ol className="list-decimal pl-6 mb-4 flex flex-col gap-1" {...props}>
-          {children}
-        </ol>
-      );
-    },
-
-    li({ children, ...props }: ComponentPropsWithoutRef<"li">) {
-      return (
-        <li className="text-foreground leading-relaxed text-sm" {...props}>
-          {children}
-        </li>
-      );
-    },
-  };
-
   return (
-    <div className={cn("flex gap-8", className)}>
-      <div ref={contentRef} className="min-w-0 flex-1">
+    <div className={cn("flex gap-12", className)}>
+      <div ref={contentRef} className="min-w-0 max-w-[70ch] flex-1">
         {hasToc && (
-          <nav
-            aria-label="Table of contents"
-            className="xl:hidden mb-6 border border-border bg-muted/30 p-4"
-          >
-            <p className="mb-2 font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground">
-              On this page
-            </p>
-            <ul className="flex flex-col gap-1">
-              {tocItems.map((item) => (
-                <li key={item.slug} className={item.level === 3 ? "pl-3" : ""}>
-                  <a
-                    href={`#${item.slug}`}
-                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {item.text}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          <details className="mb-8 rounded-md border border-border bg-sheet px-4 py-3 xl:hidden">
+            <summary className="cursor-pointer text-sm font-semibold">On this page</summary>
+            <div className="mt-3">
+              <TocList items={tocItems} activeSlug={activeSlug} />
+            </div>
+          </details>
         )}
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
@@ -355,8 +290,11 @@ export function LessonContent({ content, className }: LessonContentProps) {
         </ReactMarkdown>
       </div>
       {hasToc && (
-        <aside className="hidden xl:block w-48 shrink-0">
-          <TableOfContents items={tocItems} activeSlug={activeSlug} />
+        <aside className="hidden w-56 shrink-0 xl:block">
+          <nav aria-label="On this page" className="sticky top-24 flex flex-col gap-3">
+            <p className="text-sm font-semibold">On this page</p>
+            <TocList items={tocItems} activeSlug={activeSlug} />
+          </nav>
         </aside>
       )}
     </div>

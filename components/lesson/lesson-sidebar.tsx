@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle2, Circle, ChevronLeft, Lock } from "lucide-react";
+import { Check, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AnimatedProgressBar } from "@/components/progress";
+import { LockedMark } from "@/components/brand/marks";
 
 export interface LessonSidebarProps {
   currentLessonId: string;
@@ -20,6 +20,7 @@ export interface LessonSidebarProps {
   className?: string;
 }
 
+/** The module's lessons in order, with the current one marked */
 export function LessonSidebar({
   currentLessonId,
   moduleId,
@@ -29,99 +30,83 @@ export function LessonSidebar({
 }: LessonSidebarProps) {
   const completedCount = lessons.filter((l) => l.completed).length;
   const total = lessons.length;
-  const progressPercent = total > 0 ? Math.round((completedCount / total) * 100) : 0;
+  const pct = total > 0 ? (completedCount / total) * 100 : 0;
 
   return (
-    <nav aria-label="Lesson navigation" className={cn("flex flex-col gap-4", className)}>
-      {/* Module heading link */}
-      <Link
-        href={`/modules/${moduleId}`}
-        className="flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ChevronLeft className="size-4 shrink-0" aria-hidden="true" />
-        <span className="truncate">{moduleTitle}</span>
-      </Link>
+    <nav aria-label="Lessons in this module" className={cn("flex flex-col gap-5", className)}>
+      <div className="flex flex-col gap-3">
+        <Link
+          href={`/modules/${moduleId}`}
+          className="flex items-center gap-1 text-sm font-semibold hover:text-primary"
+        >
+          <ChevronLeft className="size-4 shrink-0" aria-hidden="true" />
+          <span className="truncate">{moduleTitle}</span>
+        </Link>
+        <div className="flex flex-col gap-1.5">
+          <div className="h-1.5 overflow-hidden rounded-[2px] bg-muted" aria-hidden="true">
+            <div className="h-full bg-primary" style={{ width: `${pct}%` }} />
+          </div>
+          <p className="font-condensed tabular text-sm text-muted-foreground">
+            {completedCount} of {total} lessons done
+          </p>
+        </div>
+      </div>
 
-      {/* Section label */}
-      <p className="font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground">
-        In this module
-      </p>
-
-      {/* Lesson list */}
-      <ol className="flex flex-col gap-0">
+      <ol className="flex flex-col gap-0.5">
         {lessons.map((lesson) => {
           const isCurrent = lesson.id === currentLessonId;
           const isUnlocked = lesson.isUnlocked ?? true;
 
-          const rowContent = (
+          const row = (
             <div
               className={cn(
-                "flex items-start gap-2.5 py-2 pl-3 border-l-2 transition-colors",
-                isCurrent ? "border-primary" : "border-transparent hover:text-foreground"
+                "grid grid-cols-[1.75rem_minmax(0,1fr)_1rem] items-start gap-2 rounded-sm px-2 py-2",
+                isCurrent ? "bg-accent" : isUnlocked && "hover:bg-accent/50"
               )}
             >
-              {lesson.completed ? (
-                <CheckCircle2
-                  className="mt-0.5 size-4 shrink-0 text-success"
-                  aria-hidden="true"
-                />
-              ) : !isUnlocked ? (
-                <Lock className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-              ) : (
-                <Circle
-                  className="mt-0.5 size-4 shrink-0 text-muted-foreground"
-                  aria-hidden="true"
-                />
-              )}
-              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span className="font-condensed tabular pt-px text-sm font-bold text-muted-foreground">
+                {String(lesson.order).padStart(2, "0")}
+              </span>
+              <span className="flex min-w-0 flex-col gap-0.5">
                 <span
                   className={cn(
                     "text-sm leading-snug",
-                    isCurrent ? "font-semibold text-foreground" : "text-muted-foreground",
+                    isCurrent ? "font-semibold text-foreground" : "text-foreground/85",
                     !isUnlocked && "text-muted-foreground"
                   )}
                 >
                   {lesson.title}
                 </span>
-                {!isUnlocked && (
-                  <span className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">
-                    Locked
-                  </span>
-                )}
-                <span className="text-xs text-muted-foreground">{lesson.estimatedTime}min</span>
-              </div>
+                <span className="font-condensed tabular text-xs text-muted-foreground">
+                  {lesson.estimatedTime} min
+                </span>
+              </span>
+              <span className="pt-0.5">
+                {lesson.completed ? (
+                  <Check className="size-4 text-success" aria-label="Finished" />
+                ) : !isUnlocked ? (
+                  <LockedMark className="size-4 text-muted-foreground" title="Locked" />
+                ) : null}
+              </span>
             </div>
           );
 
           if (isCurrent || !isUnlocked) {
             return (
-              <li key={lesson.id} aria-current="page">
-                {rowContent}
+              <li key={lesson.id} aria-current={isCurrent ? "page" : undefined}>
+                {row}
               </li>
             );
           }
-
           return (
             <li key={lesson.id}>
-              <Link
-                href={`/lessons/${lesson.id}`}
-                className="block transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                {rowContent}
+              <Link href={`/lessons/${lesson.id}`} className="block rounded-sm">
+                {row}
               </Link>
             </li>
           );
         })}
       </ol>
-
-      {/* Progress summary */}
-      <div className="flex flex-col gap-2 border-t border-border pt-4">
-        <p className="text-xs text-muted-foreground">
-          <span className="font-semibold text-foreground">{completedCount}</span>
-          <span>/{total} complete</span>
-        </p>
-        <AnimatedProgressBar value={progressPercent} />
-      </div>
     </nav>
   );
 }

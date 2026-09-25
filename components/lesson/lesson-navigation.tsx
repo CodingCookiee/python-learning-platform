@@ -1,9 +1,6 @@
-"use client";
-
 import Link from "next/link";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 export interface LessonNavigationProps {
   previous: { id: string; title: string; order: number } | null;
@@ -13,55 +10,33 @@ export interface LessonNavigationProps {
 
 export function LessonNavigation({ previous, next, className }: LessonNavigationProps) {
   return (
-    <div
-      className={cn(
-        "flex items-center justify-between gap-4 border-t border-border pt-6",
-        className
-      )}
-    >
-      {/* Previous */}
+    <nav aria-label="Previous and next lesson" className={cn("grid gap-4 sm:grid-cols-2", className)}>
       {previous ? (
-        <Button variant="outline" asChild>
-          <Link href={`/lessons/${previous.id}`} className="flex items-center gap-1.5">
-            <ArrowLeft data-icon="inline-start" aria-hidden="true" />
-            <div className="flex flex-col items-start text-left">
-              <span className="font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground">
-                Previous
-              </span>
-              <span
-                className="max-w-[200px] truncate text-xs font-normal normal-case tracking-normal"
-                title={previous.title}
-              >
-                {previous.title}
-              </span>
-            </div>
-          </Link>
-        </Button>
+        <Link
+          href={`/lessons/${previous.id}`}
+          className="flex items-center gap-3 rounded-md border border-border p-4 hover:bg-accent/50"
+        >
+          <ArrowLeft className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <span className="flex min-w-0 flex-col">
+            <span className="text-sm text-muted-foreground">Previous lesson</span>
+            <span className="truncate font-semibold">{previous.title}</span>
+          </span>
+        </Link>
       ) : (
-        <div />
+        <span className="hidden sm:block" />
       )}
-
-      {/* Next */}
-      {next ? (
-        <Button asChild>
-          <Link href={`/lessons/${next.id}`} className="flex items-center gap-1.5">
-            <div className="flex flex-col items-end text-right">
-              <span className="font-heading text-xs font-semibold tracking-widest uppercase">
-                Next
-              </span>
-              <span
-                className="max-w-[200px] truncate text-xs font-normal normal-case tracking-normal"
-                title={next.title}
-              >
-                {next.title}
-              </span>
-            </div>
-            <ArrowRight data-icon="inline-end" aria-hidden="true" />
-          </Link>
-        </Button>
-      ) : (
-        <div />
+      {next && (
+        <Link
+          href={`/lessons/${next.id}`}
+          className="flex items-center justify-end gap-3 rounded-md border border-border p-4 text-right hover:bg-accent/50"
+        >
+          <span className="flex min-w-0 flex-col">
+            <span className="text-sm text-muted-foreground">Next lesson</span>
+            <span className="truncate font-semibold">{next.title}</span>
+          </span>
+          <ArrowRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+        </Link>
       )}
-    </div>
+    </nav>
   );
 }

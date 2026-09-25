@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import { motion } from "framer-motion";
@@ -110,25 +110,37 @@ export function StreakCalendar({ activeDates, className }: StreakCalendarProps) 
 
   const columns = React.useMemo(() => buildGrid(numWeeks), [numWeeks]);
 
-  const CELL = "size-3 rounded-sm";
+  const CELL = "size-4 rounded-[2px]";
+  const today = toLocalDateString(new Date());
+  const activeInRange = columns.reduce(
+    (n, col) => n + col.days.filter((d) => activeSet.has(d.dateStr)).length,
+    0
+  );
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
-      className={cn("flex flex-col gap-1 overflow-x-auto", className)}
-      role="img"
-      aria-label="Activity calendar showing the last several weeks"
+      className={cn("flex flex-col gap-3", className)}
     >
+      <p className="font-condensed tabular text-sm text-muted-foreground">
+        <span className="text-foreground font-semibold">{activeInRange}</span>{" "}
+        {activeInRange === 1 ? "training day" : "training days"} in the last {numWeeks} weeks
+      </p>
+      <div
+        className="flex flex-col gap-1 overflow-x-auto"
+        role="img"
+        aria-label={`Training log: ${activeInRange} active days in the last ${numWeeks} weeks`}
+      >
       {/* Month labels */}
       <div className="flex gap-1 pl-6">
         {columns.map((col, ci) => {
           const label = getMonthLabel(columns, ci);
           return (
-            <div key={col.weekIndex} className="w-3 shrink-0">
+            <div key={col.weekIndex} className="w-4 shrink-0">
               {label ? (
-                <span className="text-[0.55rem] font-medium leading-none text-muted-foreground whitespace-nowrap">
+                <span className="text-xs leading-none whitespace-nowrap text-muted-foreground">
                   {label}
                 </span>
               ) : null}
@@ -140,11 +152,11 @@ export function StreakCalendar({ activeDates, className }: StreakCalendarProps) 
       {/* Day rows */}
       <div className="flex gap-1">
         {/* Day-of-week labels column */}
-        <div className="flex flex-col gap-1 pr-1 w-5 shrink-0">
+        <div className="flex w-6 shrink-0 flex-col gap-1 pr-1">
           {DAY_LABELS.map((label, i) => (
-            <div key={i} className="h-3 flex items-center justify-end">
+            <div key={i} className="flex h-4 items-center justify-end">
               {label ? (
-                <span className="text-[0.55rem] font-medium text-muted-foreground">{label}</span>
+                <span className="text-xs text-muted-foreground">{label}</span>
               ) : null}
             </div>
           ))}
@@ -155,17 +167,26 @@ export function StreakCalendar({ activeDates, className }: StreakCalendarProps) 
           <div key={col.weekIndex} className="flex flex-col gap-1">
             {col.days.map((cell) => {
               const isActive = activeSet.has(cell.dateStr);
+              const isFuture = cell.dateStr > today;
               return (
                 <div
                   key={cell.dateStr}
                   title={cell.dateStr}
-                  className={cn(CELL, isActive ? "bg-primary/75" : "bg-muted")}
-                  aria-label={`${cell.dateStr}${isActive ? " — active" : ""}`}
+                  className={cn(
+                    CELL,
+                    isActive
+                      ? "bg-primary"
+                      : isFuture
+                        ? "border border-dashed border-border"
+                        : "bg-muted",
+                    cell.dateStr === today && !isActive && "ring-1 ring-primary/50"
+                  )}
                 />
               );
             })}
           </div>
         ))}
+        </div>
       </div>
     </motion.div>
   );

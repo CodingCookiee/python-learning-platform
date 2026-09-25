@@ -1,4 +1,4 @@
-﻿import { notFound, redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
@@ -62,7 +62,7 @@ export default async function ProjectSubmitPage({ params }: PageProps) {
           <Breadcrumb
             items={[
               { label: "Home", href: "/" },
-              { label: "Modules", href: "/modules" },
+              { label: "Syllabus", href: "/modules" },
               { label: project.module.title, href: `/modules/${project.module.id}` },
               { label: project.title, href: `/projects/${id}` },
               { label: "Submit" },
@@ -72,7 +72,9 @@ export default async function ProjectSubmitPage({ params }: PageProps) {
 
         <FadeIn delay={0.05}>
           <div className="flex flex-col gap-1">
-            <h1 className="font-heading text-2xl font-semibold sm:text-3xl">Submit Project</h1>
+            <h1 className="font-condensed text-5xl leading-none font-extrabold tracking-[-0.02em]">
+              Submit your project
+            </h1>
             <p className="text-sm text-muted-foreground">{project.title}</p>
           </div>
         </FadeIn>

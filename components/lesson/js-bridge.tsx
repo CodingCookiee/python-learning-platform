@@ -63,7 +63,7 @@ function CodePanel({ language, code }: CodePanelProps) {
       >
         <span
           className={cn(
-            "font-heading text-xs font-semibold tracking-widest uppercase",
+            "text-sm font-semibold",
             isJs ? "text-highlight-foreground dark:text-(--code-string)" : "text-(--code-attr)"
           )}
         >
@@ -105,7 +105,7 @@ export function JsBridge({
     <div className={cn("border border-border bg-card ring-1 ring-foreground/5", className)}>
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <span className="font-heading text-sm font-semibold">{concept}</span>
-        <span className="inline-flex items-center border border-border bg-muted/50 px-2 py-0.5 font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground">
+        <span className="inline-flex items-center border border-border bg-muted/50 px-2 py-0.5 text-xs font-semibold text-muted-foreground">
           JavaScript Bridge
         </span>
       </div>
@@ -133,7 +133,7 @@ export function JsBridge({
       </div>
       {keyDifferences && keyDifferences.length > 0 && (
         <div className="border-t border-border px-4 py-3">
-          <p className="mb-2 font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground">
+          <p className="mb-2 text-sm font-semibold">
             Key Differences
           </p>
           <ul className="flex flex-col gap-1">

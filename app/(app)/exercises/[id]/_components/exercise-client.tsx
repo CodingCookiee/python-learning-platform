@@ -1,14 +1,13 @@
 ﻿"use client";
 
 import * as React from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, CheckCircle2, XCircle, ChevronDown, ChevronUp, Lightbulb, Zap } from "lucide-react";
+import { Play, CheckCircle2, XCircle, ChevronDown, ChevronUp, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { PythonEditor } from "@/components/lesson";
+import { LessonContent, PythonEditor } from "@/components/lesson";
+import { TapeMark } from "@/components/brand/marks";
 import {
   AchievementNotificationQueue,
   Confetti,
@@ -70,13 +69,13 @@ export interface ExerciseData {
 function getDifficultyBadgeClass(difficulty: string): string {
   switch (difficulty.toLowerCase()) {
     case "easy":
-      return "border-success/30 text-success";
+      return "border-transparent bg-success/12 text-success";
     case "medium":
-      return "border-highlight/30 text-highlight-foreground";
+      return "border-transparent bg-highlight text-highlight-foreground";
     case "hard":
-      return "border-destructive/30 text-destructive";
+      return "border-transparent bg-destructive/10 text-destructive";
     default:
-      return "text-muted-foreground";
+      return "border-transparent bg-muted text-muted-foreground";
   }
 }
 
@@ -119,35 +118,35 @@ function InstructionsPanel({
           </Badge>
           <Badge
             variant="outline"
-            className="flex items-center gap-1 text-muted-foreground"
+            className="font-condensed tabular flex items-center gap-1 text-muted-foreground"
             aria-label={`${exercise.xpReward} XP reward`}
           >
-            <Zap className="size-3" aria-hidden="true" />
+            <TapeMark className="size-3.5" />
             {exercise.xpReward} XP
           </Badge>
         </div>
-        <h1 className="font-heading text-xl font-semibold sm:text-2xl">{exercise.title}</h1>
+        <h1 className="font-condensed text-4xl leading-[0.98] font-extrabold tracking-[-0.02em]">
+          {exercise.title}
+        </h1>
       </div>
 
-      <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed text-foreground">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>{exercise.instructions}</ReactMarkdown>
-      </div>
+      <LessonContent content={exercise.instructions} className="[&_p]:text-base" />
 
       {exercise.testCases.length > 0 && (
         <section aria-labelledby="test-cases-heading">
           <h2
             id="test-cases-heading"
-            className="mb-3 font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground"
+            className="mb-3 text-lg font-semibold"
           >
-            Test Cases ({exercise.testCases.length})
+            Tests <span className="font-condensed tabular text-muted-foreground">{exercise.testCases.length}</span>
           </h2>
-          <ul className="flex flex-col gap-2" role="list">
+          <ul className="flex flex-col" role="list">
             {exercise.testCases.map((tc, i) => {
               const result = testResults?.[i] ?? null;
               return (
                 <li
                   key={i}
-                  className="flex flex-col gap-1 border border-border bg-card p-3"
+                  className="flex flex-col gap-1 border-b border-border py-3 first:border-t"
                   aria-label={`Test case ${i + 1}: ${tc.description}`}
                 >
                   <div className="flex items-start gap-2">
@@ -165,7 +164,7 @@ function InstructionsPanel({
                       )
                     ) : (
                       <div
-                        className="mt-0.5 size-4 shrink-0 rounded-full border-2 border-muted-foreground/30"
+                        className="mt-0.5 size-4 shrink-0 rounded-[3px] border border-dashed border-muted-foreground/50"
                         aria-hidden="true"
                       />
                     )}
@@ -173,12 +172,12 @@ function InstructionsPanel({
                   </div>
                   <p className="pl-6 text-xs text-muted-foreground">
                     Expected:{" "}
-                    <code className="rounded bg-muted px-1 py-0.5 font-mono">{tc.expected}</code>
+                    <code className="rounded-[3px] bg-accent/70 px-1 py-0.5 font-mono">{tc.expected}</code>
                   </p>
                   {result !== null && !result.passed && result.actual && (
                     <p className="pl-6 text-xs text-destructive">
                       Got:{" "}
-                      <code className="rounded bg-muted px-1 py-0.5 font-mono">
+                      <code className="rounded-[3px] bg-accent/70 px-1 py-0.5 font-mono">
                         {result.actual.trim() || "(empty)"}
                       </code>
                     </p>
@@ -307,12 +306,12 @@ function EditorPanel({
             className="overflow-hidden"
           >
             <div
-              className={`border ${allPassed ? "border-success/30 bg-success/5" : "border-border bg-card"} p-4`}
+              className={`rounded-md border ${allPassed ? "border-success/35 bg-success/6" : "border-border bg-sheet"} p-4`}
               aria-live="polite"
               role="status"
             >
               <p
-                className={`mb-3 font-heading text-sm font-semibold ${allPassed ? "text-success" : "text-foreground"}`}
+                className={`font-condensed tabular mb-3 text-lg font-bold ${allPassed ? "text-success" : "text-foreground"}`}
               >
                 {allPassed && <CheckCircle2 className="mr-1.5 inline size-4 align-[-3px]" aria-hidden="true" />}
                 {passedCount}/{totalCount} tests passed
@@ -352,12 +351,12 @@ function EditorPanel({
       </AnimatePresence>
 
       {exercise.hints.length > 0 && (
-        <section aria-labelledby="hints-heading" className="border border-border bg-card p-4">
+        <section aria-labelledby="hints-heading" className="rounded-md border border-border bg-sheet p-4">
           <div className="flex items-center gap-2">
             <Lightbulb className="size-4 text-highlight-foreground" aria-hidden="true" />
             <h2
               id="hints-heading"
-              className="font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground"
+              className="text-base font-semibold"
             >
               Hints
             </h2>
@@ -367,7 +366,7 @@ function EditorPanel({
             <ul className="mt-3 flex flex-col gap-2" role="list">
               {exercise.hints.slice(0, hintsUsed).map((hint, i) => (
                 <li key={i} className="text-sm text-foreground">
-                  <span className="mr-1.5 font-semibold text-muted-foreground">#{i + 1}</span>
+                  <span className="font-condensed tabular mr-2 font-bold text-muted-foreground">{i + 1}</span>
                   {hint}
                 </li>
               ))}
@@ -391,14 +390,14 @@ function EditorPanel({
       )}
 
       {exercise.solution !== null && (
-        <section aria-labelledby="solution-heading" className="border border-border">
+        <section aria-labelledby="solution-heading" className="rounded-md border border-border">
           <button
             id="solution-heading"
             onClick={() => setSolutionVisible((v) => !v)}
             aria-expanded={solutionVisible}
-            className="flex w-full items-center justify-between px-4 py-3 text-left font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex w-full items-center justify-between rounded-md px-4 py-3 text-left text-sm font-semibold transition-colors hover:bg-accent/50"
           >
-            <span>View Solution</span>
+            <span>Show the solution</span>
             {solutionVisible ? (
               <ChevronUp className="size-4" aria-hidden="true" />
             ) : (
