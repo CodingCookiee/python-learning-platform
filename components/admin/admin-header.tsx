@@ -55,7 +55,7 @@ export function AdminHeader({
             >
               {s.label}
               {s.key === "submissions" && pending !== undefined && pending > 0 && (
-                <span className="font-condensed tabular rounded-sm bg-highlight px-1.5 text-xs font-bold text-highlight-foreground">
+                <span className="font-condensed tabular rounded-sm bg-accent px-1.5 text-xs font-bold text-foreground">
                   {pending}
                 </span>
               )}

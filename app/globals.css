@@ -72,6 +72,10 @@
   --radius-4xl: calc(var(--radius) * 4);
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Surfaces that float over the page: dialogs, then menus and toasts */
+  --shadow-overlay: 0 24px 48px -16px color-mix(in oklch, var(--shadow-ink) 35%, transparent);
+  --shadow-float: 0 14px 30px -14px color-mix(in oklch, var(--shadow-ink) 30%, transparent);
 }
 
 :root {
@@ -113,6 +117,9 @@
   --belt-black-mark: oklch(0.3 0.03 162);
   --tape: oklch(0.985 0.008 100);
   --keyline: oklch(0.4 0.035 162);
+  /* Achievement bronze: olive-brown metal, clear of clay (error) and the brown belt */
+  --tier-bronze: oklch(0.5 0.075 80);
+  --shadow-ink: oklch(0.27 0.035 162);
 
   --chart-1: var(--primary);
   --chart-2: var(--highlight);
@@ -166,6 +173,8 @@
   --belt-black-mark: oklch(0.945 0.016 140);
   --tape: oklch(0.94 0.01 100);
   --keyline: oklch(0.63 0.04 155);
+  --tier-bronze: oklch(0.78 0.075 82);
+  --shadow-ink: oklch(0.08 0.02 165);
 
   --sidebar: oklch(0.225 0.025 165);
   --sidebar-foreground: oklch(0.945 0.016 140);

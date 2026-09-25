@@ -1,16 +1,15 @@
 import Link from "next/link";
-import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BeltBand } from "@/components/brand/belt";
-import { LockedMark } from "@/components/brand/marks";
+import { LockedMark, SealMark } from "@/components/brand/marks";
 import { BELTS, kyuRange } from "@/lib/ranks";
 import type { SyllabusModule } from "@/lib/syllabus";
 
 function ModuleStatus({ m }: { m: SyllabusModule }) {
   if (m.state === "passed") {
     return (
-      <span className="inline-flex items-center gap-1.5 text-sm font-medium text-success">
-        <Check className="size-4" aria-hidden="true" />
+      <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-success">
+        <SealMark className="size-4" />
         Passed
       </span>
     );
@@ -43,16 +42,24 @@ function ModuleStatus({ m }: { m: SyllabusModule }) {
 export function SyllabusProgress({
   modules,
   compact = false,
+  onlyCurrentBelt = false,
   className,
 }: {
   modules: SyllabusModule[];
   /** Compact hides module descriptions (dashboard) */
   compact?: boolean;
+  /** Show just the belt the learner is working on (dashboard) */
+  onlyCurrentBelt?: boolean;
   className?: string;
 }) {
   return (
     <div className={cn("flex flex-col", className)}>
-      {BELTS.map((belt) => {
+      {BELTS.filter((belt) => {
+        if (!onlyCurrentBelt) return true;
+        const current = modules.find((m) => m.state === "current");
+        const order = current?.order ?? modules[modules.length - 1]?.order ?? 1;
+        return order >= belt.fromModule && order <= belt.toModule;
+      }).map((belt) => {
         const beltModules = modules.filter(
           (m) => m.order >= belt.fromModule && m.order <= belt.toModule
         );

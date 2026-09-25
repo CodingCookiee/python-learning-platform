@@ -16,7 +16,8 @@ interface PingResponse {
 }
 
 /**
- * Silent component that records a streak ping once per browser session.
+ * Silent component that checks the streak once per browser session (a lapsed
+ * streak is reset; only real practice grows it).
  * Renders null -- purely a side-effect component.
  */
 export function StreakPing() {

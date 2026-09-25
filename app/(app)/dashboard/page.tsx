@@ -115,7 +115,8 @@ async function getProgressData(userId: string): Promise<ProgressData | null> {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - 84);
     cutoff.setHours(0, 0, 0, 0);
-    const [rp, re] = await Promise.all([
+    // Same sources as the streak: lessons, passed drills, approved capstones
+    const [rp, re, rc] = await Promise.all([
       prisma.progress.findMany({
         where: { userId, completed: true, completedAt: { gte: cutoff } },
         select: { completedAt: true },
@@ -123,6 +124,10 @@ async function getProgressData(userId: string): Promise<ProgressData | null> {
       prisma.exerciseSubmission.findMany({
         where: { userId, passed: true, submittedAt: { gte: cutoff } },
         select: { submittedAt: true },
+      }),
+      prisma.projectSubmission.findMany({
+        where: { userId, status: "approved", evaluatedAt: { gte: cutoff } },
+        select: { evaluatedAt: true },
       }),
     ]);
     const fmt = (d: Date) => {
@@ -134,6 +139,7 @@ async function getProgressData(userId: string): Promise<ProgressData | null> {
     const ads = new Set<string>();
     for (const p of rp) if (p.completedAt) ads.add(fmt(new Date(p.completedAt)));
     for (const e of re) ads.add(fmt(new Date(e.submittedAt)));
+    for (const c of rc) if (c.evaluatedAt) ads.add(fmt(new Date(c.evaluatedAt)));
     const activeDates = Array.from(ads).sort();
 
     const [tL, tP] = await Promise.all([prisma.lesson.count(), prisma.project.count()]);
@@ -365,13 +371,13 @@ export default async function DashboardPage() {
           <section aria-labelledby="syllabus-heading" className="flex flex-col gap-2">
             <div className="flex items-baseline justify-between gap-4">
               <h2 id="syllabus-heading" className="text-xl font-semibold">
-                Your syllabus
+                Your current belt
               </h2>
               <Link href="/modules" className="text-sm font-medium text-primary underline">
-                Open the syllabus
+                The full syllabus
               </Link>
             </div>
-            <SyllabusProgress modules={syllabus} compact />
+            <SyllabusProgress modules={syllabus} compact onlyCurrentBelt />
           </section>
         </FadeIn>
         <MilestoneTracker overallPercentage={completion.overall} />

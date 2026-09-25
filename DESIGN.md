@@ -27,6 +27,8 @@ colors:
   belt-brown: "oklch(0.57 0.065 60)"
   belt-black: "oklch(0.3 0.03 162)"
   tape: "oklch(0.985 0.008 100)"
+  tier-bronze: "oklch(0.5 0.075 80)"
+  shadow-ink: "oklch(0.27 0.035 162)"
   code-keyword: "oklch(0.45 0.1 165)"
   code-string: "oklch(0.5 0.1 100)"
   code-number: "oklch(0.52 0.11 45)"
@@ -45,6 +47,8 @@ colors:
   night-keyline: "oklch(0.63 0.04 155)"
   night-destructive: "oklch(0.76 0.11 30)"
   night-belt-black: "oklch(0.14 0.02 165)"
+  night-tier-bronze: "oklch(0.78 0.075 82)"
+  night-shadow-ink: "oklch(0.08 0.02 165)"
 typography:
   display:
     fontFamily: "Archivo, system-ui, sans-serif"
@@ -222,6 +226,20 @@ components:
     textColor: "{colors.seal}"
     rounded: "{rounded.none}"
     padding: "3px"
+  achievement-patch:
+    rounded: "{rounded.sm}"
+    padding: "4px"
+    size: "80px"
+  dialog:
+    backgroundColor: "{colors.sheet}"
+    textColor: "{colors.foreground}"
+    rounded: "{rounded.md}"
+    padding: "24px"
+  toast:
+    backgroundColor: "{colors.sheet}"
+    textColor: "{colors.foreground}"
+    rounded: "{rounded.md}"
+    padding: "12px 16px"
 ---
 
 # Design System: pylearn
@@ -234,15 +252,16 @@ pylearn is set like the printed syllabus of a martial-arts school, rendered in j
 
 The palette is balanced: soft enough to live with for a 90-minute evening session, with enough colour to feel alive. The ground is green-tinted cotton and the ink is deep forest green. One jade accent carries every action and the seal. A straw-yellow highlight appears only where the learner stands or has just earned something. Belt dyes are rank data and nothing else. In dark mode the ground becomes forest-green cloth in an evening training hall. The jade lightens to stay legible and the dyes stay soft. Loud, saturated accents (red in particular) and flat grey or slate were both tried and rejected by the owner. That rejection is part of the system.
 
-Density is that of a well-set reference document. There are large condensed headings and generous section bands (80 to 112px), and inside them compact ruled rows with tabular meta. The surface is flat. Depth comes from two tones of cloth (ground and sheet) and hairlines, never from shadow.
+Density is that of a well-set reference document. There are large condensed headings and generous section bands (80 to 112px), and inside them compact ruled rows with tabular meta. The page is flat. Depth comes from two tones of cloth (ground and sheet) and hairlines. Only surfaces that float over the page, such as dialogs, the search sheet, toasts and the mobile menu, cast a soft ink shadow.
 
 **Key Characteristics:**
 - One family, Archivo, used across its width axis: condensed for ranks and headings, normal for reading. JetBrains Mono is for code only.
 - A jade accent is the single action colour. Straw marks position and the moment of earning.
 - Belt dyes (white, yellow, green, blue, brown, black) appear only as rank data.
 - Square-cut geometry with 0 to 3px corners, keylined belt bands, and a square seal.
-- Flat cloth: tonal layering and hairline rules, with no drop shadows.
+- Flat cloth: tonal layering and hairline rules. A shadow appears only under a surface that floats over the page.
 - Motion is reserved for earning: the tape-on stripe and the seal stamp.
+- Reward concepts (streak, XP, rank, passed, locked) are drawn with pylearn's own square-cut marks, never emoji.
 
 ## Colors
 
@@ -257,9 +276,10 @@ Every colour is expressed in OKLCH and is the normative source in `app/globals.c
 ### Secondary
 - **Straw** (oklch(0.88 0.12 95)) with **Straw Ink** text (oklch(0.33 0.06 80)): the highlight. It appears only as the "You start here" / "Stripe earned" tag on the learner's current belt, the freshly earned stripe as it tapes on, and the dashed dan-rank placeholder bars (straw at 80%). Night Straw (oklch(0.86 0.12 95)) with oklch(0.26 0.045 80) text is its dark twin.
 
-### Tertiary (belt dyes, rank data only)
+### Tertiary (rank and reward data, code)
 - **Belt White** (oklch(0.99 0.008 100)), **Belt Yellow** (oklch(0.88 0.11 93)), **Belt Green** (oklch(0.72 0.1 145)), **Belt Blue** (oklch(0.66 0.085 240)), **Belt Brown** (oklch(0.57 0.065 60)), **Belt Black** (oklch(0.3 0.03 162); night oklch(0.14 0.02 165)): the cloth of each rank. They fill belt bands, the ladder, auth-panel belt lists, and the knot mark in a signed-in learner's current belt.
 - **Tape** (oklch(0.985 0.008 100)): an earned stripe on a rank bar.
+- **Tier Bronze** (oklch(0.5 0.075 80); night oklch(0.78 0.075 82)): the olive-brown metal of the bronze achievement tier, and the only colour added for achievements. Its hue (80) keeps it clear of Clay (30), so a bronze patch never reads as an error, and clear of Belt Brown (60), so it never reads as rank. The other four tiers reuse existing tokens (see Achievement Patch).
 - **Code tokens** (keyword oklch(0.45 0.1 165), string oklch(0.5 0.1 100), number oklch(0.52 0.11 45), attr oklch(0.47 0.08 245), each lifted in dark mode): highlight.js syntax colours. They are the palette's own hues, deepened for legibility. Comments use muted ink in italic.
 
 ### Neutral
@@ -272,6 +292,7 @@ Every colour is expressed in OKLCH and is the normative source in `app/globals.c
 - **Field Edge** (oklch(0.8 0.03 150)): input and outline-button borders.
 - **Keyline** (oklch(0.4 0.035 162); night oklch(0.63 0.04 155)): belt edges, stitch rows (14% of keyline), step dividers (40%), and the knot's stroke.
 - **Clay** (oklch(0.54 0.13 30); night oklch(0.76 0.11 30)): errors only. It is a muted earthen red, the highest-chroma colour in the system and still well under the rejected saturated red. It is used as text or a 30% border over an 8% wash, never as a fill.
+- **Shadow Ink** (oklch(0.27 0.035 162), the same value as Forest Ink; night oklch(0.08 0.02 165)): the only colour a shadow is mixed from. In dark mode it drops to a near-black forest so a shadow darkens the night ground instead of glowing on it.
 
 ### Named Rules
 **The Jade Voice Rule.** Jade is the only colour that means "act". Primary buttons, links, the seal, focus and selection use it. No second action colour exists.
@@ -325,19 +346,23 @@ The belt ladder is horizontal from 640px, with each rung's flex-grow proportiona
 
 ## Elevation & Depth
 
-The system is flat. Depth is conveyed by two cloth tones (Cotton Ground under Sheet, or Forest Night under Night Sheet), hairline borders, and keylines on belt objects. The only shadow in the build is the input focus halo. Focus everywhere else is a 2px Jade Ring outline at a 2px offset.
+The page is flat. Depth on the page is conveyed by two cloth tones (Cotton Ground under Sheet, or Forest Night under Night Sheet), hairline borders, and keylines on belt objects. Shadows exist only for surfaces that float over the page and cover part of it: dialogs, alert dialogs, the search sheet, toasts and the mobile menu. Every shadow is mixed from Shadow Ink, which is Forest Ink by day and near-black forest (oklch(0.08 0.02 165)) at night, so a shadow darkens the ground in both themes and never glows. Floating surfaces still carry their hairline border, so the edge reads even where the shadow is faint. The shadows are defined in the `@theme` block of `app/globals.css` and used through the `shadow-overlay` and `shadow-float` utilities. The input focus halo is the one shadow that is not about floating. Focus everywhere else is a 2px Jade Ring outline at a 2px offset.
 
 ### Shadow Vocabulary
-- **Focus halo** (`box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring), transparent 75%)`): text inputs on `:focus-visible`, paired with a Jade Ring border.
+- **Overlay** (`box-shadow: 0 24px 48px -16px color-mix(in oklch, var(--shadow-ink) 35%, transparent)`, utility `shadow-overlay`): modal surfaces that take over the screen. It is used on the dialog, the alert dialog and the search sheet.
+- **Float** (`box-shadow: 0 14px 30px -14px color-mix(in oklch, var(--shadow-ink) 30%, transparent)`, utility `shadow-float`): lighter, non-modal surfaces that hover over content. It is used on toasts and the mobile menu panel.
+- **Focus halo** (`box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring), transparent 75%)`): text inputs and textareas on `:focus-visible`, paired with a Jade Ring border.
 
 ### Named Rules
-**The Flat Cloth Rule.** Nothing casts a shadow. To lift something, change its tone (ground to sheet, or sheet to Jade Wash) and give it a hairline. Hard offset shadows and ambient glows are off-system.
+**The Flat Cloth Rule.** Nothing that sits on the page casts a shadow: cards, panels, rows, belts, patches and buttons stay flat. To lift something on the page, change its tone (ground to sheet, or sheet to Jade Wash) and give it a hairline. Hover lifts, hard offset shadows and ambient glows are off-system.
+
+**The Float Rule.** A shadow means "this is above the page". Only an overlay or a floating surface gets one, and only `shadow-overlay` (modal) or `shadow-float` (non-modal), both mixed from Shadow Ink. Don't invent a third shadow, and don't use stock Tailwind shadows or raw `rgba(0,0,0,…)` values.
 
 ## Shapes
 
 The geometry is square-cut cloth and printed paper. The base radius is 4px, but the build uses its fractions. Controls, inputs, badges, tags and code blocks use 2px. Panels, cards and framed figures use 3px. Belt bands, the rank bar, tape stripes and the seal are fully square. Streak cells are 16px squares at 2px. The here-tag is rounded only on its top corners, like a tag tied to the belt's top edge.
 
-Belt bands are 24px tall (16px in lists, 20px on the phone ladder). Each has a 1px keyline border at 60% (100% on black), four stitch rows drawn as a repeating gradient at 14% keyline, and a rank bar at the tail end in Belt Black (Seal Jade on the black belt) holding 5px tape stripes. The dan track is the same band with a dashed border and straw bars. The seal is rotated -7deg, with a 3px outer border, 3px of air, then a 1px inner border.
+Belt bands are 24px tall (16px in lists, 20px on the phone ladder). Each has a 1px keyline border at 60% (100% on black), four stitch rows drawn as a repeating gradient at 14% keyline, and a rank bar at the tail end in Belt Black (Seal Jade on the black belt) holding 5px tape stripes. The dan track is the same band with a dashed border and straw bars. The seal is rotated -7deg, with a 3px outer border, 3px of air, then a 1px inner border. Achievement patches are squares with 2px corners, a 2px thread border and an inner dashed stitch line. A locked patch has a dashed outer border instead, like the dan track. The marks are drawn on a 24px grid with miter joins and square caps, so they share the knot's square-cut silhouette.
 
 **The Square Cut Rule.** Corners stay between 0 and 3px. Nothing in the system is a pill or a circle, whether a badge, avatar frame, progress ring or level token. Progress is linear or striped.
 
@@ -373,18 +398,70 @@ Buttons are firm and square-shouldered, with no ornament.
 ### Navigation
 - **Header:** Sticky and 64px on Cotton Ground, with a bottom hairline. The logo is on the left. In-page links sit in the centre at 0.875rem in muted ink with a 28px gap, turning ink on hover. On the right are the theme toggle (outline icon button), "Sign in" (ghost, small) and the primary CTA (small). Below 768px the centre links hide and the CTA shortens to "Start".
 - **Footer:** Logo, muted links, and a copyright line, above a hairline.
+- **Mobile menu:** A panel that drops from the bottom of the header across the full width, on Cotton Ground with a bottom hairline and `shadow-float`.
+
+### Overlays
+These are the only surfaces that cast a shadow (see The Float Rule).
+- **Dialog / Alert dialog:** Centred on Sheet, up to 28rem wide (with 1rem clear on each side on phones), with 3px corners, a hairline border, 24px padding, a 24px internal gap and `shadow-overlay`. It fades and zooms in from 95% over 200ms.
+- **Search sheet:** Sheet with 3px corners, a hairline border and `shadow-overlay`, up to 36rem wide.
+- **Toast:** Sheet with 3px corners, a hairline border and `shadow-float`, up to 24rem wide with 12px by 16px padding. A 16px status icon leads the toast: Pass Green for success, Clay for an error, jade for information.
 
 ### Belt Band (signature)
 One belt of cloth: the dye fill, the keyline, the stitch rows, and a tail rank bar with tape stripes (see Shapes). Earned stripes are Tape. A stripe that has just been earned is Straw and plays **tape-on**: it is revealed top-down by `clip-path` while it drops 6px, over 420ms on the expo-out curve. A fading stripe (skill due for review) is at 35% opacity. The band drives the belt ladder, syllabus rows, auth panel and rank figures.
 
 ### Examiner's Seal (signature)
-A square seal-jade stamp rotated -7deg, with double borders. "Passed" is set in condensed 800 uppercase with a smaller detail line ("Drill 1", "Module grading"). When work is passed it plays **seal-stamp**: it drops from 1.35x with a 2px blur to 0.96x at 60%, then settles at 1x over 520ms on the expo-out curve. It carries `role="img"` with a full label.
+A square seal-jade stamp rotated -7deg, with double borders. "Passed" is set in condensed 800 uppercase with a smaller detail line ("Drill 1", "Module grading"). When work is passed it plays **seal-stamp**: it drops from 1.35x with a 2px blur to 0.96x at 60%, then settles at 1x over 520ms on the expo-out curve. It carries `role="img"` with a full label ("Passed: Capstone graded").
+
+It appears on the landing drill ("Drill 1") and the landing's module grading figure, on the milestone celebration (the percentage over "of the syllabus"), and on approved capstones. A learner's approved capstone shows a still seal ("Capstone graded") at the top of the project's action panel. The seal is animated only at the moment of passing. In the admin evaluation view, the approve button reads "Approve and stamp" and carries SealMark. When the approval lands, the seal plays seal-stamp at 110%, in the blank space beside the submission link at the top right of the submission panel, and both decision buttons lock.
+
+**The Clear Ground Rule.** The seal is pressed into blank space, never over text, code or a control. Anchor it in a clear corner of its panel with pointer events off, and check the position at phone width, where the corner is smaller.
 
 ### Belt Knot Mark
 A 32px-grid SVG of a tied belt knot with a keyline stroke. It is jade for visitors and the learner's current belt dye once signed in. A black-belt mark switches to an ink fill in dark mode so it keeps its mass. It sits beside the semicondensed lowercase wordmark with an 8px gap.
 
 ### Live Drill
 An in-browser graded exercise panel. It contains a task header, a mono editor on a strict 24px line grid with a hairline-separated tabular gutter, ruled test-case rows (a muted circle when idle, a Pass Green check, or a Clay cross with "got …"), a hairline action bar, and a Jade Wash success strip holding the seal. While re-grading, results dim to 55% instead of clearing, so the layout never jumps. Ctrl + Enter submits and Tab inserts four spaces.
+
+### Marks
+pylearn's own glyphs for the concepts it owns (`components/brand/marks.tsx`). They replace emoji and generic stand-ins such as a flame, lightning bolt, trophy or padlock. Each is a 24px-grid SVG in `currentColor` with a 1.75 stroke, miter joins and square caps, so it sits beside lucide icons at the same weight. The default size is 16px. A mark is `aria-hidden` unless it is given a `title`, which makes it `role="img"` with that label.
+- **StreakMark** (three training-day blocks, the last one filled for today): streaks. It leads the streak count ("12 days in a row"), in jade while a streak is running and muted at zero. It also stands in for the seed's "Flame" achievement icon.
+- **TapeMark** (a strip of tape with a torn top edge): XP and level, since tape is what a stripe is made of. It is used on "+N XP" rewards for drills, lessons, projects and unlocked achievements, in the level badge and the level-up notice, and for the "Zap" achievement icon.
+- **RankMark** (a belt end with its rank bar and two stripes): rank at icon size, where a Belt Band will not fit. It is authored but not yet placed in the app. Use it before drawing a new rank glyph.
+- **SealMark** (the examiner's square seal, tilted -7deg, with an inner square): anything passed or awarded. It is used on passed modules in syllabus progress, the Achievements item in the mobile menu, the dashed empty states for achievements and the admin review desk and queue, and the "Approve and stamp" button. It is also the fallback icon for any unknown achievement.
+- **LockedMark** (a dashed, untied belt band): anything not yet open. It is used on locked modules, lessons, lesson-sidebar items and search results. Give it `title="Locked"` when it is the only signal.
+
+**The Own Marks Rule.** Streak, XP, rank, passed and locked are drawn with the marks and nothing else. Subject matter (databases, testing, the web) uses lucide line icons at the same stroke weight. Emoji are never icons.
+
+### Achievement Patch
+An achievement is an embroidered patch: square-cut cloth in its tier's colour, with a 2px thread border, 4px of padding and an inner 1px dashed stitch line at 35% of the ink. There are three sizes: small (56px, 22px icon) at the head of every achievement row on the achievements page, dashboard and profile; medium (80px, 32px icon), the default; and large (112px, 44px icon) for the unlock modal. Patches sit at the head of ruled rows, never in a grid of cards. When the patch is wrapped in its tooltip (`AchievementBadge`), the tooltip gives the name, the description and a condensed tabular line ("Gold · 50 XP", with "· locked" appended when it is locked).
+
+Tiers come from `lib/achievement-tier.ts`. Each tier sets a thread (the outer border), an ink (the icon, the tier text and the inner stitch) and a fill. Every value comes from an existing token:
+- **Bronze:** Tier Bronze thread and ink, on a fill of 10% Tier Bronze in Sheet. Any unknown tier also falls back to bronze.
+- **Silver:** Keyline thread and Moss ink, on 10% Keyline in Sheet.
+- **Gold:** Straw thread and Straw Ink, on 30% Straw in Sheet.
+- **Platinum:** Jade thread and ink, on 12% Jade in Sheet.
+- **Legendary:** the one inverted patch, with a Forest Ink thread and fill and a Straw ink.
+
+A **locked** patch drops the tier colour. It has a 2px dashed border at 60% Keyline, a transparent fill and muted ink, and no inner stitch. It still shows its real icon at 70% opacity, so the learner can see what the patch is for. Its accessible label ends in "(locked)".
+
+Icons come from the curated map in `lib/achievement-icon.tsx`, keyed by the `icon` column in the seed. Subject icons are lucide at a 1.75 stroke. Legacy lucide names are mapped to their current glyphs (CheckSquare to SquareCheck, BarChart3 to ChartColumn, CheckCircle2 to CircleCheck, Wand2 to WandSparkles, Snake and Code2 to Code, Flow to Workflow). Concepts pylearn owns map to its marks: Flame is StreakMark and Zap is TapeMark. Any name that is not in the map renders SealMark. A new achievement icon must be added to the map, or it will show a seal.
+
+### Training Log
+The dashboard's record of training days (`components/gamification/streak-calendar.tsx`), set under a "Training log" heading beside Recent achievements. It is a grid of 16px squares with 2px corners and 4px gaps, one column per week (Monday to Sunday). It shows 12 weeks from 768px and 8 below, with muted 0.75rem month labels above and M / W / F down the side. A day with training is filled with jade, a past day without training is Muted Cotton, and a future day is a dashed hairline outline. Today, until it is trained, gets a 1px jade ring at 50%. A condensed tabular summary line sits above the grid ("23 training days in the last 12 weeks", with the count in semibold ink). The whole grid is one `role="img"` with that sentence as its label.
+
+It draws on the same activity as the streak, and only that activity: finished lessons, passed drills and approved capstones from the last 84 days. The streak grows only when one of those happens. The streak ping that runs on app load (`app/api/streak/ping/route.ts`) never extends a streak. It only resets one that has lapsed (no training yesterday or today) to zero, so the number shown is always honest. Visiting is not training.
+
+### Status Page
+The shared screen for 404s and errors (`components/brand/status-page.tsx`). It is a single left-aligned column up to 48rem wide, centred vertically in the available height, with 80px of vertical padding. From top to bottom it holds:
+- the status code as a huge condensed numeral (800, clamp(5rem, 16vw, 9rem), 0.8 line-height, -0.035em, tabular) in muted ink at 40%;
+- a loose white belt (a 16px by 12rem Belt Band with three empty stripe slots), which is the page's one image;
+- a condensed 800 headline (2.25rem, 3rem from 640px);
+- one plain-language line at 1.125rem in muted ink, up to 36rem wide;
+- the ways back, as large buttons: primary first, outline second.
+
+The root `app/not-found.tsx` wraps it in the site header and footer and points home or to sign-in. `app/error.tsx` offers "Try again" and the home page. Inside the app shell, `app/(app)/not-found.tsx` points to the dashboard and the syllabus, and `app/(app)/error.tsx` offers "Try again" and the dashboard, and says that progress is saved. The headlines stay in the world's voice: "That page isn't on the syllabus." and "Something slipped on the mat."
+
+`app/global-error.tsx` does not use StatusPage. It renders only when the root layout itself fails, when no app CSS or fonts can be relied on. It carries its own minimal page with inline hex approximations of Cotton Ground, Forest Ink, Moss and Jade, set in system-ui.
 
 ## Do's and Don'ts
 
@@ -398,24 +475,20 @@ An in-browser graded exercise panel. It contains a task header, a mono editor on
 - **Do** play tape-on (420ms) or seal-stamp (520ms) only when the learner earns something, and keep every other state change at 150ms on colour, opacity or a 1px press.
 - **Do** honour `prefers-reduced-motion`: animations and transitions collapse to 0.01ms and smooth scroll turns off. Celebrations and confetti must respect it too.
 - **Do** design dark mode as forest-green cloth with Night Jade, not as an inverted light theme, and check both themes for every new surface.
-- **Do** use Lucide line icons at 16px, muted by default and ink on hover, with `aria-hidden` when they are decorative.
+- **Do** use Lucide line icons at 16px, muted by default and ink on hover, with `aria-hidden` when they are decorative. Use pylearn's marks for streak, XP, rank, passed and locked.
+- **Do** colour achievements only through `tierStyle()` in `lib/achievement-tier.ts`, and register every new achievement icon in `lib/achievement-icon.tsx`.
+- **Do** write apostrophes in JSX copy as the typographic ’, or add an explicit `{" "}`, when text follows an `{expression}`. This toolchain drops the leading space of JSX text that follows an expression when that text contains an HTML entity such as `&apos;`, so `{count} lessons you&apos;ve finished` renders as "3lessons you've finished".
 
 ### Don't:
 - **Don't** introduce saturated or dominant accents. Saturated red was explicitly rejected. Clay (oklch(0.54 0.13 30)) is for errors only, as text or a thin border, never a fill.
 - **Don't** use flat grey or slate neutrals. Every neutral carries the green tint.
 - **Don't** use belt dyes for categories, difficulty, charts or decoration. Dye means rank.
-- **Don't** use drop shadows, glows or hard offset shadows. The input focus halo is the only shadow.
+- **Don't** put a shadow on anything that sits on the page (cards, panels, rows, buttons, patches), and don't use glows, hover lifts or hard offset shadows. Only floating surfaces take `shadow-overlay` or `shadow-float`. The input focus halo is the one other shadow.
 - **Don't** use pills, circles or radii above 3px, including circular progress rings, rounded-full level badges and pill tabs.
 - **Don't** use letter-spaced uppercase labels, eyebrows or kickers. The Seal's stamped lettering is the only uppercase in the system.
-- **Don't** use emoji as icons or status (no 🔥 streaks, no trophy glyphs).
+- **Don't** use emoji as icons or status (no 🔥 streaks, no trophy glyphs). The marks exist for exactly these concepts.
+- **Don't** press the seal over text, code or controls. It lands in blank space.
 - **Don't** build dashboards as grids of stat cards. Put numbers in a record figure or a ruled row.
-- **Don't** hardcode Tailwind palette colours (amber, emerald, red, blue and so on) or hex values in components. Use the tokens.
+- **Don't** hardcode Tailwind palette colours (amber, emerald, red, blue and so on) or hex values in components. Use the tokens. The only exceptions are places CSS variables cannot reach: the Monaco editor theme (`components/lesson/monaco-theme.ts`, since Monaco accepts only hex), the `theme-color` viewport values in `app/layout.tsx`, the preview swatches for the inactive theme in settings, and `app/global-error.tsx`. Each one mirrors the OKLCH tokens in hex and must be kept in step with them.
 - **Don't** fabricate social proof. Example data must be labelled as an example, as the training-record figure is.
 
-### Known drift to remove (not the system)
-The in-app pages (dashboard, modules, lessons, exercises, projects, profile, settings, admin) have not been rebuilt. They inherit the tokens and base components but still carry legacy patterns that must go when they are rebuilt:
-- The tracked uppercase label pattern (`tracking-widest uppercase`, over 60 occurrences) in page headers and section labels. It is also baked into the shared `Label` (so it shows on the reviewed sign-up and sign-in forms), `DialogTitle`, `DropdownMenu` items and labels, and the `Select` group label.
-- Stat-card grids, circular progress rings (`circular-progress`), rounded-full level badges, and pill-style milestone markers.
-- Emoji in streaks and achievements. `lib/theme-config.ts` still defines the old vivid blue, purple and pink palette and the fire emoji.
-- Hardcoded `amber-*`, `emerald-*` and `red-*` difficulty and status colours in module and lesson views.
-- Confetti hues in `components/gamification/confetti.tsx` (indigo, violet, and a 0.18-chroma red) are off-palette. They should draw from jade, straw and the belt dyes.

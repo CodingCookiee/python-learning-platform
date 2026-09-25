@@ -1,6 +1,6 @@
 /**
  * Achievement tiers, coloured from the palette (never stock Tailwind hues).
- * Bronze is cocoa cloth, silver the keyline, gold the straw highlight,
+ * Bronze is an olive-brown metal, silver the keyline, gold the straw highlight,
  * platinum the jade accent, legendary the ink itself.
  */
 
@@ -21,9 +21,9 @@ const TIERS: Record<TierKey, TierStyle> = {
   bronze: {
     key: "bronze",
     label: "Bronze",
-    thread: "var(--belt-brown)",
-    ink: "var(--belt-brown)",
-    fill: "color-mix(in oklch, var(--belt-brown) 12%, var(--sheet))",
+    thread: "var(--tier-bronze)",
+    ink: "var(--tier-bronze)",
+    fill: "color-mix(in oklch, var(--tier-bronze) 10%, var(--sheet))",
   },
   silver: {
     key: "silver",

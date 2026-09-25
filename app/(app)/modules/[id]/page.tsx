@@ -147,7 +147,7 @@ export default async function ModuleDetailPage({ params }: PageProps) {
 
   const projectStatus: Record<ReturnType<typeof getProjectSubmissionState>, { label: string; className: string }> = {
     approved: { label: "Approved", className: "bg-success/12 text-success" },
-    pending: { label: "Under review", className: "bg-highlight text-highlight-foreground" },
+    pending: { label: "Under review", className: "bg-accent text-foreground" },
     rejected: { label: "Needs revision", className: "bg-destructive/10 text-destructive" },
     none: { label: "Not started", className: "bg-muted text-muted-foreground" },
   };
@@ -249,12 +249,12 @@ export default async function ModuleDetailPage({ params }: PageProps) {
                       <span className={cn("font-semibold", !lessonUnlocked && "text-muted-foreground")}>
                         {lesson.title}
                         {isNext && (
-                          <span className="ml-2 rounded-sm bg-highlight px-1.5 align-middle text-xs font-semibold text-highlight-foreground">
+                          <span className="ml-2 rounded-sm bg-highlight px-1.5 align-middle text-xs whitespace-nowrap font-semibold text-highlight-foreground">
                             Up next
                           </span>
                         )}
                       </span>
-                      <span className="line-clamp-1 text-sm text-muted-foreground">
+                      <span className="line-clamp-2 text-sm text-muted-foreground sm:line-clamp-1">
                         {lesson.description}
                       </span>
                     </span>

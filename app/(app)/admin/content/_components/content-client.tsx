@@ -338,13 +338,13 @@ export function ContentClient({ initialModules }: ContentClientProps) {
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button
-                              size="sm"
-                              variant="destructive"
+                              size="icon-sm"
+                              variant="ghost"
                               disabled={deletingId === mod.id}
                               aria-label={`Delete ${mod.title}`}
+                              className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                             >
                               <Trash2 aria-hidden="true" />
-                              {deletingId === mod.id ? "Deleting…" : "Delete"}
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
@@ -352,8 +352,8 @@ export function ContentClient({ initialModules }: ContentClientProps) {
                               <AlertDialogTitle>Delete “{mod.title}”?</AlertDialogTitle>
                               <AlertDialogDescription>
                                 This also deletes its {mod._count.lessons} lessons and{" "}
-                                {mod._count.projects} capstone projects, and every learner&apos;s
-                                progress and submissions in them. It can&apos;t be undone.
+                                {mod._count.projects} capstone projects, and every learner’s
+                                progress and submissions in them. It can’t be undone.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

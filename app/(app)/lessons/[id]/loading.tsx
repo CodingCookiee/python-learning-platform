@@ -19,7 +19,7 @@ export default function LessonLoading() {
                     key={i}
                     className="flex items-center gap-2 py-2 border-l-2 border-transparent pl-3"
                   >
-                    <Skeleton className="size-4 shrink-0 rounded-full" />
+                    <Skeleton className="size-4 shrink-0 rounded-sm" />
                     <div className="flex flex-1 flex-col gap-1">
                       <Skeleton className="h-3.5 w-full" />
                       <Skeleton className="h-2.5 w-1/3" />

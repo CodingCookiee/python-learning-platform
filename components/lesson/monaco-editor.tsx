@@ -4,6 +4,9 @@ import * as React from "react";
 import dynamic from "next/dynamic";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
+import { definePylearnThemes, MONACO_THEME } from "./monaco-theme";
+
+let snippetsRegistered = false;
 import { Monitor } from "lucide-react";
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react").then((m) => m.default), {
@@ -75,7 +78,7 @@ export function PythonEditor({
   className,
 }: PythonEditorProps) {
   const { resolvedTheme } = useTheme();
-  const monacoTheme = resolvedTheme === "dark" ? "vs-dark" : "vs";
+  const monacoTheme = resolvedTheme === "dark" ? MONACO_THEME.dark : MONACO_THEME.light;
 
   // Lazy init avoids calling setState synchronously inside an effect
   const [isMobile, setIsMobile] = React.useState<boolean>(() => {
@@ -122,7 +125,9 @@ export function PythonEditor({
       });
     }
 
-    // Register Python snippet completion provider
+    // Register the snippet provider once per page, not once per editor
+    if (snippetsRegistered) return;
+    snippetsRegistered = true;
     monaco.languages.registerCompletionItemProvider("python", {
       provideCompletionItems: (
         model: import("monaco-editor").editor.ITextModel,
@@ -155,21 +160,22 @@ export function PythonEditor({
     <div className={cn("flex flex-col gap-0", className)}>
       {/* Mobile hint for complex exercises */}
       {isMobile && !readOnly && (
-        <div className="flex items-center gap-2 border-x border-t border-border bg-muted/50 px-3 py-1.5">
+        <div className="flex items-center gap-2 rounded-t-md border-x border-t border-border bg-accent/50 px-3 py-1.5">
           <Monitor className="size-3 shrink-0 text-muted-foreground" aria-hidden="true" />
           <p className="text-xs text-muted-foreground">
-            For the best experience, try this on desktop.
+            Longer drills are easier with a keyboard. A laptop works best.
           </p>
         </div>
       )}
 
-      <div className="border border-border overflow-hidden">
+      <div className="overflow-hidden rounded-md border border-border">
         <MonacoEditor
           height={editorHeight}
           defaultLanguage="python"
           value={initialValue}
           theme={monacoTheme}
           onChange={handleChange}
+          beforeMount={definePylearnThemes}
           onMount={handleMount}
           loading={
             <div
@@ -180,8 +186,10 @@ export function PythonEditor({
           }
           options={{
             minimap: { enabled: false },
-            fontSize: isMobile ? 12 : 13,
-            fontFamily: "var(--font-geist-mono), 'Fira Code', monospace",
+            fontSize: isMobile ? 13 : 14,
+            lineHeight: 24,
+            fontFamily: "var(--font-jetbrains), ui-monospace, monospace",
+            fontLigatures: false,
             lineNumbers: isMobile ? "off" : "on",
             scrollBeyondLastLine: false,
             automaticLayout: true,

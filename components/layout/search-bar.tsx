@@ -1,10 +1,11 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, X, BookOpen, Layers, Code2, Loader2, Lock } from "lucide-react";
+import { Search, X, BookOpen, Layers, Code2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LockedMark } from "@/components/brand/marks";
 
 interface SearchResult {
   id: string;
@@ -36,7 +37,7 @@ function highlight(text: string, query: string): React.ReactNode {
   return (
     <>
       {text.slice(0, idx)}
-      <mark className="bg-primary/20 text-foreground not-italic">
+      <mark className="rounded-[2px] bg-accent font-semibold text-foreground">
         {text.slice(idx, idx + query.length)}
       </mark>
       {text.slice(idx + query.length)}
@@ -145,12 +146,12 @@ export function SearchBar() {
       {/* Trigger button */}
       <button
         onClick={() => setOpen(true)}
-        className="hidden md:flex items-center gap-2 h-9 px-3 text-xs text-muted-foreground border border-border bg-muted/30 hover:bg-muted transition-colors rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="hidden h-9 items-center gap-2 rounded-sm border border-border bg-sheet px-3 text-sm text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground md:flex"
         aria-label={`Search (${modKey === "⌘" ? "Cmd" : "Ctrl"}+K)`}
       >
         <Search className="size-3.5" aria-hidden="true" />
         <span>Search</span>
-        <kbd className="ml-2 hidden sm:inline-flex h-5 items-center gap-0.5 rounded border border-border bg-background px-1.5 font-mono text-[0.6rem] font-medium text-muted-foreground">
+        <kbd className="ml-3 hidden h-5 items-center gap-1 rounded-[3px] border border-border bg-background px-1.5 font-sans text-xs text-muted-foreground sm:inline-flex">
           <span>{modKey}</span>
           <span>K</span>
         </kbd>
@@ -159,7 +160,7 @@ export function SearchBar() {
       {/* Mobile trigger */}
       <button
         onClick={() => setOpen(true)}
-        className="flex md:hidden items-center justify-center size-9 text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex size-9 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground md:hidden"
         aria-label="Search"
       >
         <Search className="size-4" aria-hidden="true" />
@@ -174,7 +175,7 @@ export function SearchBar() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="fixed inset-0 z-[70] flex items-start justify-center pt-[10vh] px-4 bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-[70] flex items-start justify-center bg-foreground/35 px-4 pt-[10vh]"
             onClick={closeSearch}
           >
             <motion.div
@@ -182,14 +183,14 @@ export function SearchBar() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: -8 }}
               transition={{ duration: 0.15 }}
-              className="w-full max-w-xl"
+              className="w-full max-w-xl overflow-hidden rounded-md border border-border bg-sheet shadow-overlay"
               onClick={(e) => e.stopPropagation()}
               role="dialog"
               aria-label="Search"
               aria-modal="true"
             >
               {/* Search input */}
-              <div className="flex items-center gap-3 border border-border bg-background px-4 py-3 shadow-xl">
+              <div className="flex items-center gap-3 px-4 py-3.5">
                 {loading && query.length >= 2 ? (
                   <Loader2
                     className="size-4 shrink-0 text-muted-foreground animate-spin"
@@ -210,8 +211,8 @@ export function SearchBar() {
                     }
                   }}
                   onKeyDown={handleKeyDown}
-                  placeholder="Search modules, lessons, exercises…"
-                  className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                  placeholder="Search the syllabus: modules, lessons, drills"
+                  className="flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground"
                   aria-label="Search query"
                   role="combobox"
                   aria-controls={resultsId}
@@ -228,7 +229,7 @@ export function SearchBar() {
                     <X className="size-3.5" aria-hidden="true" />
                   </button>
                 )}
-                <kbd className="hidden sm:flex h-5 shrink-0 items-center rounded border border-border bg-muted px-1.5 font-mono text-[0.6rem] text-muted-foreground">
+                <kbd className="hidden h-5 shrink-0 items-center rounded-[3px] border border-border bg-background px-1.5 font-sans text-xs text-muted-foreground sm:flex">
                   esc
                 </kbd>
               </div>
@@ -237,7 +238,7 @@ export function SearchBar() {
               {visibleResults.length > 0 && (
                 <div
                   id={resultsId}
-                  className="mt-1 border border-border bg-background shadow-xl overflow-hidden"
+                  className="max-h-[60vh] overflow-y-auto border-t border-border"
                   role="listbox"
                 >
                   {visibleResults.map((r, i) => {
@@ -250,7 +251,7 @@ export function SearchBar() {
                         onClick={() => navigate(r.href)}
                         className={cn(
                           "flex w-full items-start gap-3 px-4 py-3 text-left transition-colors",
-                          i === selectedIdx ? "bg-primary/5" : "hover:bg-muted/50",
+                          i === selectedIdx ? "bg-accent" : "hover:bg-accent/50",
                           i > 0 && "border-t border-border"
                         )}
                       >
@@ -265,7 +266,7 @@ export function SearchBar() {
                             </span>
                             {r.isLocked && (
                               <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
-                                <Lock className="size-3" aria-hidden="true" />
+                                <LockedMark className="size-3.5" />
                                 Locked
                               </span>
                             )}
@@ -289,9 +290,10 @@ export function SearchBar() {
               )}
 
               {query.length >= 2 && !loading && visibleResults.length === 0 && (
-                <div className="mt-1 border border-border bg-background px-4 py-6 text-center shadow-xl">
+                <div className="border-t border-border px-4 py-6 text-center">
                   <p className="text-sm text-muted-foreground">
-                    No results for &ldquo;{query}&rdquo;
+                    Nothing in the syllabus matches &ldquo;{query}&rdquo;. Try a topic like
+                    &ldquo;decorators&rdquo; or &ldquo;async&rdquo;.
                   </p>
                 </div>
               )}

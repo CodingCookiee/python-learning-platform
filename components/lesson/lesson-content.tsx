@@ -7,6 +7,7 @@ import type { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import rehypeHighlight from "rehype-highlight";
+import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CodeBlock } from "@/components/lesson/code-block";
 
@@ -275,7 +276,10 @@ export function LessonContent({ content, className }: LessonContentProps) {
       <div ref={contentRef} className="min-w-0 max-w-[70ch] flex-1">
         {hasToc && (
           <details className="mb-8 rounded-md border border-border bg-sheet px-4 py-3 xl:hidden">
-            <summary className="cursor-pointer text-sm font-semibold">On this page</summary>
+            <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold [&::-webkit-details-marker]:hidden">
+              On this page
+              <ChevronDown className="size-4 text-muted-foreground transition-transform [details[open]_&]:rotate-180" aria-hidden="true" />
+            </summary>
             <div className="mt-3">
               <TocList items={tocItems} activeSlug={activeSlug} />
             </div>

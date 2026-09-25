@@ -51,7 +51,7 @@ export default function ProjectDetailLoading() {
                 <div className="flex flex-col divide-y divide-border">
                   {Array.from({ length: 3 }).map((_, i) => (
                     <div key={i} className="flex items-start gap-3 px-5 py-3">
-                      <Skeleton className="mt-0.5 size-4 shrink-0 rounded-full" />
+                      <Skeleton className="mt-0.5 size-4 shrink-0 rounded-sm" />
                       <Skeleton className="h-4 flex-1" />
                     </div>
                   ))}

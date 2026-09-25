@@ -146,7 +146,7 @@ export default async function AdminDashboardPage() {
                       <dd className="font-condensed tabular text-3xl leading-none font-extrabold">
                         {c.value}
                         {c.warn && (
-                          <span className="ml-2 rounded-sm bg-highlight px-1.5 align-middle text-xs font-bold text-highlight-foreground">
+                          <span className="ml-2 rounded-sm border border-border px-1.5 align-middle text-xs font-semibold text-muted-foreground">
                             none yet
                           </span>
                         )}

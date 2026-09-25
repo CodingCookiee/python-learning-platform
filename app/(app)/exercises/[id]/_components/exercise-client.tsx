@@ -18,14 +18,6 @@ import { usePyodide } from "@/lib/pyodide";
 import type { UnlockedAchievement } from "@/lib/achievements";
 import { useToast } from "@/components/ui/toast";
 
-const ENCOURAGING_MESSAGES = [
-  "Not yet. Read the failing test's expected value, then try again.",
-  "Close. Compare what you returned with what the test expects.",
-  "Every failed run is information. Change one thing and run it again.",
-  "Stuck? A hint costs a little XP and keeps you moving.",
-  "Try printing the value inside your function to see what it really is.",
-];
-
 // Types
 
 export interface TestCase {
@@ -67,16 +59,9 @@ export interface ExerciseData {
 // Helpers
 
 function getDifficultyBadgeClass(difficulty: string): string {
-  switch (difficulty.toLowerCase()) {
-    case "easy":
-      return "border-transparent bg-success/12 text-success";
-    case "medium":
-      return "border-transparent bg-highlight text-highlight-foreground";
-    case "hard":
-      return "border-transparent bg-destructive/10 text-destructive";
-    default:
-      return "border-transparent bg-muted text-muted-foreground";
-  }
+  // Difficulty is information, not reward: one neutral outlined word
+  void difficulty;
+  return "border-border bg-transparent text-muted-foreground";
 }
 
 // Test runner
@@ -264,8 +249,9 @@ function EditorPanel({
       <div className="flex flex-wrap items-center gap-3">
         <Button
           onClick={onRun}
-          disabled={isRunning || pyodideLoading}
-          className="flex items-center gap-2"
+          disabled={pyodideLoading}
+          aria-busy={isRunning}
+          className="min-w-40 justify-start"
           aria-label={runButtonLabel}
         >
           {isRunning || pyodideLoading ? (
@@ -353,7 +339,7 @@ function EditorPanel({
       {exercise.hints.length > 0 && (
         <section aria-labelledby="hints-heading" className="rounded-md border border-border bg-sheet p-4">
           <div className="flex items-center gap-2">
-            <Lightbulb className="size-4 text-highlight-foreground" aria-hidden="true" />
+            <Lightbulb className="size-4 text-(--code-string)" aria-hidden="true" />
             <h2
               id="hints-heading"
               className="text-base font-semibold"
@@ -485,10 +471,7 @@ export function ExerciseClient({ exercise }: ExerciseClientProps) {
       const allPassed = results.every((r) => r.passed) && results.length > 0;
 
       // Show encouraging feedback
-      if (!allPassed) {
-        const msg = ENCOURAGING_MESSAGES[Math.floor(Math.random() * ENCOURAGING_MESSAGES.length)];
-        toast({ type: "info", title: msg ?? "Keep trying!", duration: 3500 });
-      }
+      // Failures are reported in the results panel, with a nudge below it
 
       const res = await fetch(`/api/exercises/${exercise.id}/submit`, {
         method: "POST",

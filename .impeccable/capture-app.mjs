@@ -85,6 +85,107 @@ for (let i = 0; i < 120; i++) {
 await sleep(3000);
 
 const ids = JSON.parse((await import("node:fs")).readFileSync(process.env.TEMP + "/review-ids.json", "utf8"));
+// SHOTS="path|name|scheme;path|name|scheme" captures specific pages only
+if (process.env.SHOTS) {
+  for (const spec of process.env.SHOTS.split(";")) {
+    const [path, name, scheme = "light", width = "1440"] = spec.split("|");
+    await setup(Number(width), Number(width) < 600 ? 844 : 900, scheme);
+    await go(path, 6000);
+    await shot(name);
+  }
+  console.log("SHOTS console:", issues.length ? [...new Set(issues)].map((x) => x.slice(0, 200)) : "none");
+  ws.close();
+  chrome.kill();
+  process.exit(0);
+}
+if (process.env.MENU) {
+  await setup(390, 844, "light");
+  await go(`/dashboard`, 8000);
+  const clicked = await ev(`(() => { const b = document.querySelector('button[aria-label="Open navigation menu"]'); b?.click(); return !!b; })()`);
+  await sleep(1200);
+  console.log("MENU clicked:", clicked, "open:", await ev(`!!document.querySelector('[aria-label="Mobile navigation"]')`));
+  const r = await send("Page.captureScreenshot", { format: "png" });
+  writeFileSync(new URL("mobile-menu.png", OUT), Buffer.from(r.result.data, "base64"));
+  await setup(1440, 900, "light");
+  await go(`/modules/does-not-exist`);
+  await shot("not-found-app.png");
+  ws.close();
+  chrome.kill();
+  process.exit(0);
+}
+if (process.env.FINAL) {
+  const exId = process.env.FINAL;
+  await go(`/exercises/${exId}`, 7000);
+  await shot("exercise.png");
+  // Solve the drill and grade it
+  const graded = await ev(`(async () => {
+    const btn = [...document.querySelectorAll('button')].find(b => /Run & Test/.test(b.textContent));
+    if (!btn) return 'no run button';
+    btn.click();
+    for (let i = 0; i < 60; i++) {
+      await new Promise(r => setTimeout(r, 500));
+      if (/tests passed/.test(document.body.innerText)) return document.body.innerText.match(/\\d+\\/\\d+ tests passed/)[0];
+    }
+    return 'timeout';
+  })()`);
+  console.log("FINAL drill (starter code):", graded);
+  await sleep(800);
+  await shot("exercise-run.png");
+  await go(`/projects/${ids.project}/submit`);
+  await shot("project-submit.png");
+  await go(`/admin/projects`);
+  await shot("admin-submissions.png");
+  const evalHref = await ev(`document.querySelector('a[href*="/evaluate"]')?.getAttribute('href') ?? null`);
+  if (evalHref) {
+    await go(evalHref);
+    await shot("admin-evaluate.png");
+    if (process.env.STAMP) {
+      // Grade it: tick every criterion, write feedback, approve, catch the seal mid-stamp
+      await ev(`(() => {
+        document.querySelectorAll('button[aria-pressed="false"]').forEach((b) => b.click());
+        const t = document.querySelector('textarea');
+        Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(t, 'Clean structure and clear names. Next, add tests for the edge cases.');
+        t.dispatchEvent(new Event('input', { bubbles: true }));
+      })()`);
+      await sleep(400);
+      await shot("admin-evaluate-filled.png");
+      await ev(`[...document.querySelectorAll('button')].find(b => /Approve and stamp/.test(b.textContent))?.click()`);
+      await sleep(500);
+      await ev(`[...document.querySelectorAll('[role=dialog] button')].find(b => b.textContent.trim() === 'Approve')?.click()`);
+      for (let i = 0; i < 150; i++) {
+        await sleep(100);
+        if (await ev(`Boolean(document.querySelector('[aria-label="Passed: Capstone graded"]'))`)) break;
+      }
+      await sleep(350);
+      const st = await send("Page.captureScreenshot", { format: "png" });
+      writeFileSync(new URL("admin-evaluate-stamp.png", OUT), Buffer.from(st.result.data, "base64"));
+    }
+  }
+  await go(`/modules/does-not-exist`);
+  await shot("not-found-app.png");
+  await go(`/this-page-does-not-exist`);
+  await shot("not-found-root.png");
+  await go(`/dashboard`);
+  await ev(`[...document.querySelectorAll('button')].find(b => b.getAttribute('aria-label')?.startsWith('Search'))?.click()`);
+  await sleep(600);
+  await ev(`(() => { const i = document.querySelector('input[aria-label="Search query"]'); if (!i) return; Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(i,'list'); i.dispatchEvent(new Event('input',{bubbles:true})); })()`);
+  await sleep(2500);
+  const r1 = await send("Page.captureScreenshot", { format: "png" });
+  writeFileSync(new URL("search-open.png", OUT), Buffer.from(r1.result.data, "base64"));
+  await setup(390, 844, "light");
+  await go(`/dashboard`);
+  await ev(`[...document.querySelectorAll('button')].find(b => /menu/i.test(b.getAttribute('aria-label') ?? ''))?.click()`);
+  await sleep(700);
+  const r2 = await send("Page.captureScreenshot", { format: "png" });
+  writeFileSync(new URL("mobile-menu.png", OUT), Buffer.from(r2.result.data, "base64"));
+  await setup(1440, 900, "dark");
+  await go(`/exercises/${exId}`, 7000);
+  await shot("exercise-dark.png");
+  console.log("FINAL console:", issues.length ? [...new Set(issues)].map((x) => x.slice(0, 300)) : "none");
+  ws.close();
+  chrome.kill();
+  process.exit(0);
+}
 if (process.env.RUNTEST) {
   await go(`/lessons/${ids.lesson}`, 6000);
   const report = await ev(`(async () => {
@@ -132,6 +233,15 @@ if (process.env.RUNTEST) {
   await sleep(400);
   const r = await send("Page.captureScreenshot", { format: "png" });
   writeFileSync(new URL("lesson-run.png", OUT), Buffer.from(r.result.data, "base64"));
+  ws.close();
+  chrome.kill();
+  process.exit(0);
+}
+if (process.env.EVAL) {
+  // EVAL="<path>|<js expression>": print the expression's value on that page
+  const [path, expr] = process.env.EVAL.split("|");
+  await go(path);
+  console.log("EVAL ->", JSON.stringify(await ev(expr)));
   ws.close();
   chrome.kill();
   process.exit(0);

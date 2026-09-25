@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import { initialsFor } from "@/lib/utils";
 import Link from "next/link";
 import { auth } from "@/auth";
 import { getAppOrigin } from "@/lib/server-url";
@@ -91,7 +92,7 @@ export default async function ProfilePage() {
 
   const { user, streak, completion, recentActivity, achievements } = data;
   const rank = await getLearnerRank(user.id);
-  const initials = (user.name ?? user.email ?? "?").slice(0, 2).toUpperCase();
+  const initials = initialsFor(user.name, user.email);
   const recentAchievements = achievements.unlocked.slice(0, 6);
   const recentLessons = recentActivity.lessons.slice(0, 6);
 

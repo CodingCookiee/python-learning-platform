@@ -1,12 +1,12 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
+import { initialsFor } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Menu,
   X,
-  Search,
   LayoutDashboard,
   BookOpen,
   User,
@@ -27,15 +27,14 @@ interface MobileMenuProps {
 }
 
 const publicLinks = [
-  { href: "/#features", label: "Features" },
-  { href: "/#curriculum", label: "Curriculum" },
-  { href: "/modules", label: "Modules" },
+  { href: "/#syllabus", label: "Syllabus" },
+  { href: "/#rank", label: "How rank is earned" },
+  { href: "/#bridge", label: "For JS developers" },
 ];
 
 const authLinks = [
-  { href: "/search", label: "Search", Icon: Search },
   { href: "/dashboard", label: "Dashboard", Icon: LayoutDashboard },
-  { href: "/modules", label: "Modules", Icon: BookOpen },
+  { href: "/modules", label: "Syllabus", Icon: BookOpen },
   { href: "/achievements", label: "Achievements", Icon: SealMark },
   { href: "/profile", label: "Profile", Icon: User },
   { href: "/settings", label: "Settings", Icon: Settings },
@@ -72,7 +71,7 @@ export function MobileMenu({
     return () => document.removeEventListener("keydown", handler);
   }, [open]);
 
-  const initials = (userName ?? userEmail ?? "U").slice(0, 2).toUpperCase();
+  const initials = initialsFor(userName, userEmail);
 
   return (
     <div className="flex md:hidden">
@@ -118,7 +117,7 @@ export function MobileMenu({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute inset-x-0 top-full z-50 border-b border-border/60 bg-background/95 backdrop-blur-md shadow-lg"
+            className="absolute inset-x-0 top-full z-50 border-b border-border bg-background shadow-float"
             role="dialog"
             aria-label="Mobile navigation"
           >
@@ -131,13 +130,13 @@ export function MobileMenu({
                   {/* User info */}
                   <div className="flex items-center gap-3 px-3 py-2 mb-1">
                     <div
-                      className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-[0.6rem] font-bold text-primary-foreground"
+                      className="flex size-8 shrink-0 items-center justify-center rounded-sm bg-accent text-xs font-bold"
                       aria-hidden="true"
                     >
                       {initials}
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate text-xs font-semibold">{userName ?? "Account"}</p>
+                      <p className="truncate text-sm font-semibold">{userName ?? "Account"}</p>
                       {userEmail && (
                         <p className="truncate text-xs text-muted-foreground">{userEmail}</p>
                       )}
@@ -155,8 +154,8 @@ export function MobileMenu({
                       href={href}
                       className={`flex items-center gap-2.5 rounded-sm px-3 py-2.5 text-sm font-medium transition-colors min-h-[44px] ${
                         pathname === href
-                          ? "bg-primary/5 text-foreground"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          ? "bg-accent font-semibold text-foreground"
+                          : "text-foreground/85 hover:bg-accent/50"
                       }`}
                     >
                       <Icon className="size-4 shrink-0" aria-hidden="true" />
@@ -170,7 +169,7 @@ export function MobileMenu({
                     <ThemeToggle />
                     <form action={onSignOut}>
                       <Button variant="ghost" size="sm" type="submit">
-                        Sign Out
+                        Sign out
                       </Button>
                     </form>
                   </div>
@@ -189,10 +188,10 @@ export function MobileMenu({
                   <div className="h-px bg-border my-1" />
                   <div className="flex flex-col gap-2 px-3 py-2 sm:flex-row">
                     <Button variant="ghost" size="sm" asChild className="justify-start">
-                      <Link href="/auth/signin">Sign In</Link>
+                      <Link href="/auth/signin">Sign in</Link>
                     </Button>
                     <Button size="sm" asChild>
-                      <Link href="/auth/signup">Get Started</Link>
+                      <Link href="/auth/signup">Start at white belt</Link>
                     </Button>
                   </div>
                 </>

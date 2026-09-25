@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-24T13:41:29.714Z",
+  "generatedAt": "2026-09-25T08:10:35.752Z",
   "title": "Design System: pylearn",
   "extensions": {
     "colorMeta": {
@@ -648,6 +648,66 @@
           "oklch(0.82 0.015 165)",
           "oklch(0.95 0.009 165)"
         ]
+      },
+      "tier-bronze": {
+        "role": "tertiary",
+        "displayName": "Tier Bronze",
+        "canonical": "oklch(0.5 0.075 80)",
+        "tonalRamp": [
+          "oklch(0.15 0.034 80)",
+          "oklch(0.26 0.056 80)",
+          "oklch(0.37 0.075 80)",
+          "oklch(0.48 0.075 80)",
+          "oklch(0.59 0.075 80)",
+          "oklch(0.7 0.075 80)",
+          "oklch(0.82 0.056 80)",
+          "oklch(0.95 0.034 80)"
+        ]
+      },
+      "shadow-ink": {
+        "role": "neutral",
+        "displayName": "Shadow Ink",
+        "canonical": "oklch(0.27 0.035 162)",
+        "tonalRamp": [
+          "oklch(0.15 0.016 162)",
+          "oklch(0.26 0.026 162)",
+          "oklch(0.37 0.035 162)",
+          "oklch(0.48 0.035 162)",
+          "oklch(0.59 0.035 162)",
+          "oklch(0.7 0.035 162)",
+          "oklch(0.82 0.026 162)",
+          "oklch(0.95 0.016 162)"
+        ]
+      },
+      "night-tier-bronze": {
+        "role": "tertiary",
+        "displayName": "Night Tier Bronze",
+        "canonical": "oklch(0.78 0.075 82)",
+        "tonalRamp": [
+          "oklch(0.15 0.034 82)",
+          "oklch(0.26 0.056 82)",
+          "oklch(0.37 0.075 82)",
+          "oklch(0.48 0.075 82)",
+          "oklch(0.59 0.075 82)",
+          "oklch(0.7 0.075 82)",
+          "oklch(0.82 0.056 82)",
+          "oklch(0.95 0.034 82)"
+        ]
+      },
+      "night-shadow-ink": {
+        "role": "neutral",
+        "displayName": "Night Shadow Ink",
+        "canonical": "oklch(0.08 0.02 165)",
+        "tonalRamp": [
+          "oklch(0.15 0.009 165)",
+          "oklch(0.26 0.015 165)",
+          "oklch(0.37 0.02 165)",
+          "oklch(0.48 0.02 165)",
+          "oklch(0.59 0.02 165)",
+          "oklch(0.7 0.02 165)",
+          "oklch(0.82 0.015 165)",
+          "oklch(0.95 0.009 165)"
+        ]
       }
     },
     "typographyMeta": {
@@ -702,9 +762,19 @@
     },
     "shadows": [
       {
+        "name": "shadow-overlay",
+        "value": "0 24px 48px -16px color-mix(in oklch, var(--shadow-ink) 35%, transparent)",
+        "purpose": "Modal surfaces that take over the screen: dialog, alert dialog, search sheet."
+      },
+      {
+        "name": "shadow-float",
+        "value": "0 14px 30px -14px color-mix(in oklch, var(--shadow-ink) 30%, transparent)",
+        "purpose": "Non-modal surfaces that hover over content: toasts and the mobile menu panel."
+      },
+      {
         "name": "focus-halo",
         "value": "0 0 0 3px color-mix(in oklch, var(--ring), transparent 75%)",
-        "purpose": "Text inputs on focus-visible, with a Jade Ring border. The only shadow in the system."
+        "purpose": "Text inputs and textareas on focus-visible, with a Jade Ring border. The one shadow that is not about floating."
       },
       {
         "name": "focus-outline",
@@ -843,18 +913,27 @@
       "description": "Square jade stamp, rotated -7deg, pressed onto passed work with the seal-stamp motion. The only uppercase lettering in the system.",
       "html": "<div class=\"ds-seal\" role=\"img\" aria-label=\"Passed: Drill 1\"><div class=\"ds-seal-inner\"><span class=\"ds-seal-label\">Passed</span><span class=\"ds-seal-detail\">Drill 1</span></div></div>",
       "css": ".ds-seal { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; padding: 3px; border: 3px solid var(--seal, oklch(0.52 0.11 162)); color: var(--seal, oklch(0.52 0.11 162)); transform: rotate(-7deg); font-family: Archivo, system-ui, sans-serif; font-variation-settings: \"wdth\" 72; animation: ds-seal-stamp 520ms cubic-bezier(0.16, 1, 0.3, 1) both; } .ds-seal-inner { display: flex; flex-direction: column; align-items: center; padding: 6px 12px; border: 1px solid var(--seal, oklch(0.52 0.11 162)); } .ds-seal-label { font-size: 1.25rem; line-height: 1; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; } .ds-seal-detail { margin-top: 4px; font-size: 0.625rem; line-height: 1; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; } @keyframes ds-seal-stamp { 0% { opacity: 0; transform: rotate(-7deg) scale(1.35); filter: blur(2px); } 60% { opacity: 1; transform: rotate(-7deg) scale(0.96); filter: blur(0); } 100% { opacity: 1; transform: rotate(-7deg) scale(1); } } @media (prefers-reduced-motion: reduce) { .ds-seal { animation: none; } }"
+    },
+    {
+      "name": "Achievement Patch",
+      "kind": "custom",
+      "refersTo": "achievement-patch",
+      "description": "Embroidered square patch in its tier's thread, ink and fill; locked patches are dashed and show the real icon at 70%.",
+      "html": "<div class=\"ds-patches\"><span class=\"ds-patch ds-patch-gold\" role=\"img\" aria-label=\"Gold achievement\"><span class=\"ds-patch-stitch\"><svg viewBox=\"0 0 24 24\" width=\"32\" height=\"32\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linejoin=\"miter\" stroke-linecap=\"square\" aria-hidden=\"true\"><rect x=\"3.5\" y=\"3.5\" width=\"17\" height=\"17\" transform=\"rotate(-7 12 12)\"/><rect x=\"7\" y=\"7\" width=\"10\" height=\"10\" transform=\"rotate(-7 12 12)\" stroke-width=\"1.25\"/></svg></span></span><span class=\"ds-patch ds-patch-bronze\" role=\"img\" aria-label=\"Bronze achievement\"><span class=\"ds-patch-stitch\"><svg viewBox=\"0 0 24 24\" width=\"32\" height=\"32\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linejoin=\"miter\" stroke-linecap=\"square\" aria-hidden=\"true\"><rect x=\"3.5\" y=\"3.5\" width=\"17\" height=\"17\" transform=\"rotate(-7 12 12)\"/><rect x=\"7\" y=\"7\" width=\"10\" height=\"10\" transform=\"rotate(-7 12 12)\" stroke-width=\"1.25\"/></svg></span></span><span class=\"ds-patch ds-patch-legendary\" role=\"img\" aria-label=\"Legendary achievement\"><span class=\"ds-patch-stitch\"><svg viewBox=\"0 0 24 24\" width=\"32\" height=\"32\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linejoin=\"miter\" stroke-linecap=\"square\" aria-hidden=\"true\"><rect x=\"3.5\" y=\"3.5\" width=\"17\" height=\"17\" transform=\"rotate(-7 12 12)\"/><rect x=\"7\" y=\"7\" width=\"10\" height=\"10\" transform=\"rotate(-7 12 12)\" stroke-width=\"1.25\"/></svg></span></span><span class=\"ds-patch ds-patch-locked\" role=\"img\" aria-label=\"Achievement (locked)\"><span class=\"ds-patch-stitch\"><svg viewBox=\"0 0 24 24\" width=\"32\" height=\"32\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linejoin=\"miter\" stroke-linecap=\"square\" aria-hidden=\"true\"><rect x=\"3.5\" y=\"3.5\" width=\"17\" height=\"17\" transform=\"rotate(-7 12 12)\"/><rect x=\"7\" y=\"7\" width=\"10\" height=\"10\" transform=\"rotate(-7 12 12)\" stroke-width=\"1.25\"/></svg></span></span></div>",
+      "css": ".ds-patches { display: flex; gap: 16px; } .ds-patch { display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; padding: 4px; border: 2px solid; border-radius: 2px; } .ds-patch-stitch { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; border: 1px dashed color-mix(in oklch, currentColor 35%, transparent); } .ds-patch-gold { border-color: var(--highlight, oklch(0.88 0.12 95)); color: var(--highlight-foreground, oklch(0.33 0.06 80)); background: color-mix(in oklch, var(--highlight, oklch(0.88 0.12 95)) 30%, var(--sheet, oklch(0.99 0.006 145))); } .ds-patch-bronze { border-color: var(--tier-bronze, oklch(0.5 0.075 80)); color: var(--tier-bronze, oklch(0.5 0.075 80)); background: color-mix(in oklch, var(--tier-bronze, oklch(0.5 0.075 80)) 10%, var(--sheet, oklch(0.99 0.006 145))); } .ds-patch-legendary { border-color: var(--foreground, oklch(0.27 0.035 162)); color: var(--highlight, oklch(0.88 0.12 95)); background: var(--foreground, oklch(0.27 0.035 162)); } .ds-patch-locked { border-style: dashed; border-color: color-mix(in oklch, var(--keyline, oklch(0.4 0.035 162)) 60%, transparent); background: transparent; color: var(--muted-foreground, oklch(0.45 0.035 160)); } .ds-patch-locked .ds-patch-stitch { border-color: transparent; } .ds-patch-locked svg { opacity: 0.7; }"
     }
   ],
   "narrative": {
     "northStar": "The Grading Syllabus",
-    "overview": "pylearn is set like the printed syllabus of a martial-arts school, rendered in jade and straw. Python is a discipline you are graded in: the Python track counts kyu down from white belt to black belt, and AI automation continues in dan ranks. Every visual device serves that idea. Belts are woven cloth (stitch rows, a keyline edge, a rank bar at the tail). Passed work gets a tilted, square examiner's seal. Progress is tape stripes pressed onto a belt. Content is ruled into syllabus rows, not boxed into cards.\n\nThe palette is balanced: soft enough to live with for a 90-minute evening session, with enough colour to feel alive. The ground is green-tinted cotton and the ink is deep forest green. One jade accent carries every action and the seal. A straw-yellow highlight appears only where the learner stands or has just earned something. Belt dyes are rank data and nothing else. In dark mode the ground becomes forest-green cloth in an evening training hall. The jade lightens to stay legible and the dyes stay soft. Loud, saturated accents (red in particular) and flat grey or slate were both tried and rejected by the owner. That rejection is part of the system.\n\nDensity is that of a well-set reference document. There are large condensed headings and generous section bands (80 to 112px), and inside them compact ruled rows with tabular meta. The surface is flat. Depth comes from two tones of cloth (ground and sheet) and hairlines, never from shadow.",
+    "overview": "pylearn is set like the printed syllabus of a martial-arts school, rendered in jade and straw. Python is a discipline you are graded in: the Python track counts kyu down from white belt to black belt, and AI automation continues in dan ranks. Every visual device serves that idea. Belts are woven cloth (stitch rows, a keyline edge, a rank bar at the tail). Passed work gets a tilted, square examiner's seal. Progress is tape stripes pressed onto a belt. Content is ruled into syllabus rows, not boxed into cards.\n\nThe palette is balanced: soft enough to live with for a 90-minute evening session, with enough colour to feel alive. The ground is green-tinted cotton and the ink is deep forest green. One jade accent carries every action and the seal. A straw-yellow highlight appears only where the learner stands or has just earned something. Belt dyes are rank data and nothing else. In dark mode the ground becomes forest-green cloth in an evening training hall. The jade lightens to stay legible and the dyes stay soft. Loud, saturated accents (red in particular) and flat grey or slate were both tried and rejected by the owner. That rejection is part of the system.\n\nDensity is that of a well-set reference document. There are large condensed headings and generous section bands (80 to 112px), and inside them compact ruled rows with tabular meta. The page is flat. Depth comes from two tones of cloth (ground and sheet) and hairlines. Only surfaces that float over the page, such as dialogs, the search sheet, toasts and the mobile menu, cast a soft ink shadow.",
     "keyCharacteristics": [
       "One family, Archivo, used across its width axis: condensed for ranks and headings, normal for reading. JetBrains Mono is for code only.",
       "A jade accent is the single action colour. Straw marks position and the moment of earning.",
       "Belt dyes (white, yellow, green, blue, brown, black) appear only as rank data.",
       "Square-cut geometry with 0 to 3px corners, keylined belt bands, and a square seal.",
-      "Flat cloth: tonal layering and hairline rules, with no drop shadows.",
-      "Motion is reserved for earning: the tape-on stripe and the seal stamp."
+      "Flat cloth: tonal layering and hairline rules. A shadow appears only under a surface that floats over the page.",
+      "Motion is reserved for earning: the tape-on stripe and the seal stamp.",
+      "Reward concepts (streak, XP, rank, passed, locked) are drawn with pylearn's own square-cut marks, never emoji."
     ],
     "rules": [
       {
@@ -899,13 +978,28 @@
       },
       {
         "name": "The Flat Cloth Rule",
-        "body": "Nothing casts a shadow. To lift something, change its tone (ground to sheet, or sheet to Jade Wash) and give it a hairline. Hard offset shadows and ambient glows are off-system.",
+        "body": "Nothing that sits on the page casts a shadow: cards, panels, rows, belts, patches and buttons stay flat. To lift something on the page, change its tone (ground to sheet, or sheet to Jade Wash) and give it a hairline. Hover lifts, hard offset shadows and ambient glows are off-system.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Float Rule",
+        "body": "A shadow means \"this is above the page\". Only an overlay or a floating surface gets one, and only `shadow-overlay` (modal) or `shadow-float` (non-modal), both mixed from Shadow Ink. Don't invent a third shadow, and don't use stock Tailwind shadows or raw `rgba(0,0,0,…)` values.",
         "section": "elevation"
       },
       {
         "name": "The Square Cut Rule",
         "body": "Corners stay between 0 and 3px. Nothing in the system is a pill or a circle, whether a badge, avatar frame, progress ring or level token. Progress is linear or striped.",
         "section": "shapes"
+      },
+      {
+        "name": "The Clear Ground Rule",
+        "body": "The seal is pressed into blank space, never over text, code or a control. Anchor it in a clear corner of its panel with pointer events off, and check the position at phone width, where the corner is smaller.",
+        "section": "components"
+      },
+      {
+        "name": "The Own Marks Rule",
+        "body": "Streak, XP, rank, passed and locked are drawn with the marks and nothing else. Subject matter (databases, testing, the web) uses lucide line icons at the same stroke weight. Emoji are never icons.",
+        "section": "components"
       }
     ],
     "dos": [
@@ -918,18 +1012,21 @@
       "Do play tape-on (420ms) or seal-stamp (520ms) only when the learner earns something, and keep every other state change at 150ms on colour, opacity or a 1px press.",
       "Do honour `prefers-reduced-motion`: animations and transitions collapse to 0.01ms and smooth scroll turns off. Celebrations and confetti must respect it too.",
       "Do design dark mode as forest-green cloth with Night Jade, not as an inverted light theme, and check both themes for every new surface.",
-      "Do use Lucide line icons at 16px, muted by default and ink on hover, with `aria-hidden` when they are decorative."
+      "Do use Lucide line icons at 16px, muted by default and ink on hover, with `aria-hidden` when they are decorative. Use pylearn's marks for streak, XP, rank, passed and locked.",
+      "Do colour achievements only through `tierStyle()` in `lib/achievement-tier.ts`, and register every new achievement icon in `lib/achievement-icon.tsx`.",
+      "Do write apostrophes in JSX copy as the typographic ’, or add an explicit `{\" \"}`, when text follows an `{expression}`. This toolchain drops the leading space of JSX text that follows an expression when that text contains an HTML entity such as `&apos;`, so `{count} lessons you&apos;ve finished` renders as \"3lessons you've finished\"."
     ],
     "donts": [
       "Don't introduce saturated or dominant accents. Saturated red was explicitly rejected. Clay (oklch(0.54 0.13 30)) is for errors only, as text or a thin border, never a fill.",
       "Don't use flat grey or slate neutrals. Every neutral carries the green tint.",
       "Don't use belt dyes for categories, difficulty, charts or decoration. Dye means rank.",
-      "Don't use drop shadows, glows or hard offset shadows. The input focus halo is the only shadow.",
+      "Don't put a shadow on anything that sits on the page (cards, panels, rows, buttons, patches), and don't use glows, hover lifts or hard offset shadows. Only floating surfaces take `shadow-overlay` or `shadow-float`. The input focus halo is the one other shadow.",
       "Don't use pills, circles or radii above 3px, including circular progress rings, rounded-full level badges and pill tabs.",
       "Don't use letter-spaced uppercase labels, eyebrows or kickers. The Seal's stamped lettering is the only uppercase in the system.",
-      "Don't use emoji as icons or status (no 🔥 streaks, no trophy glyphs).",
+      "Don't use emoji as icons or status (no 🔥 streaks, no trophy glyphs). The marks exist for exactly these concepts.",
+      "Don't press the seal over text, code or controls. It lands in blank space.",
       "Don't build dashboards as grids of stat cards. Put numbers in a record figure or a ruled row.",
-      "Don't hardcode Tailwind palette colours (amber, emerald, red, blue and so on) or hex values in components. Use the tokens.",
+      "Don't hardcode Tailwind palette colours (amber, emerald, red, blue and so on) or hex values in components. Use the tokens. The only exceptions are places CSS variables cannot reach: the Monaco editor theme (`components/lesson/monaco-theme.ts`, since Monaco accepts only hex), the `theme-color` viewport values in `app/layout.tsx`, the preview swatches for the inactive theme in settings, and `app/global-error.tsx`. Each one mirrors the OKLCH tokens in hex and must be kept in step with them.",
       "Don't fabricate social proof. Example data must be labelled as an example, as the training-record figure is."
     ]
   }

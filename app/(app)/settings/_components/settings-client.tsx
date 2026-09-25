@@ -156,7 +156,7 @@ export function SettingsClient({ initialName, email, hasPassword }: SettingsClie
   const themeOptions = [
     { value: "light" as const, label: "Light", Icon: Sun, ground: "#f1f6f0", ink: "#1d3b31", accent: "#2f8a6c" },
     { value: "dark" as const, label: "Dark", Icon: Moon, ground: "#111d18", ink: "#eaf2e8", accent: "#7fd3a8" },
-    { value: "system" as const, label: "Match device", Icon: Monitor, ground: "", ink: "", accent: "" },
+    { value: "system" as const, label: "Automatic", Icon: Monitor, ground: "", ink: "", accent: "" },
   ];
 
   return (
@@ -194,7 +194,7 @@ export function SettingsClient({ initialName, email, hasPassword }: SettingsClie
 
       <SettingsRow
         title="Appearance"
-        description="Light cotton or forest night. Match device follows your system setting."
+        description="Light cotton or forest night. Automatic follows your device."
       >
         <div className="grid max-w-md grid-cols-3 gap-3" role="radiogroup" aria-label="Theme">
           {themeOptions.map(({ value, label, Icon, ground, ink, accent }) => {

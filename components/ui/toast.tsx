@@ -64,13 +64,13 @@ export function useToast() {
 const iconMap: Record<ToastType, React.ReactNode> = {
   success: <CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden="true" />,
   error: <AlertCircle className="size-4 shrink-0 text-destructive" aria-hidden="true" />,
-  info: <Info className="size-4 shrink-0 text-blue-500" aria-hidden="true" />,
+  info: <Info className="size-4 shrink-0 text-primary" aria-hidden="true" />,
 };
 
 const borderMap: Record<ToastType, string> = {
-  success: "border-success/20",
-  error: "border-destructive/20",
-  info: "border-blue-500/20",
+  success: "border-success/35",
+  error: "border-destructive/35",
+  info: "border-border",
 };
 
 function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }) {
@@ -82,17 +82,17 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
       exit={{ opacity: 0, y: 8, scale: 0.95 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
       className={cn(
-        "flex w-full max-w-sm items-start gap-3 rounded-sm border bg-card px-4 py-3 shadow-lg",
+        "flex w-full max-w-sm items-start gap-3 rounded-md border bg-sheet px-4 py-3 shadow-float",
         borderMap[toast.type]
       )}
-      role="alert"
-      aria-live="assertive"
+      role={toast.type === "error" ? "alert" : "status"}
+      aria-live={toast.type === "error" ? "assertive" : "polite"}
     >
       {iconMap[toast.type]}
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <p className="text-sm font-semibold leading-snug">{toast.title}</p>
         {toast.description && (
-          <p className="text-xs leading-relaxed text-muted-foreground">{toast.description}</p>
+          <p className="text-sm leading-relaxed text-muted-foreground">{toast.description}</p>
         )}
       </div>
       <button

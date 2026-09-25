@@ -11,7 +11,7 @@ export default function AppLayout({
 }>) {
   return (
     <ToastProvider>
-      <div className="flex min-h-full flex-col">
+      <div className="flex min-h-dvh flex-col">
         {/* Silent client component: pings streak endpoint once per browser session */}
         <StreakPing />
         <Navbar />

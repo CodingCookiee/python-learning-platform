@@ -38,6 +38,10 @@ async function getAchievements(cookieHeader: string): Promise<AchievementsData |
   }
 }
 
+function formatDate(d: string | null): string {
+  return d ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
+}
+
 export default async function AchievementsPage() {
   const session = await auth();
   if (!session?.user) redirect("/auth/signin");
@@ -122,28 +126,34 @@ export default async function AchievementsPage() {
                     {catUnlocked} of {achievements.length}
                   </span>
                 </div>
-                <ul className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
+                <ul className="flex flex-col border-t border-border">
                   {achievements.map((achievement) => {
                     const unlocked = unlockedMap.get(achievement.id);
                     const t = tierStyle(achievement.tier);
                     return (
-                      <li key={achievement.id} className="flex items-center gap-4">
+                      <li
+                        key={achievement.id}
+                        className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-1 border-b border-border py-3.5 sm:grid-cols-[auto_minmax(0,1fr)_auto]"
+                      >
                         <AchievementPatch
                           icon={achievement.icon}
                           tier={achievement.tier}
                           locked={!unlocked}
                           size="sm"
+                          className="row-span-2 sm:row-span-1"
                         />
                         <div className="flex min-w-0 flex-col gap-0.5">
-                          <span className={unlocked ? "font-semibold" : "font-semibold text-muted-foreground"}>
+                          <span className={unlocked ? "font-semibold" : "font-semibold text-foreground/70"}>
                             {achievement.name}
                           </span>
                           <span className="text-sm text-muted-foreground">{achievement.description}</span>
-                          <span className="font-condensed tabular text-xs text-muted-foreground">
-                            {t.label} · {achievement.xpReward} XP
-                            {unlocked ? "" : " · not yet earned"}
-                          </span>
                         </div>
+                        <span className="font-condensed tabular text-sm whitespace-nowrap text-muted-foreground sm:text-right">
+                          {t.label} · {achievement.xpReward} XP
+                          <span className="block">
+                            {unlocked ? `earned ${formatDate(unlocked.unlockedAt)}` : "not yet earned"}
+                          </span>
+                        </span>
                       </li>
                     );
                   })}

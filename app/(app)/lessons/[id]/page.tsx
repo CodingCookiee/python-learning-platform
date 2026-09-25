@@ -97,16 +97,9 @@ async function getModuleLessons(
 // Helpers
 
 function getDifficultyClass(difficulty: string): string {
-  switch (difficulty.toLowerCase()) {
-    case "easy":
-      return "bg-success/12 text-success";
-    case "medium":
-      return "bg-highlight text-highlight-foreground";
-    case "hard":
-      return "bg-destructive/10 text-destructive";
-    default:
-      return "bg-muted text-muted-foreground";
-  }
+  // Difficulty is information, not reward: one neutral outlined word
+  void difficulty;
+  return "border border-border text-muted-foreground";
 }
 
 // Page

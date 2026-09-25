@@ -56,7 +56,7 @@ export function AchievementPatch({
     <span
       className={cn(
         "relative inline-flex shrink-0 items-center justify-center rounded-sm border-2 p-1",
-        locked && "border-dashed border-(--keyline)/50 bg-transparent text-muted-foreground/60",
+        locked && "border-dashed border-(--keyline)/60 bg-transparent text-muted-foreground",
         s.box,
         className
       )}
@@ -74,7 +74,7 @@ export function AchievementPatch({
         {renderAchievementIcon({
           iconName: icon,
           size: s.icon,
-          className: locked ? "opacity-45" : undefined,
+          className: locked ? "opacity-70" : undefined,
         })}
       </span>
     </span>

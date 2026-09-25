@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { auth, signOut } from "@/auth";
+import { initialsFor } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -35,7 +36,7 @@ export async function Navbar() {
     await signOut({ redirectTo: "/" });
   }
 
-  const initials = (user?.name ?? user?.email ?? "?").slice(0, 2).toUpperCase();
+  const initials = initialsFor(user?.name, user?.email);
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background">

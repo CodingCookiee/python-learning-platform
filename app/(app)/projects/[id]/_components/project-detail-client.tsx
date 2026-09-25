@@ -5,8 +5,9 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ConfettiEffect } from "@/components/animations";
-import { ArrowRight, CheckCircle2, Clock, Download } from "lucide-react";
+import { ArrowRight, Clock, Download } from "lucide-react";
 import { TapeMark } from "@/components/brand/marks";
+import { Seal } from "@/components/brand/seal";
 
 export interface ProjectSubmission {
   id: string;
@@ -72,7 +73,7 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
 
   const status = {
     approved: { label: "Approved", className: "bg-success/12 text-success" },
-    pending: { label: "Under review", className: "bg-highlight text-highlight-foreground" },
+    pending: { label: "Under review", className: "bg-accent text-foreground" },
     rejected: { label: "Needs revision", className: "bg-destructive/10 text-destructive" },
     none: { label: "Not started", className: "bg-muted text-muted-foreground" },
   }[submissionState];
@@ -196,10 +197,7 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
         <div className="flex flex-col gap-4 rounded-md border border-border bg-sheet p-6">
           {isCompleted ? (
             <>
-              <span className="flex items-center gap-2 font-semibold text-success">
-                <CheckCircle2 className="size-5" aria-hidden="true" />
-                Approved
-              </span>
+              <Seal label="Passed" detail="Capstone graded" className="my-2 self-start" />
               <p className="text-sm text-muted-foreground">
                 This capstone passed its grading and the XP is on your record.
               </p>

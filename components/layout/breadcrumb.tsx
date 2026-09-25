@@ -56,7 +56,7 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
         const isLast = index === crumbs.length - 1;
 
         return (
-          <span key={index} className="flex items-center gap-1">
+          <span key={index} className="flex shrink-0 items-center gap-1 whitespace-nowrap">
             {index === 0 && <Home className="size-3 shrink-0" aria-hidden="true" />}
 
             {crumb.href && !isLast ? (
