@@ -1,0 +1,8 @@
+title: "Predict: comprehension shapes"
+type: predict
+difficulty: core
+tags: [comprehensions, nested-comprehension, dict-comprehension, set-comprehension]
+hints:
+  - Two for clauses in one comprehension make one flat list. A comprehension inside the expression makes a list of lists.
+  - An if at the end filters; if/else at the front picks a value for every item. A dict comprehension keeps the last value for a repeated key.
+  - The comprehension's x is its own variable; the x outside it is untouched.

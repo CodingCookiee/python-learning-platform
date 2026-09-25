@@ -1,0 +1,8 @@
+title: Shipments in and out of JSON
+type: function
+difficulty: stretch
+tags: [classmethod, staticmethod, property, json, datetime, re]
+hints:
+  - 'valid_tracking is a @staticmethod built on re.fullmatch(r"[A-Z]{2}\d{9}[A-Z]{2}", code). Call it from __init__ so every way of building a Shipment is checked.'
+  - "from_json is a @classmethod: json.loads the text, turn the date string into a date with date.fromisoformat, and return cls(...)."
+  - "to_json is the reverse: build a dict with the three keys, using self.shipped.isoformat() for the date, and json.dumps it."

@@ -1,0 +1,3 @@
+def longest_outage(checks):
+    """(start, end, minutes) of the longest run of "down" checks, or None."""
+    ...

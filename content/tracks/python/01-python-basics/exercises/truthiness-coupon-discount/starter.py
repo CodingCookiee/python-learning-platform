@@ -1,0 +1,3 @@
+def coupon_discount(code, subtotal):
+    """Return the percentage discount (an int) that code gives on an order of subtotal."""
+    ...

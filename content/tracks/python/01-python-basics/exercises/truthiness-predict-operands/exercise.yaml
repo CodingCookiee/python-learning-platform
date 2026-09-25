@@ -1,0 +1,8 @@
+title: "Predict: what and/or return"
+type: predict
+difficulty: warm-up
+tags: [truthiness, booleans, operators]
+hints:
+  - "Falsy means False, None, zero or empty. A non-empty string is truthy whatever it says."
+  - "a or b returns a if a is truthy, otherwise b. a and b returns a if a is falsy, otherwise b. Neither has to return a bool."
+  - The last print is (status == "paid") or "shipped". The comparison is False, so or moves on to "shipped".

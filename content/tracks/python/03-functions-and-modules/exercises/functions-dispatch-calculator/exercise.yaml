@@ -1,0 +1,8 @@
+title: A calculator with a dispatch table
+type: function
+difficulty: stretch
+tags: [functions-as-values, lambda, dicts, dispatch]
+hints:
+  - "Build a dict that maps each operator symbol to a function of two numbers, for example \"+\": lambda a, b: a + b."
+  - "Split the expression into exactly three parts, look the operator up in the dict, and call the function it gives you: operations[symbol](left, right)."
+  - "Merge extra into the built-in table with | so the caller's dict isn't changed: table = OPERATIONS | extra when extra is not None."

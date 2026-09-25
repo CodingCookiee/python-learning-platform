@@ -1,0 +1,7 @@
+title: Normalise an email address
+type: function
+difficulty: warm-up
+tags: [strings, methods]
+hints:
+  - Two string methods do all the work, and you can chain them.
+  - "return raw.strip().lower()"

@@ -1,0 +1,8 @@
+title: A fair, testable raffle
+type: function
+difficulty: stretch
+tags: [random, dicts, testing]
+hints:
+  - Draw one winner at a time. rng.choices(names, weights=counts) picks one name, weighted by tickets.
+  - After each draw, remove the winner from a copy of the dict so they can't win twice. Never change the dict you were given.
+  - Call methods on rng, never the random module's own functions, so that a seeded generator gives the same draw every time.

@@ -1,0 +1,7 @@
+title: Look users up by email
+type: function
+difficulty: core
+tags: [comprehensions, dict-comprehension, dicts, strings]
+hints:
+  - You're swapping keys and values, so loop over users.items() and put the email first.
+  - "{email.strip().lower(): user_id for user_id, email in users.items()}"

@@ -1,0 +1,8 @@
+title: Layered settings with ChainMap
+type: function
+difficulty: stretch
+tags: [collections, chainmap, dicts, comprehensions]
+hints:
+  - Build two cleaned-up dicts first, one from the command line and one from the environment, then chain them in priority order.
+  - "Flags that weren't given are None: keep only the pairs where value is not None. For the environment, keep keys that start with \"APP_\", strip the prefix and lowercase the rest."
+  - "ChainMap(flags, from_env, defaults), where flags and from_env are dict comprehensions."

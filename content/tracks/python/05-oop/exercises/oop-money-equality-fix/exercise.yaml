@@ -1,0 +1,7 @@
+title: Money that compares and hashes
+type: fix
+difficulty: core
+tags: [dunder, eq, hash, NotImplemented]
+hints:
+  - __eq__ assumes other is Money. Check with isinstance first, and return NotImplemented when it isn't, so Python falls back to False.
+  - Defining __eq__ switched hashing off. Add __hash__ returning hash((self.amount, self.currency)), the same fields __eq__ compares.

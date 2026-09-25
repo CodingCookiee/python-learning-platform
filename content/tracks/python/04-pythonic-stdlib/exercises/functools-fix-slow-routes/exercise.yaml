@@ -1,0 +1,8 @@
+title: The route planner that never finishes
+type: fix
+difficulty: core
+tags: [functools, cache, recursion, sets]
+hints:
+  - The function answers the same (rows, cols) question millions of times. functools.cache makes it answer each one once.
+  - Once it's cached, a set argument fails with "unhashable type". Cache arguments must be hashable, and a frozenset is the hashable version of a set.
+  - Keep routes as the public function, have it call a cached helper with frozenset(blocked), and make the helper recurse on itself.

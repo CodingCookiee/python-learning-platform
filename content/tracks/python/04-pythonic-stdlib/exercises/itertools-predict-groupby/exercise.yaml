@@ -1,0 +1,7 @@
+title: "Predict: groupby runs"
+type: predict
+difficulty: core
+tags: [itertools, groupby]
+hints:
+  - groupby starts a new group every time the value changes, so the same code can appear in more than one group.
+  - After sorting, equal values sit next to each other, so each appears once. "aaabbbaaa" has three runs.

@@ -1,0 +1,7 @@
+title: "Predict: where do the arguments land?"
+type: predict
+difficulty: core
+tags: [args, kwargs, unpacking]
+hints:
+  - first takes one positional argument, *rest collects the other positional ones as a tuple, and **options collects the keywords as a dict.
+  - "A tuple with one item prints with a trailing comma: ('sam',). Passing parts without a star passes the whole tuple as one argument."

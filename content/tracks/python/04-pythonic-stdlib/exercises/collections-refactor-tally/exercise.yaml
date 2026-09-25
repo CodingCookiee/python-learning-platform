@@ -1,0 +1,8 @@
+title: Tally loops to Counter and defaultdict
+type: refactor
+difficulty: core
+tags: [collections, counter, defaultdict, refactoring]
+hints:
+  - status_counts is a count of one field. Counter can count a comprehension of that field directly.
+  - orders_by_customer builds lists. defaultdict(list) lets you append without checking the key first.
+  - "return Counter(order[\"status\"] for order in orders), and groups = defaultdict(list) followed by groups[order[\"customer\"]].append(order[\"id\"])."

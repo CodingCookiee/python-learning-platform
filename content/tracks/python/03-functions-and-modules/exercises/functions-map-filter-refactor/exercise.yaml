@@ -1,0 +1,8 @@
+title: Swap map and filter for comprehensions
+type: refactor
+difficulty: core
+tags: [map, filter, lambda, comprehensions]
+hints:
+  - "A comprehension does both jobs at once: [what to keep for item in items if condition]."
+  - The map lambda's body becomes the expression at the front; the filter lambda's body becomes the if at the end.
+  - "[round(invoice[\"net\"] * 1.2, 2) for invoice in invoices if invoice[\"status\"] == \"paid\"]"

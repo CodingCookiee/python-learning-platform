@@ -1,0 +1,3 @@
+def line_totals(basket):
+    """Return quantity * unit_price for each (name, quantity, unit_price), rounded to 2 places."""
+    ...

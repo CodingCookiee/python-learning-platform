@@ -1,0 +1,3 @@
+def url_path(*segments):
+    """Return "/" followed by the segments joined with single slashes."""
+    ...

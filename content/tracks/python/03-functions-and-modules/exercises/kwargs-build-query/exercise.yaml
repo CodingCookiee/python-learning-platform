@@ -1,0 +1,8 @@
+title: Build a query string
+type: function
+difficulty: core
+tags: [kwargs, parameters, dicts, strings]
+hints:
+  - "**params collects every keyword argument into a dict, in the order the caller wrote them."
+  - Build a list of "key=value" strings for the params whose value isn't None, then join them with "&".
+  - If that list is empty, return base unchanged; otherwise return base + "?" + the joined string.

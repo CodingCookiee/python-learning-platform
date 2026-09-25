@@ -1,0 +1,8 @@
+title: A product that guards its price
+type: function
+difficulty: core
+tags: [property, setter, validation]
+hints:
+  - Store the real values in underscored attributes (self._price, self._stock). The property getter returns them; the setter checks the new value first.
+  - In __init__, assign self.price = price and self.stock = stock. That runs the setters, so a bad value is refused at creation too.
+  - "For the stock check, isinstance(value, int) tells you whether it's a whole number."

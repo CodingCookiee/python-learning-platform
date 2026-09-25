@@ -1,0 +1,8 @@
+title: Orders as named tuples
+type: function
+difficulty: core
+tags: [collections, namedtuple, strings]
+hints:
+  - namedtuple("Order", ["id", "customer", "total"]) builds the type. Assign it to the name Order at the top of the file.
+  - "Split the line on commas, strip each piece, and convert the total with float()."
+  - "A namedtuple can't be changed, but order._replace(total=...) returns a new one."

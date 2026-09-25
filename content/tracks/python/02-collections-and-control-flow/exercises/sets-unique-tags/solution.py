@@ -1,0 +1,3 @@
+def unique_tags(tags):
+    """Return each tag once, as an alphabetically sorted list."""
+    return sorted(set(tags))

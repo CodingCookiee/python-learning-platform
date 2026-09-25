@@ -1,0 +1,7 @@
+title: "Predict: what gets cached"
+type: predict
+difficulty: warm-up
+tags: [functools, cache]
+hints:
+  - The body of a cached function runs only the first time it sees each argument. After that, the cached answer comes back without running the body, so nothing prints.
+  - Five calls with three different postcodes means three misses and two hits.

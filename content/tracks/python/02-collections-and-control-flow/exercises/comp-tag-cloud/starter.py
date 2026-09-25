@@ -1,0 +1,3 @@
+def tag_cloud(posts):
+    """Return every distinct normalised tag across (title, tags) posts, sorted."""
+    ...

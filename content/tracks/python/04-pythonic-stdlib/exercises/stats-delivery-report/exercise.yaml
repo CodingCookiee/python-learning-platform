@@ -1,0 +1,8 @@
+title: Delivery time report
+type: function
+difficulty: core
+tags: [statistics, dicts]
+hints:
+  - statistics has mean, median and stdev. round(value, 1) each one.
+  - "late is a count: sum(1 for h in hours if h > late_after), or len() of a filtered list."
+  - statistics.stdev raises StatisticsError, a ValueError, when there are fewer than two values, so you may not need to raise anything yourself.

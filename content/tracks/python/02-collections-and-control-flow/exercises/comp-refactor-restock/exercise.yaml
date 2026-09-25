@@ -1,0 +1,7 @@
+title: Restock list as a comprehension
+type: refactor
+difficulty: core
+tags: [comprehensions, list-comprehension, dicts, refactoring]
+hints:
+  - The appended expression goes at the front, the for line goes in the middle, and the if goes at the end.
+  - "[sku.upper() for sku, count in inventory.items() if count < 5]"

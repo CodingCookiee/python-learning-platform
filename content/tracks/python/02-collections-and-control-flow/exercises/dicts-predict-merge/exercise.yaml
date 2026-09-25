@@ -1,0 +1,8 @@
+title: "Predict: merging settings"
+type: predict
+difficulty: core
+tags: [dicts, merging, ordering, get]
+hints:
+  - "In a | b, the right side wins for keys in both, but a replaced key keeps its original position. Keys only in b go at the end."
+  - "| builds a new dict, so defaults is untouched until |= changes it in place."
+  - get() with no default returns None for a missing key.

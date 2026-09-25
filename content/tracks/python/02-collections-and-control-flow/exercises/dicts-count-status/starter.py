@@ -1,0 +1,3 @@
+def count_by_status(orders):
+    """Return {status: number of orders with that status}, in first-seen order."""
+    ...

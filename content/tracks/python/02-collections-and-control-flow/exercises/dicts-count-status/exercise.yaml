@@ -1,0 +1,8 @@
+title: Count orders by status
+type: function
+difficulty: core
+tags: [dicts, counting, get, loops]
+hints:
+  - Start with an empty dict and loop over the orders, unpacking each one into order_id and status.
+  - "counts[status] = counts.get(status, 0) + 1"
+  - Keys come out in the order they were first added, so the first-seen order comes for free.

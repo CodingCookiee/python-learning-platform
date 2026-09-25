@@ -1,0 +1,8 @@
+title: Make the options keyword-only
+type: refactor
+difficulty: core
+tags: [parameters, keyword-only]
+hints:
+  - A bare * in the parameter list makes every parameter after it keyword-only.
+  - Only the def line needs to change. rows stays before the *, the three options go after it, with their defaults.
+  - "def export_csv(rows, *, include_header=True, delimiter=\",\", quote_all=False):"

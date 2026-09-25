@@ -1,0 +1,3 @@
+def cheapest_first(products):
+    """Return a new list of the products, sorted by price from lowest to highest."""
+    ...

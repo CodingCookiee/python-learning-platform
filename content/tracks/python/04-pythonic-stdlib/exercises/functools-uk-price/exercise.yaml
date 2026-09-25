@@ -1,0 +1,7 @@
+title: Country prices with partial
+type: function
+difficulty: warm-up
+tags: [functools, partial]
+hints:
+  - partial(function, keyword=value) returns a new callable with that argument already filled in.
+  - "uk_price = partial(price_with_tax, rate=0.20)"

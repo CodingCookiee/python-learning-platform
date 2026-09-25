@@ -4,7 +4,7 @@ title: Flexible parameters
 summary: Take any number of arguments, forward them on, and force a parameter to be passed by name or by position.
 minutes: 35
 exercises:
-  - args-total-amounts
+  - args-url-path
   - args-predict-unpacking
   - kwargs-build-query
   - args-keyword-only-flags

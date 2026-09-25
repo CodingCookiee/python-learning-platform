@@ -1,0 +1,3 @@
+def index_by_email(users):
+    """Return {normalised email: user_id} for a {user_id: email} dict."""
+    ...

@@ -1,0 +1,8 @@
+title: "Predict: sorting support tickets"
+type: predict
+difficulty: core
+tags: [sorted, key, lambda, min, max]
+hints:
+  - "Without a key, strings compare character by character, and capital letters come before lower-case ones: \"V\" < \"s\"."
+  - The sort is stable, so tickets with equal keys stay in their original order. min() and max() return the first item with the best key.
+  - "t.split()[-1] is the last word of each ticket: jam, down, mouse, broken, wifi."

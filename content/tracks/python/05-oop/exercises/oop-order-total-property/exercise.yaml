@@ -1,0 +1,7 @@
+title: An order total that's never stale
+type: function
+difficulty: warm-up
+tags: [property, classes]
+hints:
+  - Put @property on the line above def total(self), and the method is read as order.total, with no parentheses.
+  - "The body only needs the lines: return sum(quantity * price for _, quantity, price in self.lines)"

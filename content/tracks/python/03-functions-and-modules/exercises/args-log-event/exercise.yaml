@@ -1,0 +1,8 @@
+title: A structured log line
+type: function
+difficulty: stretch
+tags: [kwargs, positional-only, parameters, strings]
+hints:
+  - "**fields collects the key=value pairs. The trouble is a field called message or level: it clashes with the parameter of the same name."
+  - "Parameters before a / are positional-only, so they don't claim their names and **fields can receive message= and level=."
+  - "Format each field as key=value, or key=\"value\" when the text contains a space, then join everything with single spaces."

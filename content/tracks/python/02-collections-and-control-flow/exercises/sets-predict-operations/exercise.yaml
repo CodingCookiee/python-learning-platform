@@ -1,0 +1,7 @@
+title: "Predict: set operations"
+type: predict
+difficulty: core
+tags: [sets, set-operations]
+hints:
+  - "& keeps what's in both, - keeps what's in the left but not the right, ^ keeps what's in exactly one."
+  - Every result is sorted before printing, so you can predict the order. len() of a set counts each value once.

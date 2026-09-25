@@ -1,0 +1,8 @@
+title: Build the tag cloud
+type: function
+difficulty: stretch
+tags: [comprehensions, nested-comprehension, set-comprehension, sets, sorting]
+hints:
+  - "Each post is (title, tags), and tags is a list, so you need two for clauses: one over posts, one over each post's tags."
+  - A set comprehension drops the duplicates for you. Filter out tags that are empty once stripped.
+  - "sorted({tag.strip().lower() for title, tags in posts for tag in tags if tag.strip()})"

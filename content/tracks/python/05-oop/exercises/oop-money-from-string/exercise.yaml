@@ -1,0 +1,8 @@
+title: Money from anywhere
+type: function
+difficulty: core
+tags: [classmethod, staticmethod, alternative-constructors]
+hints:
+  - "Both constructors are @classmethod and end with return cls(amount, currency), so a subclass gets its own type back."
+  - "text.split() splits on any run of spaces and ignores spaces at the ends: \" 12.50  eur \".split() is ['12.50', 'eur']."
+  - "is_currency_code needs neither self nor cls, so it's a @staticmethod: return len(code) == 3 and code.isalpha() and code.isupper()"

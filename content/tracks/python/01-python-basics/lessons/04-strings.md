@@ -7,7 +7,7 @@ exercises:
   - strings-predict-slices
   - strings-normalise-email
   - strings-mask-card
-  - strings-price-row
+  - strings-receipt-row
   - strings-slugify
 ---
 
@@ -47,6 +47,16 @@ one character:
 len("tab\there"), len(r"tab\there")
 ```
 
+Two operators work on strings: `+` joins two strings into a new one, and `*` repeats a string, which
+is handy for drawing a rule under a heading.
+
+```python
+title = "Order summary"
+print(title)
+print("-" * len(title))
+"Order " + "#" + "1042"
+```
+
 ## Indexing and slicing
 
 A string is a sequence of characters, numbered from `0`. Negative indices count from the end, so
@@ -62,6 +72,7 @@ A **slice** `[start:stop]` takes a range. It includes `start` and stops just **b
 the end. A third number is a step.
 
 ```python
+code = "ORD-2026-0917"
 code[:3], code[4:8], code[-4:], code[::2], code[::-1]
 ```
 
@@ -148,8 +159,8 @@ line.find("ERROR"), line.find("WARNING"), line.count("0")
 
 > [!TIP]
 > Reach for `in` when you only need yes or no. Use `find` when you need the position, and check for
-> `-1` before you slice with it: `line[-1:]` is a perfectly valid slice, so a missed `-1` fails
-> silently.
+> `-1` before you slice with it: when there's no match, `line[line.find("WARNING"):]` quietly gives
+> you the last character instead of an error.
 
 ## Splitting and joining
 
@@ -198,7 +209,8 @@ f"{customer} ordered {items} items for {total * 1.2}"
 ```
 
 Adding with `+` works too, but only between strings, so every number needs `str()` first. f-strings
-convert for you.
+convert for you. The total came out as `30.599999999999998`, though: that's the float error from the
+last lesson, and the next section shows how to display it as `30.60`.
 
 > [!JS]
 > Coming from JavaScript: f-strings are template literals, `` `${customer}` ``, with a formatting

@@ -1,0 +1,7 @@
+title: Stock level
+type: function
+difficulty: warm-up
+tags: [dicts, get]
+hints:
+  - inventory[sku] raises KeyError for an unknown SKU. One dict method returns a default instead.
+  - "return inventory.get(sku, 0)"

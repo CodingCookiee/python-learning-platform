@@ -1,0 +1,8 @@
+title: A registry of users
+type: function
+difficulty: stretch
+tags: [class-attributes, shared-state, validation, strings]
+hints:
+  - "The registry is shared on purpose, so it belongs on the class: by_email = {}. Read and write it through the class name, User.by_email, so nobody mistakes it for per-user data."
+  - Normalise the email (strip, then lower) before checking the registry, and do every check before registering, so a refused user leaves nothing behind.
+  - "promote() can look up the current role's position with User.ROLES.index(self.role) and move one step along, stopping at the last role."

@@ -1,0 +1,8 @@
+title: Mask a card number
+type: function
+difficulty: core
+tags: [strings, slicing, methods]
+hints:
+  - First get the bare digits by replacing the spaces and dashes with nothing.
+  - The visible part is the last four characters. Everything before them becomes "*", and "*" * 3 is "***".
+  - "digits[-4:] is the visible end, and len(digits) - 4 is how many stars go in front."

@@ -1,0 +1,8 @@
+title: Slugify with split and join
+type: refactor
+difficulty: stretch
+tags: [strings, split, join, methods]
+hints:
+  - split() with no argument splits on any run of whitespace, and ignores whitespace at both ends.
+  - join puts the string you call it on between the pieces.
+  - "return \"-\".join(title.lower().split())"

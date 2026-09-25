@@ -1,0 +1,7 @@
+title: Revenue that forgets orders
+type: fix
+difficulty: core
+tags: [itertools, groupby, sorting]
+hints:
+  - groupby only groups neighbouring orders, so a customer whose orders aren't next to each other gets several groups, and the dict keeps only the last.
+  - Sort the orders by the same key before grouping them. Use sorted(), which returns a new list, rather than .sort(), which changes the caller's list.

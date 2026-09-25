@@ -1,0 +1,7 @@
+title: Moving average of response times
+type: function
+difficulty: core
+tags: [collections, deque]
+hints:
+  - A deque with maxlen=window always holds the last window values, dropping the oldest for you.
+  - Loop over the values once. After each append, if the deque is full, record round(sum(recent) / window, 1).

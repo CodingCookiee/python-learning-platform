@@ -1,0 +1,8 @@
+title: Getters and setters, the Python way
+type: refactor
+difficulty: core
+tags: [property, setter, refactoring]
+hints:
+  - The name needs no rules at all, so it can be a plain attribute, self.name = name.
+  - Salary does need a rule, so make it a property whose setter keeps the negative check. Monthly salary is computed, so it's a read-only property.
+  - When you're done, no get_ or set_ methods should be left.

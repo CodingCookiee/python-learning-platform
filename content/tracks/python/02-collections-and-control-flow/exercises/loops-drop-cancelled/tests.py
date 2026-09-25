@@ -31,8 +31,7 @@ def _():
 
 @hidden("Returns an empty list when every order is cancelled")
 def _():
-    orders = [("ORD-3001", "cancelled"), ("ORD-3002", "cancelled"), ("ORD-3003", "cancelled")]
-    assert active_orders(orders) == []
+    assert active_orders([("ORD-3001", "cancelled"), ("ORD-3002", "cancelled"), ("ORD-3003", "cancelled")]) == []
 
 
 @hidden("Returns a new list object")

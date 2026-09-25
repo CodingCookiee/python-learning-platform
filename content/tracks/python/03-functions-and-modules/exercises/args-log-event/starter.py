@@ -1,0 +1,3 @@
+def log_line(level, message, **fields):
+    """Return "LEVEL message key=value ...", quoting values that contain a space."""
+    ...

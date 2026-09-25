@@ -1,0 +1,8 @@
+title: Returning, new and lapsed customers
+type: function
+difficulty: core
+tags: [sets, set-operations, tuples]
+hints:
+  - Turn both lists into sets first. Then each answer is one set operator.
+  - Returning is in both months (&). New is this month minus last month (-). Lapsed is the other way round.
+  - Return the three sets as one tuple.

@@ -1,0 +1,8 @@
+title: Longest outage
+type: function
+difficulty: stretch
+tags: [itertools, groupby, tuples]
+hints:
+  - Here groupby's "neighbours only" behaviour is exactly what you want. Group the checks by their status, without sorting.
+  - For each group whose status is "down", turn it into a list. Its first and last checks give the start and end, and its length is the number of minutes.
+  - Keep the best run so far, and replace it only when a new run is strictly longer, so ties keep the earliest.

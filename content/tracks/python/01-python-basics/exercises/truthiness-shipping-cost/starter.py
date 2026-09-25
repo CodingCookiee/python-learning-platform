@@ -1,0 +1,3 @@
+def shipping_cost(weight_kg):
+    """Return the shipping price for a parcel of weight_kg, or None if it can't be shipped."""
+    ...

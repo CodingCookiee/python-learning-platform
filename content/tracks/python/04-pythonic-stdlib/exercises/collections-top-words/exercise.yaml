@@ -1,0 +1,7 @@
+title: Top words in reviews
+type: function
+difficulty: warm-up
+tags: [collections, counter]
+hints:
+  - Counter counts anything you can loop over, including a list of words.
+  - "Counter(text.lower().split()).most_common(n)"

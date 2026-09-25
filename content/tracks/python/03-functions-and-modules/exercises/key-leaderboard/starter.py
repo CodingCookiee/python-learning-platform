@@ -1,0 +1,3 @@
+def leaderboard(scores, *, top=None):
+    """Return player names by points (highest first), ties alphabetical, cut to top if given."""
+    ...

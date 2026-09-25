@@ -1,0 +1,8 @@
+title: Regional price list
+type: function
+difficulty: stretch
+tags: [dicts, merging, pop, mutability]
+hints:
+  - "base | regional builds a new dict where regional's prices win, and it doesn't touch either input."
+  - Remove withdrawn SKUs from that new dict, never from base.
+  - pop(sku, None) removes a key if it's there and quietly does nothing if it isn't.

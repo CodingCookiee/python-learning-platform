@@ -1,0 +1,8 @@
+title: Leaderboard with tie-breaks
+type: function
+difficulty: core
+tags: [sorted, key, lambda, keyword-only, dicts]
+hints:
+  - Sort the dict's keys (the names). The key function can look up each name's points in scores.
+  - "A key that returns a tuple sorts by the first item, then the second. Negate the points to put the highest first: (-scores[name], name)."
+  - "Slice the result with [:top] only when top is not None. A top of 0 should give an empty list, so don't test it for truthiness."

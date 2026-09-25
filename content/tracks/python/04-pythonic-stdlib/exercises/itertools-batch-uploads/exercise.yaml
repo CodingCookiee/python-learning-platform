@@ -1,0 +1,7 @@
+title: Batch an upload
+type: function
+difficulty: core
+tags: [itertools, batched, enumerate]
+hints:
+  - batched(rows, size) gives tuples of at most size rows. enumerate(..., start=1) numbers them from 1.
+  - "[{\"batch\": number, \"rows\": list(chunk)} for number, chunk in enumerate(batched(rows, size), start=1)]"

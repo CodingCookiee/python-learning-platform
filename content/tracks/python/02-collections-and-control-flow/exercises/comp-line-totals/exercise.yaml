@@ -1,0 +1,7 @@
+title: Basket line totals
+type: function
+difficulty: warm-up
+tags: [comprehensions, list-comprehension, unpacking]
+hints:
+  - Unpack each line in the comprehension's for clause, just as in a for loop.
+  - "[round(quantity * unit_price, 2) for name, quantity, unit_price in basket]"

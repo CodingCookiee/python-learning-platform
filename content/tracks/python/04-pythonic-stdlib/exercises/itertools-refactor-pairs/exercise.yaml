@@ -1,0 +1,8 @@
+title: Index loops to pairwise and product
+type: refactor
+difficulty: core
+tags: [itertools, pairwise, product, refactoring]
+hints:
+  - gaps compares each timestamp with the next one. That's exactly what pairwise gives you.
+  - variants pairs every size with every colour, which is product(sizes, colours).
+  - "[later - earlier for earlier, later in pairwise(timestamps)] and [f\"{size}-{colour}\" for size, colour in product(sizes, colours)]"

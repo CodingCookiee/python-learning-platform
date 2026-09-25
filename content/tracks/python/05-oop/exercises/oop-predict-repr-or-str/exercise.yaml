@@ -1,0 +1,7 @@
+title: "Predict: repr or str?"
+type: predict
+difficulty: core
+tags: [dunder, repr, str]
+hints:
+  - print() and plain {x} use __str__, and fall back to __repr__ when a class has no __str__.
+  - A list always shows its items with repr, even inside print(). And the Invoice repr calls repr on the customer through !r.

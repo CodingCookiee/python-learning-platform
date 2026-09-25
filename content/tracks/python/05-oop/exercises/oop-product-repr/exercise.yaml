@@ -1,0 +1,7 @@
+title: A product that prints well
+type: function
+difficulty: warm-up
+tags: [dunder, repr, str]
+hints:
+  - __repr__ looks like the constructor call. Use !r on each field so strings keep their quotes.
+  - "__str__ is for shoppers: return f\"{self.name} ({self.sku}) at {self.price:.2f}\""

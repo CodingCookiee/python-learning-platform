@@ -1,0 +1,7 @@
+title: Running sales total
+type: function
+difficulty: warm-up
+tags: [itertools, accumulate]
+hints:
+  - itertools has a function that returns running totals.
+  - "return list(accumulate(daily_sales))"

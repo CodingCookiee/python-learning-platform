@@ -1,0 +1,3 @@
+def build_url(base, **params):
+    """Return base with the params that aren't None added as ?key=value&key=value."""
+    ...

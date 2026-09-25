@@ -1,0 +1,7 @@
+title: De-duplicate the mailing list
+type: refactor
+difficulty: stretch
+tags: [sets, membership, loops, strings]
+hints:
+  - "email not in unique scans the whole list every time. Keep a separate set of what you've seen: seen = set()."
+  - Check and add the normalised address (stripped and lower-cased) in the set, but append the original spelling to the list.

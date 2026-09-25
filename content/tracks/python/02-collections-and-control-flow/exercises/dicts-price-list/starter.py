@@ -1,0 +1,3 @@
+def price_list(base, regional, withdrawn):
+    """Return base prices overridden by regional ones, without the withdrawn SKUs."""
+    ...

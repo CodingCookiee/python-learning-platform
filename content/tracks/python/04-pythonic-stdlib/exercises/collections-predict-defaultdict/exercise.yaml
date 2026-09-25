@@ -1,0 +1,7 @@
+title: "Predict: reading a defaultdict"
+type: predict
+difficulty: warm-up
+tags: [collections, defaultdict]
+hints:
+  - Reading a missing key with [] calls the factory and stores the result. get() and in never add a key.
+  - int() returns 0, so a missing page reads as 0, and after that it exists.

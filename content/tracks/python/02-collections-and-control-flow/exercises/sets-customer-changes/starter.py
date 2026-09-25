@@ -1,0 +1,3 @@
+def customer_changes(last_month, this_month):
+    """Return (returning, new, lapsed) customer sets."""
+    ...

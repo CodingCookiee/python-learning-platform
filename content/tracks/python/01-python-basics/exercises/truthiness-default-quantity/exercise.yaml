@@ -1,0 +1,8 @@
+title: The quantity that wouldn't go to zero
+type: fix
+difficulty: core
+tags: [truthiness, none, or, conditional-expression]
+hints:
+  - "0 is falsy, so requested or 1 treats a real 0 the same as a missing value."
+  - Only None means "left empty". Test for exactly that with is None.
+  - "return 1 if requested is None else requested"

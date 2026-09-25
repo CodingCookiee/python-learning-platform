@@ -1,0 +1,7 @@
+title: Build a URL path
+type: function
+difficulty: warm-up
+tags: [args, parameters, strings]
+hints:
+  - "*segments collects every argument into a tuple, which you can loop over or pass to a comprehension."
+  - "Turn each segment into text with str(), trim slashes with .strip(\"/\"), then \"/\".join(...) them and put one \"/\" in front."

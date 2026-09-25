@@ -1,0 +1,8 @@
+title: Coupon codes
+type: function
+difficulty: stretch
+tags: [conditions, none, strings, truthiness]
+hints:
+  - Deal with None before calling any string method on the code, because None has no strip().
+  - "Clean the code once, code = code.strip().upper(), then compare it with \"SAVE10\" and \"VIP20\"."
+  - "After cleaning, a blank code is \"\", which matches neither coupon. For SAVE10: return 10 if subtotal >= 50 else 0"

@@ -1,0 +1,8 @@
+title: A receipt row
+type: function
+difficulty: core
+tags: [strings, f-strings, formatting, slicing]
+hints:
+  - "Build the line with one f-string and three format specs: <20 for the name, >4 for the quantity, >10.2f for the total."
+  - A format width pads short values but never shortens long ones. Slice the name to 20 characters first.
+  - "f\"{name[:20]:<20}{quantity:>4}{quantity * unit_price:>10.2f}\""

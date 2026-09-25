@@ -1,0 +1,7 @@
+title: "Predict: slicing an invoice number"
+type: predict
+difficulty: warm-up
+tags: [strings, slicing]
+hints:
+  - Number the characters from 0. A slice [start:stop] includes start and stops just before stop.
+  - "[::-1] reverses the whole string first; [:4] then takes the first four characters of the reversed string."

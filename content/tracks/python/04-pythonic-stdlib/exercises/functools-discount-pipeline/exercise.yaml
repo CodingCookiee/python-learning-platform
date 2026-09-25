@@ -1,0 +1,7 @@
+title: A pricing pipeline with reduce
+type: function
+difficulty: core
+tags: [functools, reduce, functions]
+hints:
+  - reduce calls its function with the result so far and the next item. Here the result so far is a price and each item is a function to apply to it.
+  - "reduce(lambda current, step: step(current), steps, price). The third argument is where it starts, and what it returns when there are no steps."

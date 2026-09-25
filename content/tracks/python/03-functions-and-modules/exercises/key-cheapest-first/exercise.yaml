@@ -1,0 +1,7 @@
+title: Cheapest first
+type: function
+difficulty: warm-up
+tags: [sorted, key, lambda]
+hints:
+  - sorted() returns a new list and leaves the original alone. Its key argument says what to compare.
+  - "return sorted(products, key=lambda product: product[\"price\"])"

@@ -1,0 +1,8 @@
+title: Group orders by customer
+type: fix
+difficulty: core
+tags: [dicts, grouping, setdefault]
+hints:
+  - "Each pass assigns a brand-new one-item list to groups[customer], throwing away whatever was there."
+  - You want to append to the customer's existing list, creating an empty one only the first time.
+  - "groups.setdefault(customer, []).append(order_id)"

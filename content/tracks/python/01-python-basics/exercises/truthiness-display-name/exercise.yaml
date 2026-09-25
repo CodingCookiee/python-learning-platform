@@ -1,0 +1,7 @@
+title: Default display name
+type: function
+difficulty: warm-up
+tags: [truthiness, or, none]
+hints:
+  - Both None and the empty string are falsy.
+  - "return name or \"Guest\""

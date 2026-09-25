@@ -1,0 +1,3 @@
+def moving_average(values, window):
+    """The average of every window consecutive values, rounded to 1 decimal place."""
+    ...

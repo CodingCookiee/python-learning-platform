@@ -1,0 +1,8 @@
+title: Shipping bands
+type: function
+difficulty: core
+tags: [conditions, if, comparisons, none]
+hints:
+  - Rule out the weights that can't ship first, then check the bands from lightest to heaviest with elif.
+  - "Chained comparisons read like the table: 0 < weight_kg <= 1."
+  - "Each band's upper limit is included: a parcel of exactly 5 kg costs 7.00, and one of 5.01 kg costs 15.00."
