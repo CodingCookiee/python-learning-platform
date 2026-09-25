@@ -1,0 +1,20 @@
+slug: inventory-system
+title: Inventory system
+summary: Model products and stock movements with dataclasses, refuse impossible stock, and print a low-stock report.
+hours: 5
+xp: 150
+requirements:
+  - "Product is a frozen dataclass of sku, name, unit_cost (a Decimal), reorder_level and target_level, validated in __post_init__"
+  - "Movement is a frozen dataclass of sku, change, kind (a MovementKind enum: receive, sale or adjustment), at (a datetime) and note, validated in __post_init__"
+  - "Inventory holds the products and an append-only list of movements, and offers add_product, product, products, receive, sell, adjust, stock, history, valuation and low_stock"
+  - Stock is always computed from the movement log, never stored as a separate number
+  - Duplicate products, unknown SKUs, zero or negative quantities, adjustments without a note and anything that would take stock below zero raise ValueError and change nothing
+  - low_stock() returns one LowStockLine dataclass per product at or below its reorder level, out-of-stock first, then furthest below its reorder level, then by SKU, with a suggested order that brings it up to its target level
+  - format_low_stock_report(inventory, today) returns the report text exactly as in the brief, and main() is the only code that prints
+criteria:
+  - The sample data in the starter produces exactly the report, history and refusals shown in the brief
+  - Product, Movement and LowStockLine are dataclasses, with no hand-written __init__, __repr__ or __eq__, and Product and Movement are frozen and hashable
+  - A refused operation raises ValueError with a message that names the SKU and the problem, and leaves the inventory exactly as it was
+  - Inventory uses composition (it holds a dict of products and a list of movements) rather than inheriting from dict or list, and its internals are underscored
+  - Money is Decimal from end to end, and the stock valuation is correct to the cent
+  - Importing inventory.py prints nothing, the report is built by a function separate from the Inventory class, and names explain themselves
