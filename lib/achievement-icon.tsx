@@ -30,6 +30,9 @@ import {
   Wind,
   Workflow,
   Code,
+  ChartColumn,
+  CircleCheck,
+  WandSparkles,
   type LucideIcon,
 } from "lucide-react";
 import { SealMark, StreakMark, TapeMark } from "@/components/brand/marks";
@@ -74,6 +77,10 @@ const ACHIEVEMENT_ICONS: Record<string, IconComponent> = {
   Workflow,
   Flow: Workflow,
   Snake: Code,
+  Code2: Code,
+  BarChart3: ChartColumn,
+  CheckCircle2: CircleCheck,
+  Wand2: WandSparkles,
   Zap: TapeMark,
 };
 

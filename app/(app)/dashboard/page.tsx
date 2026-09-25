@@ -2,26 +2,23 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import {
-  CircularProgress,
-  AnimatedProgressBar,
   ModuleProgressCard,
   AnimatedNumber,
 } from "@/components/progress";
 import { StreakDisplay } from "@/components/gamification/streak-display";
 import { XpProgressBar } from "@/components/gamification/xp-progress-bar";
 import { StreakCalendar } from "@/components/gamification/streak-calendar";
-import { LevelBadge } from "@/components/gamification/level-badge";
 import { MilestoneTracker } from "@/components/gamification/milestone-tracker";
-import { BookOpen, ArrowRight, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import { SealMark, StreakMark } from "@/components/brand/marks";
 import { AchievementPatch } from "@/components/gamification/achievement-badge";
 import { tierStyle } from "@/lib/achievement-tier";
-import { getCurriculumPhaseLabel, getCurriculumPhases } from "@/lib/curriculum";
+import { RankCard } from "@/components/brand/rank-card";
+import { getLearnerRank } from "@/lib/learner-rank";
 
 interface ProgressData {
   user: {
@@ -225,7 +222,7 @@ export default async function DashboardPage() {
   });
   if (!dbUser) redirect("/auth/signin");
 
-  const data = await getProgressData(dbUser.id);
+  const [data, rank] = await Promise.all([getProgressData(dbUser.id), getLearnerRank(dbUser.id)]);
 
   if (!data) {
     return (
@@ -243,11 +240,6 @@ export default async function DashboardPage() {
   }
 
   const { user, streak, completion, modules, recentActivity, achievements } = data;
-  const roadmapPhases = getCurriculumPhases();
-  const currentModule =
-    modules.find((m) => m.completionPercentage > 0 && m.completionPercentage < 100) ??
-    modules.find((m) => m.completionPercentage === 0) ??
-    null;
   const recentLessons = recentActivity.lessons.slice(0, 3);
   const recentAchievements = achievements.unlocked.slice(0, 4);
 
@@ -268,59 +260,38 @@ export default async function DashboardPage() {
               <StreakMark className={streak.current > 0 ? "text-primary" : "text-muted-foreground"} />
               {streak.current} {streak.current === 1 ? "day" : "days"} in a row
             </span>
-            <LevelBadge level={user.level} size="sm" className="mt-2 sm:mt-0" />
           </div>
         </FadeIn>
-        <FadeIn delay={0.05}>
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {/* Overall Progress */}
-            <Card>
-              <CardContent className="flex flex-col items-center gap-3 pt-8">
-                <p className="font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground self-start">
-                  Overall Progress
-                </p>
-                <CircularProgress
-                  value={completion.overall}
-                  label="overall"
-                  size={80}
-                  strokeWidth={6}
-                />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="flex flex-col gap-3 pt-8">
-                <p className="font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground">
-                  Current Streak
-                </p>
-                <StreakDisplay currentStreak={streak.current} longestStreak={streak.longest} />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="flex flex-col gap-3 pt-8">
-                <p className="font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground">
-                  Lessons Done
-                </p>
-                <p className="font-heading text-3xl font-semibold">
-                  <AnimatedNumber value={completion.lessons.completed} />
-                  <span className="text-lg font-normal text-muted-foreground">
-                    /{completion.lessons.total}
-                  </span>
-                </p>
-                <AnimatedProgressBar
-                  value={completion.lessons.percentage}
-                  aria-label={`${completion.lessons.percentage}% lessons complete`}
-                />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="flex flex-col gap-3 pt-8">
-                <p className="font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground">
-                  Level &amp; XP
-                </p>
+        <FadeIn delay={0.04}>
+          <RankCard rank={rank} />
+        </FadeIn>
+
+        <FadeIn delay={0.06}>
+          <dl className="grid gap-x-10 border-y border-border md:grid-cols-3">
+            <div className="flex flex-col gap-3 border-b border-border py-5 md:border-b-0">
+              <dt className="text-sm text-muted-foreground">Streak</dt>
+              <dd>
+                <StreakDisplay currentStreak={streak.current} longestStreak={streak.longest} size="sm" />
+              </dd>
+            </div>
+            <div className="flex flex-col gap-3 border-b border-border py-5 md:border-b-0">
+              <dt className="text-sm text-muted-foreground">
+                Level {user.level} · {user.xp.toLocaleString()} XP
+              </dt>
+              <dd>
                 <XpProgressBar xp={user.xp} level={user.level} />
-              </CardContent>
-            </Card>
-          </div>
+              </dd>
+            </div>
+            <div className="flex flex-col gap-3 py-5">
+              <dt className="text-sm text-muted-foreground">Lessons finished</dt>
+              <dd className="font-condensed tabular leading-none">
+                <span className="text-3xl font-extrabold">
+                  <AnimatedNumber value={completion.lessons.completed} />
+                </span>
+                <span className="text-lg font-bold text-muted-foreground"> / {completion.lessons.total}</span>
+              </dd>
+            </div>
+          </dl>
         </FadeIn>
 
         {/* Streak calendar */}
@@ -338,75 +309,6 @@ export default async function DashboardPage() {
         <FadeIn delay={0.1}>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div className="flex flex-col gap-4 lg:col-span-2">
-              <h2 className="font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground">
-                Continue Learning
-              </h2>
-              {currentModule ? (
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex flex-col gap-1">
-                        <Badge className="mb-1 w-fit text-muted-foreground">
-                          {getCurriculumPhaseLabel(currentModule.modulePhase ?? "")}
-                        </Badge>
-                        <CardTitle>{currentModule.moduleTitle}</CardTitle>
-                      </div>
-                      <span className="font-heading text-2xl font-semibold text-muted-foreground">
-                        {currentModule.completionPercentage}%
-                      </span>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="flex flex-col gap-4">
-                    <div className="flex flex-col gap-2">
-                      <AnimatedProgressBar
-                        value={currentModule.completionPercentage}
-                        className="h-1.5"
-                        aria-label={`${currentModule.completionPercentage}% of module complete`}
-                        delay={0.15}
-                        showLabel={false}
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        {currentModule.lessonsCompleted} of {currentModule.lessonsTotal} lessons
-                        complete
-                      </p>
-                    </div>
-                    <Button asChild className="w-fit">
-                      <Link href={`/modules/${currentModule.moduleId}`}>
-                        Continue
-                        <ArrowRight data-icon="inline-end" aria-hidden="true" />
-                      </Link>
-                    </Button>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card>
-                  <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
-                    <BookOpen className="size-8 text-muted-foreground" aria-hidden="true" />
-                    <div className="flex flex-col gap-2">
-                      <p className="text-sm text-muted-foreground">
-                        You&apos;ve completed the full 16-module curriculum. The roadmap below shows
-                        the complete course structure across all phases.
-                      </p>
-                      <div className="grid gap-2 text-left sm:grid-cols-2 xl:grid-cols-4">
-                        {roadmapPhases.map((phase) => (
-                          <div
-                            key={phase.phase}
-                            className="border border-border bg-muted/30 px-3 py-2"
-                          >
-                            <p className="font-heading text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">
-                              {phase.phase}
-                            </p>
-                            <p className="text-sm font-medium">{phase.label}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {phase.modules} · {phase.weeks}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
               {recentLessons.length > 0 && (
                 <div className="flex flex-col gap-2">
                   <p className="font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground">

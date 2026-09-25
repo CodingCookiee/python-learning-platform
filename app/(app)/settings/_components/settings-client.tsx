@@ -1,11 +1,12 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import { AlertCircle, CheckCircle2, Moon, Sun, Monitor, Trash2 } from "lucide-react";
 import {
   AlertDialog,
@@ -53,6 +54,12 @@ function StatusBanner({ status }: { status: Status }) {
 
 export function SettingsClient({ initialName, email, hasPassword }: SettingsClientProps) {
   const { theme, setTheme } = useTheme();
+  // The theme is only known in the browser; render no selection on the server
+  const mounted = React.useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
 
   const [name, setName] = React.useState(initialName);
   const [profileStatus, setProfileStatus] = React.useState<Status>(null);
@@ -62,7 +69,7 @@ export function SettingsClient({ initialName, email, hasPassword }: SettingsClie
     e.preventDefault();
     const trimmed = name.trim();
     if (!trimmed) {
-      setProfileStatus({ type: "error", message: "Name cannot be empty." });
+      setProfileStatus({ type: "error", message: "Enter a name to save." });
       return;
     }
     setSavingProfile(true);
@@ -74,12 +81,12 @@ export function SettingsClient({ initialName, email, hasPassword }: SettingsClie
         body: JSON.stringify({ name: trimmed }),
       });
       if (!res.ok) {
-        setProfileStatus({ type: "error", message: "Failed to save." });
+        setProfileStatus({ type: "error", message: "That didn't save. Try again in a moment." });
         return;
       }
-      setProfileStatus({ type: "success", message: "Profile updated." });
+      setProfileStatus({ type: "success", message: "Name saved." });
     } catch {
-      setProfileStatus({ type: "error", message: "Network error." });
+      setProfileStatus({ type: "error", message: "We couldn't reach the server. Check your connection." });
     } finally {
       setSavingProfile(false);
     }
@@ -98,7 +105,7 @@ export function SettingsClient({ initialName, email, hasPassword }: SettingsClie
       return;
     }
     if (newPw !== confirmPw) {
-      setPwStatus({ type: "error", message: "Passwords do not match." });
+      setPwStatus({ type: "error", message: "The two new passwords don't match." });
       return;
     }
     setSavingPw(true);
@@ -114,198 +121,232 @@ export function SettingsClient({ initialName, email, hasPassword }: SettingsClie
         setPwStatus({ type: "error", message: data.error ?? "Failed to change password." });
         return;
       }
-      setPwStatus({ type: "success", message: "Password changed successfully." });
+      setPwStatus({ type: "success", message: "Password changed." });
       setCurrentPw("");
       setNewPw("");
       setConfirmPw("");
     } catch {
-      setPwStatus({ type: "error", message: "Network error." });
+      setPwStatus({ type: "error", message: "We couldn't reach the server. Check your connection." });
     } finally {
       setSavingPw(false);
     }
   }
 
   const [deleting, setDeleting] = React.useState(false);
+  const [deleteError, setDeleteError] = React.useState<string | null>(null);
 
   async function handleDeleteAccount() {
     setDeleting(true);
+    setDeleteError(null);
     try {
       const res = await fetch("/api/settings/delete", { method: "DELETE" });
       if (res.ok) {
         await signOut({ callbackUrl: "/" });
+        return;
       }
+      setDeleteError("Your account wasn't deleted. Try again, or sign out and back in first.");
     } catch {
-      /* silent */
+      setDeleteError("We couldn't reach the server, so nothing was deleted.");
     } finally {
       setDeleting(false);
     }
   }
 
+  // Each option previews its own theme: ground, ink line, jade accent
   const themeOptions = [
-    { value: "light" as const, label: "Light", Icon: Sun },
-    { value: "dark" as const, label: "Dark", Icon: Moon },
-    { value: "system" as const, label: "System", Icon: Monitor },
+    { value: "light" as const, label: "Light", Icon: Sun, ground: "#f1f6f0", ink: "#1d3b31", accent: "#2f8a6c" },
+    { value: "dark" as const, label: "Dark", Icon: Moon, ground: "#111d18", ink: "#eaf2e8", accent: "#7fd3a8" },
+    { value: "system" as const, label: "Match device", Icon: Monitor, ground: "", ink: "", accent: "" },
   ];
 
   return (
-    <div className="flex flex-col gap-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Profile</CardTitle>
-          <CardDescription>Update your display name.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form
-            onSubmit={(e) => {
-              void handleSaveProfile(e);
-            }}
-            className="flex flex-col gap-4 max-w-sm"
-          >
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="settings-name" className="text-sm font-medium">
-                Display Name
-              </label>
-              <Input
-                id="settings-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                maxLength={80}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium">Email</label>
-              <Input value={email} disabled aria-label="Email address (cannot be changed)" />
-              <p className="text-xs text-muted-foreground">Email cannot be changed here.</p>
-            </div>
-            <StatusBanner status={profileStatus} />
-            <Button type="submit" disabled={savingProfile} className="w-fit">
-              {savingProfile ? "Saving\u2026" : "Save Changes"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+    <div className="flex flex-col border-t border-border">
+      <SettingsRow title="Name" description="Shown on your profile and training record.">
+        <form
+          onSubmit={(e) => {
+            void handleSaveProfile(e);
+          }}
+          className="flex max-w-md flex-col gap-4"
+        >
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="settings-name">Display name</Label>
+            <Input
+              id="settings-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              maxLength={80}
+              autoComplete="name"
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="settings-email">Email</Label>
+            <Input id="settings-email" value={email} disabled />
+            <p className="text-sm text-muted-foreground">
+              Your email is your sign-in, so it can&apos;t be changed here.
+            </p>
+          </div>
+          <StatusBanner status={profileStatus} />
+          <Button type="submit" disabled={savingProfile} className="w-fit">
+            {savingProfile ? "Saving…" : "Save name"}
+          </Button>
+        </form>
+      </SettingsRow>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Appearance</CardTitle>
-          <CardDescription>Choose your preferred theme.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-3" role="radiogroup" aria-label="Theme selection">
-            {themeOptions.map(({ value, label, Icon }) => (
+      <SettingsRow
+        title="Appearance"
+        description="Light cotton or forest night. Match device follows your system setting."
+      >
+        <div className="grid max-w-md grid-cols-3 gap-3" role="radiogroup" aria-label="Theme">
+          {themeOptions.map(({ value, label, Icon, ground, ink, accent }) => {
+            const selected = mounted && theme === value;
+            return (
               <button
                 key={value}
+                type="button"
                 role="radio"
-                aria-checked={theme === value}
+                aria-checked={selected}
                 onClick={() => setTheme(value)}
-                className={`flex flex-col items-center gap-2 rounded-sm border px-5 py-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                  theme === value
-                    ? "border-primary bg-primary/5 text-foreground"
-                    : "border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground"
-                }`}
+                className={cn(
+                  "flex flex-col gap-2 rounded-md border p-2 text-left text-sm font-medium transition-colors",
+                  selected ? "border-primary bg-accent/60" : "border-border hover:border-foreground/35"
+                )}
               >
-                <Icon className="size-5" aria-hidden="true" />
-                {label}
+                <span
+                  className="flex h-14 flex-col justify-end gap-1.5 overflow-hidden rounded-sm border border-border p-2"
+                  style={
+                    ground
+                      ? { backgroundColor: ground }
+                      : { background: "linear-gradient(90deg, #f1f6f0 50%, #111d18 50%)" }
+                  }
+                  aria-hidden="true"
+                >
+                  {ground && (
+                    <>
+                      <span className="h-1.5 w-3/4 rounded-[1px]" style={{ backgroundColor: ink }} />
+                      <span className="h-3 w-1/2 rounded-[1px]" style={{ backgroundColor: accent }} />
+                    </>
+                  )}
+                </span>
+                <span className="flex items-center gap-1.5 px-0.5">
+                  <Icon className="size-3.5 text-muted-foreground" aria-hidden="true" />
+                  {label}
+                </span>
               </button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            );
+          })}
+        </div>
+      </SettingsRow>
 
       {hasPassword && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Password</CardTitle>
-            <CardDescription>Change your account password.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form
-              onSubmit={(e) => {
-                void handleSavePassword(e);
-              }}
-              className="flex flex-col gap-4 max-w-sm"
-            >
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="current-pw" className="text-sm font-medium">
-                  Current Password
-                </label>
-                <Input
-                  id="current-pw"
-                  type="password"
-                  value={currentPw}
-                  onChange={(e) => setCurrentPw(e.target.value)}
-                  autoComplete="current-password"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="new-pw" className="text-sm font-medium">
-                  New Password
-                </label>
-                <Input
-                  id="new-pw"
-                  type="password"
-                  value={newPw}
-                  onChange={(e) => setNewPw(e.target.value)}
-                  autoComplete="new-password"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="confirm-pw" className="text-sm font-medium">
-                  Confirm New Password
-                </label>
-                <Input
-                  id="confirm-pw"
-                  type="password"
-                  value={confirmPw}
-                  onChange={(e) => setConfirmPw(e.target.value)}
-                  autoComplete="new-password"
-                />
-              </div>
-              <StatusBanner status={pwStatus} />
-              <Button type="submit" disabled={savingPw} className="w-fit">
-                {savingPw ? "Changing\u2026" : "Change Password"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+        <SettingsRow
+          title="Password"
+          description="At least 8 characters. You stay signed in on this device."
+        >
+          <form
+            onSubmit={(e) => {
+              void handleSavePassword(e);
+            }}
+            className="flex max-w-md flex-col gap-4"
+          >
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="current-pw">Current password</Label>
+              <Input
+                id="current-pw"
+                type="password"
+                value={currentPw}
+                onChange={(e) => setCurrentPw(e.target.value)}
+                autoComplete="current-password"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="new-pw">New password</Label>
+              <Input
+                id="new-pw"
+                type="password"
+                value={newPw}
+                onChange={(e) => setNewPw(e.target.value)}
+                autoComplete="new-password"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="confirm-pw">Confirm new password</Label>
+              <Input
+                id="confirm-pw"
+                type="password"
+                value={confirmPw}
+                onChange={(e) => setConfirmPw(e.target.value)}
+                autoComplete="new-password"
+              />
+            </div>
+            <StatusBanner status={pwStatus} />
+            <Button type="submit" disabled={savingPw} className="w-fit">
+              {savingPw ? "Changing…" : "Change password"}
+            </Button>
+          </form>
+        </SettingsRow>
       )}
 
-      <Card className="border-destructive/30">
-        <CardHeader>
-          <CardTitle className="text-destructive">Danger Zone</CardTitle>
-          <CardDescription>Permanently delete your account and all data.</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <SettingsRow
+        title="Delete account"
+        description="Removes your account, progress, achievements and submissions for good."
+      >
+        <div className="flex flex-col gap-3">
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive" disabled={deleting}>
-                <Trash2 className="size-4" aria-hidden="true" />
-                {deleting ? "Deleting\u2026" : "Delete Account"}
+              <Button variant="destructive" disabled={deleting} className="w-fit">
+                <Trash2 aria-hidden="true" />
+                {deleting ? "Deleting…" : "Delete my account"}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete your account?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This is permanent and cannot be undone. All your progress, achievements, and data
-                  will be deleted immediately.
+                  Your belt, stripes, streak, achievements and submissions are deleted immediately.
+                  This can&apos;t be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>Keep my account</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={() => {
                     void handleDeleteAccount();
                   }}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  className="bg-destructive text-sheet hover:bg-destructive/90"
                 >
-                  Yes, delete my account
+                  Delete permanently
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-        </CardContent>
-      </Card>
+          {deleteError && (
+            <p role="alert" className="text-sm text-destructive">
+              {deleteError}
+            </p>
+          )}
+        </div>
+      </SettingsRow>
     </div>
+  );
+}
+
+/** One settings row: heading and help text on the left, controls on the right */
+function SettingsRow({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="grid gap-5 border-b border-border py-8 md:grid-cols-[16rem_minmax(0,1fr)] md:gap-10">
+      <div className="flex flex-col gap-1">
+        <h2 className="text-lg font-semibold">{title}</h2>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
+      <div>{children}</div>
+    </section>
   );
 }

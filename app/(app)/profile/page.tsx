@@ -5,13 +5,15 @@ import { auth } from "@/auth";
 import { getAppOrigin } from "@/lib/server-url";
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
-import { AchievementBadge } from "@/components/gamification";
 import { XpProgressBar } from "@/components/gamification/xp-progress-bar";
 import { StreakDisplay } from "@/components/gamification/streak-display";
-import { AnimatedProgressBar } from "@/components/progress";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProfileCard } from "./_components/profile-card";
-import { CheckCircle2, Calendar } from "lucide-react";
+import { Check } from "lucide-react";
+import { RankCard } from "@/components/brand/rank-card";
+import { AchievementPatch } from "@/components/gamification/achievement-badge";
+import { SealMark } from "@/components/brand/marks";
+import { getLearnerRank } from "@/lib/learner-rank";
+import { tierStyle } from "@/lib/achievement-tier";
 
 interface ProgressData {
   user: { id: string; name: string | null; email: string | null; xp: number; level: number };
@@ -66,11 +68,6 @@ async function getProgressData(cookieHeader: string): Promise<ProgressData | nul
   }
 }
 
-function toValidTier(tier: string): "bronze" | "silver" | "gold" | "platinum" {
-  if (tier === "bronze" || tier === "silver" || tier === "gold" || tier === "platinum") return tier;
-  return "bronze";
-}
-
 function formatDate(d: string | Date): string {
   return new Date(d).toLocaleDateString("en-US", {
     year: "numeric",
@@ -93,154 +90,131 @@ export default async function ProfilePage() {
   if (!data) redirect("/dashboard");
 
   const { user, streak, completion, recentActivity, achievements } = data;
-  const initials = (user.name ?? user.email ?? "U").slice(0, 2).toUpperCase();
-  const recentAchievements = achievements.unlocked.slice(0, 8);
-  const recentLessons = recentActivity.lessons.slice(0, 5);
+  const rank = await getLearnerRank(user.id);
+  const initials = (user.name ?? user.email ?? "?").slice(0, 2).toUpperCase();
+  const recentAchievements = achievements.unlocked.slice(0, 6);
+  const recentLessons = recentActivity.lessons.slice(0, 6);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-      <StaggerContainer className="flex flex-col gap-8">
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+      <StaggerContainer className="flex flex-col gap-10">
         <Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Profile" }]} />
+
         <FadeIn>
           <ProfileCard
             initials={initials}
-            name={user.name ?? "Anonymous"}
+            name={user.name ?? "Unnamed learner"}
             email={user.email ?? ""}
             level={user.level}
-            achievements={achievements.total}
-            lessonsCompleted={completion.lessons.completed}
-            completionPercentage={completion.overall}
           />
         </FadeIn>
 
-        <FadeIn delay={0.05}>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <Card>
-              <CardContent className="flex flex-col gap-1.5 pt-5">
-                <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground font-heading">
-                  XP
-                </p>
-                <p className="font-heading text-2xl font-bold">{user.xp.toLocaleString()}</p>
-                <XpProgressBar xp={user.xp} level={user.level} />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="flex flex-col gap-1.5 pt-5">
-                <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground font-heading">
-                  Streak
-                </p>
-                <StreakDisplay currentStreak={streak.current} longestStreak={streak.longest} />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="flex flex-col gap-1.5 pt-5">
-                <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground font-heading">
-                  Lessons
-                </p>
-                <p className="font-heading text-2xl font-bold">
-                  {completion.lessons.completed}
-                  <span className="text-base font-normal text-muted-foreground">
-                    /{completion.lessons.total}
-                  </span>
-                </p>
-                <AnimatedProgressBar
-                  value={completion.lessons.percentage}
-                  aria-label="Lessons progress"
-                />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="flex flex-col gap-1.5 pt-5">
-                <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground font-heading">
-                  Projects
-                </p>
-                <p className="font-heading text-2xl font-bold">
-                  {completion.projects.completed}
-                  <span className="text-base font-normal text-muted-foreground">
-                    /{completion.projects.total}
-                  </span>
-                </p>
-                <AnimatedProgressBar
-                  value={completion.projects.percentage}
-                  aria-label="Projects progress"
-                />
-              </CardContent>
-            </Card>
-          </div>
+        <FadeIn delay={0.04}>
+          <RankCard rank={rank} />
         </FadeIn>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <FadeIn delay={0.1}>
-            <Card className="h-full">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm">Achievements</CardTitle>
-                <Link
-                  href="/achievements"
-                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  View all
-                </Link>
-              </CardHeader>
-              <CardContent>
-                {recentAchievements.length > 0 ? (
-                  <div className="flex flex-wrap gap-3">
-                    {recentAchievements.map((a) => (
-                      <AchievementBadge
-                        key={a.id}
-                        name={a.name}
-                        description={a.description}
-                        icon={a.icon}
-                        tier={toValidTier(a.tier)}
-                        category={a.category}
-                        xpReward={a.xpReward}
-                        unlockedAt={a.unlockedAt as string}
-                        size="sm"
-                        showTooltip
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">No achievements yet.</p>
-                )}
-              </CardContent>
-            </Card>
-          </FadeIn>
+        {/* Training record: ruled facts, not stat cards */}
+        <FadeIn delay={0.08}>
+          <section aria-labelledby="record-heading" className="flex flex-col gap-5">
+            <h2 id="record-heading" className="text-xl font-semibold">
+              Training record
+            </h2>
+            <dl className="grid gap-x-10 border-t border-border sm:grid-cols-2">
+              <div className="flex flex-col gap-3 border-b border-border py-5">
+                <dt className="text-sm text-muted-foreground">Experience</dt>
+                <dd className="flex flex-col gap-3">
+                  <span className="font-condensed tabular text-3xl leading-none font-extrabold">
+                    {user.xp.toLocaleString()} XP
+                  </span>
+                  <XpProgressBar xp={user.xp} level={user.level} />
+                </dd>
+              </div>
+              <div className="flex flex-col gap-3 border-b border-border py-5">
+                <dt className="text-sm text-muted-foreground">Streak</dt>
+                <dd>
+                  <StreakDisplay currentStreak={streak.current} longestStreak={streak.longest} />
+                </dd>
+              </div>
+              <div className="flex items-end justify-between gap-4 border-b border-border py-5">
+                <dt className="text-sm text-muted-foreground">Lessons finished</dt>
+                <dd className="font-condensed tabular leading-none">
+                  <span className="text-3xl font-extrabold">{completion.lessons.completed}</span>
+                  <span className="text-lg font-bold text-muted-foreground"> / {completion.lessons.total}</span>
+                </dd>
+              </div>
+              <div className="flex items-end justify-between gap-4 border-b border-border py-5">
+                <dt className="text-sm text-muted-foreground">Capstone projects approved</dt>
+                <dd className="font-condensed tabular leading-none">
+                  <span className="text-3xl font-extrabold">{completion.projects.completed}</span>
+                  <span className="text-lg font-bold text-muted-foreground"> / {completion.projects.total}</span>
+                </dd>
+              </div>
+            </dl>
+          </section>
+        </FadeIn>
+
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
           <FadeIn delay={0.12}>
-            <Card className="h-full">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Recent Activity</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {recentLessons.length > 0 ? (
-                  <ol className="flex flex-col gap-3" role="list">
-                    {recentLessons.map(({ lesson, completedAt }) => (
-                      <li key={lesson.id} className="flex items-start gap-3">
-                        <CheckCircle2
-                          className="mt-0.5 size-4 shrink-0 text-success"
-                          aria-hidden="true"
-                        />
-                        <div className="flex flex-col gap-0.5 min-w-0">
-                          <Link
-                            href={`/lessons/${lesson.id}`}
-                            className="truncate text-sm font-medium hover:underline"
-                          >
-                            {lesson.title}
-                          </Link>
-                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Calendar className="size-3" aria-hidden="true" />
-                            {formatDate(completedAt)}
-                          </span>
-                        </div>
-                      </li>
-                    ))}
-                  </ol>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Start a lesson to see your journey here.
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+            <section aria-labelledby="patches-heading" className="flex flex-col gap-5">
+              <div className="flex items-baseline justify-between gap-4">
+                <h2 id="patches-heading" className="text-xl font-semibold">
+                  Recent achievements
+                </h2>
+                <Link href="/achievements" className="text-sm font-medium text-primary underline">
+                  All {achievements.total > 0 ? achievements.total : ""} achievements
+                </Link>
+              </div>
+              {recentAchievements.length > 0 ? (
+                <ul className="flex flex-col border-t border-border">
+                  {recentAchievements.map((a) => (
+                    <li key={a.id} className="flex items-center gap-4 border-b border-border py-3">
+                      <AchievementPatch icon={a.icon} tier={a.tier} size="sm" />
+                      <div className="flex min-w-0 flex-col">
+                        <span className="font-semibold">{a.name}</span>
+                        <span className="font-condensed tabular text-xs text-muted-foreground">
+                          {tierStyle(a.tier).label} · {a.xpReward} XP · {formatDate(a.unlockedAt)}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="flex items-center gap-3 rounded-md border border-dashed border-border p-5 text-sm text-muted-foreground">
+                  <SealMark className="size-5" />
+                  Finish your first lesson to earn your first achievement.
+                </div>
+              )}
+            </section>
+          </FadeIn>
+
+          <FadeIn delay={0.14}>
+            <section aria-labelledby="activity-heading" className="flex flex-col gap-5">
+              <h2 id="activity-heading" className="text-xl font-semibold">
+                Recently finished
+              </h2>
+              {recentLessons.length > 0 ? (
+                <ol className="flex flex-col border-t border-border">
+                  {recentLessons.map(({ lesson, completedAt }) => (
+                    <li key={lesson.id} className="flex items-center gap-3 border-b border-border py-3">
+                      <Check className="size-4 shrink-0 text-success" aria-hidden="true" />
+                      <Link
+                        href={`/lessons/${lesson.id}`}
+                        className="min-w-0 flex-1 truncate font-medium hover:underline"
+                      >
+                        {lesson.title}
+                      </Link>
+                      <span className="font-condensed tabular shrink-0 text-sm text-muted-foreground">
+                        {formatDate(completedAt)}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="rounded-md border border-dashed border-border p-5 text-sm text-muted-foreground">
+                  Lessons you finish show up here.
+                </p>
+              )}
+            </section>
           </FadeIn>
         </div>
       </StaggerContainer>

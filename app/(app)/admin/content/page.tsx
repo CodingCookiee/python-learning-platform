@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { isAdmin } from "@/lib/api-auth";
+import { AdminHeader } from "@/components/admin/admin-header";
 import { prisma } from "@/lib/prisma";
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
@@ -36,10 +37,11 @@ export default async function ContentManagementPage() {
           />
         </FadeIn>
         <FadeIn delay={0.05}>
-          <div className="flex flex-col gap-1">
-            <h1 className="font-heading text-2xl font-semibold sm:text-3xl">Content Management</h1>
-            <p className="text-sm text-muted-foreground">Manage modules, lessons, and exercises.</p>
-          </div>
+          <AdminHeader
+            active="content"
+            title="Content"
+            description="The syllabus: modules in order, with their lessons and capstone projects."
+          />
         </FadeIn>
         <FadeIn delay={0.1}>
           <ContentClient initialModules={modules} />

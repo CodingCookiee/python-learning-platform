@@ -133,6 +133,7 @@ export function BeltLadder({
   showDan = true,
   className,
   hereLabel = "You start here",
+  earnedLabel,
 }: {
   currentBelt?: BeltKey;
   stripes?: number;
@@ -140,7 +141,10 @@ export function BeltLadder({
   showDan?: boolean;
   className?: string;
   hereLabel?: string;
+  /** Tag text once a stripe is on the current belt (e.g. "Stripe earned") */
+  earnedLabel?: string;
 }) {
+  const tagLabel = stripes > 0 && earnedLabel ? earnedLabel : hereLabel;
   const items = rungs(showDan);
 
   function band(r: Rung, isCurrent: boolean, extra?: string) {
@@ -171,7 +175,7 @@ export function BeltLadder({
               aria-current={isCurrent ? "step" : undefined}
             >
               <span className="flex h-5 items-end">
-                {isCurrent && <HereTag label={stripes > 0 ? "Stripe earned" : hereLabel} />}
+                {isCurrent && <HereTag label={tagLabel} />}
               </span>
               {band(r, isCurrent)}
               <span className="mt-2 flex min-w-0 flex-col">
@@ -203,7 +207,7 @@ export function BeltLadder({
                 <span className="font-condensed tabular text-xs text-muted-foreground">{r.range}</span>
                 {isCurrent && (
                   <span className="rounded-sm bg-highlight px-1.5 text-xs font-semibold text-highlight-foreground">
-                    {stripes > 0 ? "Stripe earned" : hereLabel}
+                    {tagLabel}
                   </span>
                 )}
               </span>

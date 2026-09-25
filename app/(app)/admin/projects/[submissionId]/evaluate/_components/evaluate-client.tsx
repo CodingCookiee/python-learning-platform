@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -124,7 +124,7 @@ export function EvaluateClient({ submission }: EvaluateClientProps) {
           <CardContent className="flex flex-col gap-3">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="flex flex-col gap-0.5">
-                <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                <span className="text-sm font-medium text-muted-foreground">
                   Submitter
                 </span>
                 <span className="text-sm">
@@ -137,7 +137,7 @@ export function EvaluateClient({ submission }: EvaluateClientProps) {
                 )}
               </div>
               <div className="flex flex-col gap-0.5">
-                <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                <span className="text-sm font-medium text-muted-foreground">
                   Submitted
                 </span>
                 <span className="flex items-center gap-1.5 text-sm">
@@ -147,7 +147,7 @@ export function EvaluateClient({ submission }: EvaluateClientProps) {
               </div>
             </div>
             <div className="flex flex-col gap-0.5">
-              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              <span className="text-sm font-medium text-muted-foreground">
                 Project
               </span>
               <span className="text-sm">{submission.project.title}</span>
@@ -175,7 +175,7 @@ export function EvaluateClient({ submission }: EvaluateClientProps) {
           <CardContent className="flex flex-col gap-4">
             {filesPayload.type === "github" ? (
               <div className="flex flex-col gap-2">
-                <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                <span className="text-sm font-medium text-muted-foreground">
                   GitHub Repository
                 </span>
                 <a
@@ -191,7 +191,7 @@ export function EvaluateClient({ submission }: EvaluateClientProps) {
               </div>
             ) : (
               <div className="flex flex-col gap-2">
-                <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                <span className="text-sm font-medium text-muted-foreground">
                   Submitted Files
                 </span>
                 {filesPayload.files && filesPayload.files.length > 0 ? (
@@ -250,7 +250,7 @@ export function EvaluateClient({ submission }: EvaluateClientProps) {
             )}
             {filesPayload.notes && (
               <div className="flex flex-col gap-2">
-                <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                <span className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
                   <StickyNote className="size-3.5" aria-hidden="true" />
                   Notes from submitter
                 </span>

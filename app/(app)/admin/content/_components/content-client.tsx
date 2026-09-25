@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import Link from "next/link";
@@ -8,8 +8,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { getCurriculumPhaseLabel } from "@/lib/curriculum";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { BeltBand } from "@/components/brand/belt";
+import { beltForModule } from "@/lib/ranks";
 
 interface Module {
   id: string;
@@ -42,6 +53,7 @@ export function ContentClient({ initialModules }: ContentClientProps) {
   const [saving, setSaving] = React.useState(false);
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
   const [error, setError] = React.useState("");
+  const [listError, setListError] = React.useState<string | null>(null);
 
   function openCreate() {
     setEditingId(null);
@@ -95,7 +107,7 @@ export function ContentClient({ initialModules }: ContentClientProps) {
       });
       const data = (await res.json()) as { module?: Module; error?: string };
       if (!res.ok) {
-        setError(data.error ?? "Failed to save.");
+        setError(data.error ?? "That module didn't save. Check the fields and try again.");
         return;
       }
       if (editingId) {
@@ -105,7 +117,7 @@ export function ContentClient({ initialModules }: ContentClientProps) {
       }
       closeForm();
     } catch {
-      setError("Network error.");
+      setError("We couldn't reach the server. Nothing was saved.");
     } finally {
       setSaving(false);
     }
@@ -113,11 +125,13 @@ export function ContentClient({ initialModules }: ContentClientProps) {
 
   async function handleDelete(id: string) {
     setDeletingId(id);
+    setListError(null);
     try {
       const res = await fetch(`/api/admin/content/modules/${id}`, { method: "DELETE" });
       if (res.ok) setModules((prev) => prev.filter((m) => m.id !== id));
+      else setListError("That module wasn't deleted. Refresh the page and try again.");
     } catch {
-      /* silent */
+      setListError("We couldn't reach the server, so nothing was deleted.");
     } finally {
       setDeletingId(null);
     }
@@ -127,12 +141,12 @@ export function ContentClient({ initialModules }: ContentClientProps) {
     <div className="flex flex-col gap-6">
       {/* Modules section */}
       <div className="flex items-center justify-between">
-        <h2 className="font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground">
-          Modules ({modules.length})
+        <h2 className="text-xl font-semibold">
+          Modules <span className="font-condensed tabular text-muted-foreground">{modules.length}</span>
         </h2>
         <Button size="sm" onClick={openCreate}>
-          <Plus className="size-3.5" aria-hidden="true" />
-          Add Module
+          <Plus aria-hidden="true" />
+          Add module
         </Button>
       </div>
 
@@ -154,8 +168,8 @@ export function ContentClient({ initialModules }: ContentClientProps) {
                   className="flex flex-col gap-4"
                 >
                   <div className="flex items-center justify-between">
-                    <p className="font-heading text-sm font-semibold">
-                      {editingId ? "Edit Module" : "New Module"}
+                    <p className="text-lg font-semibold">
+                      {editingId ? "Edit module" : "New module"}
                     </p>
                     <Button
                       type="button"
@@ -169,7 +183,7 @@ export function ContentClient({ initialModules }: ContentClientProps) {
                   </div>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div className="flex flex-col gap-1.5">
-                      <label htmlFor="mod-title" className="text-xs font-medium">
+                      <label htmlFor="mod-title" className="text-sm font-semibold">
                         Title
                       </label>
                       <Input
@@ -182,7 +196,7 @@ export function ContentClient({ initialModules }: ContentClientProps) {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="flex flex-col gap-1.5">
-                        <label htmlFor="mod-phase" className="text-xs font-medium">
+                        <label htmlFor="mod-phase" className="text-sm font-semibold">
                           Phase
                         </label>
                         <Input
@@ -193,8 +207,8 @@ export function ContentClient({ initialModules }: ContentClientProps) {
                         />
                       </div>
                       <div className="flex flex-col gap-1.5">
-                        <label htmlFor="mod-duration" className="text-xs font-medium">
-                          Duration (hrs)
+                        <label htmlFor="mod-duration" className="text-sm font-semibold">
+                          Duration (hours)
                         </label>
                         <Input
                           id="mod-duration"
@@ -207,7 +221,7 @@ export function ContentClient({ initialModules }: ContentClientProps) {
                     </div>
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label htmlFor="mod-desc" className="text-xs font-medium">
+                    <label htmlFor="mod-desc" className="text-sm font-semibold">
                       Description
                     </label>
                     <Textarea
@@ -246,70 +260,122 @@ export function ContentClient({ initialModules }: ContentClientProps) {
         )}
       </AnimatePresence>
 
-      {/* Module list */}
+      {/* Module list: the syllabus as a ruled table */}
+      {listError && (
+        <p role="alert" className="flex items-center gap-2 text-sm text-destructive">
+          <AlertCircle className="size-4" aria-hidden="true" />
+          {listError}
+        </p>
+      )}
       {modules.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
-            <BookOpen className="size-8 text-muted-foreground" aria-hidden="true" />
-            <p className="text-sm text-muted-foreground">No modules yet. Add one above.</p>
-          </CardContent>
-        </Card>
+        <div className="flex flex-col items-center gap-3 rounded-md border border-dashed border-border py-12 text-center">
+          <BookOpen className="size-8 text-muted-foreground" aria-hidden="true" />
+          <p className="text-sm text-muted-foreground">No modules yet. Add the first one above.</p>
+        </div>
       ) : (
-        <div className="flex flex-col gap-3">
-          {modules.map((mod) => (
-            <Card key={mod.id}>
-              <CardContent className="flex flex-col gap-3 pt-5 sm:flex-row sm:items-start sm:justify-between">
-                <div className="flex flex-col gap-2 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-heading text-xs font-semibold tracking-widest uppercase text-muted-foreground">
-                      #{mod.order}
-                    </span>
-                    <Badge variant="secondary" className="text-xs">
-                      {getCurriculumPhaseLabel(mod.phase)}
-                    </Badge>
-                    <Badge variant="outline" className="text-xs">
-                      {mod.duration}h
-                    </Badge>
-                  </div>
-                  <p className="font-heading text-sm font-semibold">{mod.title}</p>
-                  <p className="text-xs text-muted-foreground line-clamp-2">{mod.description}</p>
-                  <div className="flex gap-3 text-xs text-muted-foreground">
-                    <Link
-                      href={`/modules/${mod.id}`}
-                      className="hover:text-foreground transition-colors underline-offset-2 hover:underline"
-                    >
-                      {mod._count.lessons} lessons
-                    </Link>
-                    <span>{mod._count.projects} projects</span>
-                  </div>
-                </div>
-                <div className="flex shrink-0 gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => openEdit(mod)}
-                    aria-label={`Edit ${mod.title}`}
-                  >
-                    <Pencil className="size-3.5" aria-hidden="true" />
-                    Edit
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      void handleDelete(mod.id);
-                    }}
-                    disabled={deletingId === mod.id}
-                    className="text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30"
-                    aria-label={`Delete ${mod.title}`}
-                  >
-                    <Trash2 className="size-3.5" aria-hidden="true" />
-                    {deletingId === mod.id ? "Deleting\u2026" : "Delete"}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[46rem] border-collapse text-left">
+            <thead>
+              <tr className="border-b border-border text-sm text-muted-foreground">
+                <th scope="col" className="w-12 py-2.5 pr-3 font-medium">
+                  #
+                </th>
+                <th scope="col" className="py-2.5 pr-4 font-medium">
+                  Module
+                </th>
+                <th scope="col" className="w-32 py-2.5 pr-4 font-medium">
+                  Belt
+                </th>
+                <th scope="col" className="w-40 py-2.5 pr-4 font-medium">
+                  Contents
+                </th>
+                <th scope="col" className="w-44 py-2.5">
+                  <span className="sr-only">Actions</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {modules.map((mod) => {
+                const belt = beltForModule(mod.order);
+                return (
+                  <tr key={mod.id} className="border-b border-border align-top">
+                    <td className="font-condensed tabular py-4 pr-3 text-lg font-bold text-muted-foreground">
+                      {String(mod.order).padStart(2, "0")}
+                    </td>
+                    <td className="py-4 pr-4">
+                      <span className="flex flex-col gap-1">
+                        <Link href={`/modules/${mod.id}`} className="font-semibold hover:underline">
+                          {mod.title}
+                        </Link>
+                        <span className="line-clamp-2 max-w-2xl text-sm text-muted-foreground">
+                          {mod.description}
+                        </span>
+                      </span>
+                    </td>
+                    <td className="py-4 pr-4">
+                      <span className="flex flex-col gap-1.5">
+                        <BeltBand belt={belt.key} className="h-3 w-20" />
+                        <span className="text-sm">{belt.label}</span>
+                      </span>
+                    </td>
+                    <td className="font-condensed tabular py-4 pr-4 text-sm">
+                      {mod._count.lessons} {mod._count.lessons === 1 ? "lesson" : "lessons"}
+                      <br />
+                      {mod._count.projects} {mod._count.projects === 1 ? "project" : "projects"} · ~
+                      {mod.duration} h
+                    </td>
+                    <td className="py-4">
+                      <span className="flex justify-end gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => openEdit(mod)}
+                          aria-label={`Edit ${mod.title}`}
+                        >
+                          <Pencil aria-hidden="true" />
+                          Edit
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              disabled={deletingId === mod.id}
+                              aria-label={`Delete ${mod.title}`}
+                            >
+                              <Trash2 aria-hidden="true" />
+                              {deletingId === mod.id ? "Deleting…" : "Delete"}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete “{mod.title}”?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This also deletes its {mod._count.lessons} lessons and{" "}
+                                {mod._count.projects} capstone projects, and every learner&apos;s
+                                progress and submissions in them. It can&apos;t be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Keep module</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => {
+                                  void handleDelete(mod.id);
+                                }}
+                                className="bg-destructive text-sheet hover:bg-destructive/90"
+                              >
+                                Delete module
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

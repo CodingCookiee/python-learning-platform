@@ -48,7 +48,12 @@ export function Hero({ moduleCount, lessonCount }: { moduleCount: number; lesson
       </div>
 
       <div className="mx-auto mt-14 max-w-7xl lg:mt-20">
-        <BeltLadder currentBelt="white" stripes={stripes} fresh={stripes ? 0 : undefined} />
+        <BeltLadder
+          currentBelt="white"
+          stripes={stripes}
+          fresh={stripes ? 0 : undefined}
+          earnedLabel="Stripe earned"
+        />
       </div>
     </section>
   );

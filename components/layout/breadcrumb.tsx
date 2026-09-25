@@ -50,7 +50,7 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
   return (
     <nav
       aria-label="Breadcrumb"
-      className="flex items-center gap-1 text-xs text-muted-foreground overflow-x-auto scrollbar-none flex-nowrap"
+      className="flex items-center gap-1 text-sm text-muted-foreground overflow-x-auto scrollbar-none flex-nowrap"
     >
       {crumbs.map((crumb, index) => {
         const isLast = index === crumbs.length - 1;
@@ -62,7 +62,7 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
             {crumb.href && !isLast ? (
               <Link
                 href={crumb.href}
-                className="font-semibold tracking-widest uppercase transition-colors hover:text-foreground"
+                className="font-medium transition-colors hover:text-foreground"
               >
                 {crumb.label}
               </Link>
@@ -70,8 +70,8 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
               <span
                 className={
                   isLast
-                    ? "font-semibold tracking-widest uppercase text-foreground"
-                    : "font-semibold tracking-widest uppercase"
+                    ? "font-medium text-foreground"
+                    : "font-medium"
                 }
                 aria-current={isLast ? "page" : undefined}
               >

@@ -5,7 +5,6 @@ import type { CSSProperties } from "react";
 import { cn } from "@/lib/utils";
 import { renderAchievementIcon } from "@/lib/achievement-icon";
 import { tierStyle } from "@/lib/achievement-tier";
-import { LockedMark } from "@/components/brand/marks";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export interface AchievementBadgeProps {
@@ -71,11 +70,12 @@ export function AchievementPatch({
           locked ? "border-transparent" : "border-current/35"
         )}
       >
-        {locked ? (
-          <LockedMark style={{ width: s.icon * 0.8, height: s.icon * 0.8 }} />
-        ) : (
-          renderAchievementIcon({ iconName: icon, size: s.icon })
-        )}
+        {/* Locked patches still show what they're for, faded */}
+        {renderAchievementIcon({
+          iconName: icon,
+          size: s.icon,
+          className: locked ? "opacity-45" : undefined,
+        })}
       </span>
     </span>
   );

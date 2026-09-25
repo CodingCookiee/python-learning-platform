@@ -25,7 +25,7 @@ export function EditProfileForm({ initialName, onSaved }: EditProfileFormProps) 
   async function handleSave() {
     const trimmed = name.trim();
     if (!trimmed) {
-      setError("Name cannot be empty");
+      setError("Enter a name to save.");
       return;
     }
     setSaving(true);
@@ -37,13 +37,13 @@ export function EditProfileForm({ initialName, onSaved }: EditProfileFormProps) 
         body: JSON.stringify({ name: trimmed }),
       });
       if (!res.ok) {
-        setError("Failed to save");
+        setError("That didn't save. Try again in a moment.");
         return;
       }
       onSaved(trimmed);
       setEditing(false);
     } catch {
-      setError("Network error");
+      setError("We couldn't reach the server. Check your connection.");
     } finally {
       setSaving(false);
     }
@@ -53,7 +53,7 @@ export function EditProfileForm({ initialName, onSaved }: EditProfileFormProps) 
     return (
       <Button variant="outline" size="sm" onClick={() => setEditing(true)} aria-label="Edit name">
         <Pencil className="size-3.5" aria-hidden="true" />
-        Edit Profile
+        Edit name
       </Button>
     );
   }
@@ -76,7 +76,7 @@ export function EditProfileForm({ initialName, onSaved }: EditProfileFormProps) 
             }}
             maxLength={80}
             aria-label="Display name"
-            className="h-8 max-w-xs text-sm"
+            className="h-9 max-w-xs"
           />
           <Button size="sm" onClick={() => void handleSave()} disabled={saving} aria-label="Save">
             <Check className="size-3.5" aria-hidden="true" />
