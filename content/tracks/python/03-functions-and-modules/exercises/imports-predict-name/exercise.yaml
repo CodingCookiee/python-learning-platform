@@ -1,0 +1,8 @@
+title: "Predict: names, aliases and __main__"
+type: predict
+difficulty: core
+tags: [imports, modules, main-guard]
+hints:
+  - The file you run is always called "__main__". An imported module keeps its real name even when you import it under an alias.
+  - "from math import floor as round_down binds a new name to the very same function object as math.floor."
+  - Because the file is being run, the guard is true and main() runs before the last line.

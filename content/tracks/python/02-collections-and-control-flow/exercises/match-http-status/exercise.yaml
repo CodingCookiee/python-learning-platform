@@ -1,0 +1,7 @@
+title: Status code labels
+type: function
+difficulty: warm-up
+tags: [match, literal-patterns]
+hints:
+  - One case per label. "case 500 | 502 | 503:" matches any of the three.
+  - "case _: goes last and catches every other code."

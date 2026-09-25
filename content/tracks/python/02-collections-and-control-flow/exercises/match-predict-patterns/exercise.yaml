@@ -1,0 +1,8 @@
+title: "Predict: which case wins?"
+type: predict
+difficulty: core
+tags: [match, sequence-patterns, mapping-patterns, class-patterns, guards]
+hints:
+  - Cases are tried top to bottom, and the first one that fits wins. A guard that's false means "keep looking".
+  - "[x] needs exactly one item and [first, *rest] needs at least one, so an empty list matches neither. Strings never match list patterns."
+  - True is an int whose value is 1, so it isn't 0 and isn't negative. Which case does that leave?

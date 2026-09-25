@@ -1,0 +1,8 @@
+title: Cooperative mixins
+type: function
+difficulty: stretch
+tags: [inheritance, mixins, super, mro]
+hints:
+  - Neither mixin needs a parent class. Each to_dict starts with data = super().to_dict(), changes data, and returns it. super() finds whatever comes next in the MRO of the actual object.
+  - "RedactMixin needs a default, redacted = (), as a class attribute. Subclasses override it. Remove keys with data.pop(key, None) so a missing key is fine."
+  - "Customer and Employee are one line each plus their redacted tuple: class Customer(RedactMixin, TypeTagMixin, Record):"

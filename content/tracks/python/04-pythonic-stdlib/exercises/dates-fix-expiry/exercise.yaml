@@ -1,0 +1,8 @@
+title: Expiry checks that crash
+type: fix
+difficulty: core
+tags: [datetime, timezones, iso8601]
+packages: [tzdata]
+hints:
+  - Slicing off the first 19 characters throws the offset away, so the parsed expiry is naive, and naive and aware datetimes can't be compared.
+  - datetime.fromisoformat reads the whole ISO string, offset included, and returns an aware datetime.

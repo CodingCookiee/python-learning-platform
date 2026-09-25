@@ -1,0 +1,7 @@
+title: Parse a log timestamp
+type: function
+difficulty: warm-up
+tags: [datetime, strptime, parsing]
+hints:
+  - datetime.strptime(text, format) parses text in a format you describe with % codes.
+  - "The format is \"%d/%b/%Y:%H:%M:%S %z\". The %z at the end reads the +0000 and makes the result aware."

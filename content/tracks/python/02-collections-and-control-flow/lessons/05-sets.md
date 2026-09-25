@@ -109,6 +109,33 @@ required <= granted, required - granted
 > members. Python compares by value, which is why only hashable values like strings, numbers and
 > tuples can go in a set.
 
+## Dict keys work like a set
+
+A dict's keys are unique and hashable, just like a set's members, so the `keys()` view supports the
+same operators. That's the quickest way to compare two dicts by what they contain rather than by
+their values:
+
+```python
+leeds = {"MUG-01": 12, "TEE-02": 0, "CAP-03": 7}
+york = {"TEE-02": 4, "SCARF-04": 9, "CAP-03": 1}
+
+both = leeds.keys() & york.keys()
+only_leeds = leeds.keys() - york.keys()
+
+sorted(both), sorted(only_leeds)
+```
+
+The same idea checks that a payload has every field you need before you use it. `set(order)` is the
+set of the dict's keys:
+
+```python
+required = {"id", "customer", "total"}
+order = {"id": "ORD-1042", "total": 59.90, "notes": "leave by door"}
+
+missing = required - set(order)
+sorted(missing)
+```
+
 ## Only hashable values
 
 Everything in a set must be hashable, for the same reason dict keys must be: its hash decides where

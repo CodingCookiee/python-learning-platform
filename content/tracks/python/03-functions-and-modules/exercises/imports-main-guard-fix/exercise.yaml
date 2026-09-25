@@ -1,0 +1,8 @@
+title: Make the script importable
+type: fix
+difficulty: core
+tags: [modules, main-guard, imports]
+hints:
+  - The tests import your file. Everything at the top level runs during that import, including the input() loop, and there's no one there to type.
+  - Move the loop and the final print into a function called main(), without changing what they do.
+  - "Then, at the bottom of the file: if __name__ == \"__main__\": main()"

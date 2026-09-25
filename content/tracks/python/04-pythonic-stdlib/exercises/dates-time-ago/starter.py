@@ -1,0 +1,3 @@
+def time_ago(then, now):
+    """A human description of how long before now (both aware datetimes) then was."""
+    ...

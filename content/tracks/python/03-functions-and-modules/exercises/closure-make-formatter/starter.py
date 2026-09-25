@@ -1,0 +1,3 @@
+def make_formatter(symbol, *, decimals=2):
+    """Return a function that formats an amount as money, e.g. "£1,234.50"."""
+    ...

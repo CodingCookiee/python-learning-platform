@@ -1,0 +1,8 @@
+title: A money formatter factory
+type: function
+difficulty: core
+tags: [closures, functions-as-values, f-strings]
+hints:
+  - Define a function inside make_formatter that takes an amount, and return that inner function without calling it.
+  - "The inner function can use symbol and decimals from the enclosing call. A format spec like f\"{amount:,.{decimals}f}\" adds thousands separators and fixes the decimals."
+  - "Format abs(amount), then put a \"-\" in front of the symbol when amount < 0."

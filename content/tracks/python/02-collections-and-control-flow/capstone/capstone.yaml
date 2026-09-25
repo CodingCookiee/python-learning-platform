@@ -1,0 +1,20 @@
+slug: gradebook-report
+title: Gradebook report
+summary: Parse raw "name, subject, score" lines and print per-student and per-subject statistics, with bad lines reported rather than crashing the program.
+hours: 3
+xp: 150
+requirements:
+  - Reads "name, subject, score" lines from input until a blank line
+  - Treats names and subjects case-insensitively, ignores surrounding spaces, and shows them in title case
+  - Accepts whole-number scores from 0 to 100, and counts every score, including retakes in the same subject
+  - Skips invalid lines and lists each one at the end with its line number, its text and the reason
+  - Prints a students table with each student's number of scores, average, letter grade and best subject
+  - Prints a subjects table with each subject's number of scores, average, lowest, highest and top student
+  - Sorts students by average (highest first, ties by name) and subjects alphabetically
+criteria:
+  - The sample input in the brief produces exactly the sample output, including column alignment
+  - Averages are correct and shown to one decimal place; letter grades use the unrounded average
+  - Ties for best subject and top student go to the alphabetically first name
+  - No input line can crash the program; every bad line appears in the skipped list with the right reason
+  - Scores are grouped with dicts (for example with setdefault) rather than by rescanning the whole list for every student and subject
+  - The code uses the module's idioms where they fit (unpacking, comprehensions, match), and names are clear

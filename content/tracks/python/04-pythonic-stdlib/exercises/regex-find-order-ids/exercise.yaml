@@ -1,0 +1,7 @@
+title: Find order ids in an email
+type: function
+difficulty: warm-up
+tags: [re, findall]
+hints:
+  - re.findall returns every match. \d means a digit and {4,} means "four or more of the thing before".
+  - "Put \\b at both ends so an id can't be part of a longer word: r\"\\bORD-\\d{4,}\\b\"."

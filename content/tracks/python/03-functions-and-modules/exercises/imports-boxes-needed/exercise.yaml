@@ -1,0 +1,7 @@
+title: How many boxes?
+type: function
+difficulty: warm-up
+tags: [imports, math]
+hints:
+  - Dividing gives a fraction of a box, and a fraction of a box is still a whole box. math.ceil rounds up to the next whole number.
+  - "Put import math at the top of the file, then return math.ceil(items / per_box)."

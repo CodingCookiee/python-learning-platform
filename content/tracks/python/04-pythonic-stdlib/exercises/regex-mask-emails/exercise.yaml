@@ -1,0 +1,7 @@
+title: Mask email addresses
+type: function
+difficulty: core
+tags: [re, sub, groups]
+hints:
+  - "re.sub can keep parts of the match: capture the first character and the domain as groups, and use \\1 and \\2 in the replacement."
+  - "The local part (before @) is letters, digits, dots, plus signs, dashes and underscores: [\\w.+-]. A domain is words joined by dots: [\\w-]+(?:\\.[\\w-]+)+"

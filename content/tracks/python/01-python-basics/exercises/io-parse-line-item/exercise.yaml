@@ -1,0 +1,8 @@
+title: Parse a line item
+type: function
+difficulty: stretch
+tags: [input, strings, split, decimal, main-guard]
+hints:
+  - "line.split(\",\") gives three pieces. Unpack them into three names, then strip and convert each one."
+  - "Convert the quantity with int() and the price with Decimal(), never float(): this is money."
+  - "In the main block: name, quantity, unit_price = parse_item(input(\"Item: \")), then print with f\"{quantity} x {name} = {quantity * unit_price:.2f}\"."

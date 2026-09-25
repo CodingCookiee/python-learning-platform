@@ -1,0 +1,7 @@
+title: "Predict: which variable is it?"
+type: predict
+difficulty: warm-up
+tags: [scope, legb]
+hints:
+  - For each name, look Local first, then in the Enclosing function, then Global, then Built-in. Assigning a name inside a function makes a new local.
+  - change_region's region is a local that disappears when it returns. A for loop doesn't create a scope, so day still exists after it.

@@ -1,0 +1,7 @@
+title: Admins are users too
+type: function
+difficulty: warm-up
+tags: [inheritance, super, override]
+hints:
+  - "class Admin(User): gives Admin everything User has. You only write the two methods that change."
+  - "describe should reuse the parent's text rather than copy it: return super().describe() + \" (admin)\""

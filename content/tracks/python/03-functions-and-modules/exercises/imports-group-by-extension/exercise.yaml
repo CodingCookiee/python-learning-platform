@@ -1,0 +1,8 @@
+title: Sort downloads by file type
+type: function
+difficulty: core
+tags: [imports, pathlib, dicts]
+hints:
+  - "from pathlib import Path. Path(\"reports/q3.CSV\").name is \"q3.CSV\" and .suffix is \".CSV\"."
+  - The key is the suffix without its dot, lower-cased. A name with no extension has an empty suffix, which gives the key "".
+  - Collect the names with setdefault, then sort each list before returning.

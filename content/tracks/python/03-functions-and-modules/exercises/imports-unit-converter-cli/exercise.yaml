@@ -1,0 +1,8 @@
+title: A unit converter, library and CLI
+type: function
+difficulty: stretch
+tags: [modules, main-guard, dicts, functions]
+hints:
+  - "convert goes through metres: value * TO_METRES[from_unit] / TO_METRES[to_unit]. Check both units are in the dict first."
+  - "parse_request splits the line into exactly four words, the third of which must be \"to\", and turns the first into a float."
+  - main loops over input() lines until a blank one, calls the two functions inside try/except ValueError, and prints either the result or "Error:" and the message. Call it from behind the __name__ guard.

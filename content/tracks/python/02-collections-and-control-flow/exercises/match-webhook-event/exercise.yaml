@@ -1,0 +1,8 @@
+title: Route webhook events
+type: function
+difficulty: stretch
+tags: [match, mapping-patterns, class-patterns, guards, f-strings]
+hints:
+  - 'Mapping patterns can nest: {"type": "order.created", "order": {"id": str(order_id), "total": ...}}.'
+  - "int(total) | float(total) checks the type and captures the value in one go. A guard like if amount > 0 goes after the whole pattern."
+  - 'Put {"type": str(kind)} after the specific event cases, and case _: last.'

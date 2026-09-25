@@ -1,0 +1,3 @@
+def handle_event(event):
+    """Describe how to handle a webhook event dict."""
+    ...

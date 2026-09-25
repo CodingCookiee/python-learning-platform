@@ -1,0 +1,8 @@
+title: "Predict: lambdas made in a loop"
+type: predict
+difficulty: core
+tags: [closures, lambda, late-binding, scope]
+hints:
+  - A lambda looks its variables up when it's called, not when it's made. All the handlers lambdas share the one loop variable level.
+  - "In fixed, level=level is a default value, and defaults are worked out when each lambda is created, so each keeps its own."
+  - "By the last two calls, level has been reassigned to \"debug\". Only the lambdas without the default see that."

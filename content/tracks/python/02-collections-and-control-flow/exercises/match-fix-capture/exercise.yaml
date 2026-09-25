@@ -1,0 +1,8 @@
+title: The status that matched everything
+type: fix
+difficulty: core
+tags: [match, capture-patterns, literal-patterns]
+hints:
+  - "case SHIPPED: doesn't compare status with the constant. A bare name is a capture pattern: it matches anything."
+  - Write the literal string "shipped" in that case instead. Then add a case for "delivered".
+  - "Finish with case _: and an f-string for everything else."

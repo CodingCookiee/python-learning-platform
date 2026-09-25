@@ -1,0 +1,9 @@
+title: One meeting, many time zones
+type: function
+difficulty: core
+tags: [datetime, zoneinfo, timezones, strftime]
+packages: [tzdata]
+hints:
+  - For each zone name, convert with meeting.astimezone(ZoneInfo(name)).
+  - Format with strftime("%a %H:%M"), or an f-string such as f"{local:%a %H:%M}". A dict comprehension builds the result in one expression.
+  - A naive datetime has tzinfo None. Check that first and raise ValueError.

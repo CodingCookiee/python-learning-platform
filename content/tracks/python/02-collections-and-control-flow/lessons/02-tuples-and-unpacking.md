@@ -161,6 +161,37 @@ lowest, highest
 `min()` and `max()` work on any collection of comparable items, and `sum()` adds numbers, so you'll
 often combine them with unpacking like this.
 
+## Tuples compare item by item
+
+Tuples (and lists) compare like words in a dictionary: the first items are compared, and only if they
+are equal does Python look at the second items, and so on. That makes sorting records by several
+things at once very easy. Put the most important thing first:
+
+```python
+results = [("Grace", 88), ("Ada", 91), ("Linus", 88), ("Ken", 64)]
+by_name = sorted(results)
+
+leaderboard = [(-88, "Grace"), (-91, "Ada"), (-88, "Linus"), (-64, "Ken")]
+ranked = sorted(leaderboard)
+
+by_name, ranked
+```
+
+`sorted(results)` sorts by name because the name is first in each tuple. For the leaderboard, each
+record is stored as `(-score, name)`: negating the score makes the highest score the smallest number,
+so it sorts first, and the name breaks ties alphabetically, so Grace comes before Linus. You'll see
+how to build records like that from `results` in one line in the comprehensions lesson.
+
+```quiz
+question: "Which is smaller: `(2, \"zebra\")` or `(10, \"apple\")`?"
+options:
+  - "(2, \"zebra\"), because 2 < 10"
+  - "(10, \"apple\"), because \"apple\" < \"zebra\""
+  - "Neither; comparing them raises TypeError"
+answer: 0
+explain: "The first items differ, so they decide the result on their own. The second items are only compared when the first ones are equal."
+```
+
 > [!WARNING]
 > A tuple can't change, but the objects inside it can. `("ORD-1042", ["mug"])` holds a list, and
 > `order[1].append("tee")` works fine. The tuple still points at the same list; it's the list that

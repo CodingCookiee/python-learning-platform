@@ -1,0 +1,7 @@
+title: A savings account that skips its parent
+type: fix
+difficulty: core
+tags: [inheritance, super, init]
+hints:
+  - SavingsAccount defines its own __init__, which replaces BankAccount's. Nothing sets owner, balance or history unless you call super().__init__(owner, balance).
+  - deposit repeats part of the parent's logic and misses the history. Adjust the amount, then hand over to super().deposit(amount).

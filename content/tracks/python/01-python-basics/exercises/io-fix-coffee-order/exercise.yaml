@@ -1,0 +1,7 @@
+title: Fix the coffee order
+type: program
+difficulty: core
+tags: [input, conversion, int]
+hints:
+  - Read the error from the bottom up. What type is quantity when it reaches the multiplication?
+  - input() always returns a str. Convert it with int() before doing arithmetic with it.

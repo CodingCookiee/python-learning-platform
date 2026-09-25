@@ -1,0 +1,8 @@
+title: Parse a web-server log line
+type: function
+difficulty: core
+tags: [re, named-groups, parsing]
+hints:
+  - "Build the pattern piece by piece with named groups: (?P<ip>\\S+) for the address, \\[(?P<time>[^\\]]+)\\] for the bracketed time, and so on."
+  - Use match (the line must start with the entry) rather than fullmatch, because some servers add more fields after the size.
+  - "m.groupdict() gives the named groups as a dict of strings. Convert status to int, and size to int with \"-\" meaning 0."

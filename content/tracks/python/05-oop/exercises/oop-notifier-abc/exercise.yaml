@@ -1,0 +1,8 @@
+title: Notifiers with an abstract base
+type: function
+difficulty: core
+tags: [abc, abstractmethod, inheritance]
+hints:
+  - "class Notifier(ABC): with @abstractmethod on send. Its body can be just a docstring. notify and broadcast are ordinary methods that call self.send(...)."
+  - broadcast can skip repeats with dict.fromkeys(recipients), which keeps the first-seen order.
+  - The subclasses only implement send. They inherit __init__, notify and broadcast from Notifier.

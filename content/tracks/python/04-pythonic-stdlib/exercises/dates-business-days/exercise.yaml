@@ -1,0 +1,7 @@
+title: Add business days
+type: function
+difficulty: core
+tags: [datetime, date, timedelta, loops]
+hints:
+  - Step forward one day at a time with timedelta(days=1), and count only the days that are working days.
+  - date.weekday() is 5 for Saturday and 6 for Sunday, so a working day has weekday() < 5 and isn't in holidays.

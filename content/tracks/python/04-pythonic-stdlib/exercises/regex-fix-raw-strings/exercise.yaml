@@ -1,0 +1,7 @@
+title: The price finder that finds nothing
+type: fix
+difficulty: core
+tags: [re, raw-strings, escaping]
+hints:
+  - In a normal string, "\b" is a backspace character, so the pattern looks for a backspace that is never there. Use a raw string, r"...".
+  - Once it finds prices, check what "." means in a pattern. To match a literal dot, escape it as \. inside the raw string.

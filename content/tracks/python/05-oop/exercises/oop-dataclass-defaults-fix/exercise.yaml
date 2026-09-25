@@ -1,0 +1,7 @@
+title: Carts that share everything
+type: fix
+difficulty: core
+tags: [dataclasses, field, default_factory, mutability]
+hints:
+  - Every default in a dataclass is created once, when the class is defined. The dict and the cart id both need to be made fresh for each cart.
+  - "field(default_factory=dict) makes a new dict per cart. field(default_factory=next_cart_id) calls the function per cart. Pass the function itself, without brackets."

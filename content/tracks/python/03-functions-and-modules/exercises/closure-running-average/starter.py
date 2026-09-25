@@ -1,0 +1,3 @@
+def make_averager():
+    """Return record(ms=None): add a response time (if given) and return the running average."""
+    ...

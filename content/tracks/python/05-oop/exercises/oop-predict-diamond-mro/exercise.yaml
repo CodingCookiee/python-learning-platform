@@ -1,0 +1,8 @@
+title: "Predict: the diamond"
+type: predict
+difficulty: core
+tags: [inheritance, mro, super, multiple-inheritance]
+hints:
+  - Write out each MRO first. A class comes before its parents, parents keep their listed order, and the shared Notification comes after all its children.
+  - super() moves to the next class in the MRO of the object being rendered, not to the class's own parent. For a Newsletter, the class after Branded is Tracked.
+  - Tracked adds its part after calling super(), so "pixel" ends up at the end of the list.

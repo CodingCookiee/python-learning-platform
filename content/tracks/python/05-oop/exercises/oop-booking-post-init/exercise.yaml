@@ -1,0 +1,7 @@
+title: Hotel bookings that check themselves
+type: function
+difficulty: core
+tags: [dataclasses, post_init, field, datetime, validation]
+hints:
+  - Declare nights and total with field(init=False) so they aren't __init__ parameters, then set them in __post_init__.
+  - "In __post_init__, convert first (isinstance(self.check_in, str) means date.fromisoformat), then validate, then compute: (self.check_out - self.check_in).days is the number of nights."

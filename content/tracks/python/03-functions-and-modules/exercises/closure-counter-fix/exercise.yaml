@@ -1,0 +1,8 @@
+title: Fix the ticket counter
+type: fix
+difficulty: core
+tags: [closures, nonlocal, scope]
+hints:
+  - count += 1 assigns to count, and assigning makes a name local to next_id. So Python never looks at the count in make_counter.
+  - Declare that count belongs to the enclosing function, not to next_id. Don't use global, or every counter would share one count.
+  - Add nonlocal count as the first line of next_id.

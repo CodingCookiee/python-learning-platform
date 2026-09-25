@@ -1,0 +1,8 @@
+title: Sortable version numbers
+type: function
+difficulty: stretch
+tags: [dunder, eq, hash, ordering, total_ordering]
+hints:
+  - Parse once, in __init__. Strip a leading "v", split on ".", convert each part with int() (it raises ValueError for you on "x"), and pad the list with zeros to three parts.
+  - Keep one private _key() that returns (major, minor, patch). Build __eq__, __lt__ and __hash__ on it, and return NotImplemented when other isn't a Version.
+  - "@total_ordering above the class fills in <=, > and >= from __eq__ and __lt__."

@@ -1,0 +1,8 @@
+title: How long ago
+type: function
+difficulty: stretch
+tags: [datetime, timedelta, conditionals]
+hints:
+  - Subtract to get a timedelta, then work with one number, total_seconds(), rounded down with int() or //.
+  - Check the ranges from smallest to largest, and remember "1 minute ago" but "2 minutes ago".
+  - Aware datetimes in different zones subtract correctly, so you don't need to convert either one first.

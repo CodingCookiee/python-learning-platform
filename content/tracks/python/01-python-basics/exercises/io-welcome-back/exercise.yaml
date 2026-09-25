@@ -1,0 +1,7 @@
+title: Welcome back
+type: program
+difficulty: warm-up
+tags: [input, print, strings]
+hints:
+  - 'input("Your name: ") shows the question and returns what was typed, as a string.'
+  - Strip the name before you use it, then print it inside an f-string.

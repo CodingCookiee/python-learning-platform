@@ -1,0 +1,7 @@
+title: "Predict: findall, sub and greedy matches"
+type: predict
+difficulty: core
+tags: [re, findall, groups]
+hints:
+  - With no groups, findall returns the matched text. With groups, it returns the groups, as tuples when there is more than one.
+  - count=1 replaces only the first match. .+ is greedy and runs to the last > it can find, while .+? stops at the first.

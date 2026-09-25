@@ -1,0 +1,8 @@
+title: Parse a cart command
+type: function
+difficulty: core
+tags: [match, sequence-patterns, guards, starred]
+hints:
+  - Match on command.split(), so each case can be a list pattern like ["add", item].
+  - '"add mug 3" and "add mug lots" have the same shape. A guard (if quantity.isdigit()) tells them apart.'
+  - '["remove", *items] also matches ["remove"] with no items. Add a guard so an empty remove falls through to unknown.'

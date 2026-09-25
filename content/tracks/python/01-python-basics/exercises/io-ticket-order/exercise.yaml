@@ -1,0 +1,8 @@
+title: Ticket order
+type: program
+difficulty: core
+tags: [input, validation, conditions, f-strings]
+hints:
+  - Strip the input first. Then check it with isdigit() before you call int(), because int("three") crashes.
+  - "Check in this order: is it a whole number? Is it between 1 and 8? Only then print the price."
+  - "print(f\"Tickets: {count} x 12.50 = {count * 12.50:.2f}\")"

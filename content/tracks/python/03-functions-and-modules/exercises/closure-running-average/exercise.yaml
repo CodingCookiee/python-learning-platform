@@ -1,0 +1,8 @@
+title: A running average
+type: function
+difficulty: stretch
+tags: [closures, nonlocal, defaults]
+hints:
+  - Keep two variables in make_averager, a running total and a count, and update them from the inner function. You don't need to keep every value.
+  - The inner function assigns to both, so it needs nonlocal total, count.
+  - "Give the inner function's parameter a default of None, so it can be called with no argument. If there's nothing to average yet, return None."

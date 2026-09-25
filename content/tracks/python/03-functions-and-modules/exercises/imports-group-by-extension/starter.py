@@ -1,0 +1,3 @@
+def group_by_extension(paths):
+    """Return {extension: sorted file names} for a list of file paths."""
+    ...

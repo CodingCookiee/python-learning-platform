@@ -6,7 +6,7 @@ minutes: 40
 exercises:
   - scope-predict-legb
   - closure-counter-fix
-  - closure-make-discount
+  - closure-make-formatter
   - closure-predict-late-binding
   - closure-running-average
 ---

@@ -1,0 +1,7 @@
+title: "Predict: timedelta and naive datetimes"
+type: predict
+difficulty: warm-up
+tags: [datetime, timedelta]
+hints:
+  - A timedelta is printed as "D day, H:MM:SS". Its .seconds is only the part left over after the whole days.
+  - January has 31 days. Comparing naive with aware using < raises TypeError, but == just returns False.

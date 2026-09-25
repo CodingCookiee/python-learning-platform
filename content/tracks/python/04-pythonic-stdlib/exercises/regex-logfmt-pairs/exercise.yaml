@@ -1,0 +1,8 @@
+title: Parse key=value log fields
+type: function
+difficulty: stretch
+tags: [re, finditer, groups, alternation]
+hints:
+  - "A value is either quoted or bare. Alternation inside a non-capturing group handles both: (?:\"([^\"]*)\"|(\\S*))."
+  - Use finditer so you get Match objects. Exactly one of the two value groups is filled in; the other is None.
+  - "Check the quoted group with `is not None`, not truthiness: an empty quoted value \"\" is still the value."

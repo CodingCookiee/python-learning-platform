@@ -1,0 +1,19 @@
+slug: receipt-printer
+title: Receipt printer
+summary: Read line items from input and print an aligned, totalled receipt.
+hours: 3
+xp: 150
+requirements:
+  - Reads "name, quantity, unit price" lines with input() until the user enters a blank line
+  - Prints one row per item, with the name, the quantity and the line total in fixed-width, aligned columns
+  - Prints the subtotal, tax at 8% (rounded to the cent, halves up) and the total under the items
+  - Skips a line with the wrong number of commas, a quantity that isn't a whole number of 1 or more, or a price that isn't a number, prints why, and keeps reading
+  - Prints "No items entered." instead of a receipt when no valid lines were entered
+  - 'Keeps the input-and-print code under if __name__ == "__main__":'
+criteria:
+  - Every amount is a Decimal built from the input text, never a float, and the totals are correct to the cent
+  - The columns line up for every row, including the header, the rule lines and the totals
+  - No input makes the program crash, whatever the user types
+  - Names over 20 characters are shortened so they don't push the other columns out of line
+  - Constants (tax rate, column widths) are named in capitals at the top, not repeated as bare numbers
+  - The code is laid out as imports, constants, small functions, then the main block, with names that explain themselves
