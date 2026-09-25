@@ -25,50 +25,50 @@ export const BELTS: Belt[] = [
     label: "White belt",
     fromModule: 1,
     toModule: 3,
-    summary: "Syntax, data structures, control flow and functions.",
+    summary: "Syntax, collections, control flow and functions.",
   },
   {
     key: "yellow",
     label: "Yellow belt",
     fromModule: 4,
     toModule: 7,
-    summary: "Objects, files and errors, testing, and packaging.",
+    summary: "Idioms and the standard library, objects, errors and files, and testing.",
   },
   {
     key: "green",
     label: "Green belt",
     fromModule: 8,
     toModule: 10,
-    summary: "Async, the advanced language features, and type hints.",
+    summary: "Generators and decorators, types and Pydantic, and tooling.",
   },
   {
     key: "blue",
     label: "Blue belt",
     fromModule: 11,
     toModule: 13,
-    summary: "Web services, databases and data processing.",
+    summary: "The data model, concurrency and performance.",
   },
   {
     key: "brown",
     label: "Brown belt",
     fromModule: 14,
     toModule: 16,
-    summary: "Automation, Web3 and performance.",
+    summary: "HTTP clients, FastAPI services and databases.",
   },
 ];
 
 export const TOTAL_PYTHON_MODULES = BELTS[BELTS.length - 1]!.toModule;
 
-/** AI automation track: planned dan ranks (not yet published) */
+/** AI automation track: one dan grade per module, 2nd to 9th */
 export const DAN_TRACK: Array<{ dan: number; title: string }> = [
-  { dan: 2, title: "Automation thinking & workflows" },
+  { dan: 2, title: "Automation foundations" },
   { dan: 3, title: "LLM fundamentals" },
-  { dan: 4, title: "Structured outputs & tool calling" },
+  { dan: 4, title: "Structured output & tool calling" },
   { dan: 5, title: "Retrieval (RAG)" },
   { dan: 6, title: "Agents" },
   { dan: 7, title: "MCP servers" },
-  { dan: 8, title: "Production: evals, cost, security" },
-  { dan: 9, title: "Portfolio & getting paid" },
+  { dan: 8, title: "Production AI systems" },
+  { dan: 9, title: "Portfolio & client work" },
 ];
 
 export function beltForModule(moduleOrder: number): Belt {

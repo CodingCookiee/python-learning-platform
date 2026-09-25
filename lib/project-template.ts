@@ -12,7 +12,6 @@ const starterTemplateMap: Record<string, string> = {
   "Full REST API": "/templates/full-rest-api-starter.py",
   "Data Analysis Dashboard": "/templates/data-analysis-starter.py",
   "DevOps Automation Suite": "/templates/devops-automation-starter.py",
-  "Web3 Backend Service": "/templates/web3-backend-starter.py",
   "Performance Optimization Suite": "/templates/performance-optimization-starter.py",
   "Performance Optimization Challenge": "/templates/performance-optimization-starter.py",
 };

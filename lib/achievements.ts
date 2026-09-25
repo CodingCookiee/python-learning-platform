@@ -31,7 +31,7 @@ const moduleAchievementNames: Record<number, string> = {
   12: "Database Guru",
   13: "Data Scientist",
   14: "DevOps Hero",
-  15: "Web3 Pioneer",
+  15: "Web Services Pro",
   16: "Performance Beast",
 };
 
@@ -50,7 +50,7 @@ const projectAchievementNames: Record<number, string> = {
   12: "Multi-DB Master",
   13: "Data Analyst",
   14: "Automation King",
-  15: "Blockchain Builder",
+  15: "Service Builder",
   16: "Speed Demon",
 };
 

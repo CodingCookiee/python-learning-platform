@@ -1,6 +1,6 @@
 # Python → AI Automation Learning Platform — Architecture
 
-Status: proposal · Last updated: 2026-09-24 · Owner: Raza Awan
+Status: in progress · Last updated: 2026-09-25 · Owner: Raza Awan
 
 This document covers what the platform is for, what the current code actually does, and how to get it
 to a platform where anyone can go from zero Python to shipping production AI agents **without leaving
@@ -17,7 +17,7 @@ the app** until the real-world project stage.
    without hints". Finishing the old course without feeling confident is the core problem this design
    fixes.
 3. **Two tracks, one path.**
-   - **Track 1, Python Core → Advanced**: the existing 16 modules, fixed and extended.
+   - **Track 1, Python**: 16 modules rewritten from scratch to reach advanced (see [CURRICULUM.md](CURRICULUM.md)).
    - **Track 2, AI Automation Engineer**: the roadmap in `AI_Automation_Roadmap_Raza_Awan.pdf`
      (workflows, LLMs, RAG, agents, MCP, production, portfolio).
 4. **Works for anyone**: multi-user, safe to run publicly, with LLM costs kept under control.
@@ -311,34 +311,26 @@ blocks and is never treated as instructions).
 
 ## 8. Curriculum map
 
-### Track 1: Python Core → Advanced (revised)
+The full syllabus, lesson by lesson, is in [CURRICULUM.md](CURRICULUM.md). The content format is in
+[CONTENT.md](CONTENT.md). In summary:
 
-| Phase | Modules (★ = new) |
-|-------|-------------------|
-| Foundation | 1 Setup & fundamentals · 2 Data structures & control flow · 3 Functions & modules · ★ 4 Pythonic idioms & stdlib (collections, itertools, functools, dataclasses, enum, datetime, pathlib, re, logging) |
-| Intermediate | 5 OOP · 6 File I/O & exceptions · 7 Testing with pytest · 8 Packaging with **uv** + pyproject (Poetry as an aside) |
-| Advanced | 9 Iterators, generators, decorators, context managers · 10 Type hints, Protocols, generics, **Pydantic** · ★ 11 Concurrency: asyncio in depth + threads + processes · ★ 12 Python data model & internals (dunders, descriptors, GIL, imports, memory) · 13 Performance & profiling |
-| Applied | ★ 14 HTTP clients & APIs (httpx, auth, pagination, retries, backoff) · 15 FastAPI web services · 16 Databases (SQLAlchemy 2.0, async) · 17 Data processing · 18 CLI & automation scripting (typer, subprocess, Docker) · 19 Web3 with Python |
+| Track | Modules | Grades |
+|-------|---------|--------|
+| **Python** | 1 Python for developers · 2 Collections & control flow · 3 Functions & modules · 4 Pythonic idioms & stdlib · 5 OOP · 6 Errors, files & context managers · 7 Testing with pytest · 8 Iterators, generators & decorators · 9 Types, Protocols & Pydantic · 10 Tooling & packaging · 11 Data model & internals · 12 Concurrency · 13 Performance · 14 HTTP & APIs · 15 FastAPI · 16 Data & databases | 16 kyu → 1 kyu, and module 16 earns the black belt (1st dan) |
+| **AI Automation** | A1 Automation foundations (webhooks, scheduling, integrations, Playwright, n8n labs) · A2 LLM fundamentals · A3 Structured output & tool calling · A4 RAG · A5 Agents · A6 MCP · A7 Production · A8 Portfolio & client work | 2nd → 9th dan |
 
-Target density: **5–8 exercises per lesson, one checkpoint and one capstone per module** (~400 exercises).
-Authoring can be AI-assisted. CI verification (§4) is what makes that volume trustworthy.
+- **Exactly 16 + 8 modules.** The grade system maps one module to one grade.
+- **Target density:** 5–7 lessons per module, 3–6 drills per lesson, one checkpoint and one capstone per
+  module (~450 drills). Authoring can be AI-assisted; `content:validate` running every solution is what
+  makes that volume trustworthy.
+- **AI lessons are provider-neutral.** Learners build one `llm` client with Anthropic and OpenAI
+  adapters in A2 and use it for the rest of the track. Graded drills use scripted fake clients.
+- **Browser-first.** Pyodide 314 (Python 3.14) ships numpy, pandas, pydantic, httpx, SQLAlchemy,
+  FastAPI, pytest and mypy, so nearly all of the Python track runs in the browser. Only threads,
+  subprocess, Docker, real servers, Playwright and n8n are local labs.
 
-### Track 2: AI Automation Engineer (maps to the roadmap)
-
-| Module | Roadmap phase | In-app practice | Capstone |
-|--------|---------------|-----------------|----------|
-| A0 Automation thinking (Trigger → Context → Decision → Action) | §02 | Decompose-a-process quizzes | — |
-| A1 Workflow automation: webhooks, HMAC, n8n, Playwright | Phase 1 | FastAPI webhook receiver in the sandbox, n8n webhook labs, Playwright in the sandbox | Lead capture + Web3 alert workflows |
-| A2 LLM fundamentals: tokens, cost, Messages API, prompting, streaming | Phase 2 | Cost-estimator functions, fake-client exercises, live runs through the gateway | Model comparison script |
-| A3 Structured outputs & tool calling by hand | Phase 2 | Pydantic validation + retry loop, a hand-written tool dispatcher | Support triage service |
-| A4 RAG: embeddings, chunking, pgvector, grounding, retrieval evals | Phase 3 | Chunkers and cosine similarity in numpy (browser), pgvector in the sandbox | Docs chatbot with citations |
-| A5 Agents: the loop from scratch, tool design, memory, human-in-the-loop, workflow patterns | Phase 4 | The roadmap's ~80-line agent loop, graded against a scripted fake client (step caps, tool errors) | Research agent with a cost cap |
-| A6 MCP: build and test an MCP server | Phase 4 | MCP server in the sandbox, tested by a harness MCP client | Read-only Web3 MCP server |
-| A7 Production: evals, tracing, reliability, cost, prompt injection, deploy | Phase 5 | Eval-suite exercises, red-team labs (injected instructions inside documents the agent reads) | Harden and deploy the best project |
-| A8 Portfolio & getting paid | Phase 6 | Case study builder, offer writer, mock client call with the tutor | 3 case studies + outreach |
-
-Unlock rule: Track 2 opens after Track 1's Foundation + Intermediate checkpoints plus modules 10, 11,
-and 14 (Pydantic, async, and httpx are the roadmap's Phase 0).
+Unlock rule: the automation track opens after the Python black belt. Early access is allowed after
+modules 9, 12 and 14 (Pydantic, asyncio and httpx are the roadmap's Phase 0).
 
 ---
 
@@ -420,7 +412,6 @@ Every variable is listed in [`.env.example`](../.env.example). Summary:
 | `ADMIN_BOOTSTRAP_EMAIL` | First admin account | Once | Your email |
 | `LANGFUSE_PUBLIC_KEY` / `_SECRET_KEY` / `_HOST` | Tracing the platform's own LLM calls (dogfooding A7) | Optional | Langfuse cloud or self-host |
 | `SENTRY_DSN` | Error tracking | Optional | sentry.io |
-| `ALCHEMY_API_KEY` (or any RPC URL) | Web3 module and labs | For module 19 / Web3 labs | Alchemy dashboard |
 
 ---
 
@@ -478,3 +469,18 @@ Each milestone is shippable and leaves the app better than before.
   the roadmap's "always track cost" rule.
 - The platform needs **no** `ANTHROPIC_API_KEY`. An optional platform key can be added later to give
   new learners a small free trial.
+
+## 15. Decisions (2026-09-25): the course rewrite
+
+| # | Question | Decision | Consequence |
+|---|----------|----------|-------------|
+| 1 | Web3 | **Removed** | The module, lessons, capstone, achievements, starter template and `ALCHEMY_API_KEY` are deleted |
+| 2 | Python course | **Rewritten to reach advanced**, 16 modules | Adds idioms & stdlib, internals and performance; drops DevOps and Web3 as standalone modules ([CURRICULUM.md](CURRICULUM.md)) |
+| 3 | Automation course | **8 modules, A1–A8**, following the roadmap | They map to 2nd–9th dan |
+| 4 | n8n | **Python first, n8n as local labs** verified by webhook | Automations are written in Python in the app; n8n lessons run on the learner's machine |
+| 5 | AI provider | **Provider-neutral** | Every AI example works with both Anthropic and OpenAI through the learner's own `llm` wrapper |
+| 6 | JavaScript comparisons | **Kept as short `[!JS]` asides** | Beginners can skip them |
+| 7 | Rollout | **Engine first, then module by module** | The exercise engine and content pipeline ship first, then modules 1–3 as the reference, then the rest in order |
+| 8 | Old lessons | **Replaced, not migrated** | The 64 old seed lessons and `lib/*-content.ts` overrides are deleted once `content/` is live |
+| 9 | Runtime | **Pyodide 314.0.7 (Python 3.14.2)** in a Web Worker | Matches local Python 3.14, which `content:validate` uses to run every solution |
+

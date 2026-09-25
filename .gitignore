@@ -48,3 +48,6 @@ next-env.d.ts
 # impeccable: local review captures and decision-page state
 /.impeccable/review/
 /.impeccable/questions/
+
+# Pyodide package cache (downloaded wheels for content:validate)
+/.cache/
