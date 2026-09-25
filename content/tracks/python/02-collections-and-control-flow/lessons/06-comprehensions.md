@@ -62,9 +62,9 @@ sold_out = [sku for sku, count in stock if count == 0]
 sold_out
 ```
 
-That's different from choosing between two values for **every** item. For that, Python has the
-**conditional expression**, `value_if_true if condition else value_if_false`, and it goes at the
-front, because it's part of the value being built:
+That's different from choosing between two values for **every** item. For that, use the
+**conditional expression** from module 1, `value_if_true if condition else value_if_false`. It goes
+at the front, because it's part of the value being built:
 
 ```python
 stock = [("MUG-01", 12), ("TEE-02", 0), ("CAP-03", 3)]
@@ -170,6 +170,6 @@ or a loop would be kinder to the next reader.
 ## Where this leaves you
 
 `[expr for x in items if cond]` replaces the build-a-list loop, `{k: v for …}` and `{x for …}` build
-dicts and sets, and `a if cond else b` chooses a value per item. Keep them short, and use a loop when
+dicts and sets, and `a if cond else b` at the front chooses a value per item. Keep them short, and use a loop when
 you're doing rather than building. The drills include one refactor from a loop and one nested
 comprehension.

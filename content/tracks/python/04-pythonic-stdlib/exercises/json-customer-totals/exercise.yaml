@@ -1,0 +1,7 @@
+title: Customer totals from a JSON export
+type: function
+difficulty: core
+tags: [json, dicts, collections]
+hints:
+  - json.loads(payload)["orders"] is a list of dicts. Add up the paid ones per customer, for example with a defaultdict(float).
+  - Round each total to 2 decimal places, then json.dumps(totals, sort_keys=True).

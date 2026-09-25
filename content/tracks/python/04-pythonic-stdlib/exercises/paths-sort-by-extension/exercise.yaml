@@ -1,0 +1,8 @@
+title: Tidy a downloads folder
+type: function
+difficulty: stretch
+tags: [pathlib, collections, counter, files]
+hints:
+  - Collect the files first, with a list of the folder's iterdir() entries that are files, so creating subfolders doesn't disturb the loop.
+  - "p.suffix is \".PDF\" for invoice.PDF and \"\" for README. suffix.lstrip(\".\").lower() gives the folder name, or \"other\" when it's empty."
+  - "mkdir(exist_ok=True) creates each subfolder once. rename moves the file, and a Counter counts what went where."

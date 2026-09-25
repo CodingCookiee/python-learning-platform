@@ -139,7 +139,7 @@ print("Thank you!")
 question: What does `print("A", "B", sep="-", end="!")` followed by `print("C")` show?
 options:
   - "A-B!C"
-  - "A-B!\nC"
+  - "A-B! and then C on a new line"
   - "A B-!C"
 answer: 0
 explain: "sep puts - between A and B, and end replaces the newline with !, so the next print carries on the same line: A-B!C."

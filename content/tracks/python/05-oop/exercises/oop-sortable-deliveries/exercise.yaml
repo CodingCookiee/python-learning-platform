@@ -1,0 +1,8 @@
+title: A dispatch queue of deliveries
+type: function
+difficulty: stretch
+tags: [dataclasses, order, slots, field, itertools, datetime]
+hints:
+  - "@dataclass(order=True, slots=True) compares fields as a tuple in declaration order, so declare eta, priority, tracking in that order and mark notes with field(default_factory=list, compare=False)."
+  - Once Delivery sorts itself, overdue is a sorted comprehension with a condition.
+  - "by_day can sort first and then group with itertools.groupby(sorted(deliveries), key=lambda d: d.eta)."

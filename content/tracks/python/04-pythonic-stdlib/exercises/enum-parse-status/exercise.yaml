@@ -1,0 +1,7 @@
+title: Parse an order status
+type: function
+difficulty: warm-up
+tags: [enum, eafp]
+hints:
+  - Calling the enum with a value, OrderStatus("paid"), looks the member up, and raises ValueError if there isn't one.
+  - "Clean the text first with .strip().lower(), then try OrderStatus(cleaned) and return None from except ValueError."

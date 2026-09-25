@@ -1,0 +1,8 @@
+title: Addresses as frozen values
+type: function
+difficulty: core
+tags: [dataclasses, frozen, hash, replace, counter]
+hints:
+  - "@dataclass(frozen=True) makes the fields read-only and generates a __hash__, so addresses can be counted and used as dict keys."
+  - with_postcode can't change self, so it returns a copy. dataclasses.replace(self, postcode=postcode) does exactly that.
+  - "deliveries_per_address is one line with collections.Counter: return Counter(addresses)."

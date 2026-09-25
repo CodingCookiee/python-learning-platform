@@ -42,8 +42,8 @@ def _():
 
 @test("Run as a script, it converts each line until a blank one")
 def _():
-    output = run_program(stdin=["12.5 km to mi", "3 ft to cm", "1 parsec to m", ""])
-    assert output.lines == ["12.5 km = 7.77 mi", "3 ft = 91.44 cm", "Error: Unknown unit: parsec"]
+    requests = ["12.5 km to mi", "3 ft to cm", "1 parsec to m", ""]
+    assert run_program(stdin=requests).lines == ["12.5 km = 7.77 mi", "3 ft = 91.44 cm", "Error: Unknown unit: parsec"]
 
 
 @hidden("Keeps going after a malformed line")

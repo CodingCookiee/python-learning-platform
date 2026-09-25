@@ -80,7 +80,7 @@ money, not even on the way in: `Decimal(float("1.10"))` already carries the floa
    nothing yet.
 2. Fill in `format_row` and `format_total` first, and try them from the REPL or with a couple of
    `print()` calls. When three hand-written rows line up, the hardest formatting is done.
-3. Parse a valid line and add it to the receipt. This is the `parse-line-item` drill from lesson 6,
+3. Parse a valid line and add it to the receipt. This is lesson 6's "Parse a line item" drill,
    plus a running `subtotal`.
 4. Add the checks, one problem at a time, and try each bad input from the table above.
 5. Print the totals, then run the sample above and compare your output line by line.

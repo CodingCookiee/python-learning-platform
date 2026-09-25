@@ -1,0 +1,7 @@
+title: "Predict: a JSON round trip"
+type: predict
+difficulty: warm-up
+tags: [json]
+hints:
+  - dumps writes JSON spellings (true, null), turns the tuple into an array and the int key 7 into the string "7".
+  - After loads, the tuple is a list and the key is "7", so the loaded dict isn't equal to the original.

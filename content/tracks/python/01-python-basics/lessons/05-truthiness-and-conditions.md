@@ -29,8 +29,8 @@ paid, shipped, type(paid), True + True + False
 ```
 
 Strings compare character by character, so dates written as `YYYY-MM-DD` sort correctly as text.
-`==` and `!=` compare values, as lesson 2 showed, and never convert between types: `"1" == 1` is
-simply `False`.
+`==` and `!=` compare values, as lesson 2 showed. Numbers compare by value whatever their type
+(`1 == 1.0` is `True`), but text is never converted to a number: `"1" == 1` is simply `False`.
 
 > [!JS]
 > Coming from JavaScript: there's no `===`, because Python's `==` never coerces. `"1" == 1` is

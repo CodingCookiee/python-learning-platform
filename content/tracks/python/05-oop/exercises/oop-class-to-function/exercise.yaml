@@ -1,0 +1,7 @@
+title: A class that should be a function
+type: refactor
+difficulty: warm-up
+tags: [design, functions, refactoring]
+hints:
+  - The class stores one argument in __init__ and uses it in one method. Both arguments can simply be parameters of one function.
+  - "def discounted(price, percent): return round(price * (1 - percent / 100), 2), then use it in checkout_total."

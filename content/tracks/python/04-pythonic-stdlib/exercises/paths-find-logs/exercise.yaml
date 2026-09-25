@@ -1,0 +1,7 @@
+title: Find every log file
+type: function
+difficulty: core
+tags: [pathlib, glob, sorting]
+hints:
+  - Path(folder).rglob("*.log") finds matching paths in the folder and every subfolder. Keep only the ones where is_file() is true.
+  - "p.relative_to(root).as_posix() turns each full path into text like \"nginx/access.log\". Sort the result."
