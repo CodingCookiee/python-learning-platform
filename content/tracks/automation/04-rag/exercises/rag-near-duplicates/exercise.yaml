@@ -6,4 +6,4 @@ packages: [numpy]
 hints:
   - Embed all the texts in one call and normalise the rows. Then similarity = unit @ unit.T is every pair's cosine at once, an n by n matrix.
   - "The pairs with i < j are the upper triangle above the diagonal: np.triu_indices(n, k=1) gives their row and column indices."
-  - "Keep the pairs whose score is at least the threshold (compare a rounded score, so 0.8999999 counts as 0.9), then sort by (-score, i, j)."
+  - "Keep the pairs whose score is at least the threshold (compare a rounded score, so 0.8999999 counts as 0.9 when the threshold is 0.9), then sort by (-score, i, j)."

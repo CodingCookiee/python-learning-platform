@@ -270,8 +270,10 @@ class FakeServer:
         })
         client = httpx.Client(transport=server.transport, base_url="https://api.example.com")
 
-    A handler returns a JSON value (status 200), or (status, json) / (status, json, headers).
-    Unknown routes get 404. .requests records everything received; .calls(route) filters them.
+    A handler returns a JSON value (status 200), or (status, json) / (status, json, headers),
+    or Timeout() to make the request time out. Unknown routes get 404. .requests records
+    everything received (including the client's timeout settings under "timeout");
+    .calls(route) filters them.
     """
 
     def __init__(self, routes: dict[str, Any]):
@@ -296,6 +298,7 @@ class FakeServer:
             headers={k.lower(): v for k, v in request.headers.items()},
             body=body,
             json=parsed,
+            timeout=request.extensions.get("timeout"),
         )
         self.requests.append(rec)
         return rec
@@ -313,6 +316,8 @@ class FakeServer:
             if method != rec["method"] or not m:
                 continue
             result = value(rec, **dict(zip(names, m.groups()))) if callable(value) else value
+            if isinstance(result, Timeout):
+                raise httpx.ReadTimeout(result.message, request=request)
             status, payload, headers = 200, result, {}
             if isinstance(result, tuple):
                 status, payload, *rest = result

@@ -1,0 +1,21 @@
+slug: webhook-ready-service
+title: Webhook-ready service
+summary: A FastAPI booking service with CRUD behind API keys, a Paygate webhook receiver that verifies HMAC signatures and ignores replays and duplicates, and a full test suite.
+hours: 6
+xp: 150
+requirements:
+  - "service.py has create_app(settings) that builds an independent app: its own store on app.state, the bookings and webhooks routers, the request id middleware and the error handlers. app_from_env() builds one from environment variables for uvicorn"
+  - "Bookings CRUD under /bookings: create (201), list with status filter and offset/limit paging, get, patch and cancel (204), with separate BookingCreate, BookingUpdate and BookingRead models"
+  - "Every /bookings route requires an X-API-Key from settings.api_keys, compared with secrets.compare_digest; a missing or wrong key is a 401 with WWW-Authenticate: ApiKey"
+  - "The server sets the price (TOUR_PRICES times party size), the id and the status; request models forbid extra fields, so a client can't send any of them"
+  - "POST /webhooks/paygate verifies the Paygate-Signature header (HMAC-SHA256 of the timestamp, a dot and the raw body) before it parses anything, refuses signatures older or newer than the tolerance, and uses a get_now dependency for the time"
+  - "Webhook events are idempotent by event id: payment.succeeded marks a pending booking paid when the amount matches (needs_review when it doesn't), payment.refunded marks it refunded, anything else is ignored, and a repeated event changes nothing"
+  - "Every error has the shape {\"error\": {\"code\": ..., \"message\": ...}}, validation errors add a fields list, and every response carries an X-Request-ID header"
+  - "test_service.py is a pytest suite of at least 15 tests over httpx.AsyncClient and ASGITransport, with fixtures for the settings, a fresh app and the client, and the clock pinned through dependency_overrides"
+criteria:
+  - The reviewer's hidden tests pass against create_app, including forged, tampered, stale and repeated webhooks
+  - The signature is checked against the raw request body with hmac.compare_digest before the JSON is parsed, and no secret appears in the code, a response or a log line
+  - A paid booking can't be changed or cancelled (409), a missing booking is a 404 with the standard error shape, and status codes follow the module's rules throughout
+  - Two apps built by create_app share nothing, and the tests never touch the real clock or a shared module-level store
+  - Every test checks one behaviour, is named after it, and follows arrange, act, assert; the suite catches most of the bugs the reviewer plants in a copy of the service
+  - The service runs locally under uvicorn, and send_webhook.py delivers a signed event that the running service accepts

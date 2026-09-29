@@ -1,0 +1,8 @@
+title: "Predict: where the windows start"
+type: predict
+difficulty: warm-up
+tags: [chunking, overlap, slicing]
+hints:
+  - The step is size minus overlap, 16 - 5 = 11, so range gives 0, 11, 22, 33 and 44 for a 48-character text.
+  - Slicing past the end of a string is fine; it just returns what's there.
+  - "The loop stops as soon as a window reaches the end: start + size >= len(text)."

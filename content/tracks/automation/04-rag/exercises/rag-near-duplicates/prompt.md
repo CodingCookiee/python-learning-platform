@@ -19,7 +19,7 @@ texts = [
     "Parking: there is free parking behind the clinic building.",
 ]
 near_duplicates(texts, fake_embed, threshold=0.85)
-# [(3, 5, 1.0), (0, 2, 0.9)]
+# [(3, 5, 1.0), (0, 2, 0.901)]
 ```
 
 Try doing it without a Python loop over pairs: a list of 2,000 entries has almost two million.

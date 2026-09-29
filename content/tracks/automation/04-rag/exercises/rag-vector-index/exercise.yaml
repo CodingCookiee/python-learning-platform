@@ -1,0 +1,9 @@
+title: A vector index
+type: function
+difficulty: core
+tags: [vector-search, numpy, embeddings, classes]
+packages: [numpy]
+hints:
+  - "Keep a list of chunks and a numpy matrix of unit-length rows. In add, embed [c[\"text\"] for c in chunks] in one call, normalise the rows (guarding zero norms), and np.vstack them under the existing matrix."
+  - Check for duplicate ids (against the index and within the new batch) before calling embed, so a refused add changes nothing.
+  - "In search, embed [query], normalise it, scores = matrix @ query, and take np.argsort(-scores, kind=\"stable\")[:k]. Build each result as {**chunk, \"score\": float(scores[i])} so the stored chunk isn't changed."

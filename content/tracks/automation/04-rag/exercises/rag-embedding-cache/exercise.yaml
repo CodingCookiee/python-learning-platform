@@ -1,0 +1,8 @@
+title: Cache embeddings between runs
+type: function
+difficulty: core
+tags: [embeddings, caching, batching, hashlib]
+hints:
+  - "The key for a text is hashlib.sha256(f\"{model}\\n{text}\".encode()).hexdigest(), so the same text under another model is a different entry."
+  - "Collect the missing texts in first-appearance order without duplicates: a dict works as an ordered set (dict.fromkeys(...))."
+  - "Send them with itertools.batched(missing, batch_size). Check each reply has as many vectors as texts before storing any of them, then build the answer from the store."

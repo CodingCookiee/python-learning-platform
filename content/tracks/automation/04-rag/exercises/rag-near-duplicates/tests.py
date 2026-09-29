@@ -24,18 +24,18 @@ class Recorder:
 
 @test("Finds the two duplicated FAQ entries")
 def _():
-    assert near_duplicates(TEXTS, fake_embed, threshold=0.85) == [(3, 5, 1.0), (0, 2, 0.9)]
+    assert near_duplicates(TEXTS, fake_embed, threshold=0.85) == [(3, 5, 1.0), (0, 2, 0.901)]
 
 
 @test("A lower threshold finds the opening-hours pair too")
 def _():
-    assert near_duplicates(TEXTS, fake_embed, threshold=0.6) == [(3, 5, 1.0), (0, 2, 0.9), (1, 4, 0.64)]
+    assert near_duplicates(TEXTS, fake_embed, threshold=0.6) == [(3, 5, 1.0), (0, 2, 0.901), (1, 4, 0.638)]
 
 
 @test("Embeds everything in one call, and works on unnormalised vectors")
 def _():
     embed = Recorder(scale=3.0)
-    assert near_duplicates(TEXTS, embed, threshold=0.85) == [(3, 5, 1.0), (0, 2, 0.9)]
+    assert near_duplicates(TEXTS, embed, threshold=0.85) == [(3, 5, 1.0), (0, 2, 0.901)]
     assert embed.calls == [TEXTS]
 
 

@@ -1,0 +1,8 @@
+title: Split an article at its headings
+type: function
+difficulty: core
+tags: [chunking, markdown, metadata, regex]
+hints:
+  - Walk the lines. re.match(r"#{1,6}\s+(.*)", line) recognises a heading and captures its text.
+  - "Keep the current title and a list of body lines. At each heading, and once more at the end, turn what you've collected into a chunk if its stripped text isn't empty, then start again."
+  - 'Only count positions for chunks you keep, so the ids have no gaps: id = f"{source}#{len(chunks)}" just before you append.'

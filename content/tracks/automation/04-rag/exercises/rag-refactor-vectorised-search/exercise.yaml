@@ -1,0 +1,10 @@
+title: Vectorise the policy search
+type: refactor
+difficulty: core
+tags: [numpy, vectorisation, performance, vector-search]
+packages: [numpy]
+timeout: 20
+hints:
+  - Do the expensive work once, in __init__. Turn the vectors into a numpy matrix and divide each row by its norm (zero norms replaced by 1).
+  - "In search, normalise the query the same way and compute scores = self.matrix @ query: that's every cosine at once."
+  - "np.argsort(-scores, kind=\"stable\")[:k] gives the best k, ties in the original order. Return [(self.ids[i], round(float(scores[i]), 6)) for i in those]."

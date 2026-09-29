@@ -182,4 +182,152 @@ def make_clients():
     )
 ```
 
-and an `app = create_app(settings, pipeline)` at module level for `fastapi run` to find.
+Put that wiring, and `app = create_app(Settings(webhook_secret=os.environ["FORMS_WEBHOOK_SECRET"]), pipeline)`,
+in a separate `main.py` for `uv run fastapi run main.py` to find, so that importing
+`lead_pipeline.py` (in tests, in the demo, in the browser) never needs a secret.
+
+## Testing it in the browser
+
+FastAPI, Pydantic and httpx all load in the browser, so the whole service can be tested there,
+with no network. Write your tests as plain `async def test_...` functions that build fresh fakes
+from the bottom of the file, call the app through `httpx.ASGITransport`, and assert on the
+responses and on what the fakes recorded:
+
+```python
+async def test_redelivery_is_a_duplicate():
+    enrichment, crm, slack = FakeEnrichment(), FakeCrm(), FakeSlack()
+    enrich_client, crm_client, slack_client = fake_clients(enrichment, crm, slack)
+    settings = Settings(webhook_secret=WEBHOOK_SECRET)
+    pipeline = LeadPipeline(settings, enrich=enrich_client, crm=crm_client, slack=slack_client, sleep=lambda s: None)
+    app = create_app(settings, pipeline, clock=lambda: 1773072000)
+    body = json.dumps(submission("sub_2001", "Tom Price", "tom@example.com")).encode()
+    headers = {"Content-Type": "application/json", "Webhook-Signature": sign(body, 1773072000)}
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+        first = await client.post("/webhooks/leads", content=body, headers=headers)
+        second = await client.post("/webhooks/leads", content=body, headers=headers)
+    assert (first.status_code, second.status_code) == (202, 200)
+    assert len(crm.records) == 1
+```
+
+Paste the file and your tests into any pylearn code block and run them all with a top-level
+`await`:
+
+```python
+for name, check in list(globals().items()):
+    if name.startswith("test_"):
+        await check()
+        print("passed", name)
+```
+
+On your machine the same functions run under pytest (`uv add --dev pytest anyio`, then mark them
+with `@pytest.mark.anyio`). For a service that misbehaves in ways the fakes don't, subclass them:
+a `FakeSlack` whose `handle` raises `httpx.ReadTimeout`, a `FakeCrm` that answers `429` twice.
+
+## Part 2: the same flow in n8n
+
+Now build it again as an n8n workflow, running on your machine as in lesson 7. So that n8n has
+something to call, serve the same three fakes over real HTTP with this small app next to
+`lead_pipeline.py`:
+
+```python
+# lab_services.py: uv run fastapi dev lab_services.py --port 8001
+import httpx
+from fastapi import FastAPI, Request, Response
+
+from lead_pipeline import FakeCrm, FakeEnrichment, FakeSlack
+
+fakes = {
+    "enrich": FakeEnrichment(),
+    "crm": FakeCrm([{"id": "recOLD1", "fields": {"Email": "nia@okaforlogistics.com", "Name": "Nia", "Phone": "+447700900789"}}]),
+    "slack": FakeSlack(),
+}
+app = FastAPI()
+
+@app.get("/state")
+def state():
+    return {"crm_contacts": len(fakes["crm"].records), "slack_messages": fakes["slack"].messages,
+            "enrichment_lookups": fakes["enrich"].lookups}
+
+@app.api_route("/{service}/{path:path}", methods=["GET", "POST", "PATCH"])
+async def forward(service: str, path: str, request: Request):
+    upstream = httpx.Request(request.method, f"http://fake/{path}?{request.url.query}",
+                             headers=request.headers, content=await request.body())
+    reply = fakes[service].handle(upstream)
+    print(f"{service}: {request.method} /{path} -> {reply.status_code}")
+    return Response(reply.content, status_code=reply.status_code, media_type="application/json")
+```
+
+From inside the n8n container, the fakes are at `http://host.docker.internal:8001/enrich/v1/companies`,
+`.../crm/v0/appBrightside/Contacts` and `.../slack/api/chat.postMessage`. Store the three tokens
+from `fake_clients` (`test-enrich-key`, `test-crm-token`, `test-slack-token`) as n8n **Header Auth**
+credentials (`Authorization: Bearer ...`), never in node parameters.
+
+Do it on your machine:
+
+1. **Trigger.** A Webhook node, `POST`, path `brightside-leads`, protected by a Header Auth
+   credential: the form tool must send `X-Form-Secret: <a long random value>`. (n8n's Webhook node
+   can't check an HMAC over the raw body without extra work. Note this difference for your write-up:
+   a shared header travels with every request and doesn't stop replays.)
+2. **Validate.** A Code node that applies the `Lead` rules to `$json.body` and outputs one clean
+   item per valid lead, with invalid ones dropped (or routed to a "rejected" branch with the reason).
+3. **Deduplicate.** A Remove Duplicates node keyed on `submission_id`, set to drop items seen in
+   previous executions (recent n8n versions have this option; on older ones, check the CRM for the
+   submission id instead).
+4. **Enrich.** An IF node that skips free-mail domains, then an HTTP Request node for the company,
+   with its error setting on "continue", so a `404` or a timeout doesn't stop the lead.
+5. **Score.** A Code node with the scoring table from Part 1.
+6. **Upsert.** An HTTP Request node that searches the CRM with the `filterByFormula` expression, an
+   IF node on whether a record came back, and a `PATCH` or `POST` node for each branch, sending only
+   the fields that have values. Turn on Retry On Fail.
+7. **Alert.** An IF node on the score, then an HTTP Request node posting the Slack text from Part 1
+   to `#new-leads`.
+8. **Verify it by webhook.** Activate the workflow and send the six sample deliveries to its
+   production URL with a small script that reuses `submission()` from `lead_pipeline.py` and your
+   `X-Form-Secret` header instead of the signature (the forged delivery sends a wrong secret). Then
+   open `http://localhost:8001/state`: it should show 3 CRM contacts, the same 2 Slack messages as the
+   Python run, and 2 enrichment lookups. The `lab_services` terminal shows every call n8n made.
+9. Export the workflow as `lead-intake.n8n.json` and check it contains no tokens or secrets.
+
+## Try these
+
+Before you submit, check each of these with a test:
+
+- A request with no signature header, one signed with another secret, and one signed 301 seconds
+  before `clock()` all get `401`, and none of them appear in `app.state.leads`.
+- `{"submission_id": "s", "name": "   ", "email": "not-an-email", "consent": true}` gets `422` with
+  two entries in `detail`, one for `name` and one for `email`.
+- A lead at `@gmail.com` makes no enrichment request; a lead at an unknown company domain makes
+  one, gets a `404`, and is still processed.
+- With a `FakeSlack` whose only channel is `#sales`, a high-priority lead is `processed` with
+  `alerted: false`, and a warning is logged.
+- With a `FakeCrm` that answers `500` to everything, the lead's status is `failed`, its `error` says
+  why, and the webhook itself still answered `202`.
+- A company name of `<!channel> & Co` reaches Slack as `&lt;!channel&gt; &amp; Co`.
+- Capture every log record at `DEBUG` while `demo()` runs: the webhook secret and the three tokens
+  appear in none of them.
+
+## Stretch goals
+
+- **A durable queue.** Replace `BackgroundTasks` with a SQLite table of pending leads (module 16)
+  and a worker function that takes a batch, processes it and marks each row done or failed, so a
+  restart loses nothing. Add `POST /leads/{submission_id}/retry` for failed leads.
+- **Real form payloads.** Accept Tally's question-list format too, reusing `flatten_submission` from
+  lesson 7, chosen by a query parameter on the webhook URL.
+- **HMAC in n8n.** Switch the Webhook node to raw body and forward the body and signature to a
+  `POST /verify` endpoint on your service, so the n8n build checks signatures as strictly as the
+  Python one.
+- **A daily digest.** A GitHub Actions workflow (lesson 3) that posts yesterday's lead count and the
+  failed leads to Slack every weekday at 08:30 London time, whatever the season.
+- **Ship it.** A `Dockerfile` for the service and a `compose.yaml` that runs it next to n8n, with
+  secrets from an `.env` file.
+
+## How to submit
+
+Push `lead_pipeline.py`, `main.py`, your tests, `lab_services.py`, `lead-intake.n8n.json` and a
+`README.md` to a GitHub repository, and submit its link on this capstone's page. The README says
+how to run the demo, the tests and the n8n lab, and ends with your recommendation to Brightside:
+which build they should run, what each costs to run and to change, who can maintain it, and what
+the n8n build gives up (signature checks, tests, typed validation) or gains (visibility, easy
+edits by the ops team). The review runs `python lead_pipeline.py` and compares it with the sample
+run, runs hidden tests against fresh fakes (including failures the demo doesn't produce), imports
+your workflow into n8n, and reads your code against the criteria.

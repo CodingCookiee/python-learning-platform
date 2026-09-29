@@ -1,0 +1,8 @@
+title: Fix the overlap that leaves gaps
+type: fix
+difficulty: core
+tags: [chunking, overlap, validation]
+hints:
+  - Each window should start size - overlap characters after the previous one. The starter moves forward size + overlap, so it skips text instead of repeating it.
+  - Stop as soon as a window reaches the end of the text (start + size >= len(text)), or you'll emit a final window that sits inside the previous one.
+  - "Check the arguments first: raise ValueError unless size > 0 and 0 <= overlap < size. An overlap as big as the size would never move forward."

@@ -1,0 +1,9 @@
+title: Filter by metadata before ranking
+type: function
+difficulty: stretch
+tags: [vector-search, metadata, filtering, numpy]
+packages: [numpy]
+hints:
+  - "Write a matches(chunk, where) helper: for every key and value, a list, tuple or set means chunk.get(key) in value, anything else means chunk.get(key) == value."
+  - Compute the positions of matching chunks first. If there are none, return [] before embedding the query.
+  - "Score only those rows: scores = self.matrix[rows] @ query, rank them, and map back with rows[i]. That way k matching chunks always come back when k exist."

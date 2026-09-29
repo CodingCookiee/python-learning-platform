@@ -1,0 +1,8 @@
+title: Chunk the staff handbook
+type: function
+difficulty: stretch
+tags: [chunking, markdown, metadata, dataclasses]
+hints:
+  - "Keep a stack of (level, heading) pairs. At a heading of level n, pop every entry with level >= n, push the new one, and the title is \" > \".join of the stack's headings."
+  - Collect each section's text as in the heading drill. If it's longer than max_chars, split it into sentences and pack them greedily with no overlap; otherwise it's one piece.
+  - "Number the pieces across the whole document as you create them: Chunk(id=f\"{source}#{position}\", source=source, title=title, position=position, text=piece)."

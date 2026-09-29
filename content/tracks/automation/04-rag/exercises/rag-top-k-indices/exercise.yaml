@@ -1,0 +1,9 @@
+title: The best k scores
+type: function
+difficulty: warm-up
+tags: [numpy, argsort, ranking]
+packages: [numpy]
+hints:
+  - numpy sorts ascending. Sorting the negated scores puts the highest first.
+  - "np.argsort(-np.asarray(scores, dtype=float), kind=\"stable\")[:k] keeps ties in their original order."
+  - Return plain ints with [int(i) for i in ...], and return [] straight away when k is 0 or less.

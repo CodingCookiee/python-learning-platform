@@ -111,7 +111,9 @@ async function main() {
     };
 
     const checks = exercises.map(async (ex) => {
-      const budget = ex.timeout * 1000 + (ex.packages.length > 0 ? 30_000 : 5_000);
+      // Packages (declared, or tzdata pulled in by zoneinfo) need download and import time
+      const needsPackages = ex.packages.length > 0 || /\bzoneinfo\b/.test(ex.solution + ex.starter + ex.tests);
+      const budget = ex.timeout * 1000 + (needsPackages ? 30_000 : 5_000);
       if (ex.type === "predict") {
         const r = (await pool.run({ kind: "run", code: ex.starter, packages: ex.packages }, budget)) as TestResult;
         tick();

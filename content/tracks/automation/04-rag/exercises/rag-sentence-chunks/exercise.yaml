@@ -1,0 +1,8 @@
+title: Pack sentences into chunks
+type: function
+difficulty: core
+tags: [chunking, sentences, regex, overlap]
+hints:
+  - "re.split(r\"(?<=[.!?])\\s+\", text.strip()) splits after sentence-ending punctuation; drop any empty strings."
+  - "Build the current chunk as a list of sentences. Before adding one, check len(\" \".join(current + [sentence])). If it's too long and current isn't empty, finish current and start a new one."
+  - "The new chunk starts with carry = current[-overlap:] (nothing when overlap is 0). While carry + [sentence] is too long, drop carry's first sentence. Then current = carry + [sentence]."
