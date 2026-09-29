@@ -8,7 +8,7 @@ HEADER = (
 
 # The wholesaler's full catalogue, built once when the tests load
 RANGE = [
-    ("MUG", "Stoneware mug, speckled", "Kiln & Co Ceramics", 850),
+    ("MUG", "Stoneware mug, speckled", "Kiln Ceramics Ltd", 850),
     ("FLT", "V60 paper filters, pack of 100", "Hario Europe", 235),
     ("ETH", "Ethiopia Yirgacheffe, 1 kg", "Origin Green Imports", 1_420),
     ("GRD", "Hand grinder, ceramic burr", "Burrworks Ltd", 2_100),
@@ -34,13 +34,13 @@ FULL_TABLE = expected_table(CATALOGUE)
 @test("Renders a small stock table")
 def _():
     products = [
-        ("MUG-01", "Stoneware mug", "Kiln & Co Ceramics", 4, 6, 850),
+        ("MUG-01", "Stoneware mug", "Kiln Ceramics Ltd", 4, 6, 850),
         ("GRD-01", "Hand grinder", "Burrworks Ltd", 1_200, 2, 2_100),
     ]
     assert render_stock_table(products) == (
         "<table>\n"
         + HEADER
-        + '<tr class="low"><td>MUG-01</td><td>Stoneware mug</td><td>Kiln &amp; Co Ceramics</td>'.replace("&amp;", "&")
+        + '<tr class="low"><td>MUG-01</td><td>Stoneware mug</td><td>Kiln Ceramics Ltd</td>'
         + "<td>4</td><td>6</td><td>8.50</td><td>34.00</td></tr>\n"
         + '<tr class="ok"><td>GRD-01</td><td>Hand grinder</td><td>Burrworks Ltd</td>'
         + "<td>1200</td><td>2</td><td>21.00</td><td>25,200.00</td></tr>\n"

@@ -1,0 +1,8 @@
+title: Merge live feeds
+type: function
+difficulty: stretch
+tags: [asyncio, async-generators, queue, tasks, cancellation, aclosing]
+hints:
+  - Start one task per feed that reads it with async for and puts each item on a shared asyncio.Queue. The generator itself loops on queue.get() and yields what arrives, so items come out in the order they arrived, whichever feed they came from.
+  - "Each pump task puts a sentinel on the queue when its feed runs out, or puts the exception if the feed raised. The generator stops after it has seen one sentinel per feed, and raises an exception it receives."
+  - "Put the loop in try/finally. In the finally, cancel every pump task and await asyncio.gather(*tasks, return_exceptions=True): that runs when the feeds are exhausted, when a feed fails and when the consumer closes the generator early, and cancelling a pump closes the feed it was reading."

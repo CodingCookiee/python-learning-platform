@@ -1,0 +1,8 @@
+title: A reply that respects its word limit
+type: function
+difficulty: stretch
+tags: [prompting, templates, output checks, conversation history, ScriptedLLM]
+hints:
+  - "Build the system prompt with REPLY_TEMPLATE.format(policy=policy, max_words=max_words), and count words with len(text.split())."
+  - "For the second attempt, send the original messages plus the first reply as an assistant message and a user message saying what was wrong: history = [*messages, {\"role\": \"assistant\", \"content\": first}, {\"role\": \"user\", \"content\": ...}]."
+  - Only two calls, ever. If the second reply is still too long, raise ValueError with a message that says how many words it had.

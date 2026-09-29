@@ -4,6 +4,6 @@ difficulty: stretch
 tags: [batching, classification, cost, pydantic, itertools]
 packages: [pydantic]
 hints:
-  - Start with results = {ticket_id: "unknown" for ticket_id in tickets}. Every ticket then has an answer even if its batch fails, and the dict keeps the tickets' order.
+  - 'Start with results = {ticket_id: "unknown" for ticket_id in tickets}. Every ticket then has an answer even if its batch fails, and the dict keeps the tickets'' order.'
   - 'itertools.batched(tickets.items(), batch_size) gives tuples of (id, text) pairs. Build [{"id": i, "text": t} for i, t in batch] and send f"<tickets>\n{json.dumps(payload)}\n</tickets>".'
   - Parse the reply with extract_json inside try/except ValueError. Then validate each item of data.get("results", []) with Labelled.model_validate on its own, and only keep ids that were in this batch.
