@@ -1,0 +1,8 @@
+title: The retry that books an invoice twice
+type: fix
+difficulty: core
+tags: [reliability, idempotency, retries, httpx]
+packages: [httpx]
+hints:
+  - "The retry loop re-runs _process_once from the top, so after a summary timeout the post runs again. The accounting API can recognise a repeat, but only if you tell it which request this is."
+  - "Pass headers={\"Idempotency-Key\": f\"bill:{document['id']}\"} to http.post. It must come from the document, not from uuid4() or the attempt number, so every attempt and every later run sends the same key."

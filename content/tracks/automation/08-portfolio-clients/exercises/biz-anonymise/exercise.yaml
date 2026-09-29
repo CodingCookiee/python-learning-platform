@@ -1,0 +1,8 @@
+title: Anonymise client details before you publish
+type: function
+difficulty: core
+tags: [case-studies, privacy, regex]
+hints:
+  - "Replace emails first, then phone numbers, then names, so a name inside an email address doesn't leave half an address behind."
+  - "For phone numbers, re.sub can take a function: count the digits in match.group() and return \"[phone]\" only when there are at least 9."
+  - "One pattern for all the names: \"|\".join(re.escape(n) for n in sorted(names, key=len, reverse=True)), wrapped in (?<!\\w)(?:...)(?!\\w), with re.IGNORECASE, and a function that looks up the match's lower-cased text."

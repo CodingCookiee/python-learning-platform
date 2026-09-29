@@ -1,0 +1,3 @@
+def redact(text: str, secrets: list[str | None]) -> str:
+    """text with every known secret replaced by [redacted]."""
+    ...

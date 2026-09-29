@@ -1,0 +1,8 @@
+title: A worker queue with dead letters
+type: function
+difficulty: stretch
+tags: [reliability, asyncio, queues, dead-letter]
+hints:
+  - "Put every job on an asyncio.Queue, start the workers with asyncio.create_task, await queue.join(), then cancel the workers (and gather them with return_exceptions=True so the cancellations are collected)."
+  - "In the worker: job = await queue.get(), then try/finally with queue.task_done() in the finally, so join() is never left waiting. Inside, add 1 to job.attempts and run handle under async with asyncio.timeout(timeout)."
+  - "On an error: if is_retryable(error) and job.attempts < max_attempts, await sleep(backoff * 2 ** (job.attempts - 1)) and put the job back; otherwise append DeadLetter(job, f\"{type(error).__name__}: {error}\")."

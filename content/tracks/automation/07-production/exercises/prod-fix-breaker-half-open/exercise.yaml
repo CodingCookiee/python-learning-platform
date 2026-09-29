@@ -1,0 +1,7 @@
+title: The circuit breaker that never half-opens
+type: fix
+difficulty: core
+tags: [reliability, circuit-breaker, state-machines]
+hints:
+  - "Follow opened_at through a busy afternoon: every refused call sets it to now, so clock() - opened_at never reaches the cool-down while requests keep coming. Refusing a call shouldn't touch it."
+  - "After a success, the breaker is closed but failures still holds the old count, so the next single failure is already over the threshold. Reset failures (and opened_at) in _record_success."

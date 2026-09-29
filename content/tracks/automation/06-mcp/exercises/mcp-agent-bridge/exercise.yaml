@@ -1,0 +1,9 @@
+title: Your agent, calling tools on two MCP servers
+type: function
+difficulty: stretch
+xp: 40
+tags: [mcp, agents, agent-loop, tool-calling, neutral-interface]
+hints:
+  - 'McpToolbox stores prefix and client. definitions() maps client.list_tools() to {"name": f"{prefix}__{name}", "description", "parameters"}; owns(name) is name.startswith(prefix + "__").'
+  - 'call() strips the prefix with name.removeprefix(self.prefix + "__"), sends client.request("tools/call", {"name": ..., "arguments": ...}), and returns json.dumps({"error": reply["error"]["message"]}) for a protocol error, or result_to_text(reply["result"]).'
+  - 'run_agent builds the definitions once, before the loop. For each call, next((box for box in toolboxes if box.owns(call.name)), None) finds its server. The loop is A3''s: append the assistant message once, then one tool message per call.'

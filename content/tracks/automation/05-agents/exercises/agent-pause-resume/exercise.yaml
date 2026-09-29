@@ -1,0 +1,8 @@
+title: Pause for approval, resume from JSON
+type: function
+difficulty: stretch
+tags: [agents, human-in-the-loop, json, state, agent-loop]
+hints:
+  - "Write one helper, continue_run(llm, messages, steps, ...), holding the loop. start_run calls it with [the task] and 0 steps; resume_run with the saved messages and steps after appending the pending results."
+  - "When a response has any risky call, append the assistant message and return Outcome('paused', state=json.dumps({'messages': messages, 'pending': calls, 'steps': steps}), pending=the risky calls). Nothing in that response runs yet."
+  - "resume_run: json.loads the state, then for each pending call append a tool message: a risky call runs only if approved (otherwise the DECLINED error), a safe call always runs. Then continue_run from the saved steps."

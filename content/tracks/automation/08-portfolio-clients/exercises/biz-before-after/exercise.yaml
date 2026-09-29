@@ -1,0 +1,7 @@
+title: A before-and-after line for a case study
+type: function
+difficulty: warm-up
+tags: [case-studies, formatting, Decimal]
+hints:
+  - "The change is (after - before) / before × 100. Work it out in Decimal and round with quantize(Decimal(\"1\"), rounding=ROUND_HALF_UP)."
+  - "The format spec + always shows the sign: f\"{-94:+}\" is \"-94\" and f\"{288:+}\" is \"+288\"."

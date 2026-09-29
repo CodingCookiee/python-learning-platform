@@ -1,0 +1,8 @@
+title: Render an outcome-first case study
+type: function
+difficulty: stretch
+tags: [case-studies, privacy, strings, Decimal]
+hints:
+  - "Check the metrics first: none at all, or a first metric with a before of 0, is a ValueError."
+  - "The headline's percentage is the same rounding as before_after(): work it out once, then use \"down\" if it's negative, otherwise \"up\", and abs() for the number."
+  - Build a list of sections, each a list of lines; pass every piece of free text (problem, each approach step, the quote) through anonymise(), and join the lines with "\n" and the sections with "\n\n".

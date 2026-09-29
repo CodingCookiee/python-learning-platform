@@ -1,0 +1,8 @@
+title: One loop, every limit
+type: function
+difficulty: stretch
+tags: [agents, guardrails, budgets, timeouts, loop-detection, Decimal]
+hints:
+  - "Read started = clock() once. At the top of each step, check the deadline (clock() - started >= limits.max_seconds gives 'timeout'), then the budget (cost + worst_case_cost(...) > limits.max_cost gives 'budget'), before calling the model."
+  - "After the call, add call_cost(response.usage, limits.price) to the cost. finish and a plain reply stop as in lesson 2."
+  - "Count each tool call by (name, json.dumps(arguments, sort_keys=True)) in a Counter. When a call's count reaches limits.max_repeats, stop with 'loop' without running it."

@@ -1,0 +1,8 @@
+title: Reading outside the handbook
+type: fix
+difficulty: core
+tags: [mcp, security, path-traversal, pathlib, resources]
+hints:
+  - Joining a path with .. or an absolute path takes it out of the root. Checking exists() only proves the file is somewhere on the disk.
+  - 'Resolve both sides after decoding: root = self.root.resolve() and path = (root / unquote(...)).resolve(). resolve() removes .. and follows symlinks.'
+  - 'Serve the file only if path.is_relative_to(root), path.is_file() and path.suffix == ".md"; otherwise raise ResourceNotFound(uri).'

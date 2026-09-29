@@ -1,0 +1,8 @@
+title: Plan today's outreach, politely
+type: function
+difficulty: stretch
+tags: [outreach, ethics, sorting, datetime]
+hints:
+  - Write an allowed(prospect) helper that returns False for each of the five rules, then filter, sort and slice.
+  - "A suppression entry is either a whole address or \"@domain\". Lower-case everything, then check the address and \"@\" + its domain against the lower-cased set."
+  - "Sort with key=lambda p: (RANK[p[\"source\"]], p.get(\"last_contacted\") or date.min, p[\"email\"].lower()), then take the first daily_limit."

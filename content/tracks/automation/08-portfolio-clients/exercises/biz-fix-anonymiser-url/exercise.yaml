@@ -1,0 +1,8 @@
+title: An anonymiser that leaks emails in links
+type: fix
+difficulty: core
+tags: [case-studies, privacy, regex]
+hints:
+  - Splitting on spaces and checking each whole word only finds emails that stand alone. In a URL or a mailto link, the email is only part of a word.
+  - "Search the whole text instead: EMAIL.sub(\"[email]\", text) replaces each match wherever it is, and leaves the characters around it alone."
+  - "In a URL, @ is often written as %40, so the separator is (?:@|%40)."

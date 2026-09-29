@@ -1,0 +1,7 @@
+title: Redact secrets from a tool result
+type: function
+difficulty: warm-up
+tags: [mcp, security, secrets, strings]
+hints:
+  - Skip the secrets that are None or empty, then text.replace each one with "[redacted]".
+  - Replace the longest secrets first, sorted(..., key=len, reverse=True), so a secret that contains another is replaced whole.

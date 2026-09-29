@@ -1,0 +1,8 @@
+title: The retry nobody approved
+type: fix
+difficulty: core
+tags: [agents, human-in-the-loop, approvals, guardrails, json]
+hints:
+  - "self.approved remembers tool names, so one yes covers every later call to that tool, whatever its arguments."
+  - "Key each decision by the exact call: (name, json.dumps(arguments, sort_keys=True)). Store the person's answer, yes or no, in a dict under that key."
+  - "Before asking, look the key up: a remembered yes runs the tool without asking again, a remembered no returns the declined error without asking again. Only a call never seen before goes to the approver."

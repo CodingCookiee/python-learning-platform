@@ -1,0 +1,8 @@
+title: A budget checked too late
+type: fix
+difficulty: core
+tags: [agents, guardrails, cost, budgets, Decimal]
+hints:
+  - The check runs after llm.complete, so the call that crosses the limit has already been made and paid for. The check has to come first.
+  - "Before each call: worst = budget.worst_case(messages, system=system, tools=tools, max_tokens=max_tokens). If budget.spent + worst > budget.limit, stop without calling."
+  - "After the call, budget.charge(response) records the actual cost. steps is the number of calls actually made, so stopping before call n reports n - 1."

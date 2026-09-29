@@ -1,0 +1,8 @@
+title: The token is in the transcript
+type: fix
+difficulty: core
+tags: [mcp, security, secrets, environment-variables]
+hints:
+  - 'Three places leak: shop_info returns everything settings() has, sync_status puts the token in the URL, and call_tool sends str(error) as it is.'
+  - 'Build shop_info''s result from the keys it should show: {key: value for key, value in settings().items() if key != "token"}. In sync_status, call fetch(url, headers={"Authorization": f"Bearer {token}"}) with a URL that has no token in it.'
+  - 'In call_tool, pass every text through redact(text, [os.environ.get("KILN_SHOP_TOKEN")]) before it goes into a result, errors included. Read the variable when the call happens, not at import.'

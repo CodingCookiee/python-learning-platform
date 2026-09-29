@@ -1,0 +1,9 @@
+title: Read-only and rate-limited
+type: function
+difficulty: stretch
+xp: 40
+tags: [mcp, security, least-privilege, rate-limits, deque, closures]
+hints:
+  - 'guard returns an inner function with a deque of the times of recent calls in its closure. Pass every message that isn''t tools/list or tools/call (and every notification) straight to handle.'
+  - 'For tools/list, call handle and rebuild the reply with a filtered copy of its tools: {**reply, "result": {**result, "tools": [t for t in result["tools"] if t["name"] in allowed_tools]}}.'
+  - 'For tools/call: a name not in allowed_tools gets the -32602 reply without calling handle. Otherwise drop times <= now - 60 from the left of the deque; if len(times) >= calls_per_minute, reply with the isError result and math.ceil(times[0] + 60 - now) seconds; else append now and call handle.'

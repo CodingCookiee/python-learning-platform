@@ -1,0 +1,8 @@
+title: A fallback chain with cached answers
+type: function
+difficulty: core
+tags: [reliability, fallbacks, caching]
+hints:
+  - "Loop over chain; in except Exception as error: if not is_retryable(error): raise, otherwise append (name, error) to a list and try the next one."
+  - "On success, cache[cache_key(question)] = reply.text before returning. After the loop, look the same key up in the cache."
+  - "cache_key is \" \".join(question.split()).casefold(): split() with no arguments splits on any run of whitespace and drops the ends."

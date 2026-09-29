@@ -1,0 +1,8 @@
+title: Catch the agent repeating itself
+type: function
+difficulty: core
+tags: [agents, guardrails, loop-detection, json, collections]
+hints:
+  - "Turn each call into a key that ignores argument order: (name, json.dumps(arguments, sort_keys=True))."
+  - "A collections.deque(maxlen=window) keeps only the most recent calls. Append the key, then count how many times it appears in the deque."
+  - "If count >= max_repeats, return f'{name} was called {count} times with the same arguments'; otherwise return None."

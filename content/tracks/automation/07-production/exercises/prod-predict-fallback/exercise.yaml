@@ -1,0 +1,7 @@
+title: "Predict: who answers during an outage"
+type: predict
+difficulty: warm-up
+tags: [reliability, fallbacks, retries]
+hints:
+  - "Each ScriptedLLM hands out its replies in order, one per call, across all four questions. The secondary and the cache are only called when everything before them failed with a retryable error."
+  - "A 400 isn't retryable, so the third question stops at the primary, and the message is str(error): \"Fake LLM error 400: prompt is too long\"."

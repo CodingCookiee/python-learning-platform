@@ -1,0 +1,3 @@
+def scope_tools(tools, registry, allow):
+    """The tool definitions and registry, cut down to the allowed names."""
+    ...

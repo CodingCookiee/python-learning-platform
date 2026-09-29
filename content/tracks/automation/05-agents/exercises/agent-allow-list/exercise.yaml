@@ -1,0 +1,7 @@
+title: Only the tools this job needs
+type: function
+difficulty: warm-up
+tags: [agents, guardrails, allow-lists, least-privilege]
+hints:
+  - "First check every name in allow against the tool names, and raise ValueError for one that isn't there."
+  - "definitions = [tool for tool in tools if tool['name'] in allow] keeps the tools' order; the registry is {name: fn for name, fn in registry.items() if name in allow}."

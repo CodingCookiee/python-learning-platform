@@ -1,0 +1,8 @@
+title: An audit log for every call
+type: function
+difficulty: core
+tags: [mcp, security, audit-log, logging, closures, json]
+hints:
+  - 'audited returns an inner function that closes over a small state dict, such as state = {"client": "unknown"}. On an initialize request, read message["params"]["clientInfo"]["name"] into it.'
+  - 'Time the call with start = clock() before handle(message) and ms = round((clock() - start) * 1000) after. Only requests (with an id) whose method is tools/call or resources/read are logged.'
+  - 'The outcome is "protocol_error" if "error" in reply, "tool_error" if reply["result"].get("isError"), else "ok". For an exception, log with outcome "exception" in a try/except, then raise to re-raise it.'

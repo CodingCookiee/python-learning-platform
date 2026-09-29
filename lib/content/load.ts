@@ -171,7 +171,13 @@ export function loadContent(root = path.join(process.cwd(), "content")): LoadRes
         err(p, "lesson files are named NN-slug.md");
         continue;
       }
-      const split = splitFrontmatter(read(p));
+      let split: ReturnType<typeof splitFrontmatter>;
+      try {
+        split = splitFrontmatter(read(p));
+      } catch (e) {
+        err(p, `frontmatter is invalid YAML: ${(e as Error).message.split("\n")[0]}`);
+        continue;
+      }
       if (!split) {
         err(p, "missing --- frontmatter ---");
         continue;

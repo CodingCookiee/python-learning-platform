@@ -50,6 +50,7 @@ __all__ = [
     "fake_api",
     "FakeServer",
     "fake_embed",
+    "embeddings_api",
     "cosine",
     "McpHarness",
     "estimate_tokens",
@@ -149,12 +150,19 @@ def _as_reply(item: Any) -> Reply | Fail | Timeout:
 
 
 class _Script:
-    def __init__(self, replies: Iterable[Any], name: str):
+    def __init__(self, replies: Iterable[Any], name: str, *, repeat_last: bool = False):
         self._items = list(replies)
         self._name = name
+        self._repeat_last = repeat_last and bool(self._items)
         self.used = 0
 
     def next(self, request: dict) -> Reply | Fail | Timeout:
+        if self._repeat_last and self.used >= len(self._items):
+            self.used += 1
+            item = self._items[-1]
+            if callable(item) and not isinstance(item, (ToolCall, Reply, Fail, Timeout)):
+                item = item(request)
+            return _as_reply(item)
         if self.used >= len(self._items):
             raise AssertionError(
                 f"{self._name} was called {self.used + 1} times, but the test only scripted "
@@ -195,10 +203,20 @@ class ScriptedLLM:
     so tests can check prompts, tools offered and conversation history.
     """
 
-    def __init__(self, replies: Iterable[Any], *, model: str = "fake-model", supports_schema: bool = True):
+    def __init__(
+        self,
+        replies: Iterable[Any],
+        *,
+        model: str = "fake-model",
+        supports_schema: bool = True,
+        repeat_last: bool = False,
+    ):
         """supports_schema=False makes complete(..., schema=...) raise NotImplementedError,
-        like a client for a provider without native structured outputs."""
-        self._script = _Script(replies, "ScriptedLLM")
+        like a client for a provider without native structured outputs.
+        repeat_last=True keeps answering with the last reply once the script runs out
+        (e.g. ScriptedLLM([answer_from_context], repeat_last=True) for a model that
+        answers every call from the prompt it's given)."""
+        self._script = _Script(replies, "ScriptedLLM", repeat_last=repeat_last)
         self.model = model
         self.supports_schema = supports_schema
         self.calls: list[dict] = []
@@ -615,6 +633,37 @@ def fake_embed(texts: Iterable[str] | str, *, dim: int = 64) -> list[list[float]
         norm = math.sqrt(sum(x * x for x in v)) or 1.0
         vectors.append([x / norm for x in v])
     return vectors
+
+
+def embeddings_api(kind: str = "openai", *, dim: int = 64) -> FakeServer:
+    """An HTTP fake of an embeddings endpoint, answering with fake_embed vectors, for
+    testing a learner's real embedding adapter offline:
+
+        api = embeddings_api("openai")     # POST /v1/embeddings {"model", "input": [...]}
+        api = embeddings_api("voyage")     # POST /v1/embeddings {"model", "input": [...], "input_type"}
+        client = httpx.Client(transport=api.transport, base_url="https://api.openai.com")
+
+    Checks the Authorization: Bearer header (401 without it) and a non-empty input.
+    Responses follow each provider's shape: {"data": [{"index", "embedding"}], "usage": {...}}.
+    """
+
+    def handler(req):
+        auth = req["headers"].get("authorization", "")
+        if not auth.startswith("Bearer ") or len(auth) <= len("Bearer "):
+            return 401, {"error": {"message": "Authorization: Bearer <key> header is required"}}
+        body = req["json"] or {}
+        texts = body.get("input")
+        if isinstance(texts, str):
+            texts = [texts]
+        if not texts or not body.get("model"):
+            return 400, {"error": {"message": "model and a non-empty input are required"}}
+        vectors = fake_embed(texts, dim=dim)
+        data = [{"object": "embedding", "index": i, "embedding": v} for i, v in enumerate(vectors)]
+        tokens = sum(estimate_tokens(t) for t in texts)
+        usage = {"prompt_tokens": tokens, "total_tokens": tokens} if kind == "openai" else {"total_tokens": tokens}
+        return {"object": "list", "data": data, "model": body["model"], "usage": usage}
+
+    return FakeServer({"POST /v1/embeddings": handler})
 
 
 def cosine(a: list[float], b: list[float]) -> float:
