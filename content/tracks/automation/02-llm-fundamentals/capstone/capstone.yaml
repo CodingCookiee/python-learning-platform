@@ -17,5 +17,5 @@ criteria:
   - Both adapters pass the module's drills when pasted back in, and the harness never builds provider JSON itself
   - Keys never appear in code, output, logs or the repository, and a missing key or model list fails with a message naming the variable
   - Failed calls, missing prices and a model that never succeeds are all reported, not crashed on
-  - The scoring function, clock and prices are injected, so every part is testable, and the tests prove it
+  - The clock and prices are injected and scoring is a pure function, so every part is testable, and the tests prove it
   - The README reports a real comparison you ran, with the date, the prices you used and their source, and which model you'd choose and why

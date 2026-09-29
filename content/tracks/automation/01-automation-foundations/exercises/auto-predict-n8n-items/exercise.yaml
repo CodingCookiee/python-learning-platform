@@ -1,0 +1,7 @@
+title: "Predict: the Code node that changed its input"
+type: predict
+difficulty: warm-up
+tags: [n8n, mutability, references, copying]
+hints:
+  - "data = item[\"json\"] doesn't copy anything: data and item[\"json\"] are the same dict, so changing data changes the incoming item too."
+  - "dict(item[\"json\"]) is a shallow copy: a new outer dict, but its \"tags\" value is still the same list object as before."

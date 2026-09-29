@@ -1,0 +1,3 @@
+def to_items(rows):
+    """Wrap each row as an n8n item: {"json": <a copy of the row>}."""
+    ...

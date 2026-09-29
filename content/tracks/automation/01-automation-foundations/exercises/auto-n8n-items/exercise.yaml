@@ -1,0 +1,7 @@
+title: Rows to n8n items
+type: function
+difficulty: warm-up
+tags: [n8n, items, comprehensions]
+hints:
+  - Each item is a new dict with one key, "json", holding a copy of the row.
+  - "[{\"json\": dict(row)} for row in rows]"

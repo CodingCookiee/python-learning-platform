@@ -66,10 +66,10 @@ def total_streamed(n):
 
 
 tracemalloc.start()
-total_listed(100_000)
+total_listed(50_000)
 listed_peak = tracemalloc.get_traced_memory()[1]
 tracemalloc.reset_peak()
-total_streamed(100_000)
+total_streamed(50_000)
 streamed_peak = tracemalloc.get_traced_memory()[1]
 tracemalloc.stop()
 
@@ -125,7 +125,7 @@ def errors_streamed(lines):
     return sum(1 for day, method, path, status in parsed if status == "500")
 
 
-for n in (1_500, 3_000, 6_000):
+for n in (1_000, 2_000, 4_000):
     for count_errors in (errors_listed, errors_streamed):
         tracemalloc.start()
         count_errors(log_lines(n))
@@ -182,7 +182,7 @@ def invoice_join(rows):
     return "".join(f"{sku:<10}{quantity:>4}{amount:>10.2f}\n" for sku, quantity, amount in rows)
 
 
-for n in (5_000, 10_000):
+for n in (4_000, 8_000):
     rows = [(f"SKU-{i:05d}", i % 7 + 1, i * 0.37 % 90) for i in range(n)]
     times = []
     for build in (invoice_concat, invoice_plus_equals, invoice_join):
