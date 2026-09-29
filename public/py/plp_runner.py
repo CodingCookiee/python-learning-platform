@@ -26,6 +26,10 @@ import plp
 MAX_OUTPUT = 20_000
 MAX_REPR = 300
 USER_FILES = ("main.py", "solution.py")
+# The per-test time limit watches the learner's code and the drill's own test code
+# (so a test that eagerly drains an endless generator it defines still fails cleanly).
+# plp helpers, pytest, mypy and packages are never traced.
+TRACED_FILES = (*USER_FILES, "tests.py")
 
 
 # Helpers
@@ -155,10 +159,15 @@ async def run_code(code: str, stdin: list[str] | None = None, filename: str = "m
     started = time.perf_counter()
     status, error = "ok", None
     feed = _Feed(stdin) if stdin is not None else _NoInput()
-    namespace = {"__name__": "__main__", "__file__": filename, "__builtins__": builtins}
+    plp.browser_compat()
     try:
         code_obj = compile(code, filename, "exec", flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
-        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err), _patched_input(feed):
+        with (
+            contextlib.redirect_stdout(out),
+            contextlib.redirect_stderr(err),
+            _patched_input(feed),
+            plp.as_module("__main__", filename) as namespace,
+        ):
             await _execute(code_obj, namespace)
     except SystemExit as exc:
         if exc.code not in (None, 0):
@@ -389,7 +398,7 @@ class _Deadline:
         self.until = None
 
     def _global(self, frame, event, arg):
-        if frame.f_code.co_filename in USER_FILES:
+        if frame.f_code.co_filename in TRACED_FILES:
             return self._local
         return None
 
@@ -423,6 +432,7 @@ async def run_tests(solution: str, tests: str, import_solution: bool = True) -> 
     plp._REGISTRY.clear()
     plp._SOLUTION.update(source=solution, filename="solution.py")
     plp.fresh_logging()
+    plp.browser_compat()
     for name in ("solution", "tests"):
         sys.modules.pop(name, None)
 
@@ -454,6 +464,7 @@ async def run_tests(solution: str, tests: str, import_solution: bool = True) -> 
 
     # 2. The drill's tests (errors here are the author's, not the learner's)
     tests_module = _fresh_module("tests", "tests.py", tests)
+    sys.modules["tests"] = tests_module  # @dataclass, pickling and typing look modules up here
     tests_module.__dict__["_plp_assert_fail"] = _assert_fail
     try:
         tests_tree = ast.parse(tests, "tests.py")

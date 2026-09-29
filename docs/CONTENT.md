@@ -255,7 +255,8 @@ def _():
   longer than 2s…" and the line it was on; the other tests still run and report. Use
   `@test("…", timeout=10)` for a slower check, or `timeout=None` for timing measurements (the
   limit's tracer slows learner code slightly). This makes "make it faster" drills possible: a
-  large input simply times out on the slow version.
+  large input simply times out on the slow version. The limit covers code in the learner's file and inside test
+  functions; build large inputs at the top level of `tests.py`, which runs once and isn't timed.
 - **`source_uses(node="ListComp")` / `source_avoids(call="range")`** inspect the learner's code with
   `ast`, for refactor drills. `call=` and `name=` match both `pairwise` and `itertools.pairwise`,
   and names brought in with `from x import y`.

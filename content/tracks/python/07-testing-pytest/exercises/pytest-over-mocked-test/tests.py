@@ -67,63 +67,61 @@ def passes_on_correct():
         "These fail on the correct code, so they expect the wrong thing:\n" + report(result)
     )
 
-MODULE, TEST_FILE = "receipt.py", "test_receipt.py"
+MODULE, TEST_FILE = "invoice.py", "test_invoice.py"
 
 CORRECT = '''
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
+
+VAT_RATE = Decimal("0.20")
+PENNY = Decimal("0.01")
 
 
-def print_receipt(lines):
-    """Print a receipt for (name, quantity, unit_price) lines, with Decimal prices.
-
-    Each line shows the quantity, the name and the line total, and the last line
-    is the total. An empty receipt prints just "No items".
-    """
-    if not lines:
-        print("No items")
-        return
-    total = Decimal("0")
-    for name, quantity, unit_price in lines:
-        line_total = quantity * unit_price
-        total += line_total
-        print(f"{quantity} x {name:<16}{line_total:>8.2f}")
-    print(f"Total: {total:.2f}")
+def invoice_total(lines, discount_percent=0):
+    """Totals for an invoice (see the prompt)."""
+    subtotal = sum((quantity * price for _, quantity, price in lines), Decimal("0"))
+    discount = (subtotal * discount_percent / 100).quantize(PENNY, rounding=ROUND_HALF_UP)
+    vat = ((subtotal - discount) * VAT_RATE).quantize(PENNY, rounding=ROUND_HALF_UP)
+    return {"subtotal": subtotal, "discount": discount, "vat": vat, "total": subtotal - discount + vat}
 '''
 
-TOTAL_OVERWRITTEN = planted("total += line_total", "total = line_total")
-LINE_SHOWS_UNIT_PRICE = planted("{line_total:>8.2f}", "{unit_price:>8.2f}")
-EMPTY_PRINTS_NOTHING = planted('        print("No items")\n', "")
+VAT_BEFORE_DISCOUNT = planted("vat = ((subtotal - discount) * VAT_RATE)", "vat = (subtotal * VAT_RATE)")
+IGNORES_QUANTITY = planted("sum((quantity * price for", "sum((price for")
+DISCOUNT_ROUNDS_DOWN = planted(
+    "discount = (subtotal * discount_percent / 100).quantize(PENNY, rounding=ROUND_HALF_UP)",
+    "discount = (subtotal * discount_percent / 100).quantize(PENNY, rounding=ROUND_DOWN)",
+).replace("import ROUND_HALF_UP,", "import ROUND_DOWN, ROUND_HALF_UP,")
 
 
-@test("Your tests pass on the correct receipt.py")
+@test("Your tests pass on the refactored invoice.py")
 def _():
     passes_on_correct()
 
 
-@test("Uses capsys")
+@test("No mocks or patching: invoice_total is called for real")
 def _():
-    assert source_uses(name="capsys"), "Read what was printed with the capsys fixture"
+    assert source_avoids(name="patch"), "Remove the patching: call invoice_total for real and check its result"
+    assert source_avoids(name="Mock") and source_avoids(name="MagicMock"), "invoice_total is pure, so there's nothing to mock"
 
 
-@test("Catches a total that only counts the last line")
+@test("Catches VAT charged before the discount")
 def _():
-    assert catches(TOTAL_OVERWRITTEN), (
-        "A bug slipped through: the total line showed only the last item (Total: 3.50 instead of "
-        "19.50), and all your tests still passed. Check the total of a receipt with two items."
+    assert catches(VAT_BEFORE_DISCOUNT), (
+        "A bug slipped through: VAT was charged on the subtotal before the discount (a 100.00 desk "
+        "at 10% off came to 110.00), and all your tests still passed. Check the VAT and the total."
     )
 
 
-@hidden("Catches item lines showing the unit price")
+@hidden("Catches quantities being ignored")
 def _():
-    assert catches(LINE_SHOWS_UNIT_PRICE), (
-        "A bug slipped through: each item line showed the unit price instead of the line total, "
-        "and all your tests still passed. Check an item line with a quantity above 1."
+    assert catches(IGNORES_QUANTITY), (
+        "A bug slipped through: the subtotal ignored quantities, and all your tests still passed. "
+        "Use a line with a quantity above 1."
     )
 
 
-@hidden("Catches an empty receipt printing nothing")
+@hidden("Catches the discount being rounded down")
 def _():
-    assert catches(EMPTY_PRINTS_NOTHING), (
-        "A bug slipped through: an empty receipt printed nothing instead of \"No items\", and all "
-        "your tests still passed."
+    assert catches(DISCOUNT_ROUNDS_DOWN), (
+        "A bug slipped through: the discount was rounded down instead of half-up, and all your "
+        "tests still passed. Try a discount that isn't a whole number of pence, like 15% of 19.99."
     )

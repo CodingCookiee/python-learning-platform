@@ -1,0 +1,11 @@
+title: A test that tested the wrong thing
+type: fix
+difficulty: core
+tags: [pytest, test-design, mocking, refactoring]
+packages: [pytest]
+timeout: 20
+script: true
+hints:
+  - invoice_total is pure: same lines in, same totals out, with no network, clock or files involved. There's nothing to mock. Call it and check the dict it returns.
+  - The example in the prompt is a ready-made test. Add lines with a quantity above 1, and an invoice with no discount.
+  - "To catch a rounding bug, use a discount that doesn't come out to a whole penny: 15% of 19.99 is 2.9985, which rounds half-up to 3.00."

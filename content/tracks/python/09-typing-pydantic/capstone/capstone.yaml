@@ -1,0 +1,21 @@
+slug: typed-api-models
+title: Typed API models
+summary: A Pydantic schema set for an e-commerce order API that validates every request, prices orders, parses webhooks and passes mypy --strict.
+hours: 5
+xp: 150
+requirements:
+  - "Shared types for the whole API, named with the type statement: Currency and OrderStatus as Literals, and Sku, Quantity, Money and CountryCode as Annotated types carrying their Field constraints"
+  - "An ApiModel base class whose config every model inherits: camelCase aliases on the wire, snake_case names in Python, unknown keys refused, strings stripped, and instances frozen"
+  - "Request models Address, LineItemIn and OrderRequest, with a field validator that normalises the customer's email, one that uppercases the coupon code, and a model validator that refuses duplicate SKUs"
+  - "Response models LineItemOut, OrderTotals and OrderResponse, whose model validators refuse totals that don't add up, and whose created_at must be timezone-aware"
+  - "ErrorResponse and FieldError models, and error_response(error) turning any ValidationError into one FieldError per problem, located by its camelCase path"
+  - "Webhook models PaymentCaptured, OrderShipped and OrderCancelled, combined into an OrderEvent discriminated union on the type field, parsed by parse_event(raw)"
+  - "parse_order_request(raw) and price_order(request, catalogue, *, order_id, created_at), applying the catalogue prices, coupons and shipping rules in the brief exactly, in Decimal"
+  - "mypy --strict orders_api.py passes with no errors, no type: ignore comments and no Any in your own signatures"
+criteria:
+  - "Running python orders_api.py prints exactly the order response, error response and event lines shown in the brief"
+  - "mypy --strict passes on the file as submitted, and every function and validator is fully annotated"
+  - "Each constraint lives in a shared type or a Field, not in hand-written if statements, and a rule used in two models is written once"
+  - "Invalid input always surfaces as a ValidationError with a precise location; nothing is silently coerced that the brief says to refuse"
+  - "Money is Decimal from end to end, rounded half up to the cent only where the brief says, and every total in a response is consistent"
+  - "Models are small and named for the API's vocabulary, the business rules live in price_order rather than in the models, and importing the file prints nothing"

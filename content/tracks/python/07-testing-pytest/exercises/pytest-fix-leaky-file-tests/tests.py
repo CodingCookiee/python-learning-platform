@@ -2,7 +2,18 @@ import ast
 import re
 from functools import cache
 
-from plp import defined_names, hidden, pytest_run, solution_source, source_avoids, source_uses, test
+import plp
+from plp import defined_names, pytest_run, solution_source, source_avoids, source_uses
+
+
+# Each check runs pytest, which takes a few seconds (the first run imports it). The per-test
+# limit only watches tests.py itself here, so it's switched off; the drill's timeout still applies.
+def test(name):
+    return plp.test(name, timeout=None)
+
+
+def hidden(name):
+    return plp.hidden(name, timeout=None)
 
 SUPPORT = {}  # extra files pytest needs (a conftest.py, other modules)
 

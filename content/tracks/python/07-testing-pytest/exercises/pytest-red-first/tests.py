@@ -67,63 +67,53 @@ def passes_on_correct():
         "These fail on the correct code, so they expect the wrong thing:\n" + report(result)
     )
 
-MODULE, TEST_FILE = "receipt.py", "test_receipt.py"
+MODULE, TEST_FILE = "coupons.py", "test_coupons.py"
 
-CORRECT = '''
-from decimal import Decimal
+BUGGY = '''
+COUPONS = {"SAVE10": 10, "SPRING25": 25}
 
 
-def print_receipt(lines):
-    """Print a receipt for (name, quantity, unit_price) lines, with Decimal prices.
+def discount_percent(code):
+    """The percentage off for a coupon code, or 0 if the code isn't valid.
 
-    Each line shows the quantity, the name and the line total, and the last line
-    is the total. An empty receipt prints just "No items".
+    Codes aren't case-sensitive, and spaces around them are ignored.
     """
-    if not lines:
-        print("No items")
-        return
-    total = Decimal("0")
-    for name, quantity, unit_price in lines:
-        line_total = quantity * unit_price
-        total += line_total
-        print(f"{quantity} x {name:<16}{line_total:>8.2f}")
-    print(f"Total: {total:.2f}")
+    return COUPONS.get(code.strip(), 0)
 '''
 
-TOTAL_OVERWRITTEN = planted("total += line_total", "total = line_total")
-LINE_SHOWS_UNIT_PRICE = planted("{line_total:>8.2f}", "{unit_price:>8.2f}")
-EMPTY_PRINTS_NOTHING = planted('        print("No items")\n', "")
+# The fix: the code the learner's tests are graded against once the bug is gone
+CORRECT = planted("COUPONS.get(code.strip(), 0)", "COUPONS.get(code.strip().upper(), 0)", source=BUGGY)
+
+CRASHES_ON_UNKNOWN_CODES = planted("COUPONS.get(code.strip().upper(), 0)", "COUPONS[code.strip().upper()]")
+STOPS_IGNORING_SPACES = planted("COUPONS.get(code.strip().upper(), 0)", "COUPONS.get(code.upper(), 0)")
 
 
-@test("Your tests pass on the correct receipt.py")
+@test("Red: a test fails on the current, buggy code")
+def _():
+    result = run(BUGGY)
+    assert result.total > 0, "pytest didn't collect any tests. Name each test function test_something."
+    assert result.failed or result.errors, (
+        "All your tests pass on the current code, which still has the bug, so none of them "
+        "reproduces it. Do what the customer did."
+    )
+
+
+@test("Green: every test passes once the bug is fixed")
 def _():
     passes_on_correct()
 
 
-@test("Uses capsys")
+@test("Catches a fix that crashes on unknown codes")
 def _():
-    assert source_uses(name="capsys"), "Read what was printed with the capsys fixture"
-
-
-@test("Catches a total that only counts the last line")
-def _():
-    assert catches(TOTAL_OVERWRITTEN), (
-        "A bug slipped through: the total line showed only the last item (Total: 3.50 instead of "
-        "19.50), and all your tests still passed. Check the total of a receipt with two items."
+    assert catches(CRASHES_ON_UNKNOWN_CODES), (
+        "A bug slipped through: a fix that looked codes up with COUPONS[...] made unknown codes "
+        "raise KeyError instead of giving 0, and all your tests still passed."
     )
 
 
-@hidden("Catches item lines showing the unit price")
+@hidden("Catches a fix that stops ignoring spaces")
 def _():
-    assert catches(LINE_SHOWS_UNIT_PRICE), (
-        "A bug slipped through: each item line showed the unit price instead of the line total, "
-        "and all your tests still passed. Check an item line with a quantity above 1."
-    )
-
-
-@hidden("Catches an empty receipt printing nothing")
-def _():
-    assert catches(EMPTY_PRINTS_NOTHING), (
-        "A bug slipped through: an empty receipt printed nothing instead of \"No items\", and all "
-        "your tests still passed."
+    assert catches(STOPS_IGNORING_SPACES), (
+        "A bug slipped through: a fix that dropped .strip() made \" save10 \" invalid, and all "
+        "your tests still passed. The docstring promises spaces are ignored."
     )

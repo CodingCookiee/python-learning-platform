@@ -2,7 +2,8 @@ import re
 from decimal import Decimal
 from functools import cache
 
-from plp import hidden, pytest_run, solution_source, test
+import plp
+from plp import pytest_run, solution_source
 from solution import late_fee
 
 SPEC = '''
@@ -66,38 +67,38 @@ def still_red(*names):
     return [name for name in result.failed + result.errors if name.split("[")[0] in names]
 
 
-@test("The grace period: no fee for up to 2 days late")
+@plp.test("The grace period: no fee for up to 2 days late", timeout=None)
 def _():
     names = ("test_no_fee_when_returned_on_time", "test_no_fee_within_the_two_day_grace_period")
     assert still_red(*names) == [], "Still red:\n" + explain(names)
 
 
-@test("50p for every day once past the grace period")
+@plp.test("50p for every day once past the grace period", timeout=None)
 def _():
     names = ("test_charges_50p_for_every_day_once_past_the_grace_period",)
     assert still_red(*names) == [], "Still red:\n" + explain(names)
 
 
-@test("The fee is capped at 15.00")
+@plp.test("The fee is capped at 15.00", timeout=None)
 def _():
     names = ("test_fee_is_capped_at_15",)
     assert still_red(*names) == [], "Still red:\n" + explain(names)
 
 
-@test("Negative days raise ValueError")
+@plp.test("Negative days raise ValueError", timeout=None)
 def _():
     names = ("test_negative_days_are_an_error",)
     assert still_red(*names) == [], "Still red:\n" + explain(names)
 
 
-@hidden("The daily rate applies between the grace period and the cap")
+@plp.hidden("The daily rate applies between the grace period and the cap")
 def _():
     assert late_fee(1) == Decimal("0.00")
     assert late_fee(4) == Decimal("2.00")
     assert late_fee(29) == Decimal("14.50")
 
 
-@hidden("Returns a Decimal, never a float")
+@plp.hidden("Returns a Decimal, never a float")
 def _():
     assert isinstance(late_fee(3), Decimal), "late_fee should return a Decimal"
     assert isinstance(late_fee(0), Decimal), "late_fee should return a Decimal for 0 days too"

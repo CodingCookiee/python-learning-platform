@@ -55,11 +55,16 @@ Customer(email=1042, marketing_opt_in="perhaps")
 
 A model is also an ordinary typed class, so mypy checks code that builds one. Pydantic marks
 `BaseModel` as dataclass-like for type checkers, and mypy reads the fields as the constructor's
-parameters:
+parameters. Here's mypy on that same call:
 
 ```text
+billing.py:10: error: Missing named argument "name" for "Customer"  [call-arg]
 billing.py:10: error: Argument "email" to "Customer" has incompatible type "int"; expected "str"  [arg-type]
+billing.py:10: error: Argument "marketing_opt_in" to "Customer" has incompatible type "str"; expected "bool"  [arg-type]
 ```
+
+The two tools split the work: mypy checks the models your own code builds, before it runs, and
+Pydantic checks the data that arrives from outside, when it does.
 
 > [!JS]
 > Coming from TypeScript: Pydantic is zod. The difference is that you don't write

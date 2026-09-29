@@ -46,6 +46,68 @@ class TestTimeout(Exception):
 
 _UNSET: Any = object()
 
+@contextlib.contextmanager
+def as_module(name: str, filename: str):
+    """A fresh module registered in sys.modules under `name` for the duration, whose
+    __dict__ is the namespace to exec into. Libraries that look classes up through
+    sys.modules[cls.__module__] (SQLAlchemy, dataclasses, pickle, typing.get_type_hints)
+    then work for code run as a script. The previous module under that name is restored."""
+    import sys
+    import types
+
+    module = types.ModuleType(name)
+    module.__file__ = filename
+    module.__builtins__ = builtins
+    previous = sys.modules.get(name)
+    sys.modules[name] = module
+    try:
+        yield module.__dict__
+    finally:
+        if previous is None:
+            sys.modules.pop(name, None)
+        else:
+            sys.modules[name] = previous
+
+
+def browser_compat() -> None:
+    """Make libraries that start worker threads usable where threads can't start
+    (Pyodide): anyio's to_thread.run_sync, which FastAPI/Starlette use to run sync
+    endpoints and dependencies, runs the function inline instead. Idempotent."""
+    import sys
+
+    if sys.platform != "emscripten" or "anyio" not in sys.modules and not _importable("anyio"):
+        return
+    import anyio.to_thread
+
+    if getattr(anyio.to_thread.run_sync, "_plp_inline", False):
+        return
+
+    async def run_sync(func, *args, abandon_on_cancel=False, cancellable=None, limiter=None):
+        return func(*args)
+
+    run_sync._plp_inline = True  # type: ignore[attr-defined]
+    anyio.to_thread.run_sync = run_sync
+    try:
+        import starlette.concurrency as sc
+
+        async def run_in_threadpool(func, *args, **kwargs):
+            return func(*args, **kwargs)
+
+        sc.run_in_threadpool = run_in_threadpool
+        for mod_name in ("starlette.routing", "fastapi.routing", "fastapi.dependencies.utils", "starlette.background"):
+            mod = sys.modules.get(mod_name)
+            if mod is not None and hasattr(mod, "run_in_threadpool"):
+                mod.run_in_threadpool = run_in_threadpool
+    except ImportError:
+        pass
+
+
+def _importable(name: str) -> bool:
+    import importlib.util
+
+    return importlib.util.find_spec(name) is not None
+
+
 # Tests registered by the current tests.py, in definition order
 _REGISTRY: list[dict] = []
 
@@ -225,13 +287,12 @@ def run_program(
     filename = _SOLUTION["filename"]
     feed = _InputFeed(stdin)
     out, err = io.StringIO(), io.StringIO()
-    namespace = {"__name__": "__main__", "__file__": filename, "__builtins__": builtins}
     original_input, original_argv = builtins.input, sys.argv
     builtins.input = feed
     sys.argv = [filename, *(str(a) for a in (argv or ()))]
     exit_code: int | None = 0
     try:
-        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err), as_module("__main__", filename) as namespace:
             try:
                 exec(compile(source, filename, "exec"), namespace)
             except SystemExit as exc:
@@ -383,11 +444,10 @@ def load_module(name: str = "learner_module", *, source: str | None = None) -> L
         assert load_module("converter").printed == ""
     """
     code = _SOLUTION["source"] if source is None else source
-    namespace = {"__name__": name, "__file__": _SOLUTION["filename"], "__builtins__": builtins}
     out = io.StringIO()
-    with contextlib.redirect_stdout(out):
+    with contextlib.redirect_stdout(out), as_module(name, _SOLUTION["filename"]) as namespace:
         exec(compile(code, _SOLUTION["filename"], "exec"), namespace)
-    return LoadedModule(namespace, out.getvalue())
+        return LoadedModule(dict(namespace), out.getvalue())
 
 
 def solution_source() -> str:

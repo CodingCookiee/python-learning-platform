@@ -67,7 +67,8 @@ async function main() {
           scopes.push(l.path);
           for (const s of [...l.exercises, ...l.optional]) {
             const ex = m.exercises.get(s);
-            if (ex) scopes.push(ex.path);
+            // A drill that failed to load still has a folder; its errors belong in scope
+            scopes.push(ex ? ex.path : `${m.path}/exercises/${s}`);
           }
         }
         for (const ex of m.exercises.values()) if (ex.slug === only) scopes.push(ex.path);

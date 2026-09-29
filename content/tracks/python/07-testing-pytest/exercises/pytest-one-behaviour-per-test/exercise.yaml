@@ -1,0 +1,11 @@
+title: One behaviour per test
+type: refactor
+difficulty: stretch
+tags: [pytest, test-design, arrange-act-assert, refactoring]
+packages: [pytest]
+timeout: 20
+script: true
+hints:
+  - "List the behaviours the long test checks: the price of a plan, billing records an invoice, changing plan changes the price, an unknown plan is refused, a cancelled subscription isn't billed, and a cancelled subscription can't change plan."
+  - Each new test builds its own Subscription, so no test depends on what an earlier one did. A fixture that returns a fresh basic subscription saves repeating it.
+  - "Name each test after its behaviour, and keep the shape arrange, act, assert: subscription = Subscription(\"basic\"), then subscription.cancel(), then assert subscription.bill() is None."
