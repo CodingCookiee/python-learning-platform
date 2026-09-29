@@ -1,0 +1,8 @@
+title: Dangerous tools wait for a person
+type: function
+difficulty: core
+tags: [tool-design, human-in-the-loop, closures, safety]
+hints:
+  - Build a new dict. Tools not in dangerous go in unchanged; each dangerous one is replaced by a guarded function made in a helper, so each closure captures its own name and function.
+  - 'The guarded function takes **arguments, asks approve(name, arguments) inside try/except Exception (an error counts as a no), appends (name, arguments, "approved" or "declined") to audit, and only then runs the tool or returns {"error": DECLINED.format(name=name)}.'
+  - Check that every name in dangerous is in the registry before building anything, and raise ValueError if not.

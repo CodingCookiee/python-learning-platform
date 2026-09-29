@@ -1,0 +1,10 @@
+title: Require an API key
+type: function
+difficulty: warm-up
+tags: [fastapi, auth, api-keys, Header, Depends, secrets]
+packages: [fastapi, httpx]
+timeout: 15
+hints:
+  - "x_api_key: Annotated[str | None, Header()] = None reads the X-API-Key header, and is None when it's missing."
+  - "Loop over API_KEYS.items() and return the partner when secrets.compare_digest(x_api_key, key) is true. After the loop, the key is invalid."
+  - "raise HTTPException(401, \"Invalid API key\", headers={\"WWW-Authenticate\": \"ApiKey\"}), and the same with \"Missing API key\" when there's no header."

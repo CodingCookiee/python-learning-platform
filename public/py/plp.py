@@ -25,6 +25,7 @@ __all__ = [
     "test",
     "hidden",
     "raises",
+    "raises_async",
     "run_program",
     "ProgramResult",
     "load_module",
@@ -159,8 +160,11 @@ def hidden(name: str | Callable | None = None, *, timeout: float | None = _UNSET
 
 
 def _call_text(fn: Callable, args: tuple, kwargs: dict) -> str:
+    name = getattr(fn, "__name__", "")
+    if not name or name.startswith("<") or name == "_":
+        return "the code"  # a lambda or throwaway local function: its name tells the learner nothing
     parts = [repr(a) for a in args] + [f"{k}={v!r}" for k, v in kwargs.items()]
-    text = f"{getattr(fn, '__name__', 'the call')}({', '.join(parts)})"
+    text = f"{name}({', '.join(parts)})"
     return text if len(text) <= 120 else text[:119] + "…"
 
 
@@ -436,6 +440,27 @@ def fresh_logging() -> None:
             obj.setLevel(logging.NOTSET)
             obj.propagate = True
             obj.disabled = False
+
+
+async def raises_async(
+    expected: type[BaseException] | tuple,
+    fn: Callable,
+    *args,
+    match: str | None = None,
+    **kwargs,
+) -> BaseException:
+    """The awaitable call form of raises, for coroutine functions:
+
+        await raises_async(RateLimited, client.fetch_order, "1042", match="retry after")
+
+    Returns the caught exception."""
+    checker = raises(expected, match=match, what=_call_text(fn, args, kwargs))
+    try:
+        await fn(*args, **kwargs)
+    except checker.expected as exc:  # type: ignore[misc]
+        checker._check(exc)
+        return exc
+    raise AssertionError(f"{checker._what} should raise {checker._name()}, but it didn't")
 
 
 class LoadedModule:

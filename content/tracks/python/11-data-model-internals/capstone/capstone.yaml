@@ -1,0 +1,20 @@
+slug: tiny-orm
+title: Tiny ORM
+summary: Build a small object-relational mapper with validating descriptor fields, self-registering models and in-memory tables.
+hours: 6
+xp: 150
+requirements:
+  - "Field is a data descriptor that learns its name with __set_name__, stores each value in the instance's __dict__, returns itself when read on the class, and validates every assignment through validate(value)"
+  - "IntegerField, StringField and DecimalField extend Field with the options in the brief (min_value, max_value, max_length, pattern, choices), and every refusal is a ValueError worded \"Model.field: problem\""
+  - "Model.__init_subclass__ collects each model's fields (inherited ones first, in declaration order), requires exactly one primary key, registers the model in Model.registry under its table name (the table= class keyword, or the class name lower-cased plus s), and gives it its own Table as objects"
+  - "Model instances are created with keyword arguments only; unknown fields, missing fields without a default, and invalid values raise the errors in the brief, and defaults are applied"
+  - "Models have pk, to_dict(), save(), delete(), a repr that recreates them, equality by model class and field values, and are deliberately unhashable"
+  - "Table stores a snapshot of each saved row by primary key and supports get, all, filter(**conditions), delete, len(), iteration and in, returning fresh model instances"
+  - "python tinyorm.py prints exactly the sample run in the brief, and only main() prints"
+criteria:
+  - The sample data in the starter produces exactly the output shown in the brief, including every refusal message
+  - Validation lives in the field classes and runs on every assignment, at creation and afterwards; no model class contains validation code of its own
+  - Fields are descriptors on the class (Tool.daily_rate is a DecimalField), values live in each instance's __dict__, and two instances never share a value
+  - "Registration, the primary key check and the per-model Table all happen in __init_subclass__: there is no metaclass and no list of models to maintain by hand"
+  - "A Table stores copies of rows, so editing an instance changes nothing until save(); get, all and filter return new instances, and len, iteration and in work on Model.objects through the container protocol"
+  - "Models honour the hash contract: __eq__ compares values and __hash__ is None, because model instances are mutable"

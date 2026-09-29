@@ -7,8 +7,8 @@ exercises:
   - tools-idempotency-key
   - tools-lint-definitions
   - tools-refactor-god-tool
-  - tools-idempotent-booking
   - tools-confirm-dangerous
+  - tools-idempotent-booking
 ---
 
 When a tool-using assistant misbehaves, the first instinct is to blame the model: it called the
@@ -200,4 +200,4 @@ Name tools verb_noun, and describe what each does, when to use it and what it re
 arguments hard to get wrong: enums, ids, units and formats. Keep tools focused and their results
 small. Make every write safe to repeat, and put anything costly or irreversible behind a person,
 a request queue or a hard limit. The drills build an idempotency key, a tool linter, a refactor of
-a god tool, an idempotent booking tool and an approval guard.
+a god tool, an approval guard and an idempotent booking tool.

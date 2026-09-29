@@ -1,5 +1,10 @@
-from plp import hidden, test
-from solution import crawl_listings
+import bs4  # noqa: F401  (imported here, untimed, so loading your file is quick)
+from plp import hidden, load_module, test
+
+
+def crawl_listings(*args, **kwargs):
+    return load_module("crawler").crawl_listings(*args, **kwargs)
+
 
 SITE = "https://agents.example"
 ROBOTS = "User-agent: *\nCrawl-delay: 2\nDisallow: /account/"

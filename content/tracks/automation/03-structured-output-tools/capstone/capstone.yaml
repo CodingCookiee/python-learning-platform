@@ -1,0 +1,20 @@
+slug: support-triage-service
+title: Support triage service
+summary: Read support tickets, extract and classify them, look up orders with tools, and draft replies under a hard step and cost cap.
+hours: 6
+xp: 200
+requirements:
+  - "triage.py takes an llm with the course's neutral complete() interface, and runs the same code against ScriptedLLM in the browser and your real A2 client locally"
+  - "TicketFacts is a Pydantic model (extra fields forbidden) of customer_email, order_ids, category (billing, shipping, returns, technical or unknown), sentiment, blocked, mentions_deadline, summary and confidence, extracted with schema= and repaired with the validation errors, at most 3 attempts"
+  - "Urgency (low, normal, high or critical) is decided in code from the extracted facts, not asked of the model; unknown or low-confidence tickets are routed to human review"
+  - "The reply drafter runs a tool loop over get_order, find_orders_by_email and create_refund_request, with each tool's arguments validated by a Pydantic model and every failure returned to the model as an error result"
+  - create_refund_request only queues a request for a person; nothing in the service moves money, and a repeated call for the same order and amount doesn't create a second request
+  - "Every ticket runs under a Budget: at most 8 model calls and a cost cap in dollars computed from usage; when either runs out, the ticket goes to human review with the reason and nothing half-done"
+  - "process_ticket returns a TriageResult with the facts, the queue, the draft reply (or None), the refund requests created, the model calls and cost used, and a log of every tool call"
+criteria:
+  - "The three sample tickets in the starter produce the results in the brief's sample run with ScriptedLLM, and the hidden review tickets (malformed JSON, an unknown order, a model that loops, a prompt injection asking for a refund) end safely"
+  - "No code path runs a tool with unvalidated arguments, lets a tool exception or a bad model reply crash the service, or exceeds the step or cost cap"
+  - "Tool definitions are generated from the Pydantic argument models, and have clear verb_noun names and descriptions that say when to use each tool and what it returns"
+  - "The conversation history is always valid for both providers: the assistant tool-call message is appended before its results, one result per call, in order"
+  - "Business rules (urgency, routing thresholds, refund limits) live in plain, tested Python, not in the prompt"
+  - "The code is typed, tested with ScriptedLLM (at least one test per requirement), and runs locally against a real provider with the key read from the environment"

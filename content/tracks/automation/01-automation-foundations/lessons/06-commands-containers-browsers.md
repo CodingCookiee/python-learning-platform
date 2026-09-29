@@ -211,18 +211,7 @@ things (ids, `data-` attributes, semantic classes) rather than layout, because l
 A scraper is a guest on someone else's server. Behave like one:
 
 - **Read robots.txt.** It says which paths automated clients may visit, and sometimes how often.
-  Python parses it for you:
-
-  ```python
-  from urllib.robotparser import RobotFileParser
-
-  robots = RobotFileParser()
-  robots.parse("User-agent: *\nDisallow: /account/\nCrawl-delay: 2".splitlines())
-  robots.can_fetch("agency-bot", "https://agents.example/listings"), robots.can_fetch(
-      "agency-bot", "https://agents.example/account/saved"
-  ), robots.crawl_delay("agency-bot")
-  ```
-
+  Python parses it for you (see below).
 - **Go slowly.** One request at a time, with a pause between them (the `Crawl-delay`, or a second
   or more), and only as often as the data changes. Daily listings need a daily run, not one a minute.
 - **Say who you are.** Send a `User-Agent` naming your bot and a contact address, so the site's
@@ -234,6 +223,20 @@ A scraper is a guest on someone else's server. Behave like one:
   client's lawyer, not something to guess at. Never scrape behind a login you weren't given.
 - **Prefer the front door.** An official API, an RSS feed, a data export or a partnership email
   beats the most polite scraper.
+
+The standard library reads robots.txt, including the crawl delay:
+
+```python
+from urllib.robotparser import RobotFileParser
+
+robots = RobotFileParser()
+robots.parse("User-agent: *\nDisallow: /account/\nCrawl-delay: 2".splitlines())
+[
+    robots.can_fetch("agency-bot", "https://agents.example/listings"),
+    robots.can_fetch("agency-bot", "https://agents.example/account/saved"),
+    robots.crawl_delay("agency-bot"),
+]
+```
 
 ```quiz
 question: "A client wants you to collect every estate agent's contact name, email and phone from a directory site, to email them a sales offer. The site's robots.txt allows /directory. Is that enough?"

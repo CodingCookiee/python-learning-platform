@@ -1,0 +1,19 @@
+slug: concurrent-fetcher
+title: Concurrent fetcher
+summary: Crawl a mock catalogue API with a fixed pool of async workers, a concurrency cap, a rate limit, timeouts and retries with backoff.
+hours: 6
+xp: 150
+requirements:
+  - "crawl(client, start, ...) visits every page reachable from start, each at most once and at most max_pages in total, using a fixed pool of `concurrency` worker tasks fed by an asyncio.Queue, and returns a CrawlReport"
+  - "Never more than `concurrency` requests are in flight, and a Throttle keeps request starts, retries included, to at most `per_second` in any one-second window"
+  - "fetch_page gives every attempt its own asyncio.timeout, retries 5xx responses and timeouts up to `retries` times with exponential backoff plus jitter from an injected random.Random, waits for Retry-After on a 429, and never retries any other 4xx"
+  - "A page that can't be fetched becomes one entry in report.failures (\"404 Not Found\", or \"503 Service Unavailable after 4 attempts\") and never stops the crawl"
+  - "When crawl returns, every worker task has stopped and nothing is left running, whether the crawl finished or was cancelled"
+  - "format_report prints the summary, failures and top products exactly as in the brief, and python fetcher.py produces the sample run against MockCatalogueAPI"
+criteria:
+  - Against the unchanged MockCatalogueAPI, the default run fetches 33 pages, records 2 failures, makes 42 requests with 7 retries, peaks at 4 in flight and is never rate limited
+  - The concurrency cap, rate limit and per-request timeout are each enforced in one place (a queue of workers or a semaphore, the Throttle, asyncio.timeout), not scattered through the code
+  - Retries follow the rules exactly, with backoff * 2 ** (attempt - 1) plus jitter between attempts, and the jitter comes from the injected random.Random so runs are reproducible
+  - No blocking calls on the event loop, no forgotten awaits, no fire-and-forget tasks, and cancelling crawl cancels and awaits every worker
+  - Shared state (the seen set, the report) is only changed between awaits, so it needs no lock, and the code says why
+  - fetch_page, Throttle and format_report are small and testable on their own, and names explain themselves

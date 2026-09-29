@@ -3,6 +3,7 @@ type: function
 difficulty: core
 tags: [scraping, beautifulsoup, html, urljoin]
 packages: [beautifulsoup4]
+script: true
 hints:
   - "soup.select(\"article.listing:not(.sponsored)\") gives the real listings. In each one, select_one(\"h2 a\") has the title and the link."
   - "urljoin(base_url, href) makes a relative link absolute and leaves an absolute one alone. For the price, keep only the digits: int(re.sub(r\"\\D\", \"\", text)) when there are any, otherwise None."

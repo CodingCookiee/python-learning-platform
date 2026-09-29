@@ -1,0 +1,10 @@
+title: A signed token, by hand
+type: function
+difficulty: stretch
+tags: [fastapi, auth, bearer-tokens, hmac, base64, json, Depends]
+packages: [fastapi, httpx]
+timeout: 15
+hints:
+  - "issue_token: payload = b64url(json.dumps({\"sub\": customer_id, \"exp\": int(expires_at.timestamp())}).encode()), then signature = b64url(sign(payload)), and return f\"{payload}.{signature}\"."
+  - "current_customer takes authorization: Annotated[str | None, Header()] = None and now: Annotated[datetime, Depends(get_now)]. Check it starts with \"Bearer \", split the rest on \".\" into exactly two parts, and compare the signature with hmac.compare_digest(signature, b64url(sign(payload)))."
+  - "Only after the signature checks out, decode the payload with json.loads(b64url_decode(payload)) and compare claims[\"exp\"] with now.timestamp(). Raise the 401s through one helper so each carries WWW-Authenticate: Bearer."

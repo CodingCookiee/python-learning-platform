@@ -1,0 +1,9 @@
+title: "Predict: 401, 403 or 404?"
+type: predict
+difficulty: core
+tags: [fastapi, auth, status-codes, authorization]
+packages: [fastapi, httpx]
+timeout: 15
+hints:
+  - "Dependencies run before the endpoint. current_key decides 401s, require_write decides 403s, and only then does the endpoint check who owns the order."
+  - "Ada's key can read but not write. Kiln's key can write, but only to Kiln's own orders: someone else's order is a 404."

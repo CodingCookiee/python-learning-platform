@@ -1,0 +1,10 @@
+title: Only your own bookings
+type: function
+difficulty: core
+tags: [fastapi, authorization, auth, HTTPException, Depends]
+packages: [fastapi, httpx]
+timeout: 15
+hints:
+  - "Every endpoint takes account: Annotated[dict, Depends(current_account)]. Staff have account[\"role\"] == \"staff\"; customers have their own account[\"customer_id\"]."
+  - "A helper visible(account, booking) that's true for staff, or when booking[\"customer_id\"] == account[\"customer_id\"], serves all three endpoints."
+  - "For someone else's booking, raise exactly the same 404 as for a missing one. Deleting checks the role first: a customer gets a 403, whichever booking it is."

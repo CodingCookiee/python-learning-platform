@@ -1,0 +1,10 @@
+title: The order that set its own price
+type: fix
+difficulty: core
+tags: [fastapi, security, validation, extra-forbid, auth]
+packages: [fastapi, httpx]
+timeout: 15
+hints:
+  - "The body should only say what the customer wants: OrderCreate keeps sku and quantity, and loses customer_id and unit_price_cents."
+  - "model_config = ConfigDict(extra=\"forbid\") on OrderCreate refuses any other key with a 422, so an old client sending a price finds out at once."
+  - "In place_order, the customer is the one the dependency returns, and the price is CATALOGUE[order.sku]. Check the SKU is in CATALOGUE first, and raise HTTPException(422, f\"Unknown SKU: {order.sku}\") if it isn't."

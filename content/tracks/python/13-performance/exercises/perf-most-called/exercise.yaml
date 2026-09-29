@@ -5,4 +5,4 @@ tags: [profiling, cProfile, pstats]
 hints:
   - cProfile.Profile().runcall(fn, *args) switches the profiler on, calls fn, and switches it off again, even if fn raises.
   - pstats.Stats(profiler).get_stats_profile().func_profiles maps each function name to a profile with .ncalls (a string such as "7" or "5/1") and .file_name ("~" for built-ins).
-  - Sort with key=lambda item: (-item[1], item[0]) for most calls first and names alphabetically on a tie, then slice off n.
+  - "Sort with key=lambda item: (-item[1], item[0]) for most calls first and names alphabetically on a tie, then slice off n."

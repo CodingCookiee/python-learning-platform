@@ -1,5 +1,10 @@
-from plp import hidden, test
-from solution import parse_listings
+import bs4  # noqa: F401  (imported here, untimed, so loading your file is quick)
+from plp import hidden, load_module, test
+
+
+def parse_listings(html, base_url):
+    return load_module("listings").parse_listings(html, base_url)
+
 
 BASE = "https://agents.example/listings"
 PAGE = """

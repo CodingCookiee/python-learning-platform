@@ -3,6 +3,7 @@ type: function
 difficulty: stretch
 tags: [scraping, robots-txt, beautifulsoup, crawling]
 packages: [beautifulsoup4]
+script: true
 hints:
   - "Parse robots.txt once: robots = RobotFileParser(); robots.parse(robots_txt.splitlines()). robots.crawl_delay(user_agent) is None when there's no Crawl-delay, so fall back to 1.0."
   - "Loop while url is set and fewer than max_pages pages are done: stop if robots.can_fetch(user_agent, url) is false or url was already visited; sleep before every fetch except the first."

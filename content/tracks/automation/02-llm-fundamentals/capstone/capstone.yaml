@@ -1,0 +1,21 @@
+slug: model-comparison-harness
+title: Model comparison harness
+summary: Run one task across providers and models, and report quality, latency and cost, so the choice of model rests on evidence.
+hours: 5
+xp: 150
+requirements:
+  - "An llm.py module assembled from this module's drills: the neutral types and LLM protocol, the error hierarchy, send_with_retries, AnthropicClient and OpenAIClient over an injected httpx.Client, and make_llm"
+  - "compare.py completes the starter: build_messages, score, evaluate, price, run_comparison, recommend, format_report, real_targets and the ModelResult properties"
+  - Every model gets the same system prompt and messages for each case, at temperature 0, through the complete() interface only
+  - "Each call is timed with the injected clock; a call that raises an LLMError (or any RuntimeError) counts as an error, scores 0, and doesn't stop the run"
+  - Cost comes from the usage each response reports and a pricing table passed in, in Decimal; a model without a price shows n/a rather than crashing
+  - "python compare.py --offline prints exactly the sample report in the brief, with no keys and no network"
+  - "python compare.py --prices prices.json compares real models on every provider whose key is set, reading keys and model lists only from environment variables"
+  - A test file checks the harness against the course's fakes, without a network or a key
+criteria:
+  - The offline run matches the sample report line for line, and the recommendation follows the quality and latency bars given on the command line
+  - Both adapters pass the module's drills when pasted back in, and the harness never builds provider JSON itself
+  - Keys never appear in code, output, logs or the repository, and a missing key or model list fails with a message naming the variable
+  - Failed calls, missing prices and a model that never succeeds are all reported, not crashed on
+  - The scoring function, clock and prices are injected, so every part is testable, and the tests prove it
+  - The README reports a real comparison you ran, with the date, the prices you used and their source, and which model you'd choose and why

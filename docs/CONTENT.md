@@ -235,7 +235,9 @@ def _():
 - **`raises(ValueError, fn, *args, match=None)`** or **`with raises(ValueError, match="regex", what="split_bill(10, 0)"):`**
   checks for an exception (and optionally its message). Prefer the call form: its failure message
   names the call; give the block form `what=` for the same effect. An exception of a different type
-  is reported as the learner's error.
+  is reported as the learner's error. For coroutines, `await raises_async(Error, client.fetch, "1042", match=…)`.
+- **Fake HTTP servers:** use `fake_api({...})` from `plp_fakes` (see the automation section below): it
+  records every request and scripts statuses and headers, in any module, not only the AI track.
 - **`run_program(stdin=["Raza", "3"])`** runs the learner's file as a script with those input lines
   and returns everything it printed (`.lines` gives non-blank lines, trailing spaces stripped).
   `run_program(source=...)` runs a modified copy, e.g. with a constant changed. `argv=[...]` sets

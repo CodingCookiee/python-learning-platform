@@ -1,0 +1,23 @@
+slug: job-tracker
+title: "Black belt grading: Job tracker"
+summary: A FastAPI and SQLAlchemy service for companies, applications and interview stages, with a pandas weekly report, migrations and a full test suite. Passing it earns 1st dan.
+hours: 14
+xp: 300
+requirements:
+  - "A package, jobtracker, whose create_app(engine) returns the FastAPI app and whose Base holds the SQLAlchemy 2.0 models: Company, Application and Stage, with one-to-many relationships and deletes that cascade"
+  - "Every endpoint in the brief's API table, with Pydantic request and response models, the status codes it lists, and JSON error bodies with a detail message"
+  - Applications move between statuses only along the allowed transitions; anything else is 409 Conflict. Adding a stage moves an applied application to interviewing, and a stage can't be added to a closed application
+  - "GET /companies returns each company's application counts from one query, whatever the number of companies, and GET /applications loads stages without an N+1"
+  - "weekly_report(session, today, weeks) builds the weekly report with pandas from SQL results; GET /reports/weekly returns it as JSON and GET /reports/weekly.csv as CSV, exactly as in the brief"
+  - Every value reaches SQL as a parameter; the one user-chosen sort order is a whitelist
+  - "Alembic migrations create the whole schema from an empty database, and alembic check reports nothing to do"
+  - "A pytest suite in tests/, using httpx.AsyncClient with ASGITransport and a fresh in-memory database per test, covering every endpoint, every refusal, the status rules, the cascades, the report and a query-count check"
+criteria:
+  - The sample run in the brief produces the same status codes and bodies against a fresh database
+  - The reviewer's hidden tests pass against create_app(engine) with a fresh engine
+  - Models use Mapped and mapped_column throughout, queries use select(), and there's no legacy session.query() or string-built SQL
+  - Relationships cascade correctly, and no endpoint's query count grows with the number of rows
+  - Each request's work is one unit of work, committed once; a refused request changes nothing
+  - The report's numbers are right for empty weeks, withdrawn and rejected applications, and stages outside the window
+  - The test suite is isolated (no test depends on another or on a file on disk), readable, and covers at least 90% of the package's lines
+  - The README explains how to install, migrate, run the service and run the tests, and the code is typed, formatted and passes ruff
