@@ -1,0 +1,9 @@
+title: "Predict: what Pydantic converts"
+type: predict
+difficulty: core
+tags: [pydantic, coercion, validation]
+packages: [pydantic]
+hints:
+  - "In the default (lax) mode, an int field accepts a whole number in any form: \"3\", \" 7 \" and 2.0 all become ints. 2.5 would lose its fraction, so it's refused."
+  - A str field doesn't turn a number into text. That's refused rather than guessed.
+  - "A bool field understands yes/no, true/false, on/off and 1/0, and refuses anything else. A missing required field is reported too, and every problem is listed, in field order."

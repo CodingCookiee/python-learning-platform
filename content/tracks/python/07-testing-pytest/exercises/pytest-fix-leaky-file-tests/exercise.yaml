@@ -1,0 +1,11 @@
+title: Tests that share a file
+type: fix
+difficulty: stretch
+tags: [pytest, tmp_path, fixtures, test-isolation]
+packages: [pytest]
+timeout: 20
+script: true
+hints:
+  - Every test that reads the report needs the report to exist, so each one has to write it first, into its own tmp_path.
+  - "A fixture removes the repetition: def report(tmp_path) writes SALES to tmp_path / \"daily_report.csv\" and returns the path. Tests that read the report ask for report."
+  - "Delete the module-level REPORT = Path(\"daily_report.csv\"), so nothing can write into the project folder by accident."

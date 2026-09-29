@@ -1,0 +1,9 @@
+title: A customer model
+type: function
+difficulty: warm-up
+tags: [pydantic, BaseModel, Field, validation]
+packages: [pydantic]
+hints:
+  - Each field is a class attribute with a type hint, like a dataclass. A default makes the field optional.
+  - "Constraints go in Field(): name: str = Field(min_length=1), and loyalty_points: int = Field(default=0, ge=0)."
+  - Pydantic converts "true" to True and "120" to 120 by itself. You don't write any conversion code.

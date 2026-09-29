@@ -1,0 +1,9 @@
+title: "Predict: dumping a model"
+type: predict
+difficulty: core
+tags: [pydantic, model_dump, aliases, serialization]
+packages: [pydantic]
+hints:
+  - "With Field(alias=\"orderId\"), the input uses the alias, but the attribute is still order_id. model_dump uses field names unless you pass by_alias=True."
+  - "The default python mode keeps Python objects, so you see Decimal('12.50') and datetime.date(...). mode=\"json\" turns them into strings."
+  - "exclude_none=True drops fields whose value is None. model_dump_json writes compact JSON: no spaces after the colons and commas."

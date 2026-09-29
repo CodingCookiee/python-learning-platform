@@ -135,6 +135,10 @@ def run_report(metrics, rejects, description, *, clock=time.perf_counter, out=pr
 
 # ---------------------------------------------------------------------------
 # The pipeline: every stage takes an iterator and yields an iterator
+#
+# Once instrumented works, decorate parse, pages, hourly and write_csv with
+# @instrumented("parse", METRICS), @instrumented("pages", METRICS),
+# @instrumented("hourly", METRICS) and @instrumented("csv", METRICS).
 # ---------------------------------------------------------------------------
 
 
@@ -189,7 +193,8 @@ def main(argv):
         stats = write_csv(hourly(pages(parse(lines, rejects))), "hourly.csv")
         loaded = load(stats, warehouse)
         batches = -(-loaded // BATCH_SIZE)
-        print(f"Loaded {loaded} hours into the warehouse in {batches} batches ({warehouse.calls - batches} retries)")
+        retries = warehouse.calls - batches
+        print(f"Loaded {loaded} hours into the warehouse: {batches} batch{'es' * (batches != 1)}, {retries} retried")
     _, peak = tracemalloc.get_traced_memory()
     tracemalloc.stop()
     print(f"Peak memory: {peak / 1_000_000:.1f} MB")

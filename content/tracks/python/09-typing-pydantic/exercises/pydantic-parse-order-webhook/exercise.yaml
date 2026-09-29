@@ -1,0 +1,9 @@
+title: Parse an order webhook
+type: function
+difficulty: core
+tags: [pydantic, nested-models, model_validate_json, ValidationError, Decimal, datetime]
+packages: [pydantic]
+hints:
+  - "Three models: Customer, LineItem and OrderCreated, which has customer: Customer and lines: list[LineItem] = Field(min_length=1). Currency is a Literal."
+  - "parse_order is one line: OrderCreated.model_validate_json(raw). total is a @property summing unit_price * quantity, starting from Decimal(\"0\")."
+  - "In error_summary, catch ValidationError and build one string per error.errors() item: \".\".join(str(part) for part in item[\"loc\"]), or \"(body)\" when loc is empty, then \": \" and item[\"msg\"]."

@@ -2,29 +2,39 @@
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const log = [];
   for (let i = 0; i < 60 && !window.monaco?.editor?.getModels?.()[0]; i++) await sleep(500);
-  const models = () => window.monaco.editor.getModels().map((m) => JSON.stringify(m.getValue().slice(0, 50)));
-  log.push("models at start: " + models().join(" ; "));
-  log.push("saved: " + JSON.stringify(Object.entries(localStorage).filter(([k]) => k.startsWith("drill-")).map(([k, v]) => [k.slice(0, 14), v.slice(0, 40)])));
-  const live = () => [...document.querySelectorAll("[aria-live=polite]")].map((n) => n.innerText).join(" | ").replace(/\s+/g, " ").slice(0, 200);
+  const model = window.monaco.editor.getModels()[0];
+  const live = () => [...document.querySelectorAll("[aria-live=polite]")].map((n) => n.innerText).join(" | ").replace(/\s+/g, " ").slice(0, 220);
+  const runButtons = () => [...document.querySelectorAll("button")].filter((b) => b.textContent.trim() === "Run");
   const button = (label) => [...document.querySelectorAll("button")].find((b) => b.textContent.trim() === label);
-  const idle = async () => {
-    for (let i = 0; i < 120; i++) {
+  const waitIdle = async () => {
+    await sleep(400);
+    for (let i = 0; i < 160; i++) {
+      if (![...document.querySelectorAll("button[aria-busy=true]")].length) return;
       await sleep(250);
-      const run = [...document.querySelectorAll("button")].find((b) => /^(Run|Running|Checking|Loading)/.test(b.textContent.trim()) && b.getAttribute("aria-busy") === "true");
-      if (!run) return;
     }
   };
   for (let i = 0; i < 120 && /Loading Python/.test(document.body.innerText); i++) await sleep(500);
+  log.push("Run buttons on the page: " + runButtons().length);
 
-  const model = window.monaco.editor.getModels()[0];
   model.setValue("orders = 0\nwhile True:\n    orders += 1\n");
   await sleep(300);
-  log.push("models after set: " + models().join(" ; "));
-  const t0 = performance.now();
-  log.push("click Run: " + !!button("Run"));
+  let t = performance.now();
   button("Run")?.click();
-  await sleep(500);
-  await idle();
-  log.push(`loop (${Math.round(performance.now() - t0)}ms): ${live()}`);
+  await waitIdle();
+  log.push(`loop in Run (${Math.round(performance.now() - t)}ms): ${live()}`);
+
+  model.setValue('print("still alive")\n');
+  await sleep(300);
+  t = performance.now();
+  button("Run")?.click();
+  await waitIdle();
+  log.push(`next run (${Math.round(performance.now() - t)}ms): ${live()}`);
+
+  model.setValue("def swap(a, b):\n    while True:\n        pass\n");
+  await sleep(300);
+  t = performance.now();
+  button("Run tests")?.click();
+  await waitIdle();
+  log.push(`loop in tests (${Math.round(performance.now() - t)}ms): ${live()}`);
   return log.join("\n");
 })()

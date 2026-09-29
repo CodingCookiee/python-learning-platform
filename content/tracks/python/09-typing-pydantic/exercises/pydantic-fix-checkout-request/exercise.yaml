@@ -1,0 +1,9 @@
+title: The checkout that refuses good orders
+type: fix
+difficulty: core
+tags: [pydantic, Optional, defaults, Field, validation]
+packages: [pydantic]
+hints:
+  - In Pydantic, a field without a default is required, whatever its type. "str | None" only says None is an allowed value.
+  - "Give coupon a default of None, and gift_message a default of an empty string, keeping its length limit: Field(default=\"\", max_length=200)."
+  - ge=0 allows zero. A quantity has to be more than zero, which is gt=0.

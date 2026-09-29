@@ -1,0 +1,10 @@
+title: Test a command-line tool
+type: tests
+difficulty: stretch
+tags: [pytest, tmp_path, capsys, cli, exit-codes]
+packages: [pytest]
+timeout: 20
+hints:
+  - "A fixture can write the sample file and return its path: path = tmp_path / \"monday.csv\", then path.write_text(\"item,quantity,unit_price\\nMug,2,8.00\\n...\")."
+  - "main takes a list of strings, so pass main([str(path)]). Check what it returns, then captured = capsys.readouterr() and check captured.out and captured.err separately."
+  - "Four behaviours: the summary line (count every row, including the first), the missing file (exit code 1, message on stderr, nothing on stdout), no arguments at all (exit code 2), and the exact total."

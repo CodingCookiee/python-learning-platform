@@ -1,0 +1,21 @@
+slug: streaming-etl
+title: Streaming ETL
+summary: Turn an access log of any size into hourly traffic stats with a lazy generator pipeline, instrumented with your own decorators.
+hours: 6
+xp: 150
+requirements:
+  - "read_log, parse, pages, hourly and write_csv are generator functions that each take an iterator and yield an iterator, chained into one pipeline that never holds the whole log"
+  - "parse turns each line into a frozen Request dataclass and counts every rejected line in a Counter under \"field count\", \"timestamp\" or \"number\", without stopping the run"
+  - "hourly uses groupby to yield one HourStats per hour (requests, errors, error rate, p95 response time, bytes) as soon as each hour ends, holding only that hour's response times"
+  - "write_csv streams each HourStats into hourly.csv and yields it on, so the same stream feeds the warehouse loader"
+  - "@instrumented(name, metrics) is a decorator factory for generator functions that records the items each stage yields and the time spent producing them, and keeps each stage lazy"
+  - "retry(...) is a decorator factory with exponential backoff and an injectable sleep, and load() uses it to send batches of 12 rows to the flaky FakeWarehouse"
+  - "run_report is a @contextmanager that prints the header, then the stage table, rejects and total time however the run ends, re-raising any failure"
+  - "python etl.py --generate 200000 prints exactly the counts in the brief, and python etl.py path/to/access.log works on a real file"
+criteria:
+  - The counts in the sample run (items per stage, rejects by reason, hours, batches and retries) match the brief exactly
+  - Peak memory stays roughly the same for 100,000 and 1,000,000 lines, and nothing calls list(), sorted() or readlines() on the log or the requests
+  - Every stage is lazy: pulling the first HourStats from a pipeline over generate_log(10**9) returns in well under a second
+  - Decorators use functools.wraps, instrumented stages still return generators and still close their input when stopped early, and a retry that runs out re-raises the original exception
+  - run_report prints its report when the pipeline raises, and the exception still reaches the caller
+  - Stages are small, single-purpose and testable on a three-line list, with no global state beyond METRICS and names that explain themselves

@@ -400,9 +400,11 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
         attempt = { passed: correct, submitted: answer, summary: { kind: "predict", correct } };
       } else {
         const submitted = codeRef.current;
+        setRunResult(null);
         const result = await runtime.test(submitted, drill.tests, {
           packages: drill.packages,
-          timeoutMs: drill.timeoutMs + 1000,
+          // Each test has its own 2 s limit inside the runner; the whole run gets room for all of them
+          timeoutMs: Math.max(drill.timeoutMs, (drill.testList.length + 1) * 2500) + 1000,
           importSolution: drill.importSolution,
         });
         setCheck({ kind: "tests", result });

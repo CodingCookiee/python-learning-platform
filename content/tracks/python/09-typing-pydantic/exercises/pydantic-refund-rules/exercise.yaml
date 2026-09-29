@@ -1,0 +1,9 @@
+title: Rules across fields
+type: function
+difficulty: core
+tags: [pydantic, model_validator, Literal, validation]
+packages: [pydantic]
+hints:
+  - A rule that compares two fields belongs in a model validator, which runs after every field has been validated. Decorate a normal method with @model_validator(mode="after").
+  - "The method receives self, with every field already converted, and must return self. Its return type is Self, from typing."
+  - Raise ValueError with the exact messages from the prompt. Pydantic wraps them in a ValidationError.

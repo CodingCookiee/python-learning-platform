@@ -1,0 +1,10 @@
+title: Test a CSV export
+type: tests
+difficulty: core
+tags: [pytest, tmp_path, files, csv]
+packages: [pytest]
+timeout: 20
+hints:
+  - "Ask for tmp_path and build the target inside it: target = tmp_path / \"invoices.csv\". Then target.read_text().splitlines() gives you the rows as text."
+  - Use a total like Decimal("12.5") in your test data, so you can see whether it's written as 12.50.
+  - "For the overwrite rule, write something to the file first (target.write_text(\"keep me\")), check export_invoices raises FileExistsError, and check the file still says \"keep me\". Then check overwrite=True does replace it."

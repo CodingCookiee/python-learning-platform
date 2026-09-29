@@ -81,6 +81,40 @@ def _patched_input(fn):
         builtins.input = original
 
 
+_FRAME = __import__("re").compile(r'^(?P<prefix>[\s|]*)File "(?P<file>[^"]+)", line \d+')
+
+
+def _full_traceback(exc: BaseException, files: tuple[str, ...]) -> str:
+    """The whole traceback, including "The above exception was the direct cause…" chains
+    and exception-group trees, with frames outside the learner's files removed."""
+    lines = "".join(traceback.format_exception(exc)).splitlines()
+    kept: list[str] = []
+    skipping_indent: int | None = None
+    for line in lines:
+        m = _FRAME.match(line)
+        if m:
+            skipping_indent = None if m.group("file") in files else len(m.group("prefix"))
+            if skipping_indent is None:
+                kept.append(line)
+            continue
+        if skipping_indent is not None:
+            # Source lines and carets under a dropped frame are indented deeper than it
+            stripped = line.lstrip(" |")
+            depth = len(line) - len(stripped)
+            if stripped and depth > skipping_indent:
+                continue
+            skipping_indent = None
+        kept.append(line)
+    # "Traceback (most recent call last):" headers with no frames left under them read oddly
+    out: list[str] = []
+    for i, line in enumerate(kept):
+        nxt = kept[i + 1] if i + 1 < len(kept) else ""
+        if line.strip().endswith("Traceback (most recent call last):") and not _FRAME.match(nxt):
+            continue
+        out.append(line)
+    return "\n".join(out)
+
+
 def _describe_exception(exc: BaseException, *, files: tuple[str, ...] = USER_FILES) -> dict:
     """A traceback trimmed to the learner's own frames."""
     frames = [f for f in traceback.extract_tb(exc.__traceback__) if f.filename in files]
@@ -89,10 +123,14 @@ def _describe_exception(exc: BaseException, *, files: tuple[str, ...] = USER_FIL
         line = exc.lineno
     elif frames:
         line = frames[-1].lineno
-    text = "".join(traceback.format_list(frames))
-    if text:
-        text = "Traceback (most recent call last):\n" + text
-    text += "".join(traceback.format_exception_only(type(exc), exc))
+    chained = exc.__cause__ is not None or (exc.__context__ is not None and not exc.__suppress_context__)
+    if chained or isinstance(exc, BaseExceptionGroup):
+        text = _full_traceback(exc, files)
+    else:
+        text = "".join(traceback.format_list(frames))
+        if text:
+            text = "Traceback (most recent call last):\n" + text
+        text += "".join(traceback.format_exception_only(type(exc), exc))
     return {
         "type": type(exc).__name__,
         "message": str(exc),
@@ -384,6 +422,7 @@ async def run_tests(solution: str, tests: str, import_solution: bool = True) -> 
     """
     plp._REGISTRY.clear()
     plp._SOLUTION.update(source=solution, filename="solution.py")
+    plp.fresh_logging()
     for name in ("solution", "tests"):
         sys.modules.pop(name, None)
 
@@ -441,6 +480,7 @@ async def run_tests(solution: str, tests: str, import_solution: bool = True) -> 
         out = io.StringIO()
         t0 = time.perf_counter()
         passed, message, error = False, None, None
+        plp.fresh_logging()
         try:
             with contextlib.redirect_stdout(out), _patched_input(_NoInput()):
                 _deadline.start(entry.get("timeout", DEFAULT_TEST_TIMEOUT))
@@ -463,8 +503,9 @@ async def run_tests(solution: str, tests: str, import_solution: bool = True) -> 
             if error["line"] is not None:
                 message = f"Your code raised {error['type']}{where}: {error['message']}"
             else:
-                # Raised in the test itself, usually while inspecting what the code returned
-                message = f"{error['type']} while checking your result: {error['message']}"
+                # Raised in the test itself, while using what the learner's code returned
+                # (e.g. calling a method it lacks, or using it in a `with` it doesn't support)
+                message = f"{error['type']}: {error['message']} (raised while the test was using your code)"
             message = message.rstrip(": ")
         results.append(
             {

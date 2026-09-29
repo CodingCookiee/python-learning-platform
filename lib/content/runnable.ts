@@ -13,6 +13,7 @@ const BROWSER_MODULES = new Set(
     "inspect io ipaddress itertools json keyword linecache locale logging math mimetypes numbers " +
     "operator os pathlib pickle platform pprint queue random re reprlib sched secrets shlex shutil " +
     "signal sqlite3 statistics string struct sys tempfile textwrap time timeit tokenize tomllib " +
+    "site configparser codecs importlib runpy pkgutil sysconfig stat filecmp concurrent " +
     "traceback types typing unicodedata unittest urllib uuid warnings weakref zipfile zlib zoneinfo " +
     // Pyodide packages
     "numpy pandas pydantic httpx sqlalchemy fastapi starlette pytest bs4 yaml jinja2 rich attrs " +

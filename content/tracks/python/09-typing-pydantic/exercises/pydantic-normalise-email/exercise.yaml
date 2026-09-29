@@ -1,0 +1,9 @@
+title: Normalise an email address
+type: function
+difficulty: warm-up
+tags: [pydantic, field_validator, validation]
+packages: [pydantic]
+hints:
+  - "A field validator is a class method decorated with @field_validator(\"email\") and then @classmethod. It receives the value after Pydantic has checked it's a str."
+  - Whatever the validator returns becomes the field's value, so return the cleaned address.
+  - 'Use value.partition("@") to split it into the part before, the "@" and the domain, and raise ValueError("not an email address") when a part is missing.'

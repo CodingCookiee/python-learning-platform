@@ -1,0 +1,9 @@
+title: Load a product catalogue, line by line
+type: function
+difficulty: stretch
+tags: [pydantic, Field, ConfigDict, JSON Lines, ValidationError, Iterable]
+packages: [pydantic]
+hints:
+  - "model_config = ConfigDict(str_strip_whitespace=True) strips every string field before its rules are checked. The SKU rule is Field(pattern=r\"^[A-Z0-9]+(-[A-Z0-9]+)*$\")."
+  - "The price is Field(gt=0, max_digits=8, decimal_places=2), and tags needs Field(default_factory=list)."
+  - "Loop with enumerate(lines, start=1), skip blank lines, and try Product.model_validate_json(line). On ValidationError, add one message per error and move on; after a success, check a set of SKUs you've already seen."
