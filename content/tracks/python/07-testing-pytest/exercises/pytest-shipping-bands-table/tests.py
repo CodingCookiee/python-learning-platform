@@ -2,7 +2,7 @@ import ast
 import re
 from functools import cache
 
-from plp import defined_names, hidden, pytest_run, solution_source, source_uses, test
+from plp import defined_names, hidden, pytest_run, solution_source, source_avoids, source_uses, test
 
 SUPPORT = {}  # extra files pytest needs (a conftest.py, other modules)
 
@@ -22,13 +22,14 @@ def planted(old, new, source=None):
 
 def report(result):
     """pytest's own explanation of each failure: the E lines under each test's heading."""
-    out, shown = [], 0
+    out, heading, shown = [], None, 0
     for line in result.output.splitlines():
-        heading = re.fullmatch(r"_{2,} (.+?) _{2,}", line)
-        if heading:
-            out.append(heading.group(1) + ":")
-            shown = 0
-        elif line.startswith("E ") and out and shown < 3:
+        match = re.fullmatch(r"_{2,} (.+?) _{2,}", line)
+        if match:
+            heading, shown = match.group(1), 0
+        elif line.startswith("E ") and heading and shown < 3:
+            if shown == 0:
+                out.append(heading + ":")
             out.append("    " + line[1:].strip().removeprefix("AssertionError: "))
             shown += 1
         elif "short test summary" in line:

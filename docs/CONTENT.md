@@ -232,12 +232,20 @@ def _():
 - **Put the call inside the assert.** `assert split_bill(90, 3) == 30` reads "split_bill(90, 3)
   returned …"; `result = split_bill(90, 3)` then `assert result == 30` only says "result is …".
   The same goes for `run_program(...)`: inside the assert, a failure reads "Your program printed …".
-- **`raises(ValueError, fn, *args, match=None)`** or **`with raises(ValueError, match="regex"):`**
-  checks for an exception (and optionally its message). An exception of a different type is
-  reported as the learner's error.
+- **`raises(ValueError, fn, *args, match=None)`** or **`with raises(ValueError, match="regex", what="split_bill(10, 0)"):`**
+  checks for an exception (and optionally its message). Prefer the call form: its failure message
+  names the call; give the block form `what=` for the same effect. An exception of a different type
+  is reported as the learner's error.
 - **`run_program(stdin=["Raza", "3"])`** runs the learner's file as a script with those input lines
   and returns everything it printed (`.lines` gives non-blank lines, trailing spaces stripped).
-  `run_program(source=...)` runs a modified copy, e.g. with a constant changed.
+  `run_program(source=...)` runs a modified copy, e.g. with a constant changed. `argv=[...]` sets
+  `sys.argv[1:]`; a `SystemExit` is caught, so `.exit_code` and `.stderr` sit alongside the output.
+- **`call_main(main, ["report", "--format", "csv"])`** calls a CLI entry point the way a shell
+  would and returns `.code` (return value or `SystemExit` code; argparse errors are 2), `.out`,
+  `.lines` and `.err`.
+- **`with captured_logs("solution") as logs:`** captures log records (`.messages`, `.levels`, `.text`).
+  Logging is reset to its start-up state before every test, so configuration never leaks between
+  tests or runs (`fresh_logging()` does the same on demand).
 - **`load_module("billing")`** imports a fresh copy of the learner's file under that name (so the
   `__main__` guard is false) and returns it with `.printed`: use it to check a file has no
   side effects on import.
@@ -261,6 +269,10 @@ def _():
 - Each test gets its own stdout capture, so learners' `print()` calls never break a test.
 - Put the edge cases in `@hidden` tests so solutions can't be written to match the visible ones.
 - Write 3–8 tests per drill. The first test is the example from `prompt.md`.
+
+Errors in Run output (and in drill results) keep their full story: chained exceptions (`raise …
+from exc`) and exception groups print the way CPython prints them, trimmed to the learner's own
+files, so lessons don't need to print `traceback.format_exception` by hand.
 
 ### Testing HTTP, time and randomness
 

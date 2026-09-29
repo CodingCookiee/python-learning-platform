@@ -1,0 +1,9 @@
+title: Settings from the environment
+type: function
+difficulty: stretch
+tags: [pydantic, settings, SecretStr, field_validator, Mapping, environment]
+packages: [pydantic]
+hints:
+  - "Build a dict for the model: {name.removeprefix(prefix).lower(): value for name, value in environ.items() if name.startswith(prefix)}, then Settings.model_validate(it)."
+  - "api_key: SecretStr hides the value in repr and str; .get_secret_value() gives it back. model_config = ConfigDict(frozen=True) stops later assignment."
+  - "allowed_origins needs a before-validator: @field_validator(\"allowed_origins\", mode=\"before\") receives the raw text, so split it on commas, strip each part and drop empty ones."

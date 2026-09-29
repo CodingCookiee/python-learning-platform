@@ -14,8 +14,8 @@ requirements:
   - "python etl.py --generate 200000 prints exactly the counts in the brief, and python etl.py path/to/access.log works on a real file"
 criteria:
   - The counts in the sample run (items per stage, rejects by reason, hours, batches and retries) match the brief exactly
-  - Peak memory stays roughly the same for 100,000 and 1,000,000 lines, and nothing calls list(), sorted() or readlines() on the log or the requests
-  - Every stage is lazy: pulling the first HourStats from a pipeline over generate_log(10**9) returns in well under a second
+  - Peak memory stays roughly the same for 200,000 and 1,000,000 lines, and nothing calls list(), sorted() or readlines() on the log or the requests
+  - "Every stage is lazy: pulling the first HourStats from a pipeline over generate_log(10**9) returns in well under a second"
   - Decorators use functools.wraps, instrumented stages still return generators and still close their input when stopped early, and a retry that runs out re-raises the original exception
   - run_report prints its report when the pipeline raises, and the exception still reaches the caller
   - Stages are small, single-purpose and testable on a three-line list, with no global state beyond METRICS and names that explain themselves

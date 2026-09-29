@@ -1,0 +1,10 @@
+title: Make the tests green
+type: function
+difficulty: core
+tags: [tdd, decimal, validation]
+packages: [pytest]
+timeout: 20
+hints:
+  - "Read the tests as the specification: they describe a grace period, a daily rate, a cap and one error case."
+  - "Check for a negative number first and raise ValueError with a message that mentions days_late. Then, up to 2 days, return Decimal(\"0.00\")."
+  - "Otherwise return min(days_late * Decimal(\"0.50\"), Decimal(\"15.00\"))."

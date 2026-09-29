@@ -1,0 +1,10 @@
+title: Reproduce the bug first
+type: tests
+difficulty: warm-up
+tags: [pytest, tdd, regression-test]
+packages: [pytest]
+timeout: 20
+hints:
+  - A test that reproduces the bug does what the customer did, and asserts what they expected to happen.
+  - "assert discount_percent(\"save10\") == 10 fails on the current code (it returns 0), and will pass once codes are matched case-insensitively."
+  - The fix will change how codes are looked up. Keep tests that an unknown code, such as "WINTER99", still gets 0, and that spaces around a code are still ignored, so a fix that breaks either is caught.

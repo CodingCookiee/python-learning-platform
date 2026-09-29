@@ -1,0 +1,9 @@
+title: Speak camelCase at the edges
+type: function
+difficulty: core
+tags: [pydantic, aliases, alias_generator, model_dump_json, serialization]
+packages: [pydantic]
+hints:
+  - "model_config = ConfigDict(alias_generator=to_camel, validate_by_name=True, validate_by_alias=True) gives every field a camelCase alias and accepts both spellings. to_camel comes from pydantic.alias_generators."
+  - parse_update is model_validate_json. Python code keeps using the snake_case names, for attributes and for building models.
+  - "to_api is update.model_dump_json(by_alias=True, exclude_none=True)."

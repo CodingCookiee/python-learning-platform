@@ -19,17 +19,8 @@ def run_main(argv):
 
 
 def run_script(*args):
-    """Run the file as `python slug.py ARGS...` and return its exit status, or None if it didn't exit."""
-    saved = sys.argv
-    sys.argv = ["slug.py", *args]
-    try:
-        with contextlib.redirect_stderr(io.StringIO()):
-            run_program()
-    except SystemExit as exit:
-        return exit.code
-    finally:
-        sys.argv = saved
-    return None
+    """Run the file as `python slug.py ARGS...` and return its exit status (0 if it just ends)."""
+    return run_program(argv=list(args)).exit_code
 
 
 @test("Converts the titles it's given and returns 0")

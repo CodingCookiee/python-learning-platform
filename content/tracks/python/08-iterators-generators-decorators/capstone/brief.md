@@ -41,7 +41,8 @@ must stay roughly the same when you run a log five times the size (see "Try thes
 
 ```text
 hour,requests,errors,error_rate,p95_ms,bytes
-2026-09-28T00:00:00+00:00,HOUR0_REQUESTS,HOUR0_ERRORS,HOUR0_RATE,HOUR0_P95,HOUR0_BYTES
+2026-09-28T00:00:00+00:00,10464,284,0.0271,112,294863318
+2026-09-28T01:00:00+00:00,10418,298,0.0286,114,292455680
 ```
 
 ## The design
@@ -179,7 +180,9 @@ the reasons in brackets, most common first, or nothing in brackets when there we
 Before you submit, check each of these:
 
 - `python etl.py --generate 1000000` (the default, so plain `python etl.py` does the same) reports
-  ONE_M_COUNTS. Its peak memory is close to the 200,000-line run's, not five times it.
+  995,983 parsed, 726,869 pages, 70 hours in 6 batches with 2 retried, and 4,017 rejected lines
+  (field count 1,981, number 1,021, timestamp 1,015). Its peak memory is close to the
+  200,000-line run's, not five times it.
 - In the REPL, `next(hourly(pages(parse(generate_log(10**9), Counter()))))` returns the first hour
   at once. A billion lines is about eight years of this shop's log.
 - `list(parse(["garbage", "2026-13-28T09:00:00Z GET / 200 10 5", "2026-09-28T09:00:00Z GET / - 10 5"], rejects))`
