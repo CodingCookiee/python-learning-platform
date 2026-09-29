@@ -1,0 +1,8 @@
+title: A context manager that logs a job
+type: function
+difficulty: stretch
+tags: [logging, context-managers, contextmanager, exceptions]
+hints:
+  - "Log the start, read the clock, then yield inside a try statement. The code after the try runs only when the block finished."
+  - "except Exception: log.exception(...) and then a bare raise, so the error is recorded here and still reaches the caller unchanged."
+  - "Format the duration with %.1f in the message and pass clock() - started as the argument. Call clock exactly once at the start and once at the end."

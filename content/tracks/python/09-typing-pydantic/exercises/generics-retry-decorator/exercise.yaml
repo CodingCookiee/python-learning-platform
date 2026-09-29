@@ -1,0 +1,10 @@
+title: A typed retry decorator
+type: function
+difficulty: stretch
+tags: [ParamSpec, decorators, decorator-factory, exceptions, mypy]
+packages: [mypy]
+timeout: 30
+hints:
+  - "The type parameters go on the outer function, and its return type is the decorator it builds: def retry[**P, R](times: int, *, on: type[Exception] = Exception) -> Callable[[Callable[P, R]], Callable[P, R]]:"
+  - Check times before defining anything else, so retry(0) fails straight away. Then define decorate(fn), and inside it a wrapper typed with P.args, P.kwargs and R.
+  - "In the wrapper, loop times - 1 attempts with try/except on: continue, then make the last call outside the try so its exception propagates."

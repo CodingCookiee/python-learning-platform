@@ -1,0 +1,8 @@
+title: "Predict: what a Mock remembers"
+type: predict
+difficulty: core
+tags: [mock, unittest-mock, side-effect]
+hints:
+  - A Mock returns its return_value on every call, and makes a new child Mock for any attribute you use, so gateway.refund exists without being set up.
+  - "call_args is the most recent call, shown as call(...). method_calls lists the calls made to the mock's methods, in order."
+  - "side_effect with a list returns the next item on each call, and an item that's an exception is raised instead. assert_called_with checks only the latest call, and prints nothing when it passes."

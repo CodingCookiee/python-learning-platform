@@ -1,0 +1,10 @@
+title: An audit decorator that keeps its signature
+type: function
+difficulty: core
+tags: [ParamSpec, decorators, generics, functools.wraps, mypy]
+packages: [mypy]
+timeout: 30
+hints:
+  - "Declare both type parameters on the decorator: def audited[**P, R](fn: Callable[P, R]) -> Callable[P, R]:"
+  - "The wrapper takes *args: P.args and **kwargs: P.kwargs and returns R. Decorate it with @functools.wraps(fn)."
+  - 'Build the entry from [repr(a) for a in args] plus [f"{k}={v!r}" for k, v in kwargs.items()], joined with ", ", and append it before calling fn.'

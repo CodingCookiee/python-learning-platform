@@ -1,0 +1,10 @@
+title: Test an environment variable
+type: tests
+difficulty: warm-up
+tags: [pytest, monkeypatch, environment]
+packages: [pytest]
+timeout: 20
+hints:
+  - "Ask for monkeypatch as a parameter, then monkeypatch.setenv(\"PAYMENTS_MODE\", \"live\") before calling payments_mode()."
+  - "To test the default, make sure the variable isn't set: monkeypatch.delenv(\"PAYMENTS_MODE\", raising=False)."
+  - "Three behaviours to pin down: unset gives \"sandbox\", \" LIVE \" gives \"live\", and a typo such as \"lvie\" raises ValueError."

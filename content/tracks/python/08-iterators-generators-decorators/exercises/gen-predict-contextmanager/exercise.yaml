@@ -1,0 +1,8 @@
+title: "Predict: inside @contextmanager"
+type: predict
+difficulty: warm-up
+tags: [context-managers, contextmanager, generators, exceptions]
+hints:
+  - Entering the with block runs the generator up to its yield. The yielded value is what as binds.
+  - An exception in the block is raised at the yield. step catches KeyError there, so the with statement suppresses it, and the program carries on.
+  - The ValueError isn't a KeyError, so step's except doesn't catch it. finally still runs, and then the error reaches the try/except around the with.

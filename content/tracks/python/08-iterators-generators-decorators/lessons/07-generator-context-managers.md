@@ -61,7 +61,6 @@ def timer(label, log):
     try:
         yield
     finally:
-        outcome = "ok"
         log.append(f"{label}: {time.perf_counter() - start:.3f}s")
 
 log = []

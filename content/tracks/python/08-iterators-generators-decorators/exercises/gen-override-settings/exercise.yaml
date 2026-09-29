@@ -1,0 +1,8 @@
+title: Settings that put themselves back
+type: function
+difficulty: core
+tags: [context-managers, contextmanager, generators, try-finally]
+hints:
+  - Before changing anything, remember what each changed key held, and which keys didn't exist at all. A sentinel object (MISSING = object()) marks "wasn't there" better than None, because None can be a real setting.
+  - "Apply the changes with settings.update(changes), then yield settings inside try:, and put the restoring in finally: so it runs even when the block raises."
+  - "To restore: for each changed key, delete it if it was missing before, otherwise put the old value back."

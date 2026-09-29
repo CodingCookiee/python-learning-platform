@@ -12,4 +12,6 @@ class Page:
     # has_more, first(), map(fn)
 
 
-# collect_all(pages)
+def collect_all(pages):
+    """All the items from some pages, in order."""
+    ...
