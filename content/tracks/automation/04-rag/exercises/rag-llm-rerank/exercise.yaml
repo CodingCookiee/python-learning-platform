@@ -1,0 +1,8 @@
+title: Rerank with a model
+type: function
+difficulty: core
+tags: [reranking, llm, json, validation]
+hints:
+  - "Build the user message as f\"Question: {question}\\n\\n\" followed by the passages as \"[n] text\" joined with blank lines, numbered from 1, and call llm.complete(messages, system=RERANK_SYSTEM, temperature=0)."
+  - "Parse with json.loads inside try/except ValueError. Keep a ranking entry only if type(n) is int and 1 <= n <= len(candidates) and you haven't kept it already."
+  - "Then add every candidate number you haven't kept, in the original order, and return [candidates[n - 1] for n in order[:top_n]]."

@@ -1,0 +1,8 @@
+title: Price an agent run before you quote it
+type: function
+difficulty: core
+tags: [agents, cost, Decimal, budgets]
+hints:
+  - "Step k (counting from 1) sends first_input + (k - 1) * growth_per_step input tokens and returns output_per_step output tokens."
+  - "Add up the tokens first, then price them once: (input_total * price['input'] + output_total * price['output']) / 1_000_000. Integers times a Decimal stay exact."
+  - steps_within_budget can try steps = 1, 2, 3… and stop at the first one whose projected_cost is over the budget. The answer is the one before it.

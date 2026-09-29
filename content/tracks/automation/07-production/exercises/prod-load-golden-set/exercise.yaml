@@ -1,0 +1,7 @@
+title: Load a golden dataset
+type: function
+difficulty: warm-up
+tags: [evals, jsonl, json]
+hints:
+  - "enumerate(text.splitlines(), start=1) gives each line with its line number. Skip lines where line.strip() is empty."
+  - "Catch json.JSONDecodeError around json.loads and raise ValueError(f\"line {number}: ...\") from it. Then check isinstance(case, dict), the two required keys, and whether the id is already in a set of seen ids."

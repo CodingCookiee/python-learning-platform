@@ -1,0 +1,8 @@
+title: "Predict: an agent resends its history"
+type: predict
+difficulty: warm-up
+tags: [agents, tokens, cost]
+hints:
+  - The first call sends the system prompt and the task, and nothing else yet.
+  - "Each step adds PER_STEP to history after it's been counted, so step 2 sends 350 + 200."
+  - The total adds up what every step sent. The workflow line is a single call that carries all three results at once.

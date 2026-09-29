@@ -1,0 +1,9 @@
+title: Hybrid search
+type: function
+difficulty: stretch
+tags: [hybrid-search, bm25, vector-search, rrf, numpy]
+packages: [numpy]
+hints:
+  - "Embed [query, *texts] in one call, normalise the rows, and scores = vectors[1:] @ vectors[0]. The vector ranking is the ids of np.argsort(-scores, kind=\"stable\")[:candidates]."
+  - "The keyword ranking is [chunks[i][\"id\"] for i, _ in BM25(texts).search(query, k=candidates)]: search already leaves out zero scores."
+  - "Return [doc_id for doc_id, _ in rrf([vector_ranking, keyword_ranking])[:k]], with the vector ranking first so it wins ties."

@@ -1,0 +1,8 @@
+title: Tokenise for keyword search
+type: function
+difficulty: warm-up
+tags: [bm25, tokenising, regex]
+hints:
+  - Lower-case the text first, then find the tokens with a regular expression rather than splitting on spaces, so punctuation disappears.
+  - "r\"[a-z0-9]+(?:-[a-z0-9]+)*\" matches a run of letters and digits, optionally followed by more runs joined with single hyphens."
+  - Filter the matches with a comprehension that drops anything in STOP_WORDS.

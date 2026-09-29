@@ -1,0 +1,8 @@
+title: Parse citations
+type: function
+difficulty: warm-up
+tags: [citations, regex, grounded-answers]
+hints:
+  - "r\"\\[(\\d+(?:\\s*,\\s*\\d+)*)\\]\" matches a bracket holding one number or several separated by commas; findall returns what's inside each."
+  - Split each match on commas and convert every part with int(); int() ignores the spaces around a number.
+  - "dict.fromkeys(numbers) removes duplicates and keeps first-appearance order. Leave out 0: sources are numbered from 1."

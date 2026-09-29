@@ -1,0 +1,8 @@
+title: An eval runner
+type: function
+difficulty: stretch
+tags: [evals, error-handling, dataclasses]
+hints:
+  - "Check every case's scorer name against scorers before the loop, and raise ValueError naming the case id and the scorer for the first unknown one."
+  - "Inside the loop: try: output = system(case[\"input\"]) except Exception as exc: record CaseResult(case[\"id\"], False, f\"error: {type(exc).__name__}: {exc}\", None, tags), and continue."
+  - "by_tag: build a dict of tag -> list of passed flags from each result's tags, then turn each list into sum(flags) / len(flags)."

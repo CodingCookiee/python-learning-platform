@@ -1,0 +1,8 @@
+title: A BM25 index
+type: function
+difficulty: core
+tags: [bm25, keyword-search, counter, classes]
+hints:
+  - "In __init__, keep a Counter of tokens per document, the documents' lengths (token counts), their average, and a Counter of document frequencies: Counter(term for counts in self.counts for term in counts)."
+  - "For each document, sum over the query's distinct terms that it contains: idf(term) * tf * (k1 + 1) / (tf + k1 * (1 - b + b * length / avgdl)), with idf = log(1 + (N - df + 0.5) / (df + 0.5))."
+  - search sorts the indices with a positive score by -score (sorted is stable, so ties keep index order) and returns the first k as (index, score) pairs.

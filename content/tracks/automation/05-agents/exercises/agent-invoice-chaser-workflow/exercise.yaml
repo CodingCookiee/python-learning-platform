@@ -1,0 +1,8 @@
+title: The invoice chaser as a workflow
+type: function
+difficulty: core
+tags: [workflows, agents, business-rules, dates]
+hints:
+  - "Work out days_overdue = (today - invoice['due']).days first. Every rule depends on it, and only one branch calls the model."
+  - "Under 3 days is Action('wait'), 30 or more is Action('escalate'); neither calls the model. In between, the tone is 'friendly' below 14 days and 'firm' from 14."
+  - "Build the user message with the number, client, amount, days overdue and tone inside <invoice> tags, call llm.complete([...], system=WRITER_SYSTEM, max_tokens=300) and return Action('email', tone, response.text.strip())."

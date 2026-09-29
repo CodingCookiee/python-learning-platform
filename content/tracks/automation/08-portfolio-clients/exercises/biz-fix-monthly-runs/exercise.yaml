@@ -1,0 +1,8 @@
+title: A frequency converter that loses a month a year
+type: fix
+difficulty: warm-up
+tags: [opportunities, estimating, Decimal]
+hints:
+  - A year has 52 weeks, so a month has 52 / 12 of them, not 4. How many days does an average month have?
+  - Working days are five days a week, 52 weeks a year, before holidays.
+  - "day: Decimal(365) / 12, working day: Decimal(5 * 52) / 12, week: Decimal(52) / 12."

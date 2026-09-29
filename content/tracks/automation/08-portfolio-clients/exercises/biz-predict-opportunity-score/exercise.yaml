@@ -1,0 +1,7 @@
+title: "Predict: which opportunity comes first"
+type: predict
+difficulty: warm-up
+tags: [opportunities, prioritisation, Decimal]
+hints:
+  - Work out each process's hours a month first (runs × minutes / 60), then its value (hours × rate plus runs × error rate × cost per error).
+  - The priority multiplies that value by the strategic weight, and the loop prints the highest priority first.

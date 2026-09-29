@@ -1,0 +1,8 @@
+title: Build the grounded prompt
+type: function
+difficulty: core
+tags: [grounded-answers, prompting, citations]
+hints:
+  - "Number the chunks with enumerate(chunks, start=1), and build each source as f'<source id=\"{n}\" title=\"{chunk[\"title\"]}\">\\n{chunk[\"text\"]}\\n</source>'."
+  - "Join the sources with newlines, wrap them in <sources> and </sources> lines, then add a blank line and f\"Question: {question}\"."
+  - Return (SYSTEM, [{"role": "user", "content": user}]), and raise ValueError before building anything when chunks is empty.

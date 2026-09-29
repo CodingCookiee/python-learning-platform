@@ -1,0 +1,9 @@
+title: Score extraction output against its schema
+type: function
+difficulty: core
+tags: [evals, scorers, pydantic, extraction]
+packages: [pydantic]
+hints:
+  - "json.loads first (catch ValueError), then model.model_validate(data) (catch ValidationError). For the invalid reason, join f\"{'.'.join(str(p) for p in e['loc'])}: {e['msg']}\" over error.errors() with \"; \"."
+  - "TypeAdapter(model.model_fields[name].annotation).validate_python(value) turns the JSON value from the case into the field's type, so \"1240.50\" becomes Decimal(\"1240.50\") and \"2026-09-01\" a date."
+  - "Collect a part like f\"{name}: expected {want!r}, got {got!r}\" for each field that differs, and join them into \"wrong \" + \"; \".join(parts)."

@@ -1,0 +1,8 @@
+title: Which kind of message is this?
+type: function
+difficulty: warm-up
+tags: [mcp, json-rpc, notifications]
+hints:
+  - A message with a "method" is a request or a notification; one without is a response to something.
+  - 'Check for the key, "id" in message, not message.get("id"): id 0 is a real request.'
+  - 'Check message.get("jsonrpc") != "2.0" first, and raise ValueError("Not a JSON-RPC 2.0 message").'

@@ -1,0 +1,3 @@
+def rrf(rankings, k=60):
+    """Fuse rankings (lists of ids, best first) into (id, score) pairs, best first."""
+    ...

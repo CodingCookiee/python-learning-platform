@@ -1,0 +1,7 @@
+title: "Predict: what the scorers decide"
+type: predict
+difficulty: warm-up
+tags: [evals, scorers, regex]
+hints:
+  - "normalise only strips spaces and trailing full stops or exclamation marks, and folds the case. \"shipping query\" is still not \"shipping\". contains looks for each phrase as one piece of text, so \"14 working days\" doesn't contain \"14 days\"."
+  - "\b needs a boundary between a word character and a non-word one: after \"SO-1042\" in \"SO-10423\" comes another digit, so there's no match. within uses the first number in the text, which in the last check is the 2."

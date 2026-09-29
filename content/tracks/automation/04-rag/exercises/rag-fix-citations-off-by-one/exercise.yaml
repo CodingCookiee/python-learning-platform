@@ -1,0 +1,8 @@
+title: Fix citations that point at the wrong source
+type: fix
+difficulty: core
+tags: [citations, grounded-answers, indexing]
+hints:
+  - The prompt numbers sources from 1, but Python lists are indexed from 0. Citation n is chunks[n - 1].
+  - "Check 1 <= n <= len(chunks) before indexing. Without it, [0] becomes chunks[-1], the last chunk, and a number past the end raises IndexError."
+  - Keep a set of the numbers already used so each cited chunk appears once, in the order it's first cited.

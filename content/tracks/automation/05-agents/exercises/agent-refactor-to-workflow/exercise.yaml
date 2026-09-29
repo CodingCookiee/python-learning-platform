@@ -1,0 +1,8 @@
+title: This agent should be a workflow
+type: refactor
+difficulty: stretch
+tags: [workflows, agents, refactoring, cost]
+hints:
+  - The model always calls the same three tools with the same account id, in the same order. You can make those three calls yourself, before the model is involved.
+  - "Call get_account, get_open_tickets and get_unpaid_invoices in code, and put json.dumps of each result in one user message after the task line."
+  - "Then one llm.complete([message], system=SYSTEM) with no tools, and return its text. The loop, TOOLS and REGISTRY can all go."

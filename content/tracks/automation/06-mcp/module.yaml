@@ -1,0 +1,24 @@
+slug: mcp
+title: MCP
+summary: Expose your tools and documents once, over the Model Context Protocol, to Claude, IDEs and your own agents, safely.
+description: >
+  In A3 you wrote tools that lived inside one application. Clients now ask for the opposite: "let
+  Claude Desktop look up our orders", "let the team's IDE search the wiki", "let our agent use the
+  same tools". The Model Context Protocol is the standard that makes one server work in all of
+  them. This module teaches it from the wire up: JSON-RPC 2.0 requests, responses, notifications
+  and error codes, the initialize handshake and protocol versions, tools with content blocks and
+  isError, resources with URIs, templates and mime types, prompts, and the stdio and Streamable
+  HTTP transports. You build servers by hand as a pure dispatch function, which is what the drills
+  test in the browser with a client harness, then build the same server with the official Python
+  SDK on your machine and connect it to Claude Desktop, Claude Code, an IDE and your A5 agent. It
+  ends with the security work that makes a client say yes: read-only by default, validated input,
+  no path traversal, no secrets in output, audit logs and rate limits, and a clear-eyed view of
+  prompt injection through tool results.
+hours: 8
+outcomes:
+  - Explain what MCP standardises (tools, resources, prompts, transports) and how hosts, clients and servers negotiate capabilities
+  - Read and write JSON-RPC 2.0 requests, responses, notifications and errors, with the standard error codes, and implement the initialize handshake with protocol version negotiation
+  - Build an MCP server by hand as a pure dispatch function with tools/list, tools/call, resources/list and resources/read, validating tool arguments with Pydantic and reporting tool failures with isError
+  - Build the same server with the official Python SDK, run it over stdio, and inspect it with the MCP Inspector
+  - Test servers at two levels (the handlers as plain functions, the protocol through a client harness) and connect them to Claude Desktop, Claude Code, an IDE and your own agent
+  - Secure a server with least privilege, input validation, safe file paths, secrets kept out of output, audit logs, rate limits and a defence plan for prompt injection

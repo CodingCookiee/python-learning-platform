@@ -1,0 +1,8 @@
+title: Answer with citations, or refuse
+type: function
+difficulty: stretch
+tags: [grounded-answers, citations, refusal, llm]
+hints:
+  - "Start with results = search(question, k). If it's empty or results[0][1] < min_score, return Answer(REFUSAL, [], True) straight away."
+  - "Otherwise chunks = [chunk for chunk, _ in results], system, messages = build_prompt(question, chunks), and call llm.complete(messages, system=system, temperature=0)."
+  - "Parse [n] citations as in the citation drills (1 <= n <= len(chunks), each once) into chunk ids. If the reply contains REFUSAL or no citation survives, return the refusal; otherwise Answer(text, ids, False)."

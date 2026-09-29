@@ -1,0 +1,8 @@
+title: Fix the IDF that divides by zero
+type: fix
+difficulty: core
+tags: [bm25, idf, math]
+hints:
+  - df is the number of documents that contain the term, and it's 0 for a word that appears nowhere. log(N / df) then divides by zero.
+  - "BM25's IDF is math.log(1 + (N - df + 0.5) / (df + 0.5)): the halves keep the denominator positive and the 1 + keeps the log above zero."
+  - An empty corpus is then fine too, with N = 0 and df = 0.

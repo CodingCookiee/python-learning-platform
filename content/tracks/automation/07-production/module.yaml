@@ -1,0 +1,24 @@
+slug: production
+title: Production AI systems
+summary: Evals, tracing, retries, fallbacks, cost caps and injection defences that let an AI automation run for a paying client, then deploying and watching it.
+description: >
+  A demo that works on your laptop is a long way from a support bot answering customers at 3 a.m.,
+  an invoice extractor working through 10,000 documents a day, or an email triage agent with
+  access to a client's inbox. This module is the distance between them. You'll prove quality with
+  golden datasets, deterministic scorers and an LLM judge you've calibrated against people, and
+  guard it with a regression suite that fails the build in CI. You'll trace every model and tool
+  call, log what helps and redact what mustn't be kept. You'll make pipelines survive a provider
+  outage with timeouts, retries, fallback chains, circuit breakers, idempotent side effects and a
+  queue with a dead-letter list, and keep the bill predictable with response caching, provider
+  prompt caching, model routing and per-user budgets. You'll defend against direct and indirect
+  prompt injection and data exfiltration with a red-team suite of your own, then package the
+  service with FastAPI and Docker, deploy it, and alert on quality drift, error rates and cost
+  anomalies. Everything takes your neutral `llm`, so it's graded offline with fakes.
+hours: 12
+outcomes:
+  - Build golden datasets in JSONL, score outputs with exact, contains, regex, schema and numeric-tolerance scorers, and run an eval that reports pass rates by tag
+  - Use an LLM as a judge with a rubric, check it against human labels and for position bias, and gate releases on a regression suite that runs in CI
+  - Trace every LLM and tool call with nested spans that record model, tokens, latency, cost and prompt version, and redact PII and secrets before anything is logged
+  - Keep pipelines running through failures with retries, model fallback chains, cached answers, circuit breakers, idempotency keys and a worker queue with dead letters
+  - Control cost with response caching, provider prompt caching, cheap-first model routing, per-user and per-day budgets, and cost reports from usage logs
+  - Defend against direct and indirect prompt injection and link-based exfiltration, test the defences with a red-team suite, and deploy a monitored FastAPI service in Docker

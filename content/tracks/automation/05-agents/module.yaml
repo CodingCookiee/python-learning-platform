@@ -1,0 +1,25 @@
+slug: agents
+title: Agents
+summary: Let the model choose the next step, safely. Build the agent loop by hand, give it tools, memory and plans, and fence it in with budgets, caps and people.
+description: >
+  An agent is a loop in which the model decides what to do next: which tool to call, what to read,
+  when it's finished. That freedom is what lets it handle messy, open-ended jobs like researching a
+  prospect or working an on-call alert, and it's also what makes agents slow, costly and hard to
+  predict. This module (roadmap Phase 4) starts with the question clients rarely ask: does this job
+  need an agent at all, or would a fixed workflow do it cheaper and more reliably? Then you write
+  the agent loop from scratch in about eighty lines, with a step cap, stop conditions and a
+  structured final answer, and design tools an agent can use on its own: small observations, errors
+  it can act on and safe defaults. You'll add memory (trimmed and summarised history, a long-term
+  store over embeddings, a scratchpad), planning and bounded self-critique, and the five workflow
+  patterns that solve most jobs without an agent. It ends with the controls that make agents
+  sellable: approval gates and pause-and-resume for risky actions, token and cost budgets, wall-clock
+  deadlines, loop detection and allow-lists, and an honest look at the frameworks. Every agent takes
+  your neutral `llm`, so everything is graded offline with a scripted model.
+hours: 12
+outcomes:
+  - Decide between a fixed workflow and an agent for a given job, and estimate what an agent run will cost as its history grows
+  - Write an agent loop from scratch with a finish tool, a step cap, clear stop reasons, errors returned as observations and a trace of every step
+  - Design tools for agents with bounded observations, paging, error messages the model can act on and safe defaults
+  - Give an agent memory with trimmed and summarised history that never breaks tool-call pairs, a long-term store searched by embeddings, and a scratchpad
+  - Build plan-then-execute agents, bounded self-critique loops, and the prompt chaining, routing, parallel, orchestrator–workers and evaluator–optimiser patterns
+  - Put agents under control with approval gates, pause and resume from JSON, cost budgets checked before each call, deadlines, loop detection and allow-lists, and judge when a framework helps

@@ -1,0 +1,8 @@
+title: Four deterministic scorers
+type: function
+difficulty: core
+tags: [evals, scorers, regex, normalisation]
+hints:
+  - "Normalise both sides for exact and contains. For contains, accept a single string by wrapping it: phrases = [expected] if isinstance(expected, str) else expected."
+  - "For within, reuse the first-number regex from the lesson: re.search(r\"-?\d[\d,]*(?:\.\d+)?\", output), then float(match.group().replace(\",\", \"\"))."
+  - "Build each reason from the values you compared, e.g. Score(False, f\"missing {', '.join(repr(p) for p in missing)}\") or Score(False, f\"got {value}, expected {expected} ± {tolerance}\")."

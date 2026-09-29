@@ -1,0 +1,23 @@
+slug: portfolio-clients
+title: Portfolio and client work
+summary: Find the processes worth automating, price and scope them, run the call, deliver and hand over, and turn the results into case studies that win the next client.
+description: >
+  You can build automations, agents and RAG systems that survive production. This module is about
+  getting paid for them. It covers the business around the code: finding the processes worth
+  automating and the niches where the same problem repeats, running a discovery call that
+  qualifies the client as much as the project, estimating ROI and pricing the work (hourly, fixed,
+  value-based, retainers, and AI costs passed through with a margin), writing statements of work
+  with deliverables that can be accepted and a clear out-of-scope list, the contract basics, and
+  delivering, handing over and maintaining AI systems with promises you can keep. It ends with
+  case studies, a portfolio built from your A1 to A7 capstones, and outreach you'd be happy to
+  receive. The drills are the calculators, linters and generators you'll reuse on real quotes, all
+  graded by tests, with example numbers only. This is roadmap Phase 6, and the last module on the
+  platform.
+hours: 8
+outcomes:
+  - Map a client's process into trigger, context, decision and action, find the gaps, and rank opportunities by frequency, time, error cost and strategic value
+  - Run a structured discovery call, qualify the client on budget, authority, need and timeline, spot red flags, and rehearse the call with an AI role-play
+  - Estimate ROI and payback, and price a project with a risk buffer, AI costs passed through at a margin, and a range with stated assumptions
+  - Write a statement of work with testable deliverables, acceptance criteria, an out-of-scope list, milestones, risks and a change-request process
+  - Hand over an AI system with a runbook, monitoring, client-owned credentials, a maintenance retainer and an SLA that promises only what you control
+  - Publish anonymised, outcome-first case studies and a portfolio, and do outreach that respects consent and people's time

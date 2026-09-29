@@ -1,0 +1,3 @@
+def message_kind(message: dict) -> str:
+    """"request", "notification", "result" or "error". Raises ValueError for non-JSON-RPC 2.0."""
+    ...
