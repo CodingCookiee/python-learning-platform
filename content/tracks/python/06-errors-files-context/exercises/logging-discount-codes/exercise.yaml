@@ -1,0 +1,8 @@
+title: Log what happened to the discount code
+type: function
+difficulty: core
+tags: [logging, getlogger, levels]
+hints:
+  - "At the top of the module: log = logging.getLogger(__name__). Imported as solution, that logger is called \"solution\"."
+  - "Pass the values as arguments: log.warning(\"unknown discount code %r\", code) and log.info(\"applied %s: %s -> %s\", key, total, discounted)."
+  - "Log nothing at all when there's no code, and don't print anything."

@@ -1,0 +1,3 @@
+def last(items):
+    """The last item of a sequence. Raises IndexError("no items") when it's empty."""
+    ...

@@ -1,0 +1,10 @@
+title: Plug the Any leak
+type: fix
+difficulty: core
+tags: [generics, Any, Callable, mypy]
+packages: [mypy]
+timeout: 30
+hints:
+  - Any passes mypy by switching it off. Replace it with two type parameters, one for the items and one for the keys.
+  - "def index_by[T, K](items: Iterable[T], key: Callable[[T], K]) -> dict[K, T]:"
+  - "The local dict needs the same types: index: dict[K, T] = {}. Then remove the Any import."

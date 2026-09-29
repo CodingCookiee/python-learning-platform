@@ -1,0 +1,10 @@
+title: A generic page of results
+type: function
+difficulty: core
+tags: [generics, generic-classes, dataclasses, Callable, mypy]
+packages: [mypy]
+timeout: 30
+hints:
+  - "Put the type parameter on the class: @dataclass then class Page[T]:, with items: list[T]. Methods use T too."
+  - "map introduces a second type parameter of its own: def map[U](self, fn: Callable[[T], U]) -> Page[U], building a new Page with the same cursor."
+  - "collect_all is a generic function: def collect_all[T](pages: Iterable[Page[T]]) -> list[T], extending one list with each page's items."

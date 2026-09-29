@@ -16,7 +16,8 @@ ACCEPTED = [
     "summary = summarise([])",
     'count: int = summary["ada@example.com"]["orders"]',
     'last: str = summary["ada@example.com"]["last_order"]',
-    "summarise(row for row in [])",
+    "rows: list[OrderRow] = []",
+    "summarise(row for row in rows)",
     'summarise(({"order_id": "A1", "customer": "ada", "total_cents": 1, "placed_on": "2026-09-01"},))',
 ]
 REJECTED = [

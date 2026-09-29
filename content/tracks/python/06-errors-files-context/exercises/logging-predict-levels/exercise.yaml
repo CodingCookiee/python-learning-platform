@@ -1,0 +1,7 @@
+title: "Predict: which messages get through?"
+type: predict
+difficulty: warm-up
+tags: [logging, levels]
+hints:
+  - "A logger with level NOTSET uses its parent's level. payments' parent is the root, set to WARNING by basicConfig, so at first only warning and above get through."
+  - "Once payments is set to INFO, payments.refunds inherits INFO too: its debug message is dropped, and its info and error messages get through."

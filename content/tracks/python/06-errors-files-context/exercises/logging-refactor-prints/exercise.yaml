@@ -1,0 +1,8 @@
+title: From print debugging to logging
+type: refactor
+difficulty: core
+tags: [logging, exception, refactoring]
+hints:
+  - "Add log = logging.getLogger(__name__) at the top of the module. Each print becomes a call at the level its prefix names, with %s or %d placeholders and the values as arguments."
+  - "log.exception(\"could not upload order %s\", order[\"id\"]) logs at ERROR and attaches the traceback, which replaces both the ERROR print and traceback.print_exc()."
+  - "Once nothing uses print or traceback, remove the traceback import too."

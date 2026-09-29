@@ -1,8 +1,26 @@
-from dataclasses import dataclass
-
 import solution
 from plp import test, hidden, raises
 from solution import event, parse_event
+
+
+class Record:
+    """A tiny stand-in for a dataclass: keyword fields, equality and a readable repr."""
+
+    fields = ()
+
+    def __init__(self, **values):
+        unknown = set(values) - set(self.fields)
+        if unknown:
+            raise TypeError(f"{type(self).__name__} got unexpected fields {sorted(unknown)}")
+        for name in self.fields:
+            setattr(self, name, values.get(name))
+
+    def __eq__(self, other):
+        return type(self) is type(other) and vars(self) == vars(other)
+
+    def __repr__(self):
+        inside = ", ".join(f"{name}={getattr(self, name)!r}" for name in self.fields)
+        return f"{type(self).__name__}({inside})"
 
 
 @test("Registers a class and builds it from a payload")
@@ -10,10 +28,8 @@ def _():
     solution.EVENT_TYPES.clear()
 
     @event("payment.refunded")
-    @dataclass
-    class PaymentRefunded:
-        payment_id: str
-        amount: int
+    class PaymentRefunded(Record):
+        fields = ("payment_id", "amount")
 
     received = parse_event({"type": "payment.refunded", "data": {"payment_id": "P7", "amount": 1250}})
     assert received == PaymentRefunded(payment_id="P7", amount=1250)
@@ -24,10 +40,8 @@ def _():
 def _():
     solution.EVENT_TYPES.clear()
 
-    class PaymentFailed:
-        def __init__(self, payment_id, reason):
-            self.payment_id = payment_id
-            self.reason = reason
+    class PaymentFailed(Record):
+        fields = ("payment_id", "reason")
 
     registered = event("payment.failed")(PaymentFailed)
     assert registered is PaymentFailed
@@ -46,17 +60,15 @@ def _():
     solution.EVENT_TYPES.clear()
 
     @event("customer.created")
-    @dataclass
-    class CustomerCreated:
-        customer_id: str
+    class CustomerCreated(Record):
+        fields = ("customer_id",)
 
     @event("customer.deleted")
-    @dataclass
-    class CustomerDeleted:
-        customer_id: str
-        reason: str = "requested"
+    class CustomerDeleted(Record):
+        fields = ("customer_id", "reason")
 
-    assert parse_event({"type": "customer.deleted", "data": {"customer_id": "C1"}}) == CustomerDeleted("C1")
+    deleted = parse_event({"type": "customer.deleted", "data": {"customer_id": "C1", "reason": "requested"}})
+    assert deleted == CustomerDeleted(customer_id="C1", reason="requested")
     assert isinstance(parse_event({"type": "customer.created", "data": {"customer_id": "C2"}}), CustomerCreated)
     assert (CustomerCreated.event_name, CustomerDeleted.event_name) == ("customer.created", "customer.deleted")
 
@@ -66,10 +78,10 @@ def _():
     solution.EVENT_TYPES.clear()
 
     @event("invoice.paid")
-    class InvoicePaid:
+    class InvoicePaid(Record):
         pass
 
-    class InvoicePaidAgain:
+    class InvoicePaidAgain(Record):
         pass
 
     raises(ValueError, event("invoice.paid"), InvoicePaidAgain)

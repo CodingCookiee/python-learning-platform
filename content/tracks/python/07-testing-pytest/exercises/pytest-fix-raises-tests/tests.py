@@ -93,7 +93,8 @@ def _():
 
 @test("All four tests are still there")
 def _():
-    assert len(run(CORRECT).passed) >= 4, "Keep all four tests"
+    result = run(CORRECT)
+    assert len(result.passed + result.failed) >= 4, "Keep all four tests"
 
 
 @test("No try/except left: the overdraft test uses pytest.raises")

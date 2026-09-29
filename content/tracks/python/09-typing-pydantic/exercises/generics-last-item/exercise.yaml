@@ -1,0 +1,10 @@
+title: The last item, whatever it is
+type: function
+difficulty: warm-up
+tags: [generics, PEP 695, Sequence, mypy]
+packages: [mypy]
+timeout: 30
+hints:
+  - Declare the type parameter in square brackets after the name, def last[T](...), and use T for both the items and the result.
+  - A list, a tuple and a string are all a Sequence, from collections.abc.
+  - "def last[T](items: Sequence[T]) -> T:"
