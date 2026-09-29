@@ -1,0 +1,7 @@
+title: An idempotency key for a tool call
+type: function
+difficulty: warm-up
+tags: [idempotency, hashlib, json]
+hints:
+  - 'json.dumps(arguments, sort_keys=True, separators=(",", ":"), default=str) gives the same text for the same arguments in any order.'
+  - 'hashlib.sha256(text.encode()).hexdigest()[:16] is the digest part. Put f"{tool_name}:" in front of it.'

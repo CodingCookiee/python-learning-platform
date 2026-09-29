@@ -1,0 +1,3 @@
+def parse_sse(lines):
+    """Yield (event, data) for each event in a server-sent event stream."""
+    ...

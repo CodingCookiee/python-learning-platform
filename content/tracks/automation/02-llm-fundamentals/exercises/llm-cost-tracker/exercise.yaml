@@ -1,0 +1,8 @@
+title: A cost tracker that wraps any LLM
+type: function
+difficulty: core
+tags: [cost, usage, composition, Protocol, Decimal, ScriptedLLM]
+hints:
+  - "complete() takes the same arguments as the LLM interface and passes every one of them on: self._llm.complete(messages, system=system, tools=tools, model=model, max_tokens=max_tokens, temperature=temperature)."
+  - "Look the price up by response.model. If it isn't in the table, raise ValueError naming the model. Then append a CallRecord and return the response unchanged."
+  - "total_cost is sum((record.cost for record in self.records), Decimal(\"0\")). cost_by_model adds each record's cost to a dict keyed by model, in the order models were first used."

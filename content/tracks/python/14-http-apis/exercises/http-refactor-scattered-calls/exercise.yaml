@@ -1,0 +1,9 @@
+title: Three functions into one client
+type: refactor
+difficulty: core
+tags: [api-clients, classes, refactoring, context-managers, httpx]
+packages: [httpx]
+hints:
+  - "__init__ creates self._http = httpx.Client(...) once, with the base URL, both headers and the timeout from get_ticket. close() calls self._http.close(); __enter__ returns self and __exit__ calls close()."
+  - "Write _request(self, method, path, **kwargs): send with self._http.request(method, path, **kwargs), call raise_for_status(), and return the response. That's the only raise_for_status in the file."
+  - "Each public method is then one line, such as return self._request(\"GET\", f\"/tickets/{ticket_id}\").json(). Delete the three old functions."

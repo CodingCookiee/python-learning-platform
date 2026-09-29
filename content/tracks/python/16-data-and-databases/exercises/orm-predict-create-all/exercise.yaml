@@ -1,0 +1,10 @@
+title: "Predict: what does create_all change?"
+type: predict
+difficulty: warm-up
+packages: [sqlalchemy]
+timeout: 20
+tags: [sqlalchemy, create-all, migrations, schema]
+hints:
+  - create_all creates tables that don't exist yet, and that's all it does.
+  - "The second create_all adds the missing interviews table but leaves applications exactly as version one made it: no salary column, and its row still there."
+  - Asking for a column that isn't in the table is an OperationalError from the database.

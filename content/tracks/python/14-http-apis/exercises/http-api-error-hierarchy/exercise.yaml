@@ -1,0 +1,9 @@
+title: An exception hierarchy for the helpdesk
+type: function
+difficulty: core
+tags: [exceptions, exception-hierarchy, api-clients, status-codes]
+packages: [httpx]
+hints:
+  - "HelpdeskApiError.__init__(self, message, *, status_code, request_id=None) calls super().__init__(f\"HTTP {status_code}: {message}\") and stores the three values. RateLimitError adds retry_after=None and passes the rest to super().__init__."
+  - "In error_from_response, pick the class with if/elif on the status (the specific codes first, then response.is_server_error), defaulting to HelpdeskApiError."
+  - "Wrap response.json()[\"error\"][\"message\"] in try/except (ValueError, KeyError, TypeError) and fall back to response.reason_phrase."

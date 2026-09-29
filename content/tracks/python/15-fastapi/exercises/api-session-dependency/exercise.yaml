@@ -1,0 +1,10 @@
+title: A session per request
+type: function
+difficulty: core
+tags: [fastapi, Depends, yield, dependencies, transactions]
+packages: [fastapi, httpx]
+timeout: 15
+hints:
+  - "Make get_session a generator: session = database.session(), then yield session. The endpoint receives the session; the code after the yield runs when the request is over."
+  - "Wrap the yield: try: yield session, then session.commit(). except Exception: session.rollback() and raise. finally: session.close()."
+  - "The bare raise matters: it re-raises the HTTPException, so FastAPI still turns it into the 409."

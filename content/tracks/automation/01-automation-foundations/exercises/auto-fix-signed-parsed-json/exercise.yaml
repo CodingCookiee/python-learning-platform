@@ -1,0 +1,10 @@
+title: The signature that only failed in production
+type: fix
+difficulty: core
+tags: [webhooks, fastapi, hmac, json]
+packages: [fastapi, httpx]
+script: true
+hints:
+  - The sender signed the bytes it sent. json.dumps(payload) produces different bytes (spaces after colons, escaped accents), so the HMAC can't match.
+  - "Read the raw bytes with raw = await request.body() and compute the HMAC over raw. Only then parse it with json.loads(raw)."
+  - "Parsing after verifying also lets you answer a signed but broken body properly: catch json.JSONDecodeError (a ValueError) and raise HTTPException(status_code=400)."

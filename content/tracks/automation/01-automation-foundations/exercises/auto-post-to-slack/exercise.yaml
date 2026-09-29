@@ -1,0 +1,9 @@
+title: Post a lead alert to Slack
+type: function
+difficulty: core
+tags: [slack, httpx, error-handling]
+packages: [httpx]
+hints:
+  - "Build the text first, with slack_escape applied to the name and company. Leave out the brackets when there's no company."
+  - "client.post(\"/chat.postMessage\", json={...}, headers={\"Authorization\": f\"Bearer {token}\"}). Call raise_for_status() for HTTP errors."
+  - "Slack's own errors arrive with status 200: read data = response.json() and raise SlackError(data.get(\"error\", \"unknown_error\")) when data[\"ok\"] is false. Otherwise return data[\"ts\"]."

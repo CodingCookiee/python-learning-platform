@@ -1,0 +1,5 @@
+def retry_delay(attempt, retry_after=None, *, base=1.0, cap=30.0):
+    """Seconds to wait after failed attempt number `attempt` (from 0)."""
+    if retry_after is not None:
+        return retry_after
+    return min(cap, base * 2**attempt)

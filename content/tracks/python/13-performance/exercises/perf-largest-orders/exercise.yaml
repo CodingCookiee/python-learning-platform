@@ -1,0 +1,9 @@
+title: The biggest orders in a stream
+type: function
+difficulty: stretch
+timeout: 10
+tags: [generators, heapq, memory, tracemalloc]
+hints:
+  - Sorting needs every order in memory at once. You only ever need to remember the k biggest seen so far.
+  - heapq.nlargest(k, iterable, key=...) does exactly that, keeping at most k items, and it accepts a generator.
+  - Feed it a generator expression that skips blank lines and turns each line into (order_id, int(amount)), with key=lambda order: order[1]. nlargest keeps earlier items first on a tie.

@@ -3,6 +3,6 @@ type: fix
 difficulty: core
 tags: [asyncio, async-with, async-for, await, bugs]
 hints:
-  - Read the TypeError: Python 3.14 tells you which protocol the object supports and what to write instead.
+  - "Read the TypeError: Python 3.14 tells you which protocol the object supports and what to write instead."
   - db.connect() needs async with, and conn.stream(...) is an async generator, so it needs async for.
-  - Once those are fixed, check the file. sink.write is a coroutine function too, and a call nobody awaits does nothing at all.
+  - Once those are fixed, look at the sink. sink.write is a coroutine function too, and a call nobody awaits does nothing at all.

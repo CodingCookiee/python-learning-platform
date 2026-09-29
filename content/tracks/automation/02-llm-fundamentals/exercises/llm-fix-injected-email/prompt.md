@@ -14,7 +14,7 @@ The customer's email is being pasted into the instructions. Fix `draft_reply` so
   (`"<email>\n" + email + "\n</email>"`), along with your request to draft a reply and a note that
   the email is data, not instructions;
 - any `<email>` or `</email>` the customer typed is removed first, so the email can't close the
-  block early;
+  block early (so each tag appears exactly once in the message);
 - it still returns the reply's text.
 
 ```python

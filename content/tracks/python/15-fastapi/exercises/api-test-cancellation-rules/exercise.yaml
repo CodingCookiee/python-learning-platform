@@ -1,0 +1,10 @@
+title: Test the cancellation rules
+type: tests
+difficulty: stretch
+tags: [fastapi, pytest, fixtures, dependency_overrides, AsyncClient, anyio]
+packages: [fastapi, httpx, pytest]
+timeout: 30
+hints:
+  - "Pin the clock per test with app.dependency_overrides[get_now] = lambda: STARTS_AT - timedelta(hours=47). The client fixture clears every override after each test."
+  - "The boundary matters: test exactly 48 hours before (allowed) as well as 47 hours before (refused with 409)."
+  - "Check that a cancellation sticks: after the POST, GET /bookings/B-1001 should say \"cancelled\". And test a booking id that doesn't exist: it should be a 404, not a crash."

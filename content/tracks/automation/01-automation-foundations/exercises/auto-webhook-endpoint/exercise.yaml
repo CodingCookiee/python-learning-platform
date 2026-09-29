@@ -1,0 +1,10 @@
+title: A webhook receiver you can trust
+type: function
+difficulty: stretch
+tags: [webhooks, fastapi, idempotency, status-codes]
+packages: [fastapi, httpx]
+script: true
+hints:
+  - "Inside the endpoint: raw = await request.body(), then call verify_webhook(secret, request.headers.get(\"webhook-signature\", \"\"), raw, clock()) and turn InvalidWebhook into HTTPException(401)."
+  - "After verifying, json.loads(raw) (400 on ValueError), and check the payload is a dict with an \"id\" (400 otherwise)."
+  - "If the id is in seen, return JSONResponse({\"status\": \"duplicate\"}, status_code=200). Otherwise append to queue, add to seen, and return {\"status\": \"queued\"}; declare status_code=202 on the route."

@@ -1,0 +1,9 @@
+title: Stock levels, all at once
+type: refactor
+difficulty: core
+tags: [async, gather, taskgroup, concurrency, refactoring]
+packages: [httpx]
+hints:
+  - "Move one SKU's work into its own coroutine, async def stock_level(client, sku), that returns the available count."
+  - "levels = await asyncio.gather(*(stock_level(client, sku) for sku in skus)) runs them concurrently and keeps the order of skus."
+  - "dict(zip(skus, levels)) turns the two lists back into the dict the function returned before."

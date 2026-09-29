@@ -1,0 +1,7 @@
+title: Load an object from "module:attribute"
+type: function
+difficulty: warm-up
+tags: [importlib, import-system, getattr]
+hints:
+  - "Split the text on \":\" with partition and check both halves are non-empty; importlib.import_module(module_name) does the import."
+  - "The attribute part can be dotted, like date.today. Split it on \".\" and getattr one name at a time, starting from the module."

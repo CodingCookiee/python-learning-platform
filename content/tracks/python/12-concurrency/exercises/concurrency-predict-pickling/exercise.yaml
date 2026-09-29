@@ -1,0 +1,9 @@
+title: "Predict: what a process pool can send"
+type: predict
+difficulty: core
+tags: [processes, pickle, process-pool, partial]
+hints:
+  - Functions are pickled by reference, as "module name plus function name". Anything a worker couldn't find by importing that name can't be sent.
+  - A lambda has no name of its own, and a function defined inside another function isn't a module-level name either. Data made of dicts, lists, tuples, strings and numbers always pickles.
+  - A partial is pickled as its function plus its arguments, so it can be sent whenever its function and arguments can. That makes it the usual way to send a function with a setting baked in.
+  - A generator is paused code, not data, so it can't be pickled at all. Each failing line prints only the exception's type name.

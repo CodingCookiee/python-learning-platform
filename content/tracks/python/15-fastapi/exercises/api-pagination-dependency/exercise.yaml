@@ -1,0 +1,9 @@
+title: One paging dependency, two endpoints
+type: function
+difficulty: warm-up
+tags: [fastapi, Depends, dependencies, query-parameters]
+packages: [fastapi, httpx]
+timeout: 15
+hints:
+  - "pagination is an ordinary function whose parameters are query parameters: offset: Annotated[int, Query(ge=0)] = 0 and limit: Annotated[int, Query(ge=1, le=50)] = 10. It returns Page(offset, limit)."
+  - "Each endpoint takes page: Annotated[Page, Depends(pagination)] and slices with it: items[page.offset:page.offset + page.limit]."

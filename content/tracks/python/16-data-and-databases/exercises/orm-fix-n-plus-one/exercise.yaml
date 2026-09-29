@@ -1,0 +1,10 @@
+title: The report that ran a query per company
+type: fix
+difficulty: core
+packages: [sqlalchemy]
+timeout: 20
+tags: [sqlalchemy, n-plus-one, selectinload, eager-loading, performance]
+hints:
+  - The loop reads company.applications, and each first read of that relationship is its own SELECT. With 30 companies that's 31 queries.
+  - Tell the query to load the applications for every company up front, with .options(...) on the select().
+  - "select(Company).options(selectinload(Company.applications)).order_by(Company.name): one query for the companies and one for all their applications."

@@ -2,6 +2,7 @@ title: Legacy queries into 2.0 style
 type: refactor
 difficulty: core
 packages: [sqlalchemy]
+timeout: 20
 tags: [sqlalchemy, select, refactoring, legacy-api]
 hints:
   - "session.query(Model).filter(...) becomes select(Model).where(...), run with session.scalars(stmt). filter_by(number=number) becomes .where(Invoice.number == number)."

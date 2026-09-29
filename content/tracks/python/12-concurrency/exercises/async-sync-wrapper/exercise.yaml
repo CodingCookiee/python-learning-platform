@@ -1,0 +1,8 @@
+title: A sync front door for an async client
+type: function
+difficulty: core
+tags: [asyncio, asyncio-run, bridging, gather]
+hints:
+  - Write the concurrent part as a coroutine, fetch_balances, that gathers client.balance(account) for every account.
+  - get_balances is a plain def. It starts the coroutine with asyncio.run(...) and returns whatever that returns.
+  - "Round the total with round(sum(...), 2) and build the dict with zip."

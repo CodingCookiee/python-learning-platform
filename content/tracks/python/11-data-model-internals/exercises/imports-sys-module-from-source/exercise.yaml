@@ -1,0 +1,8 @@
+title: Build a module from source text
+type: function
+difficulty: core
+tags: [import-system, sys-modules, module-objects, exec]
+hints:
+  - "types.ModuleType(name) makes an empty module object with __name__ already set. exec(compile(source, f\"<{name}>\", \"exec\"), module.__dict__) runs the code with the module's namespace as its globals."
+  - "Put the module in sys.modules before running the code, the way import does, so the code can find its own module and other modules can import it while it runs."
+  - "Wrap the exec in try/except BaseException: on failure, pop the name from sys.modules and re-raise with a bare raise."

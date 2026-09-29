@@ -1,0 +1,9 @@
+title: A streamed reply with its usage
+type: function
+difficulty: stretch
+tags: [streaming, sse, anthropic, usage, callbacks, errors]
+packages: [httpx]
+hints:
+  - Loop over the events once, keeping a list of text pieces, the model, the stop reason and both token counts as you go. Build the LLMResponse after the with block.
+  - "message_start has payload[\"message\"][\"model\"] and [\"usage\"][\"input_tokens\"]; message_delta has payload[\"delta\"][\"stop_reason\"] and payload[\"usage\"][\"output_tokens\"]."
+  - "An error event's data looks like {\"type\": \"error\", \"error\": {\"type\": \"overloaded_error\", \"message\": \"Overloaded\"}}: raise RuntimeError with that message in it."

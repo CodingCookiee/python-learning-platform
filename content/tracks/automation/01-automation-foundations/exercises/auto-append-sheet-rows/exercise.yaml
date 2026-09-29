@@ -1,0 +1,9 @@
+title: Append leads to the owner's sheet
+type: function
+difficulty: core
+tags: [google-sheets, httpx, datetime]
+packages: [httpx]
+hints:
+  - "Turn each lead into a row with a helper: [cell(lead.get(column)) for column in columns]."
+  - "cell() returns \"\" for None, value.isoformat(timespec=\"seconds\") for a datetime, and the value unchanged otherwise."
+  - "client.post(f\"/spreadsheets/{spreadsheet_id}/values/{sheet}:append\", params={\"valueInputOption\": \"RAW\"}, json={\"values\": rows}); raise_for_status(), then return response.json()[\"updates\"][\"updatedRows\"]."

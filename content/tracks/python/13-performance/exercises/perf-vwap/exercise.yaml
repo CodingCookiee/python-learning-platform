@@ -1,0 +1,10 @@
+title: Volume-weighted average price
+type: function
+difficulty: warm-up
+packages: [numpy]
+timeout: 10
+tags: [numpy, vectorising]
+hints:
+  - The VWAP is the total value traded, the sum of price times volume, divided by the total volume.
+  - prices * volumes multiplies the arrays element by element; .sum() adds up an array. No loop needed.
+  - "return float((prices * volumes).sum() / volumes.sum())"

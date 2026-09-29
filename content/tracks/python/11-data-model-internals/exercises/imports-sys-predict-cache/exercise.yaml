@@ -1,0 +1,8 @@
+title: "Predict: when does a module run?"
+type: predict
+difficulty: core
+tags: [import-system, sys-modules, reload, from-import]
+hints:
+  - "A module's file runs on the first import only. Later imports, under any name, return the object cached in sys.modules."
+  - "from rates import VAT copies the value at that moment. Assigning rates.VAT later changes the module, not the copy. reload() runs the file again in the same module object, so every name bound to that module sees VAT = 0.2 again."
+  - "Popping the entry from sys.modules makes the next import run the file into a brand-new module object. The old object still exists, because old refers to it."

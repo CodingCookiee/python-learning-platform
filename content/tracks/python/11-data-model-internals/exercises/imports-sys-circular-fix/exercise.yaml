@@ -1,0 +1,9 @@
+title: Untangle a circular import
+type: fix
+difficulty: core
+tags: [import-system, circular-imports, sys-modules]
+script: true
+hints:
+  - "Importing customers first puts a half-built customers module in sys.modules. Its first line imports orders, whose first line asks customers for a name it hasn't defined yet."
+  - "import customers (the module, not the name) succeeds even while customers is half-built, because it only binds the module object."
+  - "Change the first line to import customers and write customers.Customer where Order checks its argument. By the time an Order is created, customers has finished loading."

@@ -1,0 +1,8 @@
+title: The lead that arrived twice
+type: fix
+difficulty: core
+tags: [webhooks, idempotency, retries]
+hints:
+  - Before doing any work, check whether event["id"] is already in processed. If it is, return "duplicate" and touch nothing.
+  - "Look at when the id is recorded. If crm.create_contact raises, the id is already in processed, so the sender's retry is treated as a duplicate and the lead is lost."
+  - Record the id only after create_contact has returned. Let the CRM's exception propagate, so the endpoint answers 500 and the sender retries.

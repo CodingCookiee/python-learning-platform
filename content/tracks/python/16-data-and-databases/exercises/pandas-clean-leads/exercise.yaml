@@ -1,0 +1,10 @@
+title: Clean a leads export
+type: function
+difficulty: core
+packages: [pandas]
+timeout: 30
+tags: [pandas, cleaning, missing-values, duplicates, str-accessor]
+hints:
+  - "Start with leads = leads.copy() so the caller's DataFrame isn't touched. Then fix one column at a time: leads[\"email\"] = leads[\"email\"].str.strip().str.lower()."
+  - "Remove £ and commas before converting: .str.replace(r\"[£,]\", \"\", regex=True), then pd.to_numeric(..., errors=\"coerce\"). Blank emails become \"\" after strip; turn them into missing values with .replace(\"\", None) or filter them out with != \"\"."
+  - "Sort by submitted_at first, then drop_duplicates(subset=[\"email\"], keep=\"last\") keeps each person's latest form. Finish with reset_index(drop=True)."

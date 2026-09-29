@@ -1,0 +1,10 @@
+title: "Predict: merges, NaN and group sums"
+type: predict
+difficulty: core
+packages: [pandas]
+timeout: 30
+tags: [pandas, merge, groupby, missing-values]
+hints:
+  - Customer 20 appears twice in customers, so each of its orders matches twice. Customer 30 has no match at all.
+  - "An inner merge drops customer 30's order; a left merge keeps it with NaN in region. groupby leaves out rows whose key is NaN."
+  - "sum() skips NaN and the sum of nothing is 0.0; count() counts values that aren't NaN; size() counts rows. mean() skips NaN too."

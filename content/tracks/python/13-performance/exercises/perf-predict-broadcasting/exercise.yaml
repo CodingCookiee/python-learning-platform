@@ -1,0 +1,8 @@
+title: "Predict: shapes and broadcasting"
+type: predict
+difficulty: core
+packages: [numpy]
+tags: [numpy, broadcasting, shapes]
+hints:
+  - "Compare shapes from the right. Two dimensions fit if they're equal or one of them is 1, and a missing dimension on the left counts as 1."
+  - "sum(axis=0) adds down the columns (one total per column); sum(axis=1) adds along each row. (2, 3) and (2,) don't fit: compare 3 with 2."

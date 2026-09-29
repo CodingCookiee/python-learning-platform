@@ -1,0 +1,9 @@
+title: Upsert a contact without duplicates
+type: function
+difficulty: stretch
+tags: [crm, airtable, upsert, rate-limits, httpx]
+packages: [httpx]
+hints:
+  - "Write one helper, request(method, url, **kwargs), that sends a request and, on 429, calls sleep(float(response.headers.get(\"Retry-After\", 30))) and tries again, at most 3 attempts in all. Use it for every call."
+  - "Normalise the email with strip().lower(), and build the formula as \"{Email}='\" + email.replace(\"'\", \"\\\\'\") + \"'\". Pass it as params={\"filterByFormula\": formula}."
+  - "Build fields from the lead's non-empty values only. If the search returns a record, PATCH /<base>/Contacts/<id>; otherwise POST /<base>/Contacts. Both take {\"fields\": fields}."

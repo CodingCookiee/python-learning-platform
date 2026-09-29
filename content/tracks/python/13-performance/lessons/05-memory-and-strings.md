@@ -7,7 +7,7 @@ exercises:
   - perf-predict-getsizeof
   - perf-peak-memory
   - perf-stream-daily-totals
-  - perf-invoice-join
+  - perf-stock-table-join
   - perf-largest-orders
 ---
 
@@ -214,4 +214,4 @@ file-like `write()`.
 `sys.getsizeof` is shallow; `tracemalloc` sees everything, and its peak is the number that decides
 whether a job fits. Generators hold one item at a time, at the price of a single pass. Build big
 strings with `join`, not repeated `+`. The drills have you predict sizes, measure a peak, stream a
-report, and fix a quadratic invoice builder.
+report, fix a quadratic report builder, and find the biggest orders in a stream without keeping it.

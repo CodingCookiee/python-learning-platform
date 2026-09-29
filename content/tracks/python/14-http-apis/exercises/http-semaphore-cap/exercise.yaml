@@ -1,0 +1,9 @@
+title: Profiles, five at a time
+type: function
+difficulty: core
+tags: [async, semaphore, gather, concurrency, rate-limits]
+packages: [httpx]
+hints:
+  - "Create semaphore = asyncio.Semaphore(limit) inside fetch_profiles, so each call gets its own limit."
+  - "A helper coroutine for one user does async with semaphore: around the request only, then returns response.raise_for_status().json()."
+  - "await asyncio.gather(*(fetch_one(user_id) for user_id in user_ids)) returns the profiles in the order of user_ids."

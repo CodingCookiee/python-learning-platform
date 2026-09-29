@@ -1,0 +1,10 @@
+title: Revenue by category and month
+type: function
+difficulty: core
+packages: [pandas]
+timeout: 30
+tags: [pandas, merge, pivot-table, validation, dates]
+hints:
+  - "pd.merge(orders, products, on=\"sku\", how=\"left\", validate=\"many_to_one\", indicator=True). Rows whose _merge is \"left_only\" have an unknown SKU; validate raises by itself if a SKU is listed twice."
+  - "Revenue is quantity * unit_price, and the month is placed_on.dt.to_period(\"M\").astype(str)."
+  - "pivot_table(index=\"category\", columns=\"month\", values=\"revenue\", aggfunc=\"sum\", fill_value=0).round(2)."

@@ -1,0 +1,10 @@
+title: A row loop into groupby
+type: refactor
+difficulty: core
+packages: [pandas]
+timeout: 30
+tags: [pandas, groupby, agg, refactoring, performance]
+hints:
+  - "Filter first with a boolean mask: won = sales[sales[\"stage\"] == \"won\"]."
+  - "Named aggregation builds both columns at once: won.groupby(\"rep\", as_index=False).agg(deals=(\"value\", \"count\"), value=(\"value\", \"sum\"))."
+  - "Finish with .sort_values([\"value\", \"rep\"], ascending=[False, True]).reset_index(drop=True)."

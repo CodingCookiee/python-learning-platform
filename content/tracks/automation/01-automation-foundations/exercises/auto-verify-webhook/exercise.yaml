@@ -1,0 +1,8 @@
+title: Verify with a replay window
+type: function
+difficulty: core
+tags: [webhooks, hmac, replay-attacks]
+hints:
+  - "Split the header on commas and each item on the first =. Collect the t value, and every v1 value in a list (there can be more than one)."
+  - "int(t) raises ValueError for junk, which is a malformed header too. Check abs(now - t) > tolerance before computing anything."
+  - "Compute the expected signature once, then any(hmac.compare_digest(expected, candidate) for candidate in signatures)."

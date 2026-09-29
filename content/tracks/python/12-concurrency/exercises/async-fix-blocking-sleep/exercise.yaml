@@ -1,0 +1,7 @@
+title: The retry that froze everything
+type: fix
+difficulty: warm-up
+tags: [asyncio, blocking, sleep, retries]
+hints:
+  - time.sleep holds the only thread, so every other task on the event loop stops while this one waits.
+  - "The async version is await asyncio.sleep(seconds): this coroutine pauses and the loop runs the others. The time module isn't needed any more."

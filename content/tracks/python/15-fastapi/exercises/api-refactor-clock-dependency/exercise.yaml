@@ -1,0 +1,10 @@
+title: Make the clock a dependency
+type: refactor
+difficulty: core
+tags: [fastapi, Depends, dependency_overrides, testing, datetime]
+packages: [fastapi, httpx]
+timeout: 15
+hints:
+  - "Write def get_now() -> datetime: return datetime.now(UTC). It's the only place left that reads the real clock."
+  - "Both endpoints take now: Annotated[datetime, Depends(get_now)] and use now instead of calling datetime.now(UTC)."
+  - "Nothing else changes: the rules, the messages and the responses stay exactly as they are."

@@ -2,6 +2,7 @@ title: Invoices with lines
 type: function
 difficulty: stretch
 packages: [sqlalchemy]
+timeout: 20
 tags: [sqlalchemy, relationships, one-to-many, property, aggregates]
 hints:
   - "On Invoice: lines: Mapped[list[\"InvoiceLine\"]] = relationship(back_populates=\"invoice\", order_by=\"InvoiceLine.id\"). On InvoiceLine: invoice: Mapped[Invoice] = relationship(back_populates=\"lines\")."

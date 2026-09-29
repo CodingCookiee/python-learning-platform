@@ -1,0 +1,7 @@
+title: Escape text for Slack
+type: function
+difficulty: warm-up
+tags: [slack, escaping, strings]
+hints:
+  - Three replacements. Order matters, because the replacements for < and > contain an &.
+  - "text.replace(\"&\", \"&amp;\").replace(\"<\", \"&lt;\").replace(\">\", \"&gt;\")"

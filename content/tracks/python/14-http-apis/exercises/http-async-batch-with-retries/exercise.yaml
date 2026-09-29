@@ -1,0 +1,9 @@
+title: A price sync that bends but doesn't break
+type: function
+difficulty: stretch
+tags: [async, semaphore, retries, retry-after, gather, decimal]
+packages: [httpx]
+hints:
+  - "Write one coroutine per SKU that loops over the attempts. Only the request goes inside async with semaphore:; checking the response and awaiting sleep() happen after the block, so a waiting SKU doesn't hold a slot."
+  - "Have the per-SKU coroutine return either (\"ok\", Decimal(price)) or (\"failed\", reason), so gather never has to deal with exceptions you expected."
+  - "Retry on a TransportError or a status in {429, 500, 502, 503, 504}. The wait is float(Retry-After) when the header is a whole number, otherwise 2 ** attempt with attempts counted from 0."

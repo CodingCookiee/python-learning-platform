@@ -1,0 +1,8 @@
+title: A signature check with two holes
+type: fix
+difficulty: core
+tags: [webhooks, hmac, security]
+hints:
+  - "expected == parts[\"v1\"] stops at the first differing character, which leaks timing. hmac.compare_digest(expected, received) doesn't."
+  - A header like "garbage" or "t=1773072000" makes the dict() call or parts["v1"] raise. Anything you can't parse is simply not a valid signature.
+  - "Wrap the parsing in try/except (ValueError, KeyError) and return False, or use parts.get(\"v1\") and check for None."

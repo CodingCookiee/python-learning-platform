@@ -1,0 +1,9 @@
+title: A server-sent events parser
+type: function
+difficulty: core
+tags: [streaming, sse, generators, parsing]
+packages: [httpx]
+hints:
+  - Keep two pieces of state, the current event name and a list of data lines. A blank line yields (name, "\n".join(data)) if there's any data, then resets both.
+  - "Split each other line once at the first colon with line.partition(\":\"), and drop one leading space from the value with value.removeprefix(\" \")."
+  - After the loop, yield the last event if it still has data. Because the function yields as it goes, it never needs the whole stream in memory.

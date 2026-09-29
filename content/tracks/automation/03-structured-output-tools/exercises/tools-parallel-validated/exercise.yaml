@@ -1,0 +1,9 @@
+title: Parallel calls with validated arguments
+type: function
+difficulty: stretch
+tags: [tool-calling, pydantic, validation, parallel-tool-calls, agent-loop]
+packages: [pydantic]
+hints:
+  - Build the tool list once with [tool.definition() for tool in tools], and a dict from name to Tool for lookups. Keep the Run counters (steps, executed) as you go.
+  - 'For each call, in order: unknown name, then tool.args.model_validate(call.arguments) in try/except ValidationError, then tool.fn(validated) in try/except Exception. Each failure is json.dumps({"error": ...}); only a successful fn call goes in executed.'
+  - 'Append the assistant message once, then every call''s result, before the next llm.complete. The invalid-arguments message is f"Invalid arguments for {call.name}: {validation_feedback(error)}".'

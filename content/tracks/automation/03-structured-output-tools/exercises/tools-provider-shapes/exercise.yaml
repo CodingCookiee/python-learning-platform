@@ -1,0 +1,7 @@
+title: One tool, two providers
+type: function
+difficulty: warm-up
+tags: [tool-calling, adapters, anthropic, openai]
+hints:
+  - 'Each is one dict literal. Anthropic: {"name": ..., "description": ..., "input_schema": tool["parameters"]}.'
+  - 'OpenAI: {"type": "function", "function": {"name": ..., "description": ..., "parameters": ...}}. Build new dicts; never modify the tool you were given.'

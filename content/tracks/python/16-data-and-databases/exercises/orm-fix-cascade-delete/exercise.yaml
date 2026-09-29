@@ -1,0 +1,10 @@
+title: Deleting a company and everything under it
+type: fix
+difficulty: core
+packages: [sqlalchemy]
+timeout: 20
+tags: [sqlalchemy, cascade, delete-orphan, relationships]
+hints:
+  - "Without a cascade, deleting a company makes SQLAlchemy set its applications' company_id to NULL, which the NOT NULL column refuses."
+  - "Applications can't exist without their company, and interviews can't exist without their application: both relationships need a cascade."
+  - "cascade=\"all, delete-orphan\" on Company.applications and on Application.interviews. delete-orphan is what makes withdraw() delete the application it removes."

@@ -1,0 +1,7 @@
+title: Tool calls and results as messages
+type: function
+difficulty: warm-up
+tags: [tool-calling, messages, json]
+hints:
+  - 'assistant_message starts from {"role": "assistant", "content": response.text} and adds "tool_calls" only when response.tool_calls isn''t empty, as a list of {"id", "name", "arguments"} dicts.'
+  - tool_result keeps a str output as it is. Anything else goes through json.dumps(output, default=str), so dates and Decimals become strings instead of raising TypeError.

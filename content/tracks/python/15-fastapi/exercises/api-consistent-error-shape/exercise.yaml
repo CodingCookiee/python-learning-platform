@@ -1,0 +1,10 @@
+title: One error shape for every error
+type: function
+difficulty: stretch
+tags: [fastapi, exception-handlers, HTTPException, RequestValidationError, JSONResponse, errors]
+packages: [fastapi, httpx]
+timeout: 15
+hints:
+  - "Three handlers: @app.exception_handler(StarletteHTTPException), @app.exception_handler(RequestValidationError) and @app.exception_handler(RoomUnavailable). Each returns a JSONResponse with status_code= and content=."
+  - "For HTTP errors, the code is ERROR_CODES.get(exc.status_code, \"error\") and the message is exc.detail. Pass headers=exc.headers to the JSONResponse so a 405 keeps its Allow header."
+  - "For validation errors, build fields from exc.errors(): {\"field\": \".\".join(str(part) for part in problem[\"loc\"]), \"message\": problem[\"msg\"]}."

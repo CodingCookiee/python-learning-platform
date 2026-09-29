@@ -1,0 +1,10 @@
+title: Tagging applications with skills
+type: function
+difficulty: core
+packages: [sqlalchemy]
+timeout: 20
+tags: [sqlalchemy, many-to-many, association-table, relationships, get-or-create]
+hints:
+  - "The association table is Table(\"application_tags\", Base.metadata, Column(\"application_id\", ForeignKey(\"applications.id\"), primary_key=True), Column(\"tag_id\", ForeignKey(\"tags.id\"), primary_key=True))."
+  - "Both relationships use secondary=application_tags, with back_populates naming each other. For each name, clean it with .strip().lower(), look the tag up with a select, and create it if it's missing."
+  - "Only append a tag if it isn't already in application.tags. applications_tagged is select(Application.role).join(Application.tags).where(Tag.name == name).order_by(Application.role)."

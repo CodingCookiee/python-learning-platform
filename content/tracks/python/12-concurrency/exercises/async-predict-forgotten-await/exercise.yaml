@@ -1,0 +1,8 @@
+title: "Predict: the stock check that always passed"
+type: predict
+difficulty: core
+tags: [asyncio, await, coroutines, truthiness, bugs]
+hints:
+  - Calling in_stock(sku) without await doesn't run it. It returns a coroutine object, and every object that doesn't define otherwise is truthy.
+  - all() of a list of coroutine objects only checks that each one is truthy. Awaiting them afterwards is what finally runs them.
+  - "In the last comprehension, not in_stock(sku) is not applied to a bool but to a coroutine object, so it's False for every SKU. The warnings about never-awaited coroutines go to stderr, not into the printed output."

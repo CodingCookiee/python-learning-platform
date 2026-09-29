@@ -1,0 +1,9 @@
+title: A tool schema from a Pydantic model
+type: function
+difficulty: core
+tags: [pydantic, tool-schemas, regex, json-schema]
+packages: [pydantic]
+hints:
+  - 'A regular expression puts an underscore before every capital except the first: re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower() turns "BookAppointment" into "book_appointment".'
+  - inspect.getdoc(model_cls) is the class docstring, or None when there isn't one. Pydantic's BaseModel has its own docstring, so check model_cls.__doc__ as well, or getdoc will find the parent's.
+  - Copy model_cls.model_json_schema() and pop "title" and "description" from the top level only. The nested $defs and each property's own keys stay.

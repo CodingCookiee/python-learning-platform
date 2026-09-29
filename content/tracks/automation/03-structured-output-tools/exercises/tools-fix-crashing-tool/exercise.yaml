@@ -1,0 +1,8 @@
+title: One bad order number kills the chat
+type: fix
+difficulty: core
+tags: [tool-calling, error-handling, exceptions]
+hints:
+  - The tool call is the only line that runs code you don't control. Wrap it in try/except Exception, and put the error in the tool's result instead of letting it escape.
+  - 'An unknown tool name fails at registry[call.name] before anything runs. Check call.name in registry first, and answer with {"error": f"Unknown tool: {call.name}"}.'
+  - 'Build the error content with json.dumps({"error": str(error)}), and log it with logger.warning so a person can see failures.'

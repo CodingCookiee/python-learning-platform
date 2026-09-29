@@ -1,0 +1,8 @@
+title: A tool schema from a function
+type: function
+difficulty: core
+tags: [inspect, typing, get_type_hints, tool-schemas, recursion]
+hints:
+  - 'Write a helper json_type(hint) that returns a schema dict. A dict lookup {str: "string", int: "integer", float: "number", bool: "boolean"} keyed by the type itself avoids the bool-is-an-int trap.'
+  - 'Take generic hints apart with get_origin and get_args: get_origin is list for list[str], Literal for Literal[...], and types.UnionType (or typing.Union) for str | None. For a union, the non-None argument gives the first schema in anyOf.'
+  - 'Loop over inspect.signature(fn).parameters. A name missing from get_type_hints(fn) has no annotation: raise TypeError. A parameter is required when parameter.default is inspect.Parameter.empty.'

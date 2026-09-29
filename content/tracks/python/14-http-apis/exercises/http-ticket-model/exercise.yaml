@@ -1,0 +1,9 @@
+title: A model for a ticket
+type: function
+difficulty: warm-up
+tags: [pydantic, models, api-clients, httpx]
+packages: [httpx, pydantic]
+hints:
+  - "Each row of the table is one annotated field. A default makes a field optional: assignee: str | None = None, tags: list[str] = []."
+  - "status and priority are Literal[...] of the allowed strings, and created_at is a datetime, which Pydantic parses from ISO text."
+  - "parse_ticket is one line: Ticket.model_validate_json(response.content), or Ticket.model_validate(response.json())."

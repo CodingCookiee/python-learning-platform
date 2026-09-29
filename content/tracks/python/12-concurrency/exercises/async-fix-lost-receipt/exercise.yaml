@@ -1,0 +1,7 @@
+title: The receipt that never arrived
+type: fix
+difficulty: core
+tags: [asyncio, create-task, fire-and-forget, await, bugs]
+hints:
+  - create_task schedules the email and returns straight away, so checkout returns before the email has even started. Nobody ever awaits the task, so nobody sees it fail either.
+  - checkout's caller needs the email sent before it hears "done", so there's nothing to run in the background here. Await the send directly.

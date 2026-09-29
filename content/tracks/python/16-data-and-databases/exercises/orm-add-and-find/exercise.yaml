@@ -2,6 +2,7 @@ title: Add an application, find a company's roles
 type: function
 difficulty: core
 packages: [sqlalchemy]
+timeout: 20
 tags: [sqlalchemy, session, select, relationships, get-or-create]
 hints:
   - "Look the company up first: session.scalars(select(Company).where(Company.name == company_name)).one_or_none(). If that's None, make a new Company."

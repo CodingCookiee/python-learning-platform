@@ -1,0 +1,8 @@
+title: The dispatch loop
+type: function
+difficulty: core
+tags: [tool-calling, agent-loop, step-cap]
+hints:
+  - Copy the messages first (list(messages)), so the caller's list never changes. Then loop with for step in range(max_steps).
+  - 'Each step: response = llm.complete(messages, system=system, tools=tools). No tool calls means you''re done: return response.text.'
+  - Otherwise append assistant_message(response), then for each call append tool_result(call, registry[call.name](**call.arguments)). After the loop, raise StepLimitExceeded.

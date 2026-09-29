@@ -1,0 +1,9 @@
+title: Stream text from both providers
+type: function
+difficulty: core
+tags: [streaming, sse, generators, httpx, anthropic, openai]
+packages: [httpx]
+hints:
+  - "Open the stream with: with http.stream(\"POST\", path, json=body, headers=headers) as response:, call response.raise_for_status(), then loop over parse_sse(response.iter_lines())."
+  - "Anthropic: only content_block_delta events whose delta type is text_delta carry text, in delta[\"text\"]. Every other event (ping, message_start and so on) is skipped."
+  - "OpenAI: return when the data is \"[DONE]\" (it isn't JSON). Otherwise parse the chunk, skip it if choices is empty, and yield choices[0][\"delta\"][\"content\"] when it's there."

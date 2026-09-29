@@ -1,0 +1,9 @@
+title: A typed, retrying helpdesk client
+type: function
+difficulty: stretch
+tags: [api-clients, pydantic, exceptions, retries, pagination, generators]
+packages: [httpx, pydantic]
+hints:
+  - "_request loops over attempts: max_attempts for GET, 1 for anything else. A TransportError on the last attempt becomes raise HelpdeskConnectionError(...) from error; a success returns the response; an error status that isn't retryable, or is on the last attempt, raises error_from_response(response)."
+  - "Between attempts, wait with self._sleep: the RateLimitError's retry_after if the response was a 429 with one, otherwise 2 ** attempt."
+  - "iter_tickets is a generator: params = {\"status\": status, \"limit\": 100}; loop, yield Ticket.model_validate(item) for each ticket, stop when next_cursor is None, otherwise set params[\"cursor\"]."

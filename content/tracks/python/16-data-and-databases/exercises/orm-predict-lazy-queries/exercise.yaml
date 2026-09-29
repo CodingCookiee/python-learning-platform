@@ -1,0 +1,10 @@
+title: "Predict: how many queries?"
+type: predict
+difficulty: warm-up
+packages: [sqlalchemy]
+timeout: 20
+tags: [sqlalchemy, lazy-loading, n-plus-one, selectinload, joinedload]
+hints:
+  - Loading the customers is one query. Touching customer.orders for the first time is one more query per customer, even for a customer with no orders.
+  - selectinload fetches every customer's orders in one extra query; joinedload joins the customer into the orders query itself.
+  - "Going from orders to their customer, the identity map remembers customers already loaded, so each customer is fetched once. session.get() for an object already in the session doesn't query at all."

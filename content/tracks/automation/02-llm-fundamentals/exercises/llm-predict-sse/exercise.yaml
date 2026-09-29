@@ -1,0 +1,7 @@
+title: "Predict: which events come out?"
+type: predict
+difficulty: warm-up
+tags: [streaming, sse, generators]
+hints:
+  - An event is only yielded when a blank line arrives, and only if it has data. A comment line is skipped entirely.
+  - Look at the very end of the sample. Is there a blank line after the last event?

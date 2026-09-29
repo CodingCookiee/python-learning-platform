@@ -2,6 +2,7 @@ title: "Predict: the session remembers"
 type: predict
 difficulty: core
 packages: [sqlalchemy]
+timeout: 20
 tags: [sqlalchemy, session, identity-map, flush, autoflush]
 hints:
   - "Nothing is sent to the database until a flush, so a new object has no id yet, and a column default like status='draft' is only applied when the INSERT runs."

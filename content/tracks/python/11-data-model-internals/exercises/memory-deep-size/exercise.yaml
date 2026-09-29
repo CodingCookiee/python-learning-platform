@@ -1,0 +1,8 @@
+title: The real size of a data structure
+type: function
+difficulty: core
+tags: [memory, getsizeof, recursion, identity]
+hints:
+  - "Keep a set of the id()s you've already counted and a stack (a list) of objects still to visit. Pop one, skip it if its id is in the set, otherwise add sys.getsizeof(it) and push whatever it contains."
+  - "What an object contains depends on its type: the items of a list, tuple, set or frozenset; the keys and values of a dict; and for anything with a __dict__, that dict itself (vars(obj)), which you then visit like any other dict."
+  - "Counting by id is what makes shared objects count once and stops cycles from looping forever. A stack instead of recursion means very deep nesting can't hit the recursion limit."

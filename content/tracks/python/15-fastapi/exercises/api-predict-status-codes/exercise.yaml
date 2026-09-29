@@ -1,0 +1,9 @@
+title: "Predict: which status code?"
+type: predict
+difficulty: core
+tags: [fastapi, status-codes, HTTPException, validation]
+packages: [fastapi, httpx]
+timeout: 15
+hints:
+  - "Validation happens before the function runs, so a bad body is a 422 even when the order id is already taken. HTTPException sets the status; otherwise it's the decorator's status_code."
+  - "Deleting a missing order uses pop(order_id, None), which never fails, so it still answers 204. There's no PUT route for /orders/{order_id}, but the path exists."

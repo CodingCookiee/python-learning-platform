@@ -1,0 +1,8 @@
+title: "Predict: what a signature tells you"
+type: predict
+difficulty: warm-up
+tags: [inspect, typing, tool-schemas]
+hints:
+  - A parameter with no default has parameter.default set to inspect.Parameter.empty, which prints as <class 'inspect._empty'>.
+  - get_type_hints includes the return annotation under the key "return", after the parameters.
+  - "get_origin(list[str]) is the plain list type, and get_args gives the tuple of what's inside the brackets. inspect.getdoc strips the docstring's indentation."

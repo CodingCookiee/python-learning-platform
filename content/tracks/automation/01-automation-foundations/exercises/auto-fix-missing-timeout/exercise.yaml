@@ -1,0 +1,9 @@
+title: The CRM call that hung for six hours
+type: fix
+difficulty: core
+tags: [httpx, timeouts, logging, reliability]
+packages: [httpx]
+hints:
+  - "timeout=None switches the timeout off entirely. Give the client httpx.Timeout(10.0, connect=5.0) instead."
+  - "A timed-out request raises a subclass of httpx.TimeoutException. Catch that one class around client.post, and nothing broader."
+  - "In the except block: log.warning(\"CRM request timed out for %s\", lead[\"email\"]) and return None. Other errors should still raise."

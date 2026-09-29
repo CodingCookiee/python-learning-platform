@@ -1,0 +1,10 @@
+title: Orders that say what went wrong
+type: function
+difficulty: core
+tags: [fastapi, HTTPException, status-codes, not-found, conflict]
+packages: [fastapi, httpx]
+timeout: 15
+hints:
+  - "Write find_order(order_id) once: it returns orders[order_id], or raises HTTPException(status_code=404, detail=f\"Order {order_id} not found\"). Both GET and cancel use it."
+  - "Creating checks for a duplicate before storing: if order.order_id in orders: raise HTTPException(status_code=409, ...). Don't forget status_code=201 in the decorator."
+  - "Cancelling a shipped order is a 409. Cancelling one that's already cancelled isn't an error: return it unchanged."

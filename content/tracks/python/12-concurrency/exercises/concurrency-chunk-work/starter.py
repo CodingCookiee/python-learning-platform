@@ -1,0 +1,3 @@
+def chunk(items, parts):
+    """Split items into `parts` contiguous chunks whose sizes differ by at most one."""
+    ...

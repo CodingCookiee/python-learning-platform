@@ -3,7 +3,7 @@ The CRM export was moved from a blocking database driver to an async one. The fu
 
 ```python
 await export_customers(db, sink)
-# TypeError: '_AsyncGeneratorContextManager' object does not support the context manager
+# TypeError: 'contextlib._AsyncGeneratorContextManager' object does not support the context manager
 # protocol (missed __exit__ method) but it supports the asynchronous context manager protocol.
 # Did you mean to use 'async with'?
 ```

@@ -1,0 +1,3 @@
+def module_from_source(name, source):
+    """Create a module called name, run source in it, register it in sys.modules and return it."""
+    ...

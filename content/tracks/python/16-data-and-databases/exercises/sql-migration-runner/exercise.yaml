@@ -1,0 +1,8 @@
+title: A migration runner
+type: function
+difficulty: core
+tags: [migrations, transactions, sqlite3, pragma]
+hints:
+  - "Read the current version with conn.execute(\"PRAGMA user_version\").fetchone()[0]. Migration number n (counting from 1) needs to run only if the version is below n."
+  - "For each migration to run: conn.execute(\"BEGIN\"), run its statements, set PRAGMA user_version = n, then conn.commit(). PRAGMA doesn't take parameters, so write the number in with an f-string; it's an int your code produced, not user input."
+  - "Wrap each migration's work in try/except: on any exception, conn.rollback() and re-raise, so that migration leaves nothing behind and the earlier ones stay committed."

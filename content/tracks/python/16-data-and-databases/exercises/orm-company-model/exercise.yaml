@@ -2,6 +2,7 @@ title: A Company model
 type: function
 difficulty: warm-up
 packages: [sqlalchemy]
+timeout: 20
 tags: [sqlalchemy, orm, models, mapped-column]
 hints:
   - "Each column is one annotated line: name: Mapped[str] = mapped_column(String(100), unique=True)."

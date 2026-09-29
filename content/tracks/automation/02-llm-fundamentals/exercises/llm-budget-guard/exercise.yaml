@@ -1,0 +1,8 @@
+title: A budget that can't be overspent
+type: function
+difficulty: stretch
+tags: [cost, budgets, tokens, composition, exceptions, ScriptedLLM]
+hints:
+  - "Work out the worst case before calling: estimated input tokens (the system prompt plus every message's content) at the input price, plus max_tokens at the output price."
+  - If spent plus the worst case is more than the budget, raise BudgetExceeded without calling the wrapped LLM. Equal to the budget is allowed.
+  - "After the call, add the actual cost, from response.usage, to self.spent. remaining is self.budget - self.spent."

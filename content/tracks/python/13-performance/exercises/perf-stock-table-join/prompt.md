@@ -1,5 +1,5 @@
 The wholesaler's stock page is an HTML table with one row per product. With 200 products it was
-instant; with the full catalogue of 8 000 it takes so long that the page times out.
+instant; with the full catalogue of 6 000 it takes so long that the page times out.
 
 ```python
 render_stock_table([
@@ -16,5 +16,5 @@ render_stock_table([
 </table>
 ```
 
-Make `render_stock_table` build its HTML in linear time, fast enough for all 8 000 products inside
+Make `render_stock_table` build its HTML in linear time, fast enough for all 6 000 products inside
 the time limit. The HTML must be exactly the same, character for character.

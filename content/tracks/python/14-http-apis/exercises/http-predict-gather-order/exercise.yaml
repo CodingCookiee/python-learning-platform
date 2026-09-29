@@ -1,0 +1,9 @@
+title: "Predict: finishing order and result order"
+type: predict
+difficulty: core
+tags: [async, gather, asyncclient, concurrency]
+packages: [httpx]
+hints:
+  - The fake warehouse takes a different time for each SKU. With gather, all three requests are in flight together, so the fastest finishes first.
+  - gather returns results in the order you passed the coroutines in, not the order they finished.
+  - "\"available\" is how many requests had finished when that one did. In the sequential version, each request finishes before the next starts."

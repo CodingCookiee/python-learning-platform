@@ -1,0 +1,8 @@
+title: The migration that would lose data
+type: fix
+difficulty: core
+tags: [migrations, alter-table, rename, backfill, sqlite3]
+hints:
+  - "Adding employer and dropping company doesn't move anything across: every employer name would be lost. SQLite can rename a column in place with ALTER TABLE applications RENAME COLUMN company TO employer."
+  - "A NOT NULL column can't be added to a table with rows unless it has a DEFAULT, so give source DEFAULT 'job board'."
+  - "Then backfill: UPDATE applications SET source = 'referral' WHERE notes LIKE '%referral%'. Rows with no notes keep the default."

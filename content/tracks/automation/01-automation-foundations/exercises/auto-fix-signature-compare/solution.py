@@ -1,0 +1,14 @@
+import hashlib
+import hmac
+
+
+def verify_signature(secret, header, body):
+    """True if header ("t=...,v1=...") carries a valid HMAC-SHA256 of "t." + body."""
+    try:
+        parts = dict(item.split("=", 1) for item in header.split(","))
+        timestamp, received = parts["t"], parts["v1"]
+    except (ValueError, KeyError):
+        return False
+    message = f"{timestamp}.".encode() + body
+    expected = hmac.new(secret.encode(), message, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, received)

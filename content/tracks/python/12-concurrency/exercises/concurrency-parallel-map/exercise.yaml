@@ -1,0 +1,8 @@
+title: A pool-ready parallel_map
+type: function
+difficulty: stretch
+tags: [processes, pickle, partitioning, process-pool, pure-functions]
+hints:
+  - "Each job sent to the pool should be a whole chunk, not one item: map_fn(apply_to_chunk, [fn] * len(chunks), chunks). map and ProcessPoolExecutor.map both accept one iterable per argument."
+  - The helper that applies fn to a chunk has to be a top-level function in your module. A nested function or a lambda can't be pickled, so a real pool couldn't send it.
+  - "Check fn up front with pickle.dumps(fn) inside try. On any exception, raise TypeError(...) from the error, with \"top-level\" in the message. Then flatten the chunk results back into one list."

@@ -1,0 +1,3 @@
+def load_object(spec):
+    """Import and return the object named by "package.module:attribute.path"."""
+    ...

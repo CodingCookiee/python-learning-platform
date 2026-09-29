@@ -1,0 +1,9 @@
+title: Turn error responses into typed errors
+type: function
+difficulty: core
+tags: [errors, exceptions, http status, rate limits, anthropic, openai]
+packages: [httpx]
+hints:
+  - "Pick the class from the status first: 401 or 403, 429, 500 and above, then any other 4xx."
+  - "Both providers put the message at body[\"error\"][\"message\"]. Wrap the lookup in try/except (ValueError, KeyError, TypeError) and fall back to response.text.strip(), then to response.reason_phrase."
+  - "For retry_after, float(response.headers[\"retry-after\"]) inside a try that catches KeyError and ValueError, giving None when it's missing or not a number."

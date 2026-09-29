@@ -1,0 +1,8 @@
+title: A finder that imports from a dict
+type: function
+difficulty: stretch
+tags: [import-system, finders, loaders, meta-path, packages]
+hints:
+  - "One class can be both finder and loader. find_spec(self, name, path, target=None) returns importlib.util.spec_from_loader(name, self, is_package=...) for names it knows, and None for the rest, so the next finder gets its turn."
+  - "A name is a package when some other key starts with name + \".\". is_package=True gives the spec a submodule_search_locations list, which is what lets Python import submodules of it at all."
+  - "exec_module(self, module) runs self.sources[module.__name__] in module.__dict__. create_module(self, spec) can return None to get the default module object."

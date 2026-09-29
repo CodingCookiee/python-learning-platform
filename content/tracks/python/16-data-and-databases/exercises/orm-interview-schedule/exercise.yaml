@@ -1,0 +1,10 @@
+title: An interview schedule in one query
+type: function
+difficulty: stretch
+packages: [sqlalchemy]
+timeout: 20
+tags: [sqlalchemy, joinedload, eager-loading, datetime, formatting]
+hints:
+  - "Filter and sort: select(Interview).where(Interview.scheduled_at >= start, Interview.scheduled_at < end).order_by(Interview.scheduled_at)."
+  - "Chain the eager loads: .options(joinedload(Interview.application).joinedload(Application.company)) loads the application and its company in the same query."
+  - "In format_schedule, f\"{at:%a %d %b %H:%M}\" gives 'Mon 14 Sep 10:00'. Pad the company to 12 characters and the role to 20 with :<12 and :<20."

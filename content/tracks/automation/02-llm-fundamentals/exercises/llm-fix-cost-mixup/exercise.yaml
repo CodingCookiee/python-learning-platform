@@ -1,0 +1,7 @@
+title: A cost calculator that mixed up its prices
+type: fix
+difficulty: warm-up
+tags: [cost, tokens, Decimal]
+hints:
+  - Work out the example by hand. Which tokens should be multiplied by which price?
+  - Input tokens pay the input price and output tokens pay the output price. The code has them the other way round.

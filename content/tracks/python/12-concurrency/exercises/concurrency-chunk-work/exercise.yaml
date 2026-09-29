@@ -1,0 +1,8 @@
+title: Split the work
+type: function
+difficulty: warm-up
+tags: [concurrency, partitioning, slicing, divmod]
+hints:
+  - "divmod(len(items), parts) gives the base size of each chunk and how many chunks get one extra item."
+  - "Walk along the list with a start index: each chunk is items[start:start + size], where size is base + 1 for the first `extra` chunks and base for the rest."
+  - Never make more chunks than there are items, so use min(parts, len(items)) chunks.

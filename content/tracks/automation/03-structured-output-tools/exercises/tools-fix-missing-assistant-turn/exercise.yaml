@@ -1,0 +1,7 @@
+title: The tool result from nowhere
+type: fix
+difficulty: core
+tags: [tool-calling, messages, debugging]
+hints:
+  - Look at what's in messages when the second request goes out. Which message tells the model (and the provider) which tool calls the results answer?
+  - Append assistant_message(response) once per turn, after checking for tool calls and before the loop that appends the results.

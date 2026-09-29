@@ -1,0 +1,8 @@
+title: A cache that doesn't keep records alive
+type: function
+difficulty: core
+tags: [weakref, caching, reference-counting]
+hints:
+  - "weakref.WeakValueDictionary() works like a dict, but an entry disappears as soon as nothing else refers to its value."
+  - "In get(), try the cache first. Only on a miss call the loader, store the record, and return it. Hold the record in a local variable while you store it, so it's still alive when you return it."
+  - "len(self._records) counts only records that are still alive, so __len__ can return it directly."

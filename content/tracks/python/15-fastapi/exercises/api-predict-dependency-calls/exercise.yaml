@@ -1,0 +1,9 @@
+title: "Predict: who runs, and when?"
+type: predict
+difficulty: core
+tags: [fastapi, Depends, yield, dependencies]
+packages: [fastapi, httpx]
+timeout: 15
+hints:
+  - "FastAPI resolves an endpoint's parameters in order, and each dependency's own dependencies first. A dependency needed several times in one request runs once."
+  - "The code after yield runs when the request is over. When the endpoint raises, the exception is raised at the yield, and get_db has no try/finally, so the line after yield never runs."

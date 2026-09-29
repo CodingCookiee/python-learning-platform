@@ -1,0 +1,7 @@
+title: Sign a webhook
+type: function
+difficulty: warm-up
+tags: [webhooks, hmac, hashlib]
+hints:
+  - "The message is bytes: f\"{timestamp}.\".encode() + body. The key is secret.encode()."
+  - "hmac.new(key, message, hashlib.sha256).hexdigest() gives the signature; wrap it as f\"t={timestamp},v1={signature}\"."

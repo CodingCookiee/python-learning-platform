@@ -1,0 +1,8 @@
+title: An exchange rate, asynchronously
+type: function
+difficulty: warm-up
+tags: [async, asyncclient, httpx, decimal]
+packages: [httpx]
+hints:
+  - "response = await client.get(\"/v1/rates\", params={\"base\": base, \"quote\": quote}). Everything after that is ordinary, synchronous code."
+  - "response.raise_for_status() and response.json() don't need await. Wrap the rate in Decimal(...)."

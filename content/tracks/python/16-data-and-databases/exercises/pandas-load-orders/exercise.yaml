@@ -1,0 +1,9 @@
+title: Load an orders export
+type: function
+difficulty: warm-up
+packages: [pandas]
+timeout: 30
+tags: [pandas, read-csv, dtypes, dates]
+hints:
+  - "pd.read_csv accepts anything file-like, so wrap the text: pd.read_csv(io.StringIO(csv_text), ...)."
+  - "parse_dates=[\"placed_on\"] makes real timestamps, and dtype={\"sku\": str} keeps the leading zeros."

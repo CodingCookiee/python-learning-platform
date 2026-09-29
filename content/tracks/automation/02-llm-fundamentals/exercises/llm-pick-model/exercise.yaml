@@ -1,0 +1,8 @@
+title: Pick the cheapest model that's good enough
+type: function
+difficulty: core
+tags: [model choice, cost, evals, dataclasses, sorting]
+hints:
+  - "cost_per_task is the usual formula: (input_tokens * price[\"input\"] + output_tokens * price[\"output\"]) / 1_000_000."
+  - First keep only the candidates that meet both limits. If none are left, raise ValueError.
+  - "min() with a key picks the winner: key=lambda c: (cost_per_task(c, ...), -c.quality, c.latency_ms) puts lower cost first, then higher quality, then lower latency."

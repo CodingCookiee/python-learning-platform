@@ -1,0 +1,10 @@
+title: What would autogenerate see?
+type: function
+difficulty: stretch
+packages: [sqlalchemy]
+timeout: 20
+tags: [sqlalchemy, migrations, inspect, metadata, schema]
+hints:
+  - "inspect(engine) gives an inspector: get_table_names() lists the tables in the database, and get_columns(name) returns dicts with a 'name' key. metadata.tables maps each table name to a Table, whose .columns have .name."
+  - Work with sets of names. Tables only in the metadata are added; tables only in the database are dropped; for tables in both, compare their column names the same way.
+  - "Skip alembic_version, collect the strings in a list, and return sorted(changes)."

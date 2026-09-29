@@ -49,8 +49,8 @@ number to look at, and the first drill turns it into a function.
 
 > [!NOTE]
 > This example is shown rather than run because the browser has no network. There's a second
-> reason: in the browser, `time.sleep()` keeps the CPU busy while it waits, so CPU time equals wall
-> time there. Run it on your machine to see the real split.
+> reason: the browser's Python can't see a real CPU clock, so `time.process_time()` there counts
+> waiting as if it were working. Run it on your machine to see the real split.
 
 ```quiz
 question: A script reads 5,000 invoices from a database and totals them. It takes 12 s of wall time and 0.8 s of CPU time. Which is it?

@@ -1,0 +1,10 @@
+title: A weekly job-search summary
+type: function
+difficulty: stretch
+packages: [pandas]
+timeout: 30
+tags: [pandas, read-sql, groupby, dates, reindex, csv, sqlite3]
+hints:
+  - "pd.read_sql_query(\"SELECT applied_on, status FROM applications\", conn, parse_dates=[\"applied_on\"]) gives you a DataFrame. The Monday of each date's week is applied_on.dt.to_period(\"W\").dt.start_time."
+  - "Make True/False columns (responded = status != \"applied\", and so on), then groupby(\"week\").agg(...) with \"sum\" on those and \"size\" or \"count\" for applied."
+  - "Fill the gaps with weekly.reindex(pd.date_range(first, last, freq=\"7D\"), fill_value=0). The rate is responses / applied * 100, rounded to 1 place, with .fillna(0.0) for empty weeks. Format the week with .strftime(\"%Y-%m-%d\") and export with to_csv(index=False)."

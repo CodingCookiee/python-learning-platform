@@ -1,0 +1,8 @@
+title: "Predict: when is each basket freed?"
+type: predict
+difficulty: warm-up
+tags: [reference-counting, gc, del, finalisers]
+hints:
+  - "An object is freed, and its __del__ runs, the moment its last reference goes: when a function's local variable disappears at return, or when the last name is deleted or rebound."
+  - "del first removes one name, but second still refers to the same basket. It's freed only when second is rebound."
+  - "An object that refers to itself keeps its own count above zero. With the collector disabled, it stays until gc.collect() finds it."

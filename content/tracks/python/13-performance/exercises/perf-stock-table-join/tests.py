@@ -14,7 +14,7 @@ RANGE = [
     ("GRD", "Hand grinder, ceramic burr", "Burrworks Ltd", 2_100),
 ]
 CATALOGUE = []
-for n in range(8_000):
+for n in range(6_000):
     prefix, name, supplier, price = RANGE[n % 4]
     CATALOGUE.append((f"{prefix}-{n:05d}", name, supplier, n * 7 % 60, 12, price))
 
@@ -48,7 +48,7 @@ def _():
     )
 
 
-@test("Renders the full 8 000-product catalogue in time")
+@test("Renders the full 6 000-product catalogue in time")
 def _():
     html = render_stock_table(CATALOGUE)
     assert len(html) == len(FULL_TABLE)

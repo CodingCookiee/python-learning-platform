@@ -1,0 +1,8 @@
+title: Count in pieces, merge the pieces
+type: function
+difficulty: core
+tags: [concurrency, pure-functions, counter, map-reduce]
+hints:
+  - "count_words only needs its own argument: Counter(word for line in lines for word in line.lower().split())."
+  - Counter supports +=, and adding counters sums the counts for each key.
+  - "Start merge from a fresh Counter() and add each partial to it, so none of the inputs is changed and an empty list gives an empty Counter."

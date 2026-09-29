@@ -1,0 +1,10 @@
+title: Spot the big moves in a price feed
+type: refactor
+difficulty: core
+packages: [numpy]
+timeout: 10
+tags: [numpy, vectorising, masks, speed]
+hints:
+  - np.diff(prices) gives every price minus the one before it, and prices[:-1] is every price that has a next one. Divide them for all the changes at once.
+  - np.abs(change) >= threshold is a mask. np.flatnonzero(mask) gives the positions where it's True.
+  - Position j in the changes is the move from tick j to tick j + 1, so add 1 to get the tick's index.
