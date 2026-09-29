@@ -1,0 +1,8 @@
+title: One item per order
+type: function
+difficulty: stretch
+tags: [n8n, items, grouping, decimal]
+hints:
+  - "Group with a dict keyed by order_id, remembering each input item's index as you go: for index, item in enumerate(items)."
+  - "Skip lines whose qty is 0 (but don't let them break the index numbering). Add Decimal(line[\"unit_price\"]) * line[\"qty\"] to the order's total."
+  - "Build each output item as {\"json\": {...}, \"pairedItem\": [{\"item\": i} for i in indexes]}, format the total with f\"{total:.2f}\", and sort by order_id."

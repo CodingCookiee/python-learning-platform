@@ -1,0 +1,8 @@
+title: Flatten a form tool's webhook
+type: function
+difficulty: core
+tags: [n8n, json, reshaping, webhooks]
+hints:
+  - "Start the result with the submission id and time, then every output key from field_map set to None, so missing questions come out as None."
+  - "Loop over payload[\"data\"][\"fields\"], skipping labels that aren't in field_map. For choice fields, build {option[\"id\"]: option[\"text\"] for option in field[\"options\"]} to turn ids into text."
+  - "DROPDOWN and MULTIPLE_CHOICE give one text (or None when nothing was picked); CHECKBOXES gives a list of texts. Strip text answers and lower-case the INPUT_EMAIL one."

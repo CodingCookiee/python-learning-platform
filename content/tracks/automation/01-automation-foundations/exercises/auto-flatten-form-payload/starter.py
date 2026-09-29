@@ -1,0 +1,3 @@
+def flatten_submission(payload, field_map):
+    """One flat lead dict from a form tool's question-list payload."""
+    ...
