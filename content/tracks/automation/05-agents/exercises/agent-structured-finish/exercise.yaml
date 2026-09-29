@@ -1,0 +1,9 @@
+title: Hold the final answer to a schema
+type: function
+difficulty: stretch
+packages: [pydantic]
+tags: [agents, pydantic, validation, stop-conditions, final-answer]
+hints:
+  - "When a response calls finish, try Diagnosis.model_validate(call.arguments). If it validates, return it as the answer. If not, append the assistant message and a tool result for the finish call with the error, then carry on to the next step."
+  - "Every call in an assistant message needs a result. When finish is invalid, the other calls in that response get {'error': 'Not run, because this turn called finish.'}."
+  - "For a text-only reply, count nudges. Under max_nudges: append the assistant message and {'role': 'user', 'content': NUDGE}, and loop. Otherwise return AgentResult(None, 'no_finish', step, trace)."

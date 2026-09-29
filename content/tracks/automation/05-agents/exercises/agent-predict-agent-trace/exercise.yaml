@@ -1,0 +1,8 @@
+title: "Predict: what the step cap counts"
+type: predict
+difficulty: warm-up
+tags: [agents, step-cap, tool-calling, parallel-calls]
+hints:
+  - The step cap counts model calls, not tool calls. The third reply asks for two tools in one response, so both run in step 3.
+  - restart_service always raises, and the loop turns the exception into an "error" line instead of crashing.
+  - The fourth reply (the finish) is never requested, because max_steps is 3. llm.remaining counts replies the fake still holds.

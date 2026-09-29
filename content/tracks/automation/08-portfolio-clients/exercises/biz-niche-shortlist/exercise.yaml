@@ -1,0 +1,8 @@
+title: Spot a niche in your discovery notes
+type: function
+difficulty: stretch
+tags: [niches, grouping, statistics, Decimal]
+hints:
+  - "Build a dict keyed by (industry, process), whose values are dicts of client → best value. Normalise all three names with .strip().lower() first."
+  - "statistics.median works on a list of Decimals. Keep only the groups with at least min_clients clients."
+  - "Sort with key=lambda row: (-row[\"clients\"], -row[\"median_value\"], row[\"industry\"], row[\"process\"])."

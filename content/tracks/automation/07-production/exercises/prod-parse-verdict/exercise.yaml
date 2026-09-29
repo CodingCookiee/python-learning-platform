@@ -1,0 +1,7 @@
+title: Parse a judge's verdict
+type: function
+difficulty: warm-up
+tags: [evals, llm-judge, json]
+hints:
+  - 'text[text.find("{") : text.rfind("}") + 1] is everything from the first brace to the last, which drops a code fence or a sentence around the JSON.'
+  - "type(score) is int rejects True, 4.5 and \"4\" in one check, since bool is a subclass of int but not int itself. Then check 1 <= score <= 5, and that the reason is a str with something in it."

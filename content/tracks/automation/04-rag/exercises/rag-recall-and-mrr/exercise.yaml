@@ -1,0 +1,8 @@
+title: Recall@k and MRR over a question set
+type: function
+difficulty: core
+tags: [evaluation, recall, mrr, sets]
+hints:
+  - "Filter to questions whose relevant list isn't empty first; if none are left, raise ValueError. For each one, results = search(q[\"question\"], k)[:k]."
+  - "Recall for one question is len(set(q[\"relevant\"]) & set(results)) / len(set(q[\"relevant\"])). The reciprocal rank is 1 / rank of the first result in the relevant set, or 0."
+  - "Average both over the answerable questions, round to 3 places, and build the key with f\"recall@{k}\". A miss is a question whose recall is 0."

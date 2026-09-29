@@ -1,0 +1,8 @@
+title: Grade an answer's citations
+type: function
+difficulty: core
+tags: [evaluation, citations, refusal, sets]
+hints:
+  - "Handle the two refusal cases first: an answerable question that was refused has exactly one problem, and an unanswerable one that was refused has none."
+  - "For an answer, add one problem per cited id that isn't in case[\"given\"], in citation order, then check set(case[\"cited\"]) & set(case[\"relevant\"]) when the question is answerable."
+  - pass_rate counts the cases where grade_answer returns an empty list.

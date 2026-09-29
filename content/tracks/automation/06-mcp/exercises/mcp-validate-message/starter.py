@@ -1,0 +1,3 @@
+def check_message(message) -> list[str]:
+    """The problems with a JSON-RPC 2.0 message's shape, or [] if it's valid."""
+    ...

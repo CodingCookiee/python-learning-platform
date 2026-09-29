@@ -1,0 +1,8 @@
+title: A retrieval regression gate
+type: function
+difficulty: stretch
+tags: [evaluation, regression, ci, dataclasses]
+hints:
+  - "Check set(baseline) == set(current) first, and raise ValueError naming the ids that are in only one of them."
+  - "Hit rate is the share of ranks that aren't None; MRR averages 1 / rank, counting None as 0. Round each to 3 places before comparing."
+  - "A critical failure is a critical question found before whose rank is now None or larger. ok needs recall_after >= round(recall_before - tolerance, 3), the same for MRR, and no critical failures."

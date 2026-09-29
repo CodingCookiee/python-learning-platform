@@ -162,7 +162,7 @@ When the request was so broken that you couldn't read its id (a parse error), th
 is `null`, which is `None` in Python.
 
 ```quiz
-question: A client sends {"jsonrpc": "2.0", "method": "notifications/cancelled", "params": {"requestId": 12}} and the server doesn't support cancellation. What should the server send back?
+question: 'A client sends `{"jsonrpc": "2.0", "method": "notifications/cancelled", "params": {"requestId": 12}}` and the server doesn''t support cancellation. What should the server send back?'
 options:
   - "An error with code -32601, method not found"
   - "A result of {} with id 12"

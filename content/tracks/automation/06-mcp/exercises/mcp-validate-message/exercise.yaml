@@ -1,0 +1,8 @@
+title: Catch malformed messages
+type: function
+difficulty: stretch
+tags: [mcp, json-rpc, validation, isinstance]
+hints:
+  - Handle a non-dict first and return straight away. Then check jsonrpc, then split on whether "method" is in the message, and append each problem you find to a list.
+  - "bool is a subclass of int, so isinstance(True, int) is True. A valid id is isinstance(value, (str, int)) and not isinstance(value, bool)."
+  - 'For a response, note has_result, has_error = "result" in message, "error" in message. A null id is only allowed when has_error.'

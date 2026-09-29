@@ -1,0 +1,8 @@
+title: A faithfulness judge
+type: function
+difficulty: core
+tags: [evaluation, llm-as-judge, json, faithfulness]
+hints:
+  - "The user message is \"<sources>\\n\" + the sources as \"[n] text\" lines (numbered from 1, joined with newlines) + \"\\n</sources>\\n\\n<answer>\\n\" + answer + \"\\n</answer>\"."
+  - "Parse with json.loads inside try/except ValueError, and check the result is a dict whose \"unsupported\" value is a list of strings. Anything else raises ValueError, never a pass."
+  - "Strip each claim and drop empty ones, then return Verdict(faithful=not claims, unsupported=claims)."

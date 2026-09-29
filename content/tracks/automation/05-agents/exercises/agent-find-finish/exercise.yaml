@@ -1,0 +1,7 @@
+title: Did the model finish?
+type: function
+difficulty: warm-up
+tags: [agents, tool-calling, stop-conditions]
+hints:
+  - response.tool_calls is a list of ToolCall objects, each with .name and .arguments.
+  - "next((call.arguments for call in response.tool_calls if call.name == 'finish'), None)"

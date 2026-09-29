@@ -1,0 +1,8 @@
+title: A reusable JSON-RPC dispatcher
+type: function
+difficulty: stretch
+tags: [mcp, json-rpc, decorators, error-codes, logging]
+hints:
+  - "The decorators store the function and return it unchanged: def method(self, name): def register(fn): self.methods[name] = fn; return fn; return register."
+  - 'Work through handle in the order of the prompt''s list. A message is only usable if it''s a dict, message.get("jsonrpc") == "2.0", and message.get("method") is a non-empty str. Its id for the -32600 reply is message.get("id") if it''s a str or a non-bool int, else None.'
+  - Wrap the call in try/except InvalidParams first, then except Exception. In the second, logger.exception(...) records the traceback; the reply only says "Internal error". Notification handlers get the same try/except, with no reply either way.

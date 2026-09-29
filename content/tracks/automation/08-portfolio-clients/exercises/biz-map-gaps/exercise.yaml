@@ -1,0 +1,8 @@
+title: Find the gaps in a process map
+type: function
+difficulty: core
+tags: [discovery, process-mapping, dicts]
+hints:
+  - "Treat a missing key, None, a blank string and an empty list or dict all as missing: a small helper like `def blank(value): return not value or (isinstance(value, str) and not value.strip())` saves repeating yourself."
+  - "For the fields, walk the rules in order and their uses in order, and keep a list of the ones not in the context that you haven't already asked about."
+  - The fallback question only makes sense when there are rules, so check that there are decisions before asking it.

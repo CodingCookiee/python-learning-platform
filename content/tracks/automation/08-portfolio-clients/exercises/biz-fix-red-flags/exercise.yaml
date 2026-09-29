@@ -1,0 +1,8 @@
+title: A red-flag detector that cries wolf
+type: fix
+difficulty: core
+tags: [discovery-calls, red-flags, regex]
+hints:
+  - "\"free\" in \"freelancer\" is True: the in operator finds substrings, not words."
+  - "A regular expression with \b on both sides matches whole words only, and re.IGNORECASE ignores case."
+  - "re.search(rf\"\b{re.escape(word)}\b\", notes, re.IGNORECASE)"

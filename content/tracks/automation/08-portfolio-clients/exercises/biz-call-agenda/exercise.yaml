@@ -1,0 +1,7 @@
+title: A timed agenda for a discovery call
+type: function
+difficulty: warm-up
+tags: [discovery-calls, datetime]
+hints:
+  - "datetime.strptime(start, \"%H:%M\") gives you a datetime you can add timedelta(minutes=...) to, and .strftime(\"%H:%M\") turns it back into text."
+  - Keep a running clock. Each section starts where the previous one ended.

@@ -1,0 +1,3 @@
+def finish_arguments(response):
+    """The arguments of the response's first finish call, or None."""
+    ...

@@ -1,0 +1,8 @@
+title: Write the agent loop
+type: function
+difficulty: core
+tags: [agents, agent-loop, step-cap, tool-calling, dataclasses]
+hints:
+  - "Start with messages = [{'role': 'user', 'content': task}] and loop for step in range(1, max_steps + 1). Each step calls llm.complete(messages, system=system, tools=[*tools, FINISH])."
+  - "Check for finish first and return AgentResult(arguments['answer'], 'finished', step, trace). No tool calls at all: AgentResult(response.text, 'no_finish', step, trace)."
+  - "Otherwise append assistant_message(response), then for each call work out the content (unknown tool, exception or json.dumps of the output), append Step(step, call.name, call.arguments, ok) to the trace and tool_result(call, content) to messages. After the loop: AgentResult(None, 'step_limit', max_steps, trace)."

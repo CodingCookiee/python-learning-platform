@@ -1,0 +1,7 @@
+title: The client never hears back
+type: fix
+difficulty: warm-up
+tags: [mcp, json-rpc, request-id]
+hints:
+  - Every response goes through result(). Look at what it puts in the dict.
+  - 'A response echoes the request''s id exactly: {"jsonrpc": "2.0", "id": message["id"], "result": value}.'

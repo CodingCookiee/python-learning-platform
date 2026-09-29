@@ -1,0 +1,8 @@
+title: Replying to a notification
+type: fix
+difficulty: core
+tags: [mcp, json-rpc, notifications]
+hints:
+  - A notification is any message without an "id" key. Decide that first, before looking up any handler.
+  - For a notification, run its handler from NOTIFICATIONS if there is one, then return None, whether or not the method is known.
+  - 'Use "id" not in message, not message.get("id"): a request with id 0 must still be answered.'

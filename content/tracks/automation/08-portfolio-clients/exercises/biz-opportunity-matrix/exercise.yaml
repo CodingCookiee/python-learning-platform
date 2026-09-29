@@ -1,0 +1,8 @@
+title: Sort the backlog into quick wins and money pits
+type: function
+difficulty: core
+tags: [opportunities, prioritisation, Decimal, sorting]
+hints:
+  - Write a priority(op, hourly_rate) helper first, with the defaults from the table (op.get("error_rate", 0) and so on).
+  - "Start with a dict of the four keys, each an empty list, so every quadrant is there even when it's empty."
+  - "Sort each list with key=lambda pair: (-pair[0], pair[1]) over (priority, name) pairs, then keep the names."

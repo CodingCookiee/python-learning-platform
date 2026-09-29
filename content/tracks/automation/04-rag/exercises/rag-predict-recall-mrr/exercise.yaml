@@ -1,0 +1,8 @@
+title: "Predict: recall@k and MRR"
+type: predict
+difficulty: warm-up
+tags: [evaluation, recall, mrr]
+hints:
+  - "recall@k for one question is how many of its relevant chunks are in the first k results, divided by how many relevant chunks it has. q2 has two."
+  - q3's relevant chunk never appears, so its recall is 0 at every k and it has no first relevant rank.
+  - MRR adds 1 / rank for the questions that have one, and divides by all three questions.

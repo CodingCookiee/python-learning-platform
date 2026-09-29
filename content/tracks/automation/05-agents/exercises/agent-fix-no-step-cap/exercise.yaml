@@ -1,0 +1,8 @@
+title: The on-call agent that ran all night
+type: fix
+difficulty: core
+tags: [agents, step-cap, cost, debugging]
+hints:
+  - "while True has no way out except finish or a plain reply, and a tool that always fails gives the model neither. Replace it with for step in range(1, max_steps + 1)."
+  - The step number goes into each Step, so count the steps with the loop variable instead of len(trace).
+  - "After the loop, return AgentResult(None, 'step_limit', max_steps, trace) so the engineer still gets the trace of what was tried."

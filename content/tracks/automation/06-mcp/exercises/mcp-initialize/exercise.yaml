@@ -1,0 +1,8 @@
+title: The handshake, with version negotiation
+type: function
+difficulty: core
+tags: [mcp, initialize, protocol-version, capabilities]
+hints:
+  - Split notifications off first ("id" not in message returns None). Then branch on the method.
+  - 'params = message.get("params") or {}, then requested = params.get("protocolVersion"). If it isn''t a str, answer with the -32602 error.'
+  - 'The version is requested if requested in SUPPORTED_VERSIONS else SUPPORTED_VERSIONS[0]. Build the result from SERVER_INFO, CAPABILITIES and INSTRUCTIONS.'
