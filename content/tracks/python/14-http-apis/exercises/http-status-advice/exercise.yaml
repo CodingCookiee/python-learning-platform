@@ -1,0 +1,8 @@
+title: What to do about a status code
+type: function
+difficulty: warm-up
+tags: [http, status-codes]
+hints:
+  - Check the specific codes (401, 403, 429) before the ranges they sit in, or the range will catch them first.
+  - "Ranges read well as chained comparisons: 200 <= status_code <= 299."
+  - Anything that isn't 200 to 599 falls through to the end of the function, where you raise ValueError.

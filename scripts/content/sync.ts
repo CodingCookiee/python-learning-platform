@@ -1,5 +1,5 @@
 /**
- * npm run content:sync [-- --dry-run] [--force]
+ * npm run content:sync [-- --dry-run] [--force] [--modules slug,slug]
  *
  * Copies content/ into the database, matching rows by slug. Idempotent:
  * run it as often as you like. Items removed from content/ are archived
@@ -26,6 +26,10 @@ dotenv.config({ quiet: true });
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
 const force = args.includes("--force");
+// --modules a,b,c publishes just those modules; every other module is left exactly as it is
+const onlyModules = args.includes("--modules")
+  ? new Set(args[args.indexOf("--modules") + 1]!.split(",").map((m) => m.trim()).filter(Boolean))
+  : null;
 
 /** Test names and visibility, parsed from a plp tests.py, for the pre-run test list */
 export function parseTestNames(tests: string): Array<{ name: string; hidden: boolean }> {
@@ -74,6 +78,10 @@ async function main() {
       t.modules.filter((m) => errors.some((e) => e.path === m.path || e.path.startsWith(`${m.path}/`))).map((m) => m.slug)
     )
   );
+  // Modules outside --modules are skipped the same way: not synced, not archived
+  const unselected = new Set(
+    onlyModules ? tracks.flatMap((t) => t.modules.filter((m) => !onlyModules.has(m.slug)).map((m) => m.slug)) : []
+  );
   // Anything inside a module folder belongs to that module, even before its module.yaml exists
   const inModuleFolder = (p: string) => /(^|\/)tracks\/[^/]+\/\d{2}-[^/]+(\/|$)/.test(p);
   const loose = errors.filter(
@@ -85,12 +93,12 @@ async function main() {
     process.exit(1);
   }
   for (const t of tracks) {
-    const skipped = t.modules.filter((m) => brokenModules.has(m.slug));
+    const skipped = t.modules.filter((m) => brokenModules.has(m.slug) && !unselected.has(m.slug));
     for (const m of skipped) {
       const count = errors.filter((e) => e.path.startsWith(m.path)).length;
       console.warn(`skip  ${m.path}: ${count} error(s); run content:validate --only ${m.slug}`);
     }
-    t.modules = t.modules.filter((m) => !brokenModules.has(m.slug));
+    t.modules = t.modules.filter((m) => !brokenModules.has(m.slug) && !unselected.has(m.slug));
   }
 
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -277,7 +285,7 @@ async function main() {
       (id) => prisma.track.update({ where: { id }, data: { archivedAt: now, order: parkedOrder(id) } })
     );
     // Rows belonging to skipped modules are neither synced nor archived
-    const skippedSlugs = [...brokenModules];
+    const skippedSlugs = [...brokenModules, ...unselected];
     const notSkipped = { OR: [{ slug: null }, { slug: { notIn: skippedSlugs } }] };
     await archive(
       await prisma.module.findMany({

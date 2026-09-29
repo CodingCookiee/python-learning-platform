@@ -1,0 +1,7 @@
+title: Gather the prices
+type: refactor
+difficulty: warm-up
+tags: [asyncio, gather]
+hints:
+  - "asyncio.gather(*(client.price(sku) for sku in skus)) starts every request at once and returns the prices in the same order as skus."
+  - zip the SKUs with the prices and build a dict.

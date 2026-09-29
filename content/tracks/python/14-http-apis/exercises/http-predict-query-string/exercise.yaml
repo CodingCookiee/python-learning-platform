@@ -1,0 +1,9 @@
+title: "Predict: what httpx sends"
+type: predict
+difficulty: warm-up
+tags: [http, query-strings, json, httpx]
+packages: [httpx]
+hints:
+  - "params= escapes special characters: a space becomes +, and & becomes %26. A list becomes one key=value pair per item."
+  - "Passing params= to a URL that already has a query string replaces that query string; it doesn't add to it."
+  - httpx writes JSON bodies compactly, with no spaces after the colons and commas.

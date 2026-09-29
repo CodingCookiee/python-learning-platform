@@ -1,0 +1,8 @@
+title: The recent orders query that lost some orders
+type: fix
+difficulty: stretch
+tags: [sql, "null", order-by, limit, debugging]
+hints:
+  - Run the first test and look at which end of the history you got. ORDER BY is ascending unless you say otherwise.
+  - "An order that hasn't been processed has a NULL status, and NULL != 'cancelled' is unknown, not true, so WHERE drops it."
+  - "status IS NOT 'cancelled' keeps the NULLs (or write status IS NULL OR status != 'cancelled'). For ties, ORDER BY placed_on DESC, number DESC."

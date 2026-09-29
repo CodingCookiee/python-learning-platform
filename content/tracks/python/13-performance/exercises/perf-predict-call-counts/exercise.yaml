@@ -1,0 +1,7 @@
+title: "Predict: how many calls?"
+type: predict
+difficulty: core
+tags: [profiling, cProfile, recursion]
+hints:
+  - Walk through load() for each list of lines. is_valid runs for every line; parse runs only for the valid ones.
+  - A recursive function's ncalls is written total/primitive. Only the first call to category_size comes from outside it.

@@ -161,7 +161,9 @@ async def run_code(code: str, stdin: list[str] | None = None, filename: str = "m
     feed = _Feed(stdin) if stdin is not None else _NoInput()
     plp.browser_compat()
     try:
-        code_obj = compile(code, filename, "exec", flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
+        # dont_inherit: this file's own `from __future__ import annotations` must not leak into
+        # learner code (it would turn their annotations into strings)
+        code_obj = compile(code, filename, "exec", flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT, dont_inherit=True)
         with (
             contextlib.redirect_stdout(out),
             contextlib.redirect_stderr(err),
@@ -216,7 +218,7 @@ _OPS = {
 
 async def _evaluate(node: ast.expr, env: dict) -> object:
     value = eval(
-        compile(ast.Expression(node), "tests.py", "eval", flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT), env
+        compile(ast.Expression(node), "tests.py", "eval", flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT, dont_inherit=True), env
     )
     if inspect.iscoroutine(value):
         value = await value
@@ -406,10 +408,12 @@ class _Deadline:
         started = time.perf_counter()
         remaining = self.until - started
         self.until = None
+        sys.settrace(None)
         try:
             yield
         finally:
             self.until = time.perf_counter() + remaining
+            sys.settrace(self._global)
 
     def _global(self, frame, event, arg):
         if frame.f_code.co_filename in TRACED_FILES:
@@ -457,7 +461,7 @@ async def run_tests(solution: str, tests: str, import_solution: bool = True) -> 
     # 1. The learner's code
     module = _fresh_module("solution", "solution.py", solution)
     try:
-        code_obj = compile(solution, "solution.py", "exec")
+        code_obj = compile(solution, "solution.py", "exec", dont_inherit=True)
         if import_solution:
             sys.modules["solution"] = module
             with contextlib.redirect_stdout(load_out), _patched_input(_NoInput()):
@@ -484,7 +488,7 @@ async def run_tests(solution: str, tests: str, import_solution: bool = True) -> 
     try:
         tests_tree = ast.parse(tests, "tests.py")
         rewritten = ast.fix_missing_locations(_AssertRewriter().visit(ast.parse(tests, "tests.py")))
-        exec(compile(rewritten, "tests.py", "exec"), tests_module.__dict__)
+        exec(compile(rewritten, "tests.py", "exec", dont_inherit=True), tests_module.__dict__)
     except BaseException as exc:  # noqa: BLE001
         # An ImportError naming something the learner was asked to define is theirs to fix
         missing = isinstance(exc, ImportError) and getattr(exc, "name", None) == "solution"

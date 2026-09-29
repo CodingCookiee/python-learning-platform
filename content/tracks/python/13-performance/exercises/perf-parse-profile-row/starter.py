@@ -1,0 +1,3 @@
+def parse_row(line):
+    """One row of pstats output as (calls, tottime, cumtime, function)."""
+    ...

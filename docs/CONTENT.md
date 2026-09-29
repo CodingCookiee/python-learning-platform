@@ -268,8 +268,11 @@ def _():
   limit. `result.explain()` gives one line per failing test (pytest's `E` lines) for messages like
   `assert not r.failed, r.explain()`. Always pass `--capture=sys` if you ever call `pytest.main`
   yourself: fd-level capture crashes Pyodide (`pytest_run` does this for you).
-- **`typecheck(strict=False)`** runs mypy on the learner's code and returns `.errors` (mypy's error
-  lines) and `.ok`. Needs `packages: [mypy]`.
+- **`typecheck(strict=False)`** runs mypy on the learner's code and returns `.errors` and `.notes`
+  (mypy's lines; `reveal_type` output is a note), `.ok`, and `.errors_on(line)` / `.notes_on(line)`.
+  Results are cached per source, so every test can call `typecheck()` and only the first pays
+  (a run takes several seconds in the browser); mypy's time doesn't count against the per-test
+  limit. Needs `packages: [mypy]` and a drill `timeout` of about 30.
 - Each test gets its own stdout capture, so learners' `print()` calls never break a test.
 - Put the edge cases in `@hidden` tests so solutions can't be written to match the visible ones.
 - Write 3–8 tests per drill. The first test is the example from `prompt.md`.

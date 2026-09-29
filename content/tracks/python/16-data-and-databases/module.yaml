@@ -1,0 +1,22 @@
+slug: data-and-databases
+title: Data and databases
+summary: SQL with sqlite3, safe queries and transactions, SQLAlchemy 2.0, migrations, and pandas for data work.
+description: >
+  Almost every real program ends up storing data and asking questions of it. This module starts
+  with SQL itself, through Python's built-in sqlite3: tables and constraints, filtering and
+  sorting, joins, grouping and the indexes that keep queries fast. Then it makes queries safe
+  (parameters instead of string building, so SQL injection can't happen) and correct
+  (transactions that commit everything or nothing). SQLAlchemy 2.0 comes next: typed models,
+  sessions and the unit of work, relationships, select() queries, and the N+1 problem that
+  every ORM user meets eventually. Migrations with Alembic keep a live database in step with
+  your models, and pandas handles the work SQL is awkward at: cleaning messy files, reshaping and
+  reporting. The last lesson is the judgement call between the two. Passing this module, and the
+  Job tracker grading, earns the black belt.
+hours: 9
+outcomes:
+  - Create tables with constraints and write SELECT queries that filter, sort, join and group, including LEFT JOIN and HAVING
+  - Read a query plan with EXPLAIN QUERY PLAN and add the index that turns a scan into a search
+  - Pass every value as a query parameter, explain how SQL injection works, and whitelist the parts parameters can't cover
+  - Group writes into transactions that commit or roll back as a whole, and map rows to dataclasses
+  - Model data with SQLAlchemy 2.0 (DeclarativeBase, Mapped, relationships), query it with select(), and find and fix N+1 queries with eager loading
+  - Evolve a schema with migrations, and load, clean, group, merge, pivot and export data with pandas, choosing SQL or pandas for each job

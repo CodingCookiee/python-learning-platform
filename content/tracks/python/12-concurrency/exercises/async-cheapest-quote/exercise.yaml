@@ -1,0 +1,8 @@
+title: The cheapest shipping quote
+type: function
+difficulty: core
+tags: [asyncio, timeout, gather, return-exceptions]
+hints:
+  - Give each provider its own time limit with a small helper coroutine that awaits provider.quote(parcel) inside async with asyncio.timeout(seconds). Then gather the helpers, so all the limits run side by side.
+  - With return_exceptions=True, a provider that timed out gives you a TimeoutError in its place, and one that failed gives its exception. Skip anything that's an Exception.
+  - "min() over (price, position, name) tuples picks the cheapest, and the position breaks ties in favour of the provider listed first."

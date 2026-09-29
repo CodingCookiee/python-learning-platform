@@ -1,0 +1,3 @@
+def hottest(report):
+    """(function, percent of total time) for the row with the largest tottime."""
+    ...

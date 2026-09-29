@@ -1,0 +1,7 @@
+title: Applications still in play
+type: function
+difficulty: warm-up
+tags: [sql, sqlite3, select, where, order-by]
+hints:
+  - "One SELECT does it: name the two columns, filter with WHERE status IN (...), and sort with ORDER BY."
+  - "ORDER BY applied_on, company sorts by date and breaks ties by company. fetchall() already returns a list of tuples."

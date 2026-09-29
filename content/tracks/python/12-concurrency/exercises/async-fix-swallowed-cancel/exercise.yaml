@@ -1,0 +1,8 @@
+title: The export that wouldn't stop
+type: fix
+difficulty: core
+tags: [asyncio, cancellation, cancellederror, timeout, finally]
+hints:
+  - The except block catches CancelledError and returns normally. To asyncio.timeout that looks like the export finished, so it has nothing to turn into a TimeoutError.
+  - The release only runs when the loop completes. Anything that ends the loop early, a failed write or a cancellation, skips it.
+  - Move the release into a finally block. If you keep the message, re-raise the CancelledError after printing it.

@@ -1,0 +1,22 @@
+slug: http-apis
+title: HTTP and APIs
+summary: Call real APIs with httpx, with timeouts, auth, pagination, retries, rate limits, async and a typed client class.
+description: >
+  Almost every program worth paying for talks to another program over HTTP: a payment provider, a
+  CRM, GitHub, a weather service, and, in the automation track, every LLM provider. This module
+  opens the brown belt by making you fluent at that. You'll learn just enough HTTP to read any API's
+  docs, then use httpx the way production code does: one client with a base URL, default headers
+  and timeouts that are always set, errors you can name, and authentication that never ends up in
+  a log. Then come the parts that separate a script from a dependable integration: pagination
+  written as a generator, retries with exponential backoff and jitter that only retry what's safe,
+  respect for rate limits and Retry-After, concurrent requests under a semaphore, and finally a
+  typed client class with Pydantic models and its own exception hierarchy. Every drill runs real
+  httpx code against a fake server, so the tests can check exactly what your code sent.
+hours: 8
+outcomes:
+  - Read an API's documentation and translate it into the right method, path, query string, headers and JSON body
+  - Build httpx clients with a base URL, default headers and explicit timeouts, and handle HTTPStatusError, TimeoutException and ConnectError deliberately
+  - Authenticate with API keys, bearer tokens, basic auth and the OAuth 2 client credentials flow, without leaking secrets into URLs or logs
+  - Page through offset, cursor and Link-header APIs with lazy generators that fetch only what's needed
+  - Retry only what's safe to retry, with exponential backoff, jitter, Retry-After and idempotency keys
+  - Make many requests concurrently with AsyncClient under a semaphore, and wrap an API in a typed client class with Pydantic models and a custom exception hierarchy

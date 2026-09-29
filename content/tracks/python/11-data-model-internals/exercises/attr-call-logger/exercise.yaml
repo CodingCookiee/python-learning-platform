@@ -1,0 +1,8 @@
+title: A proxy that logs every call
+type: function
+difficulty: stretch
+tags: [getattr, setattr, proxy, decorators, wraps]
+hints:
+  - "Store the target and the calls list with object.__setattr__ in __init__, because your own __setattr__ forwards everything to the target. Then __getattr__ only runs for names the proxy itself doesn't have, which is everything that belongs to the target."
+  - "In __getattr__, get the value from the target. If it's callable, return a wrapper function that appends (name, args, kwargs) to self.calls before calling it; functools.wraps(value) keeps its name and docstring."
+  - "Record the call before calling the method, so a call that raises is still logged, and let the exception propagate. __repr__ is looked up on the type, so define it on the class."

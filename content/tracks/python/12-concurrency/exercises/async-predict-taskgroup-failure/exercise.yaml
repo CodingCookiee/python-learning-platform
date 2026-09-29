@@ -1,0 +1,8 @@
+title: "Predict: one card declined"
+type: predict
+difficulty: core
+tags: [asyncio, taskgroup, cancellation, exception-groups]
+hints:
+  - Creating a task in a group doesn't start it. Nothing runs until main reaches the end of the async with block and the group starts waiting.
+  - When amex raises, the group cancels every task that's still running. Which ones are still running at 0.03 s?
+  - A task that raised wasn't cancelled; it failed. cancelled() is only True for a task that was cancelled.

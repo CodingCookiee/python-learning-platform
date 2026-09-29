@@ -1,0 +1,8 @@
+title: "Predict: where did the unpaid invoices go?"
+type: predict
+difficulty: core
+tags: [sql, "null", where, order-by, coalesce]
+hints:
+  - "A comparison with NULL is never true, so WHERE drops that row. paid_on = NULL matches nothing at all."
+  - "INV-2 has no amount, so both amount >= 1000 and amount < 1000 are unknown for it, and it's dropped from the OR too."
+  - SQLite sorts NULL before every number in ascending order.

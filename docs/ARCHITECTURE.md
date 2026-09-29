@@ -419,6 +419,23 @@ Every variable is listed in [`.env.example`](../.env.example). Summary:
 
 Each milestone is shippable and leaves the app better than before.
 
+**Status (2026-09-29).** M0 is done. M1 is largely done:
+- **Runtime:** a module Web Worker (`public/workers/python-worker.mjs`) running Pyodide 314. It enforces a real timeout by terminating the worker and gives every run a fresh module.
+- **Harness:** the `plp` harness (`public/py/`):
+  - failure messages from rewritten asserts;
+  - 2 s time limits per test;
+  - helpers for pytest, mypy, CLI, logging and HTTP;
+  - `plp_fakes` for LLM providers, APIs, embeddings and MCP.
+- **Content tooling:**
+  - the `content/` pipeline with Zod schemas;
+  - `content:validate`, which runs every solution, starter and example in the same runtime inside Node worker threads;
+  - `content:sync`, which upserts by slug, archives removed items instead of deleting them, and can publish only chosen modules;
+  - `Track`, slugs and archiving in the schema.
+- **App:** the new drill workspace (function, program, predict, fix, refactor and "write the tests" drills), lesson completion gated on required drills, and achievements evaluated from criteria in `content/achievements.yaml`.
+- **Content:** modules are being written; the live set is tracked in the DB (`npm run content:sync -- --dry-run`).
+
+Still open from M1: server-side autosave of drill code (localStorage for now) and the split-view lesson workspace. From M2: checkpoints, spaced review and tag mastery.
+
 | # | Milestone | Contents | Exit criteria |
 |---|-----------|----------|---------------|
 | **M0** | Stabilize (≈1 wk) | Fix C7, M5, M6, M8, M12. `lib/env.ts`, baseline migration, Redis no-op fallback, CI (lint + typecheck + build) | CI green. Admin and session exploits closed |

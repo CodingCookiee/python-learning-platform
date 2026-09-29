@@ -1,0 +1,3 @@
+async def deliver_all(client, webhooks):
+    """Post to every webhook at once and report {"delivered": [...], "failed": {...}}."""
+    ...

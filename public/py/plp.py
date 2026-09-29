@@ -36,6 +36,10 @@ __all__ = [
     "source_uses",
     "source_avoids",
     "defined_names",
+    "pytest_run",
+    "PytestResult",
+    "typecheck",
+    "TypecheckResult",
     "TestTimeout",
 ]
 
@@ -302,7 +306,7 @@ def run_program(
     try:
         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err), as_module("__main__", filename) as namespace:
             try:
-                exec(compile(source, filename, "exec"), namespace)
+                exec(compile(source, filename, "exec", dont_inherit=True), namespace)
             except SystemExit as exc:
                 exit_code = _exit_code(exc)
                 if isinstance(exc.code, str):
@@ -454,7 +458,7 @@ def load_module(name: str = "learner_module", *, source: str | None = None) -> L
     code = _SOLUTION["source"] if source is None else source
     out = io.StringIO()
     with contextlib.redirect_stdout(out), as_module(name, _SOLUTION["filename"]) as namespace:
-        exec(compile(code, _SOLUTION["filename"], "exec"), namespace)
+        exec(compile(code, _SOLUTION["filename"], "exec", dont_inherit=True), namespace)
         return LoadedModule(dict(namespace), out.getvalue())
 
 
@@ -644,9 +648,23 @@ def pytest_run(files: dict[str, str]) -> PytestResult:
 
 
 class TypecheckResult:
-    def __init__(self, errors: list[str], output: str):
+    """.errors and .notes are mypy's lines ("solution.py:4: error: …"); .ok means no errors.
+    .errors_on(4) / .notes_on(4) filter by line number (reveal_type output is a note)."""
+
+    def __init__(self, errors: list[str], output: str, notes: list[str] | None = None):
         self.errors = errors
         self.output = output
+        self.notes = notes or []
+
+    @staticmethod
+    def _on(lines: list[str], line: int) -> list[str]:
+        return [l for l in lines if l.startswith(f"solution.py:{line}:")]
+
+    def errors_on(self, line: int) -> list[str]:
+        return self._on(self.errors, line)
+
+    def notes_on(self, line: int) -> list[str]:
+        return self._on(self.notes, line)
 
     @property
     def ok(self) -> bool:
@@ -656,18 +674,30 @@ class TypecheckResult:
         return f"<{len(self.errors)} type error(s)>"
 
 
+_typecheck_cache: dict[tuple, TypecheckResult] = {}
+
+
 def typecheck(source: str | None = None, *, strict: bool = False, extra_files: dict[str, str] | None = None) -> TypecheckResult:
     """Run mypy on the learner's code (or `source`). Returns the error lines, e.g.
-    'solution.py:4: error: Argument 1 to "total" has incompatible type "str"; expected "int"'."""
+    'solution.py:4: error: Argument 1 to "total" has incompatible type "str"; expected "int"'.
+
+    Results are cached per (source, strict, extra_files), so several tests can check the
+    same code without paying for mypy again (a run takes several seconds in the browser).
+    Time inside mypy doesn't count against the per-test limit."""
     import os
     import tempfile
 
     from mypy import api
 
+    code = _SOLUTION["source"] if source is None else source
+    key = (code, strict, tuple(sorted((extra_files or {}).items())))
+    if key in _typecheck_cache:
+        return _typecheck_cache[key]
+
     folder = tempfile.mkdtemp(prefix="plp_mypy_")
     target = os.path.join(folder, "solution.py")
     with open(target, "w", encoding="utf8") as fh:
-        fh.write(_SOLUTION["source"] if source is None else source)
+        fh.write(code)
     for name, text in (extra_files or {}).items():
         with open(os.path.join(folder, name), "w", encoding="utf8") as fh:
             fh.write(text)
@@ -681,9 +711,11 @@ def typecheck(source: str | None = None, *, strict: bool = False, extra_files: d
             stdout, stderr, _status = api.run(args)
     finally:
         os.chdir(cwd)
-    lines = [
-        line.replace(target, "solution.py").replace(folder + os.sep, "")
-        for line in stdout.splitlines()
-        if ": error:" in line
-    ]
-    return TypecheckResult(lines, stdout + stderr)
+    cleaned = [line.replace(target, "solution.py").replace(folder + os.sep, "") for line in stdout.splitlines()]
+    result = TypecheckResult(
+        [l for l in cleaned if ": error:" in l],
+        stdout + stderr,
+        [l for l in cleaned if ": note:" in l],
+    )
+    _typecheck_cache[key] = result
+    return result

@@ -1,0 +1,8 @@
+title: Settings that break getattr and copy
+type: fix
+difficulty: core
+tags: [getattr, setattr, recursion, attribute-lookup]
+hints:
+  - "Creating Settings fails first: setattr(self, name, value) inside __setattr__ calls __setattr__ again, forever. Hand underscored names on with super().__setattr__(name, value)."
+  - "getattr(settings, \"retries\", 3) and hasattr only catch AttributeError, but __getattr__ lets the dict's KeyError escape. Catch it and raise AttributeError(f\"no setting called {name!r}\") from None."
+  - "copy.copy makes a new object without running __init__, then asks it for __setstate__. That reaches __getattr__, which reads self._values, which doesn't exist yet, so __getattr__ runs again... Start __getattr__ with: if name.startswith(\"_\"): raise AttributeError(name)."

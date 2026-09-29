@@ -1,0 +1,3 @@
+async def cheapest_quote(providers, parcel, *, seconds):
+    """(name, price) of the cheapest quote that arrives within `seconds`."""
+    ...

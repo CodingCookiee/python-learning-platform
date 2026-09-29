@@ -1,0 +1,3 @@
+async def fastest(mirrors, path):
+    """(name, body) from the first mirror to answer successfully; the others are cancelled."""
+    ...

@@ -1,0 +1,8 @@
+title: "Predict: instance, class, parent or __getattr__?"
+type: predict
+difficulty: core
+tags: [attribute-lookup, getattr, mro]
+hints:
+  - "Each read checks the instance dict, then Savings, then Account, then object. __getattr__ runs only when all of those miss, and it prints when it does."
+  - "Assigning through the instance, acct.fee = 1 or acct.describe = ..., writes to the instance dict and shadows the class; del acct.fee removes only the instance's copy."
+  - "hasattr calls getattr, so it triggers __getattr__ too, and this __getattr__ never raises AttributeError."

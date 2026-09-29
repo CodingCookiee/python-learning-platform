@@ -1,0 +1,8 @@
+title: A webhook delivery report
+type: function
+difficulty: core
+tags: [asyncio, gather, return-exceptions, error-handling]
+hints:
+  - gather(..., return_exceptions=True) puts each exception in the results list where that webhook's status code would have been, so one failure doesn't lose the other results.
+  - Walk the webhooks and their outcomes together with zip. isinstance(outcome, Exception) picks out the failures, and type(outcome).__name__ gives the name for the reason.
+  - A status code outside 200–299 is a failure too, reported as "HTTP 503".

@@ -1,0 +1,3 @@
+def advice(status_code):
+    """What a client should do about a response with this status code."""
+    ...

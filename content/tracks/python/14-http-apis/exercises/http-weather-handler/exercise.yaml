@@ -1,0 +1,9 @@
+title: Be the weather API
+type: function
+difficulty: stretch
+tags: [http, status-codes, headers, query-strings, mock-transport]
+packages: [httpx]
+hints:
+  - "Check the request in the order of the table: the path first (request.url.path), then the method, then the query parameters (request.url.params)."
+  - "request.url.params.get(\"days\", \"3\") gives text. \"5\".isdigit() tells you whether int() is safe, and then check 1 <= days <= 7."
+  - "Return httpx.Response(405, json={...}, headers={\"Allow\": \"GET\"}) for the wrong method. For the forecast, slice the city's list: city[\"days\"][:days]."

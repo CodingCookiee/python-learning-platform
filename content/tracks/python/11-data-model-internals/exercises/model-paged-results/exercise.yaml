@@ -1,0 +1,8 @@
+title: A lazy sequence over a paged API
+type: function
+difficulty: stretch
+tags: [container-protocol, sequence, collections-abc, laziness, caching]
+hints:
+  - "Inherit from collections.abc.Sequence and write only __len__ and __getitem__. Sequence then supplies __iter__, __contains__, __reversed__, index and count, all built on those two."
+  - "Keep a dict of fetched pages and the total (None until the first fetch). Item i lives on page i // page_size at position i % page_size; divmod gives both."
+  - "Negative indices need the length first. For a slice, range(*index.indices(len(self))) gives the positions to fetch. Raise IndexError past the end, including when a page comes back shorter than expected: Sequence's iteration stops on it."

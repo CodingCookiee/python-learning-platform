@@ -1,0 +1,9 @@
+title: A contact that never gets created
+type: fix
+difficulty: core
+tags: [http, methods, json, status-codes, httpx]
+packages: [httpx]
+hints:
+  - The docs say POST with a JSON body. That's client.post(path, json={...}), with no params= at all.
+  - "tags arrives as a tuple or list; put list(tags) in the body so it's a JSON array even when it's empty."
+  - "Check response.status_code == 201 before trusting the body. Otherwise raise ValueError with response.json()[\"error\"] in the message."

@@ -1,0 +1,7 @@
+title: Where does this attribute live?
+type: function
+difficulty: warm-up
+tags: [attribute-lookup, mro, vars]
+hints:
+  - "Check the instance's own __dict__ first, then vars(cls) for each cls in type(obj).__mro__, in order."
+  - "Some objects, like 5 or a str, have no __dict__ at all: getattr(obj, \"__dict__\", {}) gives an empty dict for them instead of an error."

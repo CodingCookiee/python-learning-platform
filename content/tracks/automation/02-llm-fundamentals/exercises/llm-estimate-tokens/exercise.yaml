@@ -1,0 +1,8 @@
+title: Estimate tokens before you send
+type: function
+difficulty: warm-up
+tags: [tokens, estimation]
+hints:
+  - Four characters is about one token, and a partial token still counts as one, so round up.
+  - "math.ceil(len(text) / 4), with a special case so empty text is 0 tokens."
+  - prompt_tokens adds up estimate_tokens for the system prompt (when there is one) and for each message's content.

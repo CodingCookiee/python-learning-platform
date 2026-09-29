@@ -40,8 +40,10 @@ def _():
 
 @test("Refuses zero rounds or zero calls")
 def _():
-    raises(ValueError, time_it, lambda: None, number=0)
-    raises(ValueError, time_it, lambda: None, repeat=0)
+    with raises(ValueError, what="time_it(fn, number=0)"):
+        time_it(lambda: None, number=0)
+    with raises(ValueError, what="time_it(fn, repeat=0)"):
+        time_it(lambda: None, repeat=0)
 
 
 @hidden("Defaults to five rounds of one call")

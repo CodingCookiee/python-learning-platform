@@ -1,0 +1,7 @@
+title: "Predict: what temperature changes"
+type: predict
+difficulty: warm-up
+tags: [temperature, sampling, random]
+hints:
+  - Dividing every score by the same temperature changes the gaps between them, but not their order.
+  - "At temperature 0.5 each score doubles, so the gap doubles too. A new random.Random(42) starts the same sequence every time."

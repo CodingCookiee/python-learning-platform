@@ -1,0 +1,8 @@
+title: Race the mirrors
+type: function
+difficulty: stretch
+tags: [asyncio, as-completed, cancellation, exception-groups, finally]
+hints:
+  - "Make each request a task, with a small wrapper coroutine that returns (mirror.name, await mirror.get(path)), so a finished task tells you which mirror answered."
+  - "for next_done in asyncio.as_completed(tasks): hands you the tasks' results fastest first. Return from inside the loop on the first success; collect the exceptions of the ones that fail."
+  - "Cancel everything in a finally block, then await asyncio.gather(*tasks, return_exceptions=True) so every cancelled request has actually stopped before you return. After the loop, raise ExceptionGroup(\"every mirror failed\", errors)."

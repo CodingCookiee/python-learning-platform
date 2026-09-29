@@ -1,0 +1,3 @@
+def where_defined(obj, name):
+    """"instance", the name of the class in the MRO that holds name, or None."""
+    ...

@@ -1,0 +1,7 @@
+title: Read one profile row
+type: function
+difficulty: warm-up
+tags: [profiling, pstats, parsing]
+hints:
+  - The first five columns never contain spaces, but the function name can. line.split(maxsplit=5) splits off exactly those five and keeps the name whole.
+  - "ncalls can look like 7/3: keep the part before the slash. And strip() the name: the last piece keeps any trailing newline."

@@ -1,0 +1,8 @@
+title: Rows into dataclasses
+type: function
+difficulty: core
+tags: [sqlite3, row-factory, dataclasses, select]
+hints:
+  - Name the columns in the SELECT in the same order as the dataclass fields, so each row tuple lines up with Application(*row).
+  - "Set the row factory on a cursor, not the connection: cursor = conn.cursor(); cursor.row_factory = lambda cur, row: Application(*row)."
+  - "Filter with WHERE status = ?, passing (status,) as the parameters. fetchone() returns None when nothing matches, which is exactly what get_application should return."

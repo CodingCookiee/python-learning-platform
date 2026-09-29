@@ -1,0 +1,7 @@
+title: "Predict: what json.loads accepts"
+type: predict
+difficulty: warm-up
+tags: [json, parsing, llm-output]
+hints:
+  - json.loads parses one JSON value and nothing else. Anything before it, including a backtick or a word, is an error at char 0.
+  - JSON's true becomes Python's True. Single quotes aren't JSON, so the parser fails right after the opening brace, at char 1.

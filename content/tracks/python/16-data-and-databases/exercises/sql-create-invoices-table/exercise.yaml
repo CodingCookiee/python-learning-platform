@@ -1,0 +1,8 @@
+title: An invoices table that refuses bad rows
+type: function
+difficulty: core
+tags: [sql, create-table, constraints, integrity]
+hints:
+  - "Each rule is a constraint on its column: NOT NULL, UNIQUE, DEFAULT 'draft' and CHECK (...)."
+  - "CHECK (amount_cents >= 0) and CHECK (status IN ('draft', 'sent', 'paid')). A column can have several constraints, one after another."
+  - "status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'sent', 'paid'))"

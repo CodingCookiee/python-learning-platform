@@ -1,0 +1,20 @@
+slug: structured-output-tools
+title: Structured output and tool calling
+summary: Turn model replies into validated data, and let models call your code through a loop you control.
+description: >
+  An automation can't act on a paragraph. It needs an invoice number, a label, a date, or a request
+  to run a specific function with specific arguments. This module turns your A2 client into
+  something automations can build on: JSON you can trust (extracted robustly, validated with
+  Pydantic, repaired by sending the errors back), native structured outputs on both providers,
+  classification and extraction pipelines that know when to say "unknown", and tool calling written
+  by hand, from generating schemas out of Python functions to a dispatch loop that survives bad
+  arguments, failing tools and parallel calls. It ends with the design rules that make tools models
+  use correctly, and a support triage service that puts all of it together under a step and cost cap.
+hours: 10
+outcomes:
+  - Extract JSON from any model reply, validate it with Pydantic, and repair it with a bounded retry loop that sends the errors back
+  - Use Anthropic's and OpenAI's native structured outputs through an optional schema= feature of your own neutral client
+  - Build classification and extraction pipelines with fixed labels, confidence thresholds, an explicit "unknown", and batching
+  - Generate tool schemas from Python functions and Pydantic models, and translate them to each provider's format
+  - Write a tool dispatch loop with a step cap that validates arguments, returns errors to the model, and handles parallel calls
+  - Design tools that models use correctly, with idempotent writes and dangerous actions behind human approval

@@ -1,0 +1,8 @@
+title: Name the hot function
+type: function
+difficulty: core
+tags: [profiling, pstats, parsing]
+hints:
+  - The total is on the first line that ends in "seconds". Split it and take the number just before that word.
+  - The rows are every non-blank line after the line that starts with "ncalls". Split each with split(maxsplit=5), as in the last drill.
+  - max() with key= returns the first of several equal maxima, which is the tie rule you need.

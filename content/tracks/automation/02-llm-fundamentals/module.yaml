@@ -1,0 +1,21 @@
+slug: llm-fundamentals
+title: LLM fundamentals
+summary: How models produce text, the Anthropic and OpenAI APIs side by side, and your own provider-neutral client with streaming, cost tracking and retries.
+description: >
+  Every AI automation you sell rests on one thing: calling a model reliably, cheaply and in a way
+  you can test. This module starts with just enough of how LLMs work (tokens, context windows,
+  sampling and why answers vary), then puts the Anthropic Messages API and the OpenAI Chat
+  Completions API side by side at the HTTP level. From there you build the provider-neutral `llm`
+  client the rest of the track uses: one `complete()` interface, an adapter per provider over plain
+  httpx, and a factory that reads its keys from the environment. You'll write prompts that hold up
+  against messy and hostile input, stream replies as they're generated, track tokens and cost per
+  call, choose a model on evidence, and retry the errors worth retrying. Every drill is graded
+  against offline fakes of both APIs, so nothing needs a key until you run it for real.
+hours: 10
+outcomes:
+  - Explain tokens, context windows, temperature and top-p, and why the same prompt gives different answers
+  - Call the Anthropic Messages API and the OpenAI Chat Completions API with raw httpx, and read their responses, stop reasons and usage
+  - Build a provider-neutral LLM client with a Protocol, two adapters and a factory that reads keys only from the environment
+  - Write prompts with system instructions, few-shot examples, delimiters for untrusted input and checked output constraints
+  - Stream replies from both providers by parsing server-sent events into a generator of text deltas
+  - Track tokens and cost per call, enforce a budget, choose a model by quality, latency and cost, and retry rate limits and server errors without retrying mistakes

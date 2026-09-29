@@ -1,0 +1,8 @@
+title: A record that tracks its own changes
+type: function
+difficulty: core
+tags: [setattr, delattr, attribute-lookup, inheritance]
+hints:
+  - "Override __setattr__ and __delattr__ on the base class. An assignment is a change when the name isn't underscored, is already in vars(self), and the old value differs from the new one. Always finish with super().__setattr__(name, value)."
+  - "Subclasses don't call super().__init__(), so the base class can't rely on __init__ to create the list. Create it on first use: self.__dict__.setdefault(\"_changes\", []).append(...)."
+  - "changes can be a read-only property returning list(self.__dict__.get(\"_changes\", [])). A property with no setter already refuses assignment with AttributeError."
