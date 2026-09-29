@@ -134,3 +134,78 @@ luck: `process_ticket` catches `BudgetExceeded` and returns `human_review` with 
 the urgency, the queue, the draft, the refund requests this ticket created, the model calls and
 cost used, the tool log and the review reason. It creates a fresh `RefundQueue` if it isn't given
 one. Whatever the model or the tools do, it returns a result rather than raising.
+
+## Getting started
+
+1. Copy the starter into `triage.py`. Until the stubs are written, `python triage.py` fails in
+   `process_ticket`; that's expected.
+2. Write `urgency` and `route` first, with tests: they need no model at all.
+3. Write `Budget` and `extract_facts`. Check them with a `ScriptedLLM` holding one valid reply, then
+   one invalid reply followed by a valid one, and look at `llm.calls` to see the repair message.
+4. Write `RefundQueue` and `make_tools`, and call each registry function directly before any model
+   is involved: Mallory asking about order 1044 must get an error.
+5. Write `draft_reply` and `process_ticket`, run `python triage.py`, and compare the output with the
+   sample line by line.
+
+### Running it
+
+- **In the browser or offline**, `demo_llm()` builds the scripted model from `plp_fakes`, the same
+  fake the drills use. To run it on your machine without a key, copy `plp_fakes.py` next to
+  `triage.py` (it's a single file with no dependencies beyond the standard library).
+- **Against a real model**, set `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` and put your A2 client
+  (`llm.py`, or whatever you called it) next to `triage.py`. `real_llm()` imports its factory;
+  rename `make_llm` if yours is called something else. Your adapters need the `schema=` feature from
+  lesson 3. Real replies differ from the scripted ones, so the drafts and costs will too, but the
+  shape of every result, and every safety rule, must hold.
+
+```bash
+uv run --with pydantic --with httpx triage.py
+```
+
+### Things the lessons didn't cover
+
+- **Tool definitions from the argument models.** The docstrings are written for the model. Pop the
+  schema's top-level `title` and `description`, and use the description as the tool's.
+- **A registry of validated tools.** Store `(args_model, function)` pairs, or a small dataclass like
+  the `Tool` in the parallel-calls drill, so the loop can validate before it calls.
+- **Money in cents.** `amount_cents` is an `int`, so there's no float rounding anywhere between the
+  model and the refunds team. Format it with `f"{cents / 100:.2f}"` only for display.
+
+## Try these
+
+Before you submit, check each of these with a `ScriptedLLM` of your own:
+
+- An extraction reply with `"category": "Returns"` then a valid one: 2 extraction calls, and the
+  second request contains the validation error. Three invalid replies: `human_review`, no draft,
+  and exactly 3 calls.
+- A drafter that calls `get_order` nine times: the ticket stops at 8 calls in total, lands in
+  `human_review` with a `budget:` reason, and no ninth call is made.
+- Usage of 10,000 input and 1,000 output tokens per call: the cost cap stops the ticket after the
+  call that crosses $0.05, before the next one.
+- `get_order(order_id="10423")`: the tool never runs, the result names `order_id`, and the log says
+  `ok=False`. The same for a tool name that doesn't exist.
+- The model asks for the same refund twice, in one ticket or across two: one `RR-` request.
+- A refund of 99999 cents on order 1042, or any request for order 1044 from Ada: refused.
+- Two tool calls in one response: one assistant message, then both results, in order, each with its
+  own `tool_call_id`.
+
+## Stretch goals
+
+- **Tests.** A `test_triage.py` with a test per requirement, all against `ScriptedLLM`.
+- **Batch extraction.** Extract facts for a morning's tickets 10 at a time (lesson 4), then draft
+  each one on its own. Compare the cost with one extraction per ticket.
+- **Approval for refunds.** Put `create_refund_request` behind an approval function (lesson 7) that
+  auto-approves requests under 20.00 and queues the rest for a Slack message, built on A1's webhooks.
+- **Parallel lookups.** When a ticket mentions several orders, run the `get_order` calls in one turn
+  concurrently with `asyncio.gather`, and time the difference with a slow fake.
+- **A FastAPI endpoint.** `POST /tickets` that runs `process_ticket` and returns the result as JSON,
+  with the llm and the refund queue provided by dependencies.
+
+## How to submit
+
+Push `triage.py`, your tests and a short `README.md` (what it does, how to run it offline and with
+a key) to a GitHub repository, and submit its link on this capstone's page. The review runs
+`python triage.py` against the sample, runs hidden tickets through `process_ticket` with a
+`ScriptedLLM` (malformed JSON, an unknown order, a model that loops, an injection that asks for a
+refund), and reads your code against the criteria: nothing runs unvalidated, nothing crashes,
+nothing exceeds the caps, and the rules live in Python.

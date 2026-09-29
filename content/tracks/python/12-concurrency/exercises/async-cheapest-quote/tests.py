@@ -1,6 +1,6 @@
 import asyncio
 
-from plp import hidden, raises, test
+from plp import hidden, raises_async, test
 from solution import cheapest_quote
 
 PARCEL = {"weight_kg": 1.2, "to": "EH1 1YZ"}
@@ -81,8 +81,7 @@ async def _():
 @test("Raises LookupError when nobody answers")
 async def _():
     couriers = [Courier("parcelnet", 5.10, delay=1.0), Courier("dpx", 4.75, error=ConnectionError("refused"))]
-    with raises(LookupError, match="no shipping quotes", what="cheapest_quote(couriers, PARCEL, seconds=0.05)"):
-        await cheapest_quote(couriers, PARCEL, seconds=0.05)
+    await raises_async(LookupError, cheapest_quote, couriers, PARCEL, seconds=0.05, match="no shipping quotes")
 
 
 @hidden("A tie goes to the courier listed first")

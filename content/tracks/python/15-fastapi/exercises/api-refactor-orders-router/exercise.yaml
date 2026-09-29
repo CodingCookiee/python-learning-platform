@@ -1,0 +1,10 @@
+title: Move the orders routes into a router
+type: refactor
+difficulty: core
+tags: [fastapi, APIRouter, dependencies, openapi, refactoring]
+packages: [fastapi, httpx]
+timeout: 15
+hints:
+  - "orders_router = APIRouter(prefix=\"/orders\", tags=[\"orders\"], dependencies=[Depends(require_api_key)]) holds everything the four decorators repeat."
+  - "Change each @app.get(\"/orders/...\") to @orders_router.get(\"/...\"), dropping the prefix and the dependencies=... argument. The list route's path becomes \"\"."
+  - "Finish with app.include_router(orders_router), after the routes are defined. /health stays on app and stays open."

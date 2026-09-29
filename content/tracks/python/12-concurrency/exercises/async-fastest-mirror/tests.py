@@ -1,6 +1,6 @@
 import asyncio
 
-from plp import hidden, raises, test
+from plp import hidden, raises_async, test
 from solution import fastest
 
 PATH = "/simple/httpx/httpx-0.28.1.tar.gz"
@@ -67,9 +67,8 @@ async def _():
         Mirror(net, "eu-west", 0.02, error=ConnectionError("eu-west: connection refused")),
         Mirror(net, "us-east", 0.01, error=TimeoutError("us-east: read timed out")),
     ]
-    with raises(ExceptionGroup, match="every mirror failed", what="fastest(mirrors, PATH)") as caught:
-        await fastest(mirrors, PATH)
-    assert sorted(str(error) for error in caught.value.exceptions) == [
+    group = await raises_async(ExceptionGroup, fastest, mirrors, PATH, match="every mirror failed")
+    assert sorted(str(error) for error in group.exceptions) == [
         "eu-west: connection refused",
         "us-east: read timed out",
     ]

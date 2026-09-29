@@ -1,6 +1,6 @@
 import asyncio
 
-from plp import hidden, raises, source_avoids, source_uses, test
+from plp import hidden, raises_async, source_avoids, source_uses, test
 from solution import fetch_with_retry
 
 URL = "https://shop.example.com/p/ETH-1KG"
@@ -47,8 +47,7 @@ async def _():
 @test("Gives up with the last ConnectionError")
 async def _():
     shop = FlakyShop(failures=10)
-    with raises(ConnectionError, match="503", what="fetch_with_retry(shop, URL, attempts=2, backoff=0.01)"):
-        await fetch_with_retry(shop, URL, attempts=2, backoff=0.01)
+    await raises_async(ConnectionError, fetch_with_retry, shop, URL, attempts=2, backoff=0.01, match="503")
     assert len(shop.attempts) == 2
 
 

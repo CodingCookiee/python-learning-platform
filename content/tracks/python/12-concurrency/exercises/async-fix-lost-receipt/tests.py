@@ -1,6 +1,6 @@
 import asyncio
 
-from plp import hidden, raises, test
+from plp import hidden, raises_async, test
 from solution import checkout
 
 ORDER = {"id": "A-1042", "total": 34.0, "email": "ada@example.com"}
@@ -41,8 +41,7 @@ async def _():
 @test("A rejected address makes checkout raise")
 async def _():
     mailer = Mailer(rejected={"ada@example.com"})
-    with raises(ConnectionRefusedError, match="mailbox unavailable", what="checkout(ORDER, Payments(), mailer)"):
-        await checkout(ORDER, Payments(), mailer)
+    await raises_async(ConnectionRefusedError, checkout, ORDER, Payments(), mailer, match="mailbox unavailable")
 
 
 @test("No task is left running when checkout returns")
@@ -55,7 +54,6 @@ async def _():
 @hidden("A declined card sends no email")
 async def _():
     mailer = Mailer()
-    with raises(ValueError, match="declined", what="checkout(ORDER, Payments(declined=True), mailer)"):
-        await checkout(ORDER, Payments(declined=True), mailer)
+    await raises_async(ValueError, checkout, ORDER, Payments(declined=True), mailer, match="declined")
     await asyncio.sleep(0.03)
     assert mailer.sent == []

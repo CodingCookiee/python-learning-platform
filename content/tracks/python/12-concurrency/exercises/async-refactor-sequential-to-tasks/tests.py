@@ -1,6 +1,6 @@
 import asyncio
 
-from plp import hidden, raises, test
+from plp import hidden, raises_async, test
 from solution import load_dashboard
 
 
@@ -72,6 +72,5 @@ async def _():
 @hidden("A failed request still raises")
 async def _():
     api = AccountAPI(failing="orders")
-    with raises(ConnectionError, match="503", what='load_dashboard(api, "u-17")'):
-        await load_dashboard(api, "u-17")
+    await raises_async(ConnectionError, load_dashboard, api, "u-17", match="503")
     await asyncio.sleep(0.06)  # let any request still in flight finish

@@ -1,6 +1,6 @@
 import re
 
-EXPRESSION = re.compile(r"\{\{\s*(.*?)\s*\}\}")
+EXPRESSION = re.compile(r"\{\{\s*([^{}]*?)\s*\}\}")  # no braces inside, so two expressions never merge
 STEP = re.compile(r"\.(\w+)|\[(\d+)\]")
 
 

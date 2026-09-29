@@ -1,0 +1,9 @@
+title: Send the welcome email later
+type: function
+difficulty: warm-up
+tags: [fastapi, BackgroundTasks, background-tasks]
+packages: [fastapi, httpx]
+timeout: 15
+hints:
+  - "Add a background_tasks: BackgroundTasks parameter to the endpoint; FastAPI fills it in for you."
+  - "background_tasks.add_task(send_welcome_email, signup.email, signup.name) schedules the call. Pass the function and its arguments, don't call it."

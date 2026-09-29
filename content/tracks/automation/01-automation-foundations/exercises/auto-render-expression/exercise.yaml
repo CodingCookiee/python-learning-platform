@@ -3,6 +3,6 @@ type: function
 difficulty: core
 tags: [n8n, expressions, regex, parsing]
 hints:
-  - "Find expressions with re.finditer(r\"\\{\\{\\s*(.*?)\\s*\\}\\}\", template). Each one's inside must start with $json; after that, split the rest into steps with re.findall(r\"\\.(\\w+)|\\[(\\d+)\\]\", rest)."
+  - "Match expressions with r\"\\{\\{\\s*([^{}]*?)\\s*\\}\\}\" (no braces inside, or fullmatch can stretch one match across two expressions). Each one's inside must start with $json; after that, split the rest into steps with re.findall(r\"\\.(\\w+)|\\[(\\d+)\\]\", rest)."
   - "Walk the steps from item[\"json\"]: a name step needs a dict containing that key, an index step a list long enough. The moment a step fails, the value is None."
   - "If re.fullmatch says the whole template is one expression, return the value itself. Otherwise use re.sub with a function that returns \"\" for None and str(value) for everything else."

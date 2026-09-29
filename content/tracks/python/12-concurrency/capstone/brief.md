@@ -189,8 +189,8 @@ Before you submit, check each of these against a fresh `MockCatalogueAPI()`:
 - `crawl(client, concurrency=8)` against the default mock (which allows 4) gets rate limited: the
   mock's `stats["429"]` is above zero. Your crawler should wait for `Retry-After` and retry. The
   requests and retry counts go up, and some pages may even run out of attempts; nothing crashes.
-- `crawl(client, per_second=5)` takes at least 8 seconds, and the mock never sees more than 5
-  starts in a second.
+- `crawl(client, per_second=5)` takes about 8 seconds (42 requests at 5 a second), and the mock
+  never sees more than 5 starts in a second.
 - `crawl(client, retries=0)` fails five pages: the three flaky ones, the kettle (`timed out after
   1 attempts`) and the 404. With `retries=0` there's never a sleep.
 - `crawl(client, max_pages=10)` returns at most 10 pages and failures between them.

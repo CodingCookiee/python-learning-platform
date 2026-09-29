@@ -1,6 +1,6 @@
 import asyncio
 
-from plp import hidden, raises, test
+from plp import hidden, raises, raises_async, test
 from solution import export_orders
 
 
@@ -64,8 +64,7 @@ async def _():
 @test("A failed write propagates, and the connection is still released")
 async def _():
     db = Database()
-    with raises(ValueError, match="missing customer id", what='export_orders(db, ["A-1", "BAD-2", "A-3"])'):
-        await export_orders(db, ["A-1", "BAD-2", "A-3"])
+    await raises_async(ValueError, export_orders, db, ["A-1", "BAD-2", "A-3"], match="missing customer id")
     assert db.conn.released, "the connection was never released"
 
 

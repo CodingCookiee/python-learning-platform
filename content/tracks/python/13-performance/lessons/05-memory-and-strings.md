@@ -192,7 +192,8 @@ for n in (4_000, 8_000):
     print(n, "  ".join(times))
 ```
 
-Doubling the rows roughly quadruples `invoice_concat`'s time, and barely moves the other two. Why
+Doubling the rows more than doubles `invoice_concat`'s time, and the gap keeps widening as the
+invoice grows, because each copy is longer than the last; the other two simply double. Why
 is `+=` fast? CPython cheats: when a string has exactly one reference, a local variable, and you
 `+=` onto it, it resizes that string in place instead of copying. The trick is real, but fragile:
 

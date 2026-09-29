@@ -1,0 +1,9 @@
+title: "Predict: the order middleware runs in"
+type: predict
+difficulty: core
+tags: [fastapi, middleware]
+packages: [fastapi, httpx]
+timeout: 15
+hints:
+  - "Each @app.middleware adds a layer around everything added before it, so the middleware declared last is the outermost: first in, last out."
+  - "Middleware runs for every request, including a path that no route matches. The endpoint only runs when a route matches."

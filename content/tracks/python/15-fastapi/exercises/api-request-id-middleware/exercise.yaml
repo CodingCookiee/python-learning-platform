@@ -1,0 +1,10 @@
+title: A request id on every response
+type: function
+difficulty: core
+tags: [fastapi, middleware, request-state, headers]
+packages: [fastapi, httpx]
+timeout: 15
+hints:
+  - "@app.middleware(\"http\") above async def add_request_id(request, call_next). Work out the id, store it on request.state.request_id, then response = await call_next(request)."
+  - "Reuse the client's id only if VALID_ID.fullmatch(request.headers.get(\"X-Request-ID\", \"\")) matches; otherwise use uuid.uuid4().hex."
+  - "Set response.headers[\"X-Request-ID\"] = request_id before returning the response. Because it's middleware, it also runs for 404s and validation errors."
