@@ -1,0 +1,10 @@
+title: Clean up after every test
+type: tests
+difficulty: core
+tags: [pytest, fixtures, yield, teardown]
+packages: [pytest]
+timeout: 20
+hints:
+  - Change return to yield in the fixture, and after the yield, delete the account with accounts.delete_account(account.id).
+  - Code after yield runs when the test is over, pass or fail, so every test that uses the fixture cleans up after itself.
+  - "Then test the three behaviours: an email typed with capitals and spaces is stored cleaned up, find() works however the email is typed, and change_plan() sticks (check it with find())."

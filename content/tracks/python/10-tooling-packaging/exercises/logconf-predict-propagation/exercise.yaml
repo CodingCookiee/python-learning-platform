@@ -1,0 +1,8 @@
+title: "Predict: where does each message go?"
+type: predict
+difficulty: core
+tags: [logging, propagation, handlers, dictconfig]
+hints:
+  - shop.orders has no level of its own, so it uses shop's INFO. That drops the debug message. warehouse uses the root's WARNING.
+  - Once a record is made, it goes to the logger's own handlers, then its parent's, then the root's. Only the handlers' levels are checked on the way; the ancestors' logger levels are not. So the root's console handler still gets shop.orders' INFO message.
+  - A record visits the closest handlers first, so the failed order prints [audit] before [console]. shop.payments doesn't propagate, so its message reaches only the payments handler.

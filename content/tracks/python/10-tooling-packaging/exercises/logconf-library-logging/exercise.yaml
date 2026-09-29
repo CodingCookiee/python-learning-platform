@@ -1,0 +1,8 @@
+title: Make billing.py log like a library
+type: fix
+difficulty: core
+tags: [logging, libraries, modules]
+hints:
+  - Three things are wrong, and each one is a single line. Configuring logging is the application's job, so the basicConfig call goes.
+  - logging.info() logs through the root logger. Create logger = logging.getLogger(__name__) at the top of the module and call logger.info() and logger.warning() instead.
+  - The print() duplicates what the INFO message already says. Delete it.

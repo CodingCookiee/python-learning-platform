@@ -1,0 +1,8 @@
+title: JSON lines for a log collector
+type: function
+difficulty: stretch
+tags: [logging, formatter, json, datetime, inheritance]
+hints:
+  - Subclass logging.Formatter and override format(self, record). Build a dict, then return json.dumps(entry, default=str) so values like Decimal and datetime become strings instead of raising.
+  - "The time: datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat(timespec=\"milliseconds\") gives \"...T14:05:00.500+00:00\"; replace the \"+00:00\" with \"Z\". The message is record.getMessage(), which fills in the arguments."
+  - "The extra fields are the record's attributes that a plain record doesn't have. STANDARD = set(vars(logging.makeLogRecord({}))) | {\"message\", \"asctime\"} lists the plain ones; loop over vars(record) and keep the rest. For an exception, add self.formatException(record.exc_info) when record.exc_info is set."

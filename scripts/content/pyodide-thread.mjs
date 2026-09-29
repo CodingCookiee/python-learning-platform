@@ -1,5 +1,5 @@
 // One Pyodide instance in a worker thread, running the same plp harness as the
-// browser worker (public/workers/python-worker.js). Driven by pyodide-pool.mjs.
+// browser worker (public/workers/python-worker.mjs). Driven by pyodide-pool.mjs.
 
 import { parentPort, workerData } from "node:worker_threads";
 import { readFileSync } from "node:fs";

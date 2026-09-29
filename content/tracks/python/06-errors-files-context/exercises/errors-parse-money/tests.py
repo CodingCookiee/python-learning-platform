@@ -1,4 +1,3 @@
-import re
 from decimal import Decimal
 
 from plp import test, hidden, raises
@@ -7,8 +6,9 @@ from solution import parse_money
 
 def refused(text):
     """Check parse_money(text) raises the right ValueError, and return it."""
-    expected = "^" + re.escape(f"not a money amount: {text!r}") + "$"
-    return raises(ValueError, parse_money, text, match=expected).value
+    error = raises(ValueError, parse_money, text).value
+    assert str(error) == f"not a money amount: {text!r}"
+    return error
 
 
 @test("Parses an amount and a currency")

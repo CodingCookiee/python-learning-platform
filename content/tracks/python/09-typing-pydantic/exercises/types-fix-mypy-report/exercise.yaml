@@ -1,0 +1,10 @@
+title: Fix what mypy found
+type: fix
+difficulty: core
+tags: [mypy, type-hints, return-types]
+packages: [mypy]
+timeout: 30
+hints:
+  - Each error names a line. The hints are right; the code on that line doesn't do what they promise.
+  - parse_quantity has to turn the stripped text into an int, and line_label has to turn the quantity into text before joining it.
+  - '"Missing return statement" means some input reaches the end of the function without returning. What should a 25 kg parcel get?'

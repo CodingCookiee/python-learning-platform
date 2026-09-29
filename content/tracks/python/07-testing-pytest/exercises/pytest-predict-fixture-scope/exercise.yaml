@@ -1,0 +1,10 @@
+title: "Predict: when fixtures run"
+type: predict
+difficulty: core
+tags: [pytest, fixtures, scope, yield]
+packages: [pytest]
+timeout: 20
+hints:
+  - A function-scoped fixture runs once for every test that asks for it. A module-scoped one runs once for the whole file, and its teardown waits until the last test in the file is done.
+  - The code after yield runs when the test is over, even if it failed. The plugin's line for a test prints after the test body but before its teardown.
+  - "Each test gets a new order dict, so the second test sees paid = False, whatever the first test did."

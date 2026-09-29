@@ -1,0 +1,8 @@
+title: Error rates, hour by hour
+type: function
+difficulty: stretch
+tags: [generators, pipelines, groupby, datetime, laziness]
+hints:
+  - "Parse each line into (hour, status) first, in a generator: datetime.fromisoformat(timestamp).replace(minute=0, second=0, microsecond=0) is the start of its hour."
+  - "The log is in time order, so groupby(parsed, key=lambda item: item[0]) hands out one hour at a time, and it hands out each hour as soon as the first line of the next one arrives."
+  - "Inside the loop over groups, count the requests and the ones with status >= 500 in a single pass over the group (it's an iterator, so you only get one), then yield (hour, requests, errors, round(errors / requests, 3))."

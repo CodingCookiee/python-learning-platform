@@ -14,8 +14,8 @@ def invalid_amount():
 @test("Refuses a payment it can't cover, with the facts attached")
 def _():
     wallet = Wallet(Decimal("20.00"))
-    with raises(InsufficientFunds, match=r"^balance 20\.00 is 30\.00 short of 50\.00$") as caught:
-        wallet.pay(Decimal("50.00"))
+    caught = raises(InsufficientFunds, wallet.pay, Decimal("50.00"))
+    assert str(caught.value) == "balance 20.00 is 30.00 short of 50.00"
     assert caught.value.balance == Decimal("20.00")
     assert caught.value.amount == Decimal("50.00")
     assert caught.value.shortfall == Decimal("30.00")

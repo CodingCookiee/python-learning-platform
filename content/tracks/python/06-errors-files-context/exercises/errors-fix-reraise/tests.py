@@ -9,6 +9,9 @@ class Gateway:
         self.mode = mode
         self.error = None
 
+    def __repr__(self):
+        return f"{self.mode}_gateway"
+
     def charge(self, card, amount):
         if self.mode == "offline":
             self.error = ConnectionError("gateway timed out")
@@ -30,8 +33,7 @@ def _():
 def _():
     retry_queue = []
     gateway = Gateway("offline")
-    with raises(ConnectionError, match="timed out") as caught:
-        charge(gateway, "4242", 25, retry_queue)
+    caught = raises(ConnectionError, charge, gateway, "4242", 25, retry_queue, match="timed out")
     assert caught.value is gateway.error, "Pass on the gateway's own exception, not a new one"
     assert retry_queue == [("4242", 25)]
 
@@ -40,8 +42,7 @@ def _():
 def _():
     retry_queue = []
     gateway = Gateway("declining")
-    with raises(ValueError, match="declined") as caught:
-        charge(gateway, "5555", 10, retry_queue)
+    caught = raises(ValueError, charge, gateway, "5555", 10, retry_queue, match="declined")
     assert caught.value is gateway.error
     assert retry_queue == [], "Only a ConnectionError is worth retrying"
 
@@ -51,15 +52,13 @@ def _():
     retry_queue = []
     gateway = Gateway("offline")
     for card, amount in [("4242", 25), ("1881", 7)]:
-        with raises(ConnectionError):
-            charge(gateway, card, amount, retry_queue)
+        raises(ConnectionError, charge, gateway, card, amount, retry_queue)
     assert retry_queue == [("4242", 25), ("1881", 7)]
 
 
 @hidden("The re-raised error isn't chained to a copy of itself")
 def _():
     gateway = Gateway("offline")
-    with raises(ConnectionError) as caught:
-        charge(gateway, "4242", 25, [])
+    caught = raises(ConnectionError, charge, gateway, "4242", 25, [])
     assert caught.value.__cause__ is None
     assert caught.value.__context__ is None

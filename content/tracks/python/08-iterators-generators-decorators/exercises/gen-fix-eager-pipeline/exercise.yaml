@@ -1,0 +1,8 @@
+title: The pipeline that read everything
+type: fix
+difficulty: core
+tags: [generators, pipelines, laziness, islice]
+hints:
+  - Every stage builds a complete list before returning, so the first stage has to reach the end of the feed before the second one starts. A feed that never ends has no end to reach.
+  - Turn parse_payments and declined into generators. Replace each "append to a list" with yield, and drop the list and the return.
+  - "Slicing with [:n] needs a list. Take the first n from a generator with itertools.islice, and build the list from that."

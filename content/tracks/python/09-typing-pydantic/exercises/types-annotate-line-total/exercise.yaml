@@ -1,0 +1,10 @@
+title: Annotate an invoice line
+type: function
+difficulty: warm-up
+tags: [type-hints, mypy, strict]
+packages: [mypy]
+timeout: 30
+hints:
+  - Every parameter gets a type after a colon, and the return type goes after -> before the final colon.
+  - Cents are whole numbers, so they're int. format_cents returns text, so its return type is str.
+  - "def line_total(quantity: int, unit_price_cents: int) -> int:"

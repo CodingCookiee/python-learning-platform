@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 
 /**
- * The browser Python runtime: Pyodide in a Web Worker (public/workers/python-worker.js)
+ * The browser Python runtime: Pyodide in a Web Worker (public/workers/python-worker.mjs)
  * running the shared plp harness (public/py). One job runs at a time. A job that
  * overruns its timeout terminates the worker, and the next job starts a fresh one.
  */
@@ -53,7 +53,7 @@ interface Job {
   resolve: (value: unknown) => void;
 }
 
-const WORKER_URL = "/workers/python-worker.js?v=314.0.7-1";
+const WORKER_URL = "/workers/python-worker.mjs?v=314.0.7-2";
 
 class PythonRuntime {
   private worker: Worker | null = null;
@@ -87,7 +87,7 @@ class PythonRuntime {
   private ensureWorker(): Promise<void> {
     if (this.workerReady) return this.workerReady;
     this.setStatus("loading", "Loading Python…");
-    const worker = new Worker(WORKER_URL);
+    const worker = new Worker(WORKER_URL, { type: "module" });
     this.worker = worker;
     this.workerReady = new Promise<void>((resolve, reject) => {
       worker.onmessage = (event: MessageEvent) => {

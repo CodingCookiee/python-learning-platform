@@ -1,6 +1,6 @@
 /* pylearn Python worker.
  *
- * Owns one Pyodide instance off the main thread, so a runaway loop can never
+ * A module worker that owns one Pyodide instance off the main thread, so a runaway loop can never
  * freeze the page: the main thread terminates this worker on timeout and
  * starts a fresh one (lib/python-runtime.ts).
  *
@@ -13,10 +13,11 @@
  *                  { id, type: "failure", message }         (the runtime itself failed)
  */
 
-const PYODIDE_VERSION = "314.0.7";
-const INDEX_URL = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
+// A module worker: Pyodide 314's classic build can't be loaded with importScripts
+// in Chrome workers, but its ES module build imports cleanly.
+import { loadPyodide } from "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/pyodide.mjs";
 
-importScripts(`${INDEX_URL}pyodide.js`);
+const INDEX_URL = "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/";
 
 const loaded = new Set();
 
@@ -42,7 +43,7 @@ const implicitPackages = (msg) => {
 
 
 const ready = (async () => {
-  const py = await self.loadPyodide({ indexURL: INDEX_URL });
+  const py = await loadPyodide({ indexURL: INDEX_URL });
   const version = new URL(self.location.href).searchParams.get("v") ?? "";
   const [plp, runner] = await Promise.all(
     ["plp.py", "plp_runner.py"].map((name) =>

@@ -9,22 +9,19 @@ def _():
 
 @test("A missing port is a ValueError caused by the KeyError")
 def _():
-    with raises(ValueError, match="^missing setting: port$") as caught:
-        read_port({"host": "db.internal"})
+    caught = raises(ValueError, read_port, {"host": "db.internal"}, match="^missing setting: port$")
     assert type(caught.value.__cause__) is KeyError, "Chain it: raise ValueError(...) from the KeyError"
 
 
 @test("A port that isn't a number is a ValueError caused by int()'s error")
 def _():
-    with raises(ValueError, match="^port must be a whole number, got 'eighty'$") as caught:
-        read_port({"port": "eighty"})
+    caught = raises(ValueError, read_port, {"port": "eighty"}, match="^port must be a whole number, got 'eighty'$")
     assert type(caught.value.__cause__) is ValueError, "Chain it: raise ValueError(...) from int()'s ValueError"
 
 
 @test("A port out of range is a ValueError with no cause")
 def _():
-    with raises(ValueError, match="^port 70000 is out of range 1-65535$") as caught:
-        read_port({"port": "70000"})
+    caught = raises(ValueError, read_port, {"port": "70000"}, match="^port 70000 is out of range 1-65535$")
     assert caught.value.__cause__ is None
     assert caught.value.__context__ is None, "The range check isn't handling another error, so raise it outside any except block"
 

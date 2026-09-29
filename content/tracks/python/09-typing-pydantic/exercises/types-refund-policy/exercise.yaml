@@ -1,0 +1,10 @@
+title: A typed refund policy
+type: function
+difficulty: stretch
+tags: [type-hints, Final, keyword-only, mypy]
+packages: [mypy]
+timeout: 30
+hints:
+  - "Import Final from typing and write RETURN_WINDOW_DAYS: Final = 30. mypy infers the int for you."
+  - A bare * in the parameter list makes every parameter after it keyword-only, so damaged=True has to be spelled out.
+  - "Check for negative days first. Then, inside the window, refund everything; outside it, refund paid_cents // 2 if damaged, else 0."

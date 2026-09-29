@@ -1,0 +1,10 @@
+title: Download the rates once
+type: tests
+difficulty: stretch
+tags: [pytest, fixtures, scope, decimal]
+packages: [pytest]
+timeout: 20
+hints:
+  - "@pytest.fixture(scope=\"module\") (or \"session\") runs the fixture once and hands every test the same value."
+  - Work out an expected value by hand, e.g. 100 GBP is 100 / 0.85 euros, times 1.085 in dollars. Use Decimal strings in your expected values.
+  - "To catch a rounding bug, pick an amount whose exact result isn't a whole number of cents, and check the last digit: 100.00 GBP to USD is 127.647…, which rounds to 127.65, not 127.64."

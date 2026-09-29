@@ -1,0 +1,7 @@
+title: Count the entries in a statement
+type: function
+difficulty: warm-up
+tags: [files, open, encoding]
+hints:
+  - "Open the file with open(path, encoding=\"utf-8\") in a with statement, and loop over the file object: each iteration gives one line."
+  - "line.strip() is empty for a blank line or one of only spaces, so sum(1 for line in file if line.strip()) counts the rest."

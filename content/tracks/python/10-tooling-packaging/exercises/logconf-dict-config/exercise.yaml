@@ -1,0 +1,8 @@
+title: The application's logging config
+type: function
+difficulty: core
+tags: [logging, dictconfig, configuration]
+hints:
+  - 'Start from the dict in the lesson: "version": 1, "disable_existing_loggers": False, one formatter, one StreamHandler, and a "root" entry that lists the handler.'
+  - 'A handler''s config keys other than class, level and formatter are passed to its constructor, so "stream": stream hands the StreamHandler the object you were given.'
+  - 'Put the level on the root and on the handler ("DEBUG" if verbose else "INFO"), and add "loggers": {"httpx": {"level": "WARNING"}, "httpcore": {"level": "WARNING"}}.'

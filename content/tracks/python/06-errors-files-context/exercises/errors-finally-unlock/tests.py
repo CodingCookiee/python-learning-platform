@@ -11,6 +11,9 @@ class Ledger:
         self.entries = []
         self.calls = []
 
+    def __repr__(self):
+        return "ledger"
+
     def lock(self):
         self.calls.append("lock")
         if self.busy:
@@ -39,8 +42,7 @@ def _():
 @test("Unlocks the ledger when posting fails, and lets the error through")
 def _():
     ledger = Ledger()
-    with raises(ValueError, match="zero entry"):
-        post_batch(ledger, [60, 0, 15])
+    raises(ValueError, post_batch, ledger, [60, 0, 15], match="zero entry")
     assert ledger.locked is False, "The ledger was left locked after the error"
     assert ledger.entries == [60]
 
@@ -55,16 +57,14 @@ def _():
 @hidden("Unlocks exactly once when posting fails")
 def _():
     ledger = Ledger()
-    with raises(ValueError):
-        post_batch(ledger, [0])
+    raises(ValueError, post_batch, ledger, [0])
     assert ledger.calls == ["lock", "post 0", "unlock"]
 
 
 @hidden("Doesn't unlock a ledger it never locked")
 def _():
     ledger = Ledger(busy=True)
-    with raises(RuntimeError, match="busy"):
-        post_batch(ledger, [10])
+    raises(RuntimeError, post_batch, ledger, [10], match="busy")
     assert ledger.calls == ["lock"], "lock() failed, so post() and unlock() shouldn't have been called"
 
 

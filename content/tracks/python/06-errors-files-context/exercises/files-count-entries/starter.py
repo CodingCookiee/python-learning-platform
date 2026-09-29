@@ -1,0 +1,3 @@
+def count_entries(path):
+    """How many non-blank lines the UTF-8 text file at path has."""
+    ...

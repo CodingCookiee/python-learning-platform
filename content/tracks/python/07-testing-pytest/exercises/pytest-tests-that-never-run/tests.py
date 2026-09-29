@@ -41,7 +41,7 @@ def clean(result):
 
 def catches(buggy_source):
     """True if the learner's tests fail (or error) on the buggy copy."""
-    assert clean(run(CORRECT)), "Make your tests pass on the correct code first (see the first check)"
+    assert clean(run(CORRECT)), "Make your tests pass cleanly on the correct code first (see the checks above)"
     result = run(buggy_source)
     return bool(result.failed or result.errors)
 

@@ -1,0 +1,8 @@
+title: The import that crashes on the first bad signup
+type: fix
+difficulty: stretch
+tags: [exceptions, exception-groups, except-star, enumerate]
+hints:
+  - "validate_customer raises an ExceptionGroup, and a group isn't a FieldError, so the except clause never matches. Run the example and read the traceback."
+  - "except* FieldError as group: matches the FieldErrors inside the group. group is itself a smaller ExceptionGroup, so loop over group.exceptions to get each one."
+  - "except* blocks can't contain continue, break or return. You don't need them here: when validate_customer raises, the append to accepted never happens."

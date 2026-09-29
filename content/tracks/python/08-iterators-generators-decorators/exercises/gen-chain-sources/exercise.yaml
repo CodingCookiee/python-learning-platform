@@ -1,0 +1,6 @@
+title: One stream from many log files
+type: function
+difficulty: warm-up
+tags: [generators, yield-from, delegation]
+hints:
+  - "The body is a for loop over sources with one line inside: yield from source."

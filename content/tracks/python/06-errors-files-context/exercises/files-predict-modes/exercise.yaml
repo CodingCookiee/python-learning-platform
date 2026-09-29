@@ -1,0 +1,7 @@
+title: "Predict: write, append, overwrite"
+type: predict
+difficulty: core
+tags: [files, open, modes, bytes, encoding]
+hints:
+  - "\"w\" empties the file as soon as it's opened, \"a\" writes after whatever is already there, and \"x\" refuses a file that exists. The third write has no newline at the end."
+  - "file.write() returns the number of characters written. In UTF-8, é takes two bytes, so the file holds one more byte than it has characters."

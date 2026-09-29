@@ -1,0 +1,8 @@
+title: Report every problem with a signup
+type: function
+difficulty: core
+tags: [exceptions, exception-groups, validation]
+hints:
+  - "Start with errors = []. Check each field in turn and append a FieldError for each problem instead of raising it."
+  - "For the age, try int(text) and catch ValueError; only check the range when the conversion worked."
+  - "After all three checks: if errors: raise ExceptionGroup(\"invalid customer\", errors). Otherwise return the cleaned dict."

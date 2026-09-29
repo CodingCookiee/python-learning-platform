@@ -1,0 +1,8 @@
+title: "Predict: hints at runtime"
+type: predict
+difficulty: warm-up
+tags: [type-hints, annotations, runtime]
+hints:
+  - Python stores the hints and never checks them. Each call runs amount * 2 with whatever it was given.
+  - '"21" * 2 repeats the string, [5] * 2 repeats the list, and 1.5 * 2 is a float.'
+  - get_type_hints returns the hints as a dict of parameter name to type, with the return type under "return".

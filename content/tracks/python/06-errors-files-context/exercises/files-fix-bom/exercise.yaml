@@ -1,0 +1,8 @@
+title: The column that wasn't called Date
+type: fix
+difficulty: core
+tags: [files, encoding, bom, utf-8-sig]
+hints:
+  - "Print repr() of the columns the starter returns. The first one starts with an invisible \"\\ufeff\", and the last one ends with \"\\n\"."
+  - "The \"\\ufeff\" is a byte order mark that Excel writes at the start of UTF-8 files. Opening with encoding=\"utf-8-sig\" removes it, and reads files without one just like UTF-8."
+  - "Strip each column name: [name.strip() for name in header.split(\",\")] removes the newline and any stray spaces."

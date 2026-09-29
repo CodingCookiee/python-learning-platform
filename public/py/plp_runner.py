@@ -1,6 +1,6 @@
 """pylearn runner: executes learner code and drill tests, returns JSON-ready results.
 
-Shared by the browser worker (public/workers/python-worker.js) and the content
+Shared by the browser worker (public/workers/python-worker.mjs) and the content
 validator (scripts/content), so a drill behaves identically in both.
 
     await run_code(code, stdin=None)            -> run mode: output of the program

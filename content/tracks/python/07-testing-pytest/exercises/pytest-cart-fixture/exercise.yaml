@@ -1,0 +1,10 @@
+title: A cart fixture
+type: tests
+difficulty: warm-up
+tags: [pytest, fixtures]
+packages: [pytest]
+timeout: 20
+hints:
+  - "Decorate a function called cart with @pytest.fixture. It builds a Cart, adds the two lines, and returns it."
+  - A test gets the fixture by having a parameter called cart. Don't call cart() yourself.
+  - "Each test gets a fresh cart, so a test can safely call cart.remove(\"MUG\") or add more tea and check the result."

@@ -318,7 +318,11 @@ if (process.env.FLOW) {
 }
 if (process.env.EVAL) {
   // EVAL="<path>|<js expression>": print the expression's value on that page
-  const [path, expr] = process.env.EVAL.split("|");
+  // EVAL="<path>" with EVAL_FILE=<file holding the expression>, or EVAL="<path>|<expr>"
+  const [path, inline] = process.env.EVAL.split(/\|(.*)/s);
+  const expr = process.env.EVAL_FILE
+    ? (await import("node:fs")).readFileSync(process.env.EVAL_FILE, "utf8")
+    : inline;
   await go(path);
   console.log("EVAL ->", JSON.stringify(await ev(expr)));
   ws.close();
