@@ -1,0 +1,8 @@
+title: An email that writes its own instructions
+type: fix
+difficulty: core
+tags: [prompting, prompt injection, delimiters, system prompt, ScriptedLLM]
+hints:
+  - The customer's email is appended to the system prompt, so anything they write reads as your instructions. The system prompt should be REPLY_SYSTEM and nothing else.
+  - Move the email into the user message, between <email> and </email> tags on their own lines, and say that it's data from the customer, not instructions.
+  - "Before wrapping it, remove any tags the customer typed: email.replace(\"<email>\", \"\").replace(\"</email>\", \"\")."

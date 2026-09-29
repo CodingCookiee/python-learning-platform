@@ -1,0 +1,8 @@
+title: The export that Excel touched
+type: fix
+difficulty: core
+tags: [csv, encoding, decimal]
+hints:
+  - "The KeyError is about 'status', and yet the header says status. Print repr(reader.fieldnames[0]): there's an invisible character in front."
+  - "encoding=\"utf-8-sig\" strips the byte order mark Excel writes. Then add the amounts up as Decimal(row[\"amount\"]), starting from Decimal(\"0\")."
+  - Excel leaves rows of empty cells at the end. Skip any row whose status is empty.

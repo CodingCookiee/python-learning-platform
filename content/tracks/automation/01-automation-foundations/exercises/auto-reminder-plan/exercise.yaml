@@ -1,0 +1,8 @@
+title: The clinic's reminder planner
+type: function
+difficulty: core
+tags: [automation-thinking, datetime, pure-functions]
+hints:
+  - "Handle each appointment in turn and `continue` past the ones that don't qualify: wrong status, outside the window, or already reminded."
+  - "The window is now + 2 hours < starts <= now + 24 hours. Compare datetimes directly; timedelta(hours=2) builds the offsets."
+  - Pick the channel last. SMS needs both a mobile and sms_ok; otherwise fall back to email; with neither, skip the appointment. Sort the actions by start time at the end.

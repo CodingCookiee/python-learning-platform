@@ -1,0 +1,7 @@
+title: "Predict: what getsizeof counts"
+type: predict
+difficulty: warm-up
+tags: [memory, getsizeof, generators]
+hints:
+  - getsizeof is shallow. A list's size depends on how many pointers it holds, not on how big the objects they point at are.
+  - A range and a generator store their recipe, not their values. And a generator can only be consumed once.

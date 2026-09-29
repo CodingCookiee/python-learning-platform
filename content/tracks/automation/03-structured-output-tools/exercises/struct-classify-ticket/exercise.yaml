@@ -1,0 +1,9 @@
+title: Classify a support ticket
+type: function
+difficulty: core
+tags: [classification, Literal, structured-outputs, pydantic]
+packages: [pydantic]
+hints:
+  - "TicketLabel has model_config = ConfigDict(extra=\"forbid\"), category: Literal[...] with the five labels, confidence: float = Field(ge=0, le=1) and reason: str. None of them has a default, so its schema is already strict."
+  - 'Build the system prompt from LABELS with one f"- {label}: {definition}" line per label, after a sentence saying what to do. Send schema=TicketLabel.model_json_schema().'
+  - Wrap TicketLabel.model_validate_json(response.text) in try/except ValueError (ValidationError is a ValueError), and return TicketLabel(category="unknown", confidence=0.0, reason=...) in the except branch.

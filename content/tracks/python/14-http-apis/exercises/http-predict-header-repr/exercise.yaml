@@ -1,0 +1,9 @@
+title: "Predict: what hides a secret, and what doesn't"
+type: predict
+difficulty: core
+tags: [authentication, headers, secrets, logging]
+packages: [httpx]
+hints:
+  - "The repr of httpx.Headers masks the authorization header as '[secure]'. It knows nothing about X-API-Key, so that one prints in full. Header names print in lowercase."
+  - "Masking only affects the repr. Looking a header up (in any case) or turning the headers into a dict gives you the real value."
+  - raise_for_status() builds its message from the full URL, query string included.

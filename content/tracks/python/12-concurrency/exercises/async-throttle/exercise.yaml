@@ -1,0 +1,8 @@
+title: A sliding-window throttle
+type: function
+difficulty: core
+tags: [asyncio, rate-limits, deque, loop-time]
+hints:
+  - Keep the start times of recent calls in a deque. Before deciding anything, drop the ones that are period seconds old or more; whatever is left is the current window.
+  - If the window has room, record now and return. If it's full, sleep until the oldest start leaves the window, then check again from the top. Another caller may have taken the slot while you slept, so it has to be a loop.
+  - "Read the clock with asyncio.get_running_loop().time(). There's no await between checking the window and recording the start, so no other caller can sneak in between: no lock needed."

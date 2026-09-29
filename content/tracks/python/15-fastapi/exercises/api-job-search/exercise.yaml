@@ -1,0 +1,9 @@
+title: Search the job board
+type: function
+difficulty: core
+tags: [fastapi, query-parameters, Annotated, Query, validation]
+packages: [fastapi, httpx]
+hints:
+  - "Every filter is a query parameter with a default. q: str | None = None and remote: bool | None = None mean \"not given\" is None, so you only filter when the value isn't None."
+  - "Limits go in Annotated: min_salary: Annotated[int, Query(ge=0)] = 0 and limit: Annotated[int, Query(ge=1, le=50)] = 10."
+  - "Filter first and count the matches, then slice: {\"count\": len(matches), \"jobs\": matches[:limit]}. Compare titles with q.lower() in job[\"title\"].lower()."

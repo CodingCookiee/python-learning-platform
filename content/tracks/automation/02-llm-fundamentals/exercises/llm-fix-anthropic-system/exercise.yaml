@@ -1,0 +1,9 @@
+title: The system prompt in the wrong place
+type: fix
+difficulty: core
+tags: [anthropic, system prompt, messages api]
+packages: [httpx]
+hints:
+  - The Messages API has no "system" role. A system message in messages is rejected with a 400.
+  - Anthropic takes the system prompt as a top-level "system" field in the body, next to model and max_tokens.
+  - Remove the system message from messages and add "system" to the JSON body, with SYSTEM as its value.

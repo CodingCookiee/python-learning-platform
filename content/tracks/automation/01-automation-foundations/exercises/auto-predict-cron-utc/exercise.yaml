@@ -1,0 +1,7 @@
+title: "Predict: 08:00 UTC at a London clinic"
+type: predict
+difficulty: warm-up
+tags: [cron, zoneinfo, time-zones]
+hints:
+  - London is on GMT (UTC+0) in winter and BST (UTC+1) in summer. 12 January is winter; 13 July is summer.
+  - "astimezone(london) adds the offset: 08:00 UTC in July is 09:00 BST. Going the other way, 08:00 BST is 07:00 UTC."

@@ -1,0 +1,9 @@
+title: Hand-rolled checks to a Pydantic contract
+type: refactor
+difficulty: core
+tags: [pydantic, Literal, field_validator, refactoring]
+packages: [pydantic]
+hints:
+  - 'class LeadLabel(BaseModel) with label: Literal["hot", "warm", "cold"] and confidence: float = Field(ge=0, le=1). Pydantic already turns "0.8" into 0.8.'
+  - A @field_validator("label", mode="before") that returns value.strip().lower() for strings handles " Hot ". It doesn't need to raise anything; the Literal does the refusing.
+  - parse_label becomes one line, LeadLabel.model_validate(data). ValidationError is a subclass of ValueError, so callers that catch ValueError keep working.

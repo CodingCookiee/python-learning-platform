@@ -1,0 +1,10 @@
+title: Patch a booking, and only what was sent
+type: function
+difficulty: stretch
+tags: [fastapi, patch, pydantic, exclude_unset, field_validator, response-model]
+packages: [fastapi, httpx]
+timeout: 15
+hints:
+  - "Every field of BookingUpdate is optional (default None), and model_config = ConfigDict(extra=\"forbid\") refuses keys that aren't fields, such as guest_name."
+  - "Validators don't run on defaults, so a field_validator on guests and check_in that raises ValueError when the value is None refuses an explicit null but still allows the field to be left out."
+  - "Apply the change with bookings[booking_id] |= update.model_dump(exclude_unset=True), then return the stored dict with response_model=BookingRead."

@@ -1,0 +1,3 @@
+def rank_candidates(candidates, *, hourly_rate, max_payback=12):
+    """(name, payback_months) for stable candidates paying back within max_payback, fastest first."""
+    ...

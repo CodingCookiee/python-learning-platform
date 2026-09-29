@@ -1,0 +1,8 @@
+title: Find the next page
+type: function
+difficulty: warm-up
+tags: [pagination, link-header, httpx]
+packages: [httpx]
+hints:
+  - "response.links is a dict keyed by rel. response.links.get(\"next\") is None when there's no next page."
+  - "response.url.join(url) resolves a relative URL against the page you just fetched, and leaves an absolute one alone. Wrap it in str()."

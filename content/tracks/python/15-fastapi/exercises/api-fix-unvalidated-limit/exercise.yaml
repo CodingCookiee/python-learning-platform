@@ -1,0 +1,9 @@
+title: The page size nobody checked
+type: fix
+difficulty: core
+tags: [fastapi, query-parameters, Annotated, Query, Literal, validation]
+packages: [fastapi, httpx]
+hints:
+  - "Each bug is a query parameter that accepts any value of its type. Constraints belong in Annotated: page: Annotated[int, Query(ge=1)] = 1."
+  - "per_page needs both a floor and a ceiling: Query(ge=1, le=100). For status, a Literal of the three real statuses refuses typos with 422."
+  - "status: Literal[\"pending\", \"packed\", \"shipped\"] | None = None keeps it optional. The function body can stay exactly as it is."

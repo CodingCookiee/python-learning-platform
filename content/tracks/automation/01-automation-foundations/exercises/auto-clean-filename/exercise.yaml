@@ -1,0 +1,7 @@
+title: Clean a file name
+type: function
+difficulty: warm-up
+tags: [pathlib, regex, strings]
+hints:
+  - "Path(name).stem is the name without its extension, and Path(name).suffix is the extension, dot included."
+  - "re.sub(r\"[^a-z0-9]+\", \"-\", stem.lower()).strip(\"-\") turns every run of other characters into one hyphen."

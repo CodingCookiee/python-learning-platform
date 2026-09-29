@@ -1,0 +1,8 @@
+title: Measure peak memory
+type: function
+difficulty: core
+tags: [memory, tracemalloc, measuring]
+hints:
+  - tracemalloc.start() before the call; tracemalloc.get_traced_memory() returns (current, peak) in bytes.
+  - Read the peak, not the current figure. Memory the function freed before returning still counts towards the peak.
+  - Put tracemalloc.stop() in a finally block so it runs even when fn raises. Divide by 1024 and round to one decimal place.

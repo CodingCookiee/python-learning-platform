@@ -1,0 +1,8 @@
+title: The export that's always a few short
+type: fix
+difficulty: core
+tags: [pagination, cursor, generators, off-by-one]
+packages: [httpx]
+hints:
+  - Follow the loop for a CRM with one page of 30 contacts. The first response has has_more false, so the function breaks before yielding anything.
+  - Yield the page's contacts first, then check has_more. The order of the two steps is the whole bug.

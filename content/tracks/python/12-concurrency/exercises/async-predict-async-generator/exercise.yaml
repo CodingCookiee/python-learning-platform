@@ -1,0 +1,8 @@
+title: "Predict: a ticker you leave early"
+type: predict
+difficulty: core
+tags: [asyncio, async-generators, aclosing, async-comprehensions]
+hints:
+  - An async generator's body doesn't start until the first time the loop asks for an item, and it runs only as far as the next yield each time.
+  - Breaking out of the loop leaves the generator paused at its yield. aclosing closes it when the async with block ends, which runs the finally.
+  - The comprehension runs a second, separate generator to the end, so it subscribes and unsubscribes too.

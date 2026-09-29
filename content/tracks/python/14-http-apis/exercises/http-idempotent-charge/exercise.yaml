@@ -1,0 +1,9 @@
+title: A payment that's safe to retry
+type: function
+difficulty: stretch
+tags: [retries, idempotency, payments, post, uuid]
+packages: [httpx]
+hints:
+  - "Work out the key once, before the loop: key = idempotency_key or new_key(). Every attempt sends headers={\"Idempotency-Key\": key} and the same json= body."
+  - "Inside the loop, try the POST and raise_for_status(). Catch httpx.TransportError, and httpx.HTTPStatusError only when the status is in {429, 500, 502, 503, 504}; re-raise anything else, and re-raise on the last attempt."
+  - "Between attempts, sleep(2 ** attempt) gives 1, 2, 4... with attempts counted from 0."

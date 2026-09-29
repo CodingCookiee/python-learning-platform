@@ -1,0 +1,8 @@
+title: Teach the adapters schema=
+type: function
+difficulty: core
+tags: [structured-outputs, anthropic, openai, adapters]
+hints:
+  - 'schema_options is two dict literals: {"output_config": {"format": {"type": "json_schema", "schema": schema}}} for Anthropic, and {"response_format": {"type": "json_schema", "json_schema": {...}}} for OpenAI, with name, strict and schema inside.'
+  - 'For Anthropic, check body["stop_reason"] == "refusal" first, then join the "text" of every content block whose type is "text".'
+  - 'For OpenAI, the message is body["choices"][0]["message"]. A truthy message.get("refusal") means the model declined: raise Refused with that text.'

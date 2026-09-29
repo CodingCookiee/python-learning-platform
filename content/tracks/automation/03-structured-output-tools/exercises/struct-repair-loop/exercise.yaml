@@ -1,0 +1,9 @@
+title: A reusable repair loop
+type: function
+difficulty: stretch
+tags: [repair-loop, pydantic, generics, cost, retries]
+packages: [pydantic]
+hints:
+  - Start the conversation with one user message holding the document in <document> tags, and keep appending to that list. Add each response's usage.input_tokens and usage.output_tokens to running totals.
+  - Check response.stop_reason == "max_tokens" first and raise ExtractionFailed straight away. Then try model_cls.model_validate(extract_json(response.text)); catch ValidationError (use validation_feedback) before ValueError (use str(error)), because ValidationError is a kind of ValueError.
+  - 'After a failure, append {"role": "assistant", "content": response.text} and a user message containing the problems. When the loop ends, raise ExtractionFailed(problems, response.text).'

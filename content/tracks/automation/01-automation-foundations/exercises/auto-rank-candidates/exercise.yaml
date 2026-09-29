@@ -1,0 +1,8 @@
+title: Rank the automation backlog
+type: function
+difficulty: stretch
+tags: [roi, sorting, dicts]
+hints:
+  - Work out one candidate's payback in a helper first (the previous drill's formula), returning None when it never pays back.
+  - "Missing keys have defaults: candidate.get(\"error_rate\", 0), candidate.get(\"stable\", True) and so on."
+  - "Keep candidates that are stable and whose payback is not None and <= max_payback, then sort with key=lambda pair: (pair[1], pair[0])."

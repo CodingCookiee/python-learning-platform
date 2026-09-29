@@ -1,0 +1,8 @@
+title: A slotted class that won't load
+type: fix
+difficulty: core
+tags: [slots, weakref, descriptors]
+hints:
+  - "The ValueError comes from the class statement: currency = \"USD\" would replace the slot's descriptor on the class. Remove it and give __init__ a default, currency=\"USD\"."
+  - "Once it loads, record() fails with \"cannot create weak reference to 'Tick' object\". Without a __dict__ there's also no slot for weak references, unless you ask for one."
+  - "Add \"__weakref__\" to __slots__. Instances still have no __dict__."

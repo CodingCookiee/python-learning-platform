@@ -1,0 +1,9 @@
+title: The OpenAI adapter
+type: function
+difficulty: core
+tags: [openai, adapter, Protocol, httpx, dataclasses, tools, json]
+packages: [httpx]
+hints:
+  - "Start with to_openai_messages: the system prompt (if any) becomes the first message, user and plain assistant messages pass through, and tool messages keep their tool_call_id."
+  - "An assistant message with tool calls becomes {\"role\": \"assistant\", \"content\": text or None, \"tool_calls\": [...]}, each call {\"id\", \"type\": \"function\", \"function\": {\"name\", \"arguments\": json.dumps(arguments)}}."
+  - "In the reply, choices[0][\"message\"] holds content (maybe None) and tool_calls (maybe missing), whose arguments need json.loads. Map finish_reason with {\"stop\": \"end_turn\", \"length\": \"max_tokens\", \"tool_calls\": \"tool_use\"}."

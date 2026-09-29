@@ -1,0 +1,8 @@
+title: Webhook handlers that register themselves
+type: function
+difficulty: core
+tags: [init-subclass, registry, class-keywords, class-creation]
+hints:
+  - "__init_subclass__(cls, event=None, abstract=False, **kwargs) receives the keywords from the class line. Call super().__init_subclass__(**kwargs) first."
+  - "Skip abstract classes entirely. Otherwise refuse a missing event, and refuse an event that's already in EventHandler.handlers, naming the class that has it: raise TypeError(...). Only then set cls.event and add the class."
+  - "dispatch looks the handler class up by payload[\"type\"], makes an instance, and returns handler.handle(payload[\"data\"]). Turn a missing key into ValueError."

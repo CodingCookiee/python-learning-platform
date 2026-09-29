@@ -1,0 +1,9 @@
+title: Page through an organisation's repositories
+type: function
+difficulty: core
+tags: [pagination, link-header, generators, github]
+packages: [httpx]
+hints:
+  - "The first request is client.get(f\"/orgs/{org}/repos\", params={\"per_page\": per_page}). After that, the URL comes from response.links."
+  - "Loop while you have a URL: fetch it, raise_for_status(), yield from response.json(), then set the URL to the next link (or None)."
+  - "response.links.get(\"next\", {}).get(\"url\") is None on the last page. Pass the next URL to client.get() exactly as it is."

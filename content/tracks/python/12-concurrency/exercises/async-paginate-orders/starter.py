@@ -1,0 +1,3 @@
+async def iter_orders(client):
+    """Yield every order from every page of the orders API, fetching pages as needed."""
+    ...

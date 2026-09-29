@@ -1,0 +1,9 @@
+title: An auth class that knows where its key belongs
+type: function
+difficulty: core
+tags: [authentication, api-keys, httpx-auth, generators, secrets]
+packages: [httpx]
+hints:
+  - "auth_flow(self, request) is a generator: set request.headers[self.header] = self.key only when request.url.host == self.host, then yield request either way."
+  - "Store the key on the instance, and write __repr__ yourself: f\"ApiKeyAuth(header={self.header!r}, host={self.host!r}, key={hint!r})\"."
+  - "The hint is \"...\" + key[-4:] for keys longer than 8 characters, and \"***\" otherwise."

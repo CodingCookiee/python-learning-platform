@@ -1,0 +1,8 @@
+title: A transaction context manager
+type: function
+difficulty: core
+tags: [asyncio, asynccontextmanager, async-with, cancellation]
+hints:
+  - "Decorate an async generator with @asynccontextmanager: await the BEGIN, then yield conn. Code after the yield is the cleanup."
+  - "An exception from the with block is raised at the yield. Wrap the yield in try: ... except ...: ROLLBACK and re-raise, and COMMIT in the else: branch."
+  - CancelledError doesn't inherit from Exception, so except Exception misses a cancelled block. Catch BaseException for the rollback, and always re-raise.

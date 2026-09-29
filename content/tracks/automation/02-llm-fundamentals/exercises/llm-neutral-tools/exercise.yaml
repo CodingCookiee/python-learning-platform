@@ -1,0 +1,8 @@
+title: One tool, two spellings
+type: function
+difficulty: warm-up
+tags: [tools, json schema, anthropic, openai]
+hints:
+  - Both functions build a new dict from the neutral one; neither changes the dict it's given.
+  - "Anthropic: {\"name\": ..., \"description\": ..., \"input_schema\": tool[\"parameters\"]}."
+  - "OpenAI: {\"type\": \"function\", \"function\": {\"name\": ..., \"description\": ..., \"parameters\": ...}}. Use tool.get(\"description\", \"\") for the description."

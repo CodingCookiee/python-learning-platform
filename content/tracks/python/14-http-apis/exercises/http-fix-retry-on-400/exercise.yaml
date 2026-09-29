@@ -1,0 +1,9 @@
+title: Retrying requests that can't succeed
+type: fix
+difficulty: core
+tags: [retries, status-codes, exceptions, backoff]
+packages: [httpx]
+hints:
+  - "except httpx.HTTPError catches every status error as well as transport errors. Split it: one except for httpx.HTTPStatusError, one for httpx.TransportError."
+  - "In the HTTPStatusError handler, raise straight away unless error.response.status_code is in {429, 500, 502, 503, 504}. A bare raise re-raises the error you caught."
+  - "Keep the last-attempt check in both handlers, and keep the sleep after them, so only retryable failures reach it."

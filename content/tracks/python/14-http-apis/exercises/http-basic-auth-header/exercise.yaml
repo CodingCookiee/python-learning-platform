@@ -1,0 +1,8 @@
+title: Build a basic auth header
+type: function
+difficulty: warm-up
+tags: [authentication, basic-auth, base64, headers]
+hints:
+  - "Join the two with a colon, encode the text to bytes with .encode(\"utf-8\"), and base64 it with base64.b64encode."
+  - "b64encode returns bytes, so .decode(\"ascii\") it before putting it after \"Basic \"."
+  - "Check for \":\" in the username first, and raise ValueError before building anything."

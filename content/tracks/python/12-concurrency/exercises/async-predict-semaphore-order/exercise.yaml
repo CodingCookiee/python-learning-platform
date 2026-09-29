@@ -1,0 +1,8 @@
+title: "Predict: two uploads at a time"
+type: predict
+difficulty: warm-up
+tags: [asyncio, semaphore, gather]
+hints:
+  - gather starts all four coroutines, but only two can be inside async with limit at once. The other two wait at the async with, in the order they arrived.
+  - When an upload leaves the block, its slot goes to the upload that has been waiting longest.
+  - beach.jpg holds its slot for the whole run, so the other three take turns with the second slot, one after another.

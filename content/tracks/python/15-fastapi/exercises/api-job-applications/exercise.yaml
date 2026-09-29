@@ -1,0 +1,10 @@
+title: Job applications in, summaries out
+type: function
+difficulty: core
+tags: [fastapi, request-body, response-model, pydantic, Literal]
+packages: [fastapi, httpx]
+timeout: 15
+hints:
+  - "Two models: ApplicationCreate is the POST body (name, email, role, cover_letter), and ApplicationRead is what every response contains (id, name, role, status)."
+  - "Store a dict: {\"id\": new_id, **application.model_dump(), \"status\": \"received\"}. Because the create model has no status field, a status sent by the client is simply ignored."
+  - "response_model=ApplicationRead on the POST and the single GET, response_model=list[ApplicationRead] on the list. The role filter is an optional query parameter typed with the same Literal as the model."

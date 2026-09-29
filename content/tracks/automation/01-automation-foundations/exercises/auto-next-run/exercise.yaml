@@ -1,0 +1,8 @@
+title: When does it run next?
+type: function
+difficulty: stretch
+tags: [cron, datetime, performance]
+hints:
+  - Expand all five fields once, before any loop. Checking minute by minute for years is far too slow; walk day by day instead.
+  - "For each day from after's date on: check the month, then the day rule (the OR rule when both day fields are restricted, using isoweekday() % 7). Only on a matching day, try each hour and minute in order."
+  - "The first candidate datetime.combine(day, time(h, m), tzinfo=after.tzinfo) that's later than after is the answer. Give up with ValueError after about five years of days."

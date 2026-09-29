@@ -1,0 +1,3 @@
+def expand_field(field, low, high):
+    """The sorted values one cron field matches, e.g. expand_field("*/15", 0, 59) -> [0, 15, 30, 45]."""
+    ...

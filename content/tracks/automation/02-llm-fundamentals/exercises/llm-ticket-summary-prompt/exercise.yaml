@@ -1,0 +1,8 @@
+title: A ticket summary prompt
+type: function
+difficulty: warm-up
+tags: [prompting, system prompt, delimiters, ScriptedLLM]
+hints:
+  - The rules go in system=, and the ticket goes in the only user message.
+  - "Wrap the ticket like this: f\"<ticket>\\n{ticket}\\n</ticket>\""
+  - "llm.complete([message], system=SUMMARY_SYSTEM, max_tokens=100, temperature=0).text.strip()"

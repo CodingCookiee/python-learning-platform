@@ -17,7 +17,7 @@ conn.execute("SELECT invoice_number, amount_cents FROM payments").fetchall()
 
 - `amount` is in pounds and is stored as whole pence in `amount_cents`.
 - A bad row raises `ValueError` whose message starts with its line in the file (the header is
-  line 1), like `line 3: amount '40,5' isn't a number` or `line 4: unknown invoice INV-9999`.
+  line 1), like `line 3: amount '£40.50' isn't a number` or `line 4: unknown invoice INV-9999`.
 - After a `ValueError`, no row from the file is stored and no transaction is left open.
 
 The database does part of the checking for you. `payments.invoice_number` references

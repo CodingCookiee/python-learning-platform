@@ -1,0 +1,9 @@
+title: Arguments that were never parsed
+type: fix
+difficulty: warm-up
+tags: [openai, tool calls, json]
+packages: [httpx]
+hints:
+  - Print type(call.arguments). OpenAI sends a tool call's arguments as a string of JSON, not a dict.
+  - json.loads turns that string into the dict the neutral ToolCall promises.
+  - "arguments=json.loads(call[\"function\"][\"arguments\"])"

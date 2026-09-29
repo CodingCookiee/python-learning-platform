@@ -1,0 +1,9 @@
+title: Pick a provider from the environment
+type: function
+difficulty: stretch
+tags: [factory, configuration, environment variables, secrets, logging]
+packages: [httpx]
+hints:
+  - "Read the provider with env.get(\"LLM_PROVIDER\", \"anthropic\"), then .strip().lower() it, and branch on the two names you support."
+  - "A small helper, require(env, name), that strips the value and raises RuntimeError(f\"Set the {name} environment variable\") when it's empty, covers every required setting. It never puts the value in the message."
+  - "Build the client with http or httpx.Client(base_url=..., timeout=60), then log.info(\"Using %s with model %s\", provider, model): the provider and the model, never the key."

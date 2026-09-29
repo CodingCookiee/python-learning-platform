@@ -1,0 +1,8 @@
+title: A class you can index, count and loop over
+type: function
+difficulty: stretch
+tags: [metaclass, container-protocol, registry, class-creation]
+hints:
+  - "len(PaymentMethod) calls type(PaymentMethod).__len__, so __len__, __iter__, __contains__ and __getitem__ go on RegistryMeta, taking cls where a normal method takes self."
+  - "In RegistryMeta.__new__, build the class with super().__new__(mcls, name, bases, namespace, **kwargs). A class none of whose bases is a RegistryMeta instance is a root: give it its own cls._registry = {}. Any other class finds its root's _registry by ordinary attribute lookup."
+  - "Register a class only when \"code\" is in its own namespace, and raise TypeError if the code is already taken. __getitem__ can let the dict's KeyError through; __iter__ yields the registered classes in definition order."

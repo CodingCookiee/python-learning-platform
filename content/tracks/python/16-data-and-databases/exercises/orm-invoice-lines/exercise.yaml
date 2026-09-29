@@ -1,0 +1,9 @@
+title: Invoices with lines
+type: function
+difficulty: stretch
+packages: [sqlalchemy]
+tags: [sqlalchemy, relationships, one-to-many, property, aggregates]
+hints:
+  - "On Invoice: lines: Mapped[list[\"InvoiceLine\"]] = relationship(back_populates=\"invoice\", order_by=\"InvoiceLine.id\"). On InvoiceLine: invoice: Mapped[Invoice] = relationship(back_populates=\"lines\")."
+  - "total_cents is a @property summing line.quantity * line.unit_price_cents. create_invoice validates first, then builds Invoice(..., lines=[InvoiceLine(...) for ...]) and adds it."
+  - "outstanding needs one query: select(Invoice.customer, func.sum(InvoiceLine.quantity * InvoiceLine.unit_price_cents)).join(Invoice.lines).where(Invoice.status == 'sent').group_by(Invoice.customer), ordered by that sum descending, then customer."

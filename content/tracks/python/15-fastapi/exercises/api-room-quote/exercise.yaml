@@ -1,0 +1,9 @@
+title: Quote a hotel stay
+type: function
+difficulty: stretch
+tags: [fastapi, path-parameters, query-parameters, Annotated, dates, Literal]
+packages: [fastapi, httpx]
+hints:
+  - "Four parameters: room_number: Annotated[int, Path(ge=100, le=399)], check_in: date (required, so no default), nights: Annotated[int, Query(ge=1, le=14)] = 1, and extra as a list."
+  - "A repeated query parameter needs Query() to be read as a list: extra: Annotated[list[Literal[\"breakfast\", \"parking\", \"late-checkout\"]], Query()] = []."
+  - "check_in + timedelta(days=nights) is the check-out date; FastAPI turns date objects into ISO text. De-duplicate and sort the extras with sorted(set(extra)) before pricing them."

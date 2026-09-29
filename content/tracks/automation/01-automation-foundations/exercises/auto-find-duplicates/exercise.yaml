@@ -1,0 +1,8 @@
+title: Find duplicate uploads
+type: function
+difficulty: core
+tags: [hashlib, pathlib, defaultdict]
+hints:
+  - Walk every file with folder.rglob("*") and keep only the is_file() entries.
+  - "Hash each file's bytes with hashlib.file_digest(fh, \"sha256\").hexdigest() on a file opened in \"rb\" mode, and group the relative paths in a defaultdict(list) keyed by that hash."
+  - Keep groups with two or more paths, sort the paths inside each group, then sort the list of groups.

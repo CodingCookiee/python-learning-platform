@@ -1,0 +1,8 @@
+title: Build it once, not once per order
+type: refactor
+difficulty: core
+timeout: 10
+tags: [hoisting, set, loop-invariant, speed]
+hints:
+  - Does the set of gold customers depend on the order? If not, it's the same set every time round the loop.
+  - Move the set comprehension above the loop. The loop body is then one O(1) membership check per order.

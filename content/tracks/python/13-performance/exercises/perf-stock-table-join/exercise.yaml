@@ -1,0 +1,9 @@
+title: An invoice builder that isn't quadratic
+type: refactor
+difficulty: core
+timeout: 10
+tags: [strings, join, complexity, speed]
+hints:
+  - Each text = text + ... copies the whole invoice so far into a new string, so the work grows with the square of the number of lines.
+  - Build a list of the pieces (the header, one string per row, the total line) and return "".join(pieces) at the end.
+  - Keep the row format exactly as it is, including the "\n" at the end of every line.

@@ -1,0 +1,8 @@
+title: A job that can miss a run
+type: function
+difficulty: core
+tags: [scheduling, watermarks, datetime]
+hints:
+  - "Keep the leads with watermark < created <= now (or just created <= now when watermark is None), then sort them by created."
+  - Slice off the first `limit` of the sorted leads. The rest will be picked up next run, because the watermark only moves past what you took.
+  - "The new watermark is the created time of the last lead in the batch, or the old watermark when the batch is empty."

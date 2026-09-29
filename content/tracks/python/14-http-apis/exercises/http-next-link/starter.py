@@ -1,0 +1,3 @@
+def next_page_url(response):
+    """The absolute URL of the next page, from the Link header, or None."""
+    ...

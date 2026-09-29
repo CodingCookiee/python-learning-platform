@@ -1,0 +1,8 @@
+title: Too many requests
+type: fix
+difficulty: core
+tags: [asyncio, semaphore, gather, rate-limits]
+hints:
+  - Keep the gather, so the upserts still run concurrently, but make each one wait for a free slot first.
+  - Create one asyncio.Semaphore(limit) in sync_products, and wrap each upsert in a small coroutine that does async with semaphore before awaiting api.upsert(product).
+  - "The signature becomes async def sync_products(api, products, *, limit=5):"

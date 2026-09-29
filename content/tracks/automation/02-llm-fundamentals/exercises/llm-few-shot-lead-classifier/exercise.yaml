@@ -1,0 +1,8 @@
+title: A few-shot lead classifier
+type: function
+difficulty: core
+tags: [prompting, few-shot, classification, output checks, ScriptedLLM]
+hints:
+  - "lead_messages builds a list: for each (text, label) example, a user message with the lead in tags and an assistant message with the label, then the new lead as the last user message."
+  - "classify_lead calls llm.complete(lead_messages(lead, examples), system=LEAD_SYSTEM, max_tokens=5, temperature=0)."
+  - "Normalise the reply with .strip().rstrip(\".!\").lower(), then return it if it's in LABELS, otherwise \"unknown\"."

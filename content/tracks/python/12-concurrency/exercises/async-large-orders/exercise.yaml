@@ -1,0 +1,7 @@
+title: Large orders from a live feed
+type: function
+difficulty: warm-up
+tags: [asyncio, async-for, async-comprehensions]
+hints:
+  - The feed only supports async iteration, so a plain for loop over it raises TypeError.
+  - "[order[\"id\"] async for order in feed if order[\"total\"] >= minimum]"

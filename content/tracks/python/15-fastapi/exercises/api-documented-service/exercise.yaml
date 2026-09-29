@@ -1,0 +1,9 @@
+title: A service that documents itself
+type: function
+difficulty: core
+tags: [fastapi, openapi, docs, routes]
+packages: [fastapi, httpx]
+hints:
+  - "The title and version are arguments to the constructor: FastAPI(title=..., version=...)."
+  - "summary= goes in the decorator, @app.get(\"/rooms\", summary=\"List rooms\"), and the function's docstring becomes the description."
+  - "Annotate room_number: int. Without it, the parameter arrives as the text \"204\", never equals the number 204, and the schema doesn't say it's an integer."

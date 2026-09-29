@@ -1,0 +1,9 @@
+title: Count courier routes, fast
+type: refactor
+difficulty: core
+timeout: 10
+tags: [caching, memoisation, recursion, speed]
+hints:
+  - The same junction is reached by a huge number of different paths, and its route count is worked out again every time. That's what a cache is for.
+  - "@cache on count_routes itself fails: closed is a set, and a cache's arguments must be hashable."
+  - Define a cached helper inside count_routes that takes only (row, col) and reads closed from the enclosing function. Each call to count_routes then gets a fresh cache for its own closures.

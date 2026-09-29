@@ -1,0 +1,9 @@
+title: OAuth client credentials that refresh themselves
+type: function
+difficulty: stretch
+tags: [authentication, oauth2, httpx-auth, generators, tokens]
+packages: [httpx]
+hints:
+  - "Set requires_response_body = True on the class so httpx reads each response before sending it back into the generator. Then token_response = yield httpx.Request(\"POST\", self.token_url, data=form, headers={\"Authorization\": basic}) fetches a token in the middle of the flow."
+  - "Store the token and when it stops being fresh: self.expires_at = self.clock() + expires_in - 30. Before each request, fetch a new token if there isn't one or self.clock() >= self.expires_at."
+  - "After yielding the request, look at the response: if it's a 401, fetch a new token, set the header again and yield the request a second time. Don't loop; a second 401 is the caller's to see."

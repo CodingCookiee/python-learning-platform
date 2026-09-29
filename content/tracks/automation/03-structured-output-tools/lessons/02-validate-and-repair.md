@@ -89,7 +89,7 @@ code assumes, and before it, nothing touches the accounting system.
 > role, and `ValidationError.errors()` is `ZodError.issues`.
 
 ```quiz
-question: The model returns "total": 1240.5 (a number, not a string). What does the Invoice model above do with it?
+question: "The model returns \"total\": 1240.5, a number rather than a string. What does the Invoice model above do with it?"
 options:
   - "Rejects it: the field is a Decimal, not a float"
   - "Accepts it as Decimal('1240.5')"
@@ -191,7 +191,7 @@ str(error), error.last_reply
 ```
 
 ```quiz
-question: An invoice is missing its invoice number, and the model keeps returning "invoice_number": "". With MAX_ATTEMPTS = 3, how many calls does the loop make before it raises?
+question: 'An invoice is missing its invoice number, and the model keeps returning "invoice_number": "". With MAX_ATTEMPTS = 3, how many calls does the loop make before it raises?'
 options:
   - "1"
   - "3"

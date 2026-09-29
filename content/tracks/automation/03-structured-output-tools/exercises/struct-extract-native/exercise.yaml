@@ -1,0 +1,9 @@
+title: Native extraction with a fallback
+type: function
+difficulty: stretch
+tags: [structured-outputs, pydantic, fallback, stop-reason]
+packages: [pydantic]
+hints:
+  - Build the schema once with strict_schema(model_cls.model_json_schema()). Try llm.complete(messages, system=system, schema=schema, temperature=0) inside try/except NotImplementedError.
+  - 'In the except branch, call again without schema=, with system + "\n\nReply with only a JSON object that matches this JSON schema:\n" + json.dumps(schema).'
+  - Whichever call answered, check stop_reason for "max_tokens" and "refusal" and raise ExtractionFailed. Then return model_cls.model_validate(extract_json(response.text)); both paths can share that line.

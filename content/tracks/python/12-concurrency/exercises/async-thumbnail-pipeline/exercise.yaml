@@ -1,0 +1,8 @@
+title: A two-stage thumbnail pipeline
+type: function
+difficulty: stretch
+tags: [asyncio, queue, producer-consumer, backpressure, sentinels, taskgroup]
+hints:
+  - "You need two queues: one of URLs for the downloaders, and a bounded one, asyncio.Queue(maxsize=buffer), of (url, image) pairs between the stages. A downloader that finds the bounded queue full waits at put: that's the backpressure."
+  - "Tell the stages to stop in order. The downloaders can simply return when the URL queue is empty. The resizers need to know no more images are coming: once every downloader has finished, put one sentinel per resizer in the image queue."
+  - "Run the downloaders in their own inner TaskGroup inside a coroutine that puts the sentinels after that group exits, and run that coroutine and the resizers together in an outer TaskGroup. Store results in a dict, then rebuild it in the order of urls."

@@ -1,0 +1,7 @@
+title: Route by confidence
+type: function
+difficulty: warm-up
+tags: [classification, confidence, human-in-the-loop]
+hints:
+  - Two things send a ticket to a person, the label "unknown" and a confidence below the threshold. Check both with or.
+  - A confidence exactly equal to the threshold is good enough.

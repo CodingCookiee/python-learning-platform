@@ -1,0 +1,3 @@
+def read_reply(provider, payload):
+    """The text, neutral stop reason and token counts from an Anthropic or OpenAI response."""
+    ...

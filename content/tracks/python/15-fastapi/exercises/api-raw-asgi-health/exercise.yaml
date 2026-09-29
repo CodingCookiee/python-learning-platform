@@ -1,0 +1,9 @@
+title: A health check without a framework
+type: function
+difficulty: stretch
+tags: [asgi, http, json, async]
+packages: [httpx]
+hints:
+  - "scope[\"method\"] and scope[\"path\"] say what was asked for. Work out the status and the body first, then send them."
+  - "Send two messages: {\"type\": \"http.response.start\", \"status\": ..., \"headers\": [(b\"content-type\", b\"application/json\")]}, then {\"type\": \"http.response.body\", \"body\": ...}. Header names, header values and the body are all bytes."
+  - "json.dumps(data).encode() turns a dict into body bytes. For the 405, append (b\"allow\", b\"GET\") to the headers."

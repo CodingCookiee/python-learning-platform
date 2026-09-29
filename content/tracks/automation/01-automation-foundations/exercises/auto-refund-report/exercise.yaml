@@ -1,0 +1,8 @@
+title: Weekly refunds report
+type: function
+difficulty: stretch
+tags: [csv, decimal, grouping, reports]
+hints:
+  - "Read with csv.DictReader(io.StringIO(export_text)). Normalise each reason with .strip().lower(), and skip blank rows and repeated header rows (where the order_id cell says order_id)."
+  - "Keep a count and a Decimal total per reason, then sort the reasons with key=lambda reason: (-totals[reason], reason)."
+  - "Write with csv.writer(buffer, lineterminator=\"\\n\"). Format money with total.quantize(Decimal(\"0.01\")) and the share with (total / grand * 100).quantize(Decimal(\"0.1\")), using 0.0 when nothing was refunded."

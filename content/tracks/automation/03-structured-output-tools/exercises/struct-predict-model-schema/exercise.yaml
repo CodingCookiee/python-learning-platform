@@ -1,0 +1,9 @@
+title: "Predict: the schema Pydantic sends"
+type: predict
+difficulty: warm-up
+tags: [pydantic, json-schema, model_json_schema]
+packages: [pydantic]
+hints:
+  - The class docstring becomes the schema's description. Only fields without a default are required.
+  - "A Literal becomes an enum list, str | None becomes anyOf with a string schema and a null schema, and list[str] has items of type string."
+  - Pydantic doesn't add additionalProperties to a model's schema unless you configure extra="forbid".

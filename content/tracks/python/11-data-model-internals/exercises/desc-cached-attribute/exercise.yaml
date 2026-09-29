@@ -1,0 +1,8 @@
+title: Compute once, then get out of the way
+type: function
+difficulty: core
+tags: [descriptors, non-data-descriptor, caching, set-name]
+hints:
+  - "cached_attribute is a class whose __init__ takes the function, so @cached_attribute above a method makes one. __set_name__ gives you the attribute's name."
+  - "In __get__, call self.func(instance), store the result with instance.__dict__[self.name] = value, and return it. Don't define __set__."
+  - "Because it's a non-data descriptor, the next read finds the value in the instance dict first and never reaches __get__. del removes that entry, so the following read computes again."

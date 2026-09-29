@@ -1,0 +1,9 @@
+title: Stream the daily totals
+type: refactor
+difficulty: core
+timeout: 10
+tags: [generators, memory, yield, tracemalloc]
+hints:
+  - read_orders builds a list of every order before daily_totals sees the first one. That list is the memory.
+  - Replace orders.append(...) with yield, and drop the list and the return. read_orders becomes a generator.
+  - daily_totals doesn't need to change at all: a for loop works the same over a generator.

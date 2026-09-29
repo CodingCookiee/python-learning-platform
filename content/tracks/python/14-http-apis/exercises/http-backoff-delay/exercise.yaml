@@ -1,0 +1,7 @@
+title: Backoff with full jitter
+type: function
+difficulty: warm-up
+tags: [retries, backoff, jitter, random]
+hints:
+  - "The ceiling for this attempt is min(cap, base * 2 ** attempt)."
+  - "Return rng.uniform(0, ceiling). The random module has a uniform function too, which is why rng=random works as a default."

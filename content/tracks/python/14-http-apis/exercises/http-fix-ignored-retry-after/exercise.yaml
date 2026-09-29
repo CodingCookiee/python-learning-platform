@@ -1,0 +1,9 @@
+title: Ignoring the server's Retry-After
+type: fix
+difficulty: core
+tags: [retries, rate-limits, retry-after, backoff]
+packages: [httpx]
+hints:
+  - "Before sleeping, read wait = retry_after(response). If it's None, use backoff(attempt, rng) as before."
+  - "If wait is more than max_wait, don't sleep: return response.raise_for_status(), which raises the HTTPStatusError."
+  - Otherwise sleep(wait) and go round again. The final attempt still raises as the starter does.

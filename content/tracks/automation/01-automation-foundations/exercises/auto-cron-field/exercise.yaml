@@ -1,0 +1,8 @@
+title: Expand a cron field
+type: function
+difficulty: core
+tags: [cron, parsing, ranges]
+hints:
+  - "Split the field on commas and handle each part on its own. A part may have a step: part.partition(\"/\") gives the range and the step."
+  - "The range is *, a single number N, or A-B. With a step, a single number N means N up to high (so 5/15 is 5, 20, 35, 50)."
+  - "Check every number against low and high, and that A <= B and the step is at least 1, raising ValueError otherwise. Collect values in a set and return sorted(values)."

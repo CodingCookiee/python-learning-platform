@@ -1,0 +1,9 @@
+title: Legacy queries into 2.0 style
+type: refactor
+difficulty: core
+packages: [sqlalchemy]
+tags: [sqlalchemy, select, refactoring, legacy-api]
+hints:
+  - "session.query(Model).filter(...) becomes select(Model).where(...), run with session.scalars(stmt). filter_by(number=number) becomes .where(Invoice.number == number)."
+  - "Counting: session.scalar(select(func.count()).select_from(Invoice).where(...)). Selecting columns rather than a model: session.execute(stmt).all()."
+  - ".all(), .one_or_none() and .first() work on the result of session.scalars(); session.execute() returns rows."

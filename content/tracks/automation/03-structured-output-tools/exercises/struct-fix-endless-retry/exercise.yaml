@@ -1,0 +1,9 @@
+title: The retry loop that never stops
+type: fix
+difficulty: core
+tags: [retries, repair-loop, cost, pydantic]
+packages: [pydantic]
+hints:
+  - "while True has no exit except success. Replace it with for attempt in range(MAX_ATTEMPTS): so the number of calls is fixed."
+  - Read MAX_ATTEMPTS inside the function (not as a default argument), so changing the module constant changes the loop.
+  - After the loop ends without returning, raise ExtractionFailed(problems, response.text) with the last problems and the last reply.

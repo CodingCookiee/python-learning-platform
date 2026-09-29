@@ -1,0 +1,8 @@
+title: The renamer that ate a receipt
+type: fix
+difficulty: core
+tags: [pathlib, rename, data-loss]
+hints:
+  - Path.rename replaces an existing target without a word on Linux and macOS. Check dst.exists() before renaming.
+  - "Write a helper that tries dst, then stem-2 + suffix, stem-3 + suffix and so on until it finds a free name: dst.with_name(f\"{dst.stem}-{n}{dst.suffix}\")."
+  - Renaming a file to the name it already has is a no-op, not a collision. Skip it when src == dst.

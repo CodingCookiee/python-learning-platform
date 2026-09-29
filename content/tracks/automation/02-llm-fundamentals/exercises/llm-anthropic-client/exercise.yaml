@@ -1,0 +1,9 @@
+title: The Anthropic adapter
+type: function
+difficulty: core
+tags: [anthropic, adapter, Protocol, httpx, dataclasses, tools]
+packages: [httpx]
+hints:
+  - "__init__ stores the client, the key (in an underscored attribute) and the default model. __repr__ returns something like AnthropicClient(model='claude-haiku-4-5')."
+  - "Build the body as a dict with model, max_tokens and the translated messages, then add system, tools and temperature only when they're given (temperature can be 0, so test it with is not None)."
+  - "In the reply, the text is the text blocks joined, and each tool_use block becomes ToolCall(block[\"id\"], block[\"name\"], block[\"input\"]). Map stop_sequence to end_turn."

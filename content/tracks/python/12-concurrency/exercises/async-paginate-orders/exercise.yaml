@@ -1,0 +1,8 @@
+title: Every order, one page at a time
+type: function
+difficulty: core
+tags: [asyncio, async-generators, pagination, laziness]
+hints:
+  - An async def with a yield in it is an async generator. Start with cursor = None and loop.
+  - "Each time round: page = await client.page(cursor), yield every order on it, then cursor = page[\"next\"]. Stop when the cursor is None."
+  - Check the cursor after yielding the page's orders, not before, so an empty page with a next cursor doesn't end the loop early.

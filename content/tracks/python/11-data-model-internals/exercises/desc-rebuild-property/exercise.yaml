@@ -1,0 +1,8 @@
+title: Rebuild property from scratch
+type: function
+difficulty: stretch
+tags: [descriptors, property, data-descriptor, decorators]
+hints:
+  - "Property(fget=None, fset=None, fdel=None) stores the three functions. __get__ returns self when instance is None, raises AttributeError when there's no fget, and otherwise returns self.fget(instance)."
+  - "Define __set__ and __delete__ even when there's no fset or fdel, and have them raise AttributeError. That's what makes it a data descriptor, so the instance dict can never shadow it. __set_name__ gives you the name for the messages."
+  - "setter(fset) returns a new Property: type(self)(self.fget, fset, self.fdel), carrying the name and doc over. The decorated method has the same name as the property, so the new object replaces the old one in the class body."

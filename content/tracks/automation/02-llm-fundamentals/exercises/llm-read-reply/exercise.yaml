@@ -1,0 +1,9 @@
+title: Read both response shapes
+type: function
+difficulty: core
+tags: [anthropic, openai, json, stop reasons, usage]
+packages: [httpx]
+hints:
+  - "Anthropic: join the text of every block whose type is \"text\"; the usage is under input_tokens and output_tokens. OpenAI: the text is choices[0][\"message\"][\"content\"], which can be None; the usage is prompt_tokens and completion_tokens."
+  - "Map the stop reasons with a dict per provider, for example {\"stop\": \"end_turn\", \"length\": \"max_tokens\", \"tool_calls\": \"tool_use\"}, and use .get(reason, reason) so anything else passes through."
+  - Anthropic's stop_sequence means the model stopped at a stop sequence you set, which for your code is a normal finish, so it maps to end_turn.

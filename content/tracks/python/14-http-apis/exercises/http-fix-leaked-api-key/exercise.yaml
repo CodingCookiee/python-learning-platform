@@ -1,0 +1,9 @@
+title: The key in the log files
+type: fix
+difficulty: core
+tags: [authentication, api-keys, secrets, logging, httpx]
+packages: [httpx]
+hints:
+  - "Replace params={\"api_key\": api_key} with headers={\"X-API-Key\": api_key}. Once the key isn't in the URL, httpx's own log line and the error message are safe too."
+  - The DEBUG line turns the headers into a plain dict, which prints every value, including the key. Log the header names instead, or drop the line.
+  - "list(response.request.headers) gives the header names only. Keep the INFO line as it is: response.url no longer contains the key."

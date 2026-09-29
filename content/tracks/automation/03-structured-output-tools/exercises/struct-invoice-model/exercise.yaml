@@ -1,0 +1,9 @@
+title: The invoice contract
+type: function
+difficulty: core
+tags: [pydantic, validation, field_validator, model_validator, extraction]
+packages: [pydantic]
+hints:
+  - "Fields: invoice_number: str = Field(min_length=1), vendor: str, issue_date: date, due_date: date, currency: Literal[\"EUR\", \"GBP\", \"USD\"], total: Decimal = Field(gt=0, decimal_places=2)."
+  - A @field_validator("currency", mode="before") runs before the Literal check, so it can return value.strip().upper() when the value is a string.
+  - A @model_validator(mode="after") sees the whole invoice. Raise ValueError("due_date is before issue_date") when it is, and return self otherwise. parse_invoice is Invoice.model_validate(extract_json(reply)).

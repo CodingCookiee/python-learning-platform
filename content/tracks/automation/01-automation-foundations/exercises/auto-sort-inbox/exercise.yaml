@@ -1,0 +1,8 @@
+title: Sort the client inbox
+type: function
+difficulty: core
+tags: [pathlib, shutil, dry-run]
+hints:
+  - "Turn the rules into a lookup from extension to folder first: {\".pdf\": \"invoices\", \".jpg\": \"receipts\", ...}."
+  - Build the whole plan before moving anything. Skip entries that aren't files, and names that start with a dot.
+  - "When dry_run is false, (inbox / folder).mkdir(exist_ok=True) and shutil.move(path, inbox / folder / path.name) for each planned move."

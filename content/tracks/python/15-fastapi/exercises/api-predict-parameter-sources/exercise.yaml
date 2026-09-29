@@ -1,0 +1,9 @@
+title: "Predict: path, query or body?"
+type: predict
+difficulty: core
+tags: [fastapi, request-body, query-parameters, path-parameters]
+packages: [fastapi, httpx]
+timeout: 15
+hints:
+  - "cart_id is in the path, line is a Pydantic model so it's the body, and gift is a plain bool so it's read from the query string, never from the body."
+  - "Unknown keys in a body are ignored by default. With no body at all, the whole body is missing, so the error's location is just [\"body\"]."

@@ -1,0 +1,9 @@
+title: The model reads, the code decides
+type: function
+difficulty: core
+tags: [extraction, pydantic, business-rules, structured-outputs]
+packages: [pydantic]
+hints:
+  - "LeadFacts has model_config = ConfigDict(extra=\"forbid\") and five fields with no defaults: company: str, seats: int | None, monthly_budget_usd: int | None, start_within_days: int | None, wants_demo: bool."
+  - In qualify, treat None as "not known" and never as zero for the hot rule. (facts.seats or 0) is a handy way to compare a maybe-None number for the warm rule.
+  - 'qualify_lead sends the email in <email> tags with schema=LeadFacts.model_json_schema(), validates the reply with LeadFacts.model_validate_json, and returns (facts, qualify(facts)).'

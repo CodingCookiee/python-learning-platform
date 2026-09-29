@@ -44,8 +44,8 @@ def _():
 @test("A bad amount imports nothing and names its line")
 def _():
     conn = database()
-    bad = GOOD.replace("40.5", "40,5")
-    raises(ValueError, import_payments, conn, bad, match=r"^line 3: .*40,5")
+    bad = GOOD.replace("40.5", "£40.50")
+    raises(ValueError, import_payments, conn, bad, match=r"^line 3: .*£40.50")
     assert stored(conn) == []
     assert conn.in_transaction is False
 

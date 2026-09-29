@@ -1,0 +1,7 @@
+title: Every command needs a name
+type: function
+difficulty: warm-up
+tags: [init-subclass, class-creation, validation]
+hints:
+  - "Define __init_subclass__(cls, **kwargs) on Command, call super().__init_subclass__(**kwargs), then check cls.name."
+  - "getattr(cls, \"name\", None) finds a name set on the class or inherited from a parent. Raise TypeError(f\"{cls.__name__} must define a name\") unless it's a non-empty str."

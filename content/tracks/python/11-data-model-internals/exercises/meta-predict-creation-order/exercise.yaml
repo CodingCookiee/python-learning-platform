@@ -1,0 +1,8 @@
+title: "Predict: the order a class is built in"
+type: predict
+difficulty: core
+tags: [class-creation, init-subclass, set-name, class-decorators]
+hints:
+  - "The class body runs first, top to bottom. Only then is the class object created, which calls __set_name__ for each descriptor in the order they appear, then the parent's __init_subclass__."
+  - "Decorators run after the class exists, the one nearest the class first. They aren't inherited, so VipCustomer gets none."
+  - "__init_subclass__ runs for subclasses only, never for Model itself, and receives the class-line keywords (table=...). VipCustomer passes none, so table is None."

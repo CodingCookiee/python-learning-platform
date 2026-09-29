@@ -1,0 +1,9 @@
+title: Quote an order
+type: function
+difficulty: warm-up
+tags: [fastapi, request-body, pydantic]
+packages: [fastapi, httpx]
+timeout: 15
+hints:
+  - "Annotate a parameter with the model, def quote(request: QuoteRequest):, and FastAPI reads it from the JSON body."
+  - "Return a dict built from the model's attributes: request.quantity * request.unit_price_cents is the total."

@@ -1,0 +1,8 @@
+title: The Monday job that ran on Tuesdays
+type: fix
+difficulty: core
+tags: [cron, datetime, weekdays]
+hints:
+  - "Python's when.weekday() is Monday = 0 ... Sunday = 6. Cron's weekday field is Sunday = 0, Monday = 1 ... Saturday = 6, and 7 is Sunday again."
+  - "when.isoweekday() % 7 gives cron's numbering (Sunday becomes 0). Map the field's values with d % 7 too, so 7 means Sunday."
+  - "Check the two day fields separately. If either field starts with *, both must match; if both are restricted, either one matching is enough."

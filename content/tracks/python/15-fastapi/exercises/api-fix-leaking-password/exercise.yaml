@@ -1,0 +1,10 @@
+title: The password hash in the response
+type: fix
+difficulty: core
+tags: [fastapi, response-model, pydantic, security]
+packages: [fastapi, httpx]
+timeout: 15
+hints:
+  - "The endpoints return the storage record, and nothing limits what goes out. A response model is an allow-list of the fields a client may see."
+  - "Write a RecruiterRead model with id, email, name, company and verified, and add response_model=RecruiterRead to the POST and the single GET."
+  - "The list endpoint returns many recruiters, so its response model is list[RecruiterRead]. The storage code can stay exactly as it is."

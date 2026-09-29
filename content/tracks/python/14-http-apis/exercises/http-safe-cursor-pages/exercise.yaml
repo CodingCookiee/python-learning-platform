@@ -1,0 +1,9 @@
+title: Pagination that can't loop forever
+type: function
+difficulty: stretch
+tags: [pagination, cursor, generators, exceptions, defensive-code]
+packages: [httpx]
+hints:
+  - "Keep a set of cursors you've already requested, and count pages. Before each request after the first, check both: a cursor in the set, or a page count that has reached max_pages, raises PaginationError."
+  - "Yield each page's tickets before looking at next_cursor, so everything before the problem still reaches the caller."
+  - "The loop ends normally when next_cursor is None. The checks only run when there's another page to fetch."

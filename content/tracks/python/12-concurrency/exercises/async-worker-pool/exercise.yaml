@@ -1,0 +1,8 @@
+title: A pool of workers
+type: function
+difficulty: core
+tags: [asyncio, queue, workers, producer-consumer, taskgroup]
+hints:
+  - Put every job in an asyncio.Queue together with its position, (index, job), so a worker knows where its result goes in the list.
+  - "All the jobs are queued before any worker starts, so a worker can take jobs with queue.get_nowait() and simply return when it raises asyncio.QueueEmpty. No sentinels or join needed."
+  - Start the workers in a TaskGroup. The block ends when every worker has returned, and if a handler raises, the group cancels the other workers and raises, instead of waiting forever.

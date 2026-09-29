@@ -1,0 +1,8 @@
+title: A cache that expires
+type: function
+difficulty: stretch
+tags: [caching, decorators, closures, time]
+hints:
+  - ttl_cache(seconds, clock) returns a decorator; the decorator takes fn and returns a wrapper. Keep a dict in the decorator that maps each key to (answer, time it was computed).
+  - "Build the key from args and tuple(sorted(kwargs.items())). If the key is there and clock() - computed_at < seconds, return the stored answer; otherwise call fn and store the new answer with the current time."
+  - "Store the answer only after fn returns, so an exception isn't cached. Put @functools.wraps(fn) on the wrapper, and attach cache_clear with wrapper.cache_clear = entries.clear."

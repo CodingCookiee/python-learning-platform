@@ -1,0 +1,9 @@
+title: Make a schema strict
+type: function
+difficulty: core
+tags: [json-schema, recursion, structured-outputs, pydantic]
+packages: [pydantic]
+hints:
+  - Write a helper that takes any value. A dict gets each of its values processed; a list gets each item processed; anything else is returned as it is. Building new dicts and lists as you go means the input is never changed.
+  - 'After processing a dict''s values, check whether it''s an object schema: node.get("type") == "object". If it has "properties", set "additionalProperties" to False and "required" to list(properties).'
+  - An object schema with no "properties" is a free-form dict, which strict mode can't express. Raise ValueError with a message containing "free-form object".

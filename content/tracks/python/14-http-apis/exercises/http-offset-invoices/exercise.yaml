@@ -1,0 +1,9 @@
+title: Every open invoice, lazily
+type: function
+difficulty: core
+tags: [pagination, offset, generators, httpx]
+packages: [httpx]
+hints:
+  - "Keep an offset that starts at 0. Each time round the loop, GET /v1/invoices with params={\"status\": status, \"offset\": offset, \"limit\": limit}, then raise_for_status()."
+  - "yield from page[\"data\"] hands over this page's invoices. Only then add limit to the offset and decide whether to stop."
+  - "Stop when offset >= page[\"total\"], or when the page was empty (so a wrong total can't loop forever)."

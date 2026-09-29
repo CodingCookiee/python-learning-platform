@@ -1,0 +1,9 @@
+title: The key in the wrong header
+type: fix
+difficulty: warm-up
+tags: [openai, auth, headers, httpx]
+packages: [httpx]
+hints:
+  - Run it and read the error. A 401 means the API didn't find a key where it looks for one.
+  - OpenAI reads the key from the Authorization header, as a bearer token. The x-api-key header is Anthropic's.
+  - "headers={\"Authorization\": f\"Bearer {api_key}\"}"

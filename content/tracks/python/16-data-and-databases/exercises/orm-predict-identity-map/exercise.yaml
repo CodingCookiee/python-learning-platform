@@ -1,0 +1,9 @@
+title: "Predict: the session remembers"
+type: predict
+difficulty: core
+packages: [sqlalchemy]
+tags: [sqlalchemy, session, identity-map, flush, autoflush]
+hints:
+  - "Nothing is sent to the database until a flush, so a new object has no id yet, and a column default like status='draft' is only applied when the INSERT runs."
+  - "Inside one session, get() returns the object already loaded for that row. A query autoflushes first, so it sees the unflushed change to status."
+  - "rollback() throws away the uncommitted INSERT, so the table is empty, and the next invoice reuses id 1. Two different sessions each load their own object for the same row."

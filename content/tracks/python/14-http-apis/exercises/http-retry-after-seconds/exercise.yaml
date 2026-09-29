@@ -1,0 +1,9 @@
+title: Read a Retry-After header
+type: function
+difficulty: core
+tags: [rate-limits, retry-after, datetime, headers]
+packages: [httpx]
+hints:
+  - "Get the header with response.headers.get(\"Retry-After\"), return None if it's missing, and strip() it. \"120\".isdigit() tells you it's the seconds form."
+  - "Otherwise try email.utils.parsedate_to_datetime(value). It raises ValueError (or TypeError) for text that isn't a date: catch those and return None."
+  - "The wait is (when - now).total_seconds(), but never below 0: max(0.0, ...)."

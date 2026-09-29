@@ -1,0 +1,8 @@
+title: The cache that remembers too much
+type: fix
+difficulty: core
+tags: [caching, mutability, tuples]
+hints:
+  - "shipping_zones hands every caller the same list object from its cache. checkout_zones appends to that list, so the cached answer grows."
+  - Return a tuple from shipping_zones, so nobody can change the cached answer.
+  - In checkout_zones, build a new list from it, for example list(shipping_zones(country)), before adding "express".

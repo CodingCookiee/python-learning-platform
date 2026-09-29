@@ -1,0 +1,7 @@
+title: "Predict: what the cache forgets"
+type: predict
+difficulty: warm-up
+tags: [caching, lru_cache]
+hints:
+  - "maxsize=2 keeps the two most recently used currencies. A hit counts as a use, and moves that currency to the front."
+  - "When a third currency arrives, the least recently used one is thrown away, and asking for it again is a miss."

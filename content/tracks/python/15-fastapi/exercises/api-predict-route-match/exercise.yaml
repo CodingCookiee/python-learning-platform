@@ -1,0 +1,8 @@
+title: "Predict: which route answers?"
+type: predict
+difficulty: core
+tags: [fastapi, routing, path-parameters, query-parameters]
+packages: [fastapi, httpx]
+hints:
+  - "Routes are tried in the order they're declared, and matching only looks at the path's shape. The query string never affects which route matches."
+  - "/jobs/latest has the shape /jobs/{job_id}, which is declared first, and \"latest\" isn't an int. A bool query parameter accepts yes and no, but not maybe. /companies/jobs has only two segments."
