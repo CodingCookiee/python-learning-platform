@@ -1,0 +1,8 @@
+title: An email address you can use as a key
+type: function
+difficulty: stretch
+tags: [hash, eq, immutability, value-objects]
+hints:
+  - "Split on the last @ with text.rpartition(\"@\"): the local part is before it, the domain after. Either being empty means the address is invalid."
+  - "Store the local part as given and the domain lower-cased, in underscored attributes behind read-only properties. Then __eq__ and __hash__ can both use the tuple (local, domain)."
+  - "To refuse new attributes as well as changes, define __setattr__ to raise AttributeError, and set the fields in __init__ with object.__setattr__(self, \"_local\", local)."

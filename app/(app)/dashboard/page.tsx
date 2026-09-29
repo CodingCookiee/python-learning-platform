@@ -85,22 +85,22 @@ async function getProgressData(userId: string): Promise<ProgressData | null> {
     const [completedLessons, passedExercises, approvedProjects, unlockedAchievements] =
       await Promise.all([
         prisma.progress.findMany({
-          where: { userId, completed: true },
+          where: { userId, completed: true, lesson: { archivedAt: null } },
           include: { lesson: { select: { id: true, title: true, moduleId: true, order: true } } },
         }),
         prisma.exerciseSubmission.findMany({
-          where: { userId, passed: true },
+          where: { userId, passed: true, exercise: { archivedAt: null } },
           distinct: ["exerciseId"],
           select: { exerciseId: true, submittedAt: true },
         }),
         prisma.projectSubmission.findMany({
-          where: { userId, status: "approved" },
+          where: { userId, status: "approved", project: { archivedAt: null } },
           include: {
             project: { select: { id: true, title: true, moduleId: true, xpReward: true } },
           },
         }),
         prisma.userAchievement.findMany({
-          where: { userId },
+          where: { userId, achievement: { archivedAt: null } },
           include: { achievement: true },
           orderBy: { unlockedAt: "desc" },
         }),
@@ -142,7 +142,11 @@ async function getProgressData(userId: string): Promise<ProgressData | null> {
     for (const c of rc) if (c.evaluatedAt) ads.add(fmt(new Date(c.evaluatedAt)));
     const activeDates = Array.from(ads).sort();
 
-    const [tL, tP] = await Promise.all([prisma.lesson.count(), prisma.project.count()]);
+    // Totals cover live content only (archived lessons and projects no longer count)
+    const [tL, tP] = await Promise.all([
+      prisma.lesson.count({ where: { archivedAt: null, module: { archivedAt: null, trackId: { not: null } } } }),
+      prisma.project.count({ where: { archivedAt: null, module: { archivedAt: null, trackId: { not: null } } } }),
+    ]);
     const denom = tL + tP;
     const completion = {
       lessons: {
@@ -163,8 +167,12 @@ async function getProgressData(userId: string): Promise<ProgressData | null> {
     };
 
     const mods = await prisma.module.findMany({
-      orderBy: { order: "asc" },
-      include: { lessons: { select: { id: true } }, projects: { select: { id: true } } },
+      where: { archivedAt: null, trackId: { not: null } },
+      orderBy: [{ track: { order: "asc" } }, { order: "asc" }],
+      include: {
+        lessons: { where: { archivedAt: null }, select: { id: true } },
+        projects: { where: { archivedAt: null }, select: { id: true } },
+      },
     });
     const moduleProgress = mods.map((mod) => {
       const lIds = mod.lessons.map((l) => l.id),

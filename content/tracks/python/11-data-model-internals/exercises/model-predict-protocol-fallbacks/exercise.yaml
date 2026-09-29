@@ -1,0 +1,8 @@
+title: "Predict: which special method runs?"
+type: predict
+difficulty: core
+tags: [container-protocol, getitem, bool, len]
+hints:
+  - "With no __contains__ or __iter__, in and for call __getitem__(0), __getitem__(1) and so on. in stops at the first match; list() keeps going until IndexError, which takes one extra call."
+  - "bool() uses __len__ when there's no __bool__, and in uses __iter__ when there's no __contains__. When a class has both __bool__ and __len__, bool() only calls __bool__."
+  - "len() looks __len__ up on the type, so a lambda stored on the instance is never used."

@@ -397,6 +397,20 @@ class _Deadline:
         sys.settrace(None)
         self.until = None
 
+    @contextlib.contextmanager
+    def paused(self):
+        """Time spent in heavy grading helpers (pytest, mypy) doesn't count against the test."""
+        if self.until is None:
+            yield
+            return
+        started = time.perf_counter()
+        remaining = self.until - started
+        self.until = None
+        try:
+            yield
+        finally:
+            self.until = time.perf_counter() + remaining
+
     def _global(self, frame, event, arg):
         if frame.f_code.co_filename in TRACED_FILES:
             return self._local
@@ -412,6 +426,7 @@ class _Deadline:
 
 
 _deadline = _Deadline()
+plp._untimed = _deadline.paused  # plp helpers wrap heavy work in this
 
 
 def _fresh_module(name: str, filename: str, source: str) -> types.ModuleType:

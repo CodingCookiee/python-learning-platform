@@ -1,0 +1,7 @@
+title: Time one call
+type: function
+difficulty: warm-up
+tags: [timing, perf_counter]
+hints:
+  - Read the clock, call the function, read the clock again. The difference is in seconds.
+  - "Multiply by 1000 for milliseconds, and return a tuple: return result, (clock() - start) * 1000"

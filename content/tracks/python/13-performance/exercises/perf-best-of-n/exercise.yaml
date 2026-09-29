@@ -1,0 +1,8 @@
+title: Best of N
+type: function
+difficulty: core
+tags: [timing, timeit, benchmarking]
+hints:
+  - Loop repeat times. In each round, read the clock once, call fn number times, read it once more.
+  - Divide each round's elapsed time by number, and return the min() of those per-call times.
+  - Check number and repeat first, and raise ValueError if either is below 1.

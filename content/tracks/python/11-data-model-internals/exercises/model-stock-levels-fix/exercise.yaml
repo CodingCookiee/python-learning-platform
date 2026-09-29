@@ -1,0 +1,8 @@
+title: A stock table that in can't search
+type: fix
+difficulty: core
+tags: [container-protocol, contains, iter, len]
+hints:
+  - "With only __getitem__, in and for fall back to levels[0], levels[1], ... and the dict inside raises KeyError: 0. The class needs its own __contains__ and __iter__."
+  - "__contains__ should ask the dict (sku in self._levels), so it doesn't scan. __iter__ can return iter(self._levels), which gives the SKUs."
+  - "if not levels: is always False for an object with no __bool__ or __len__. Add __len__ and an empty table becomes falsy."

@@ -1,0 +1,8 @@
+title: Stock lost to a renamed key
+type: fix
+difficulty: core
+tags: [hash, eq, dict, immutability]
+hints:
+  - "rename() changes key.code on an object that is already a dict key. The entry stays filed under the old hash, so neither the old code nor the new one can find it."
+  - "Make Sku immutable: store the code as self._code and expose it with a read-only property, so sku.code = ... raises AttributeError."
+  - "rename() can't edit a key, so it has to move the stock: pop the old Sku's count and add it under Sku(new_code)."

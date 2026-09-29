@@ -264,7 +264,10 @@ def _():
 - **`pytest_run({"pricing.py": CORRECT, "test_pricing.py": solution_source()})`** runs pytest on
   those files and returns `.passed`, `.failed` and `.errors` (lists of test names). Use it for `tests`
   drills: run the learner's tests against the real module, then against each planted bug. Needs
-  `packages: [pytest]`.
+  `packages: [pytest]`. Time inside `pytest_run` and `typecheck` doesn't count against the per-test
+  limit. `result.explain()` gives one line per failing test (pytest's `E` lines) for messages like
+  `assert not r.failed, r.explain()`. Always pass `--capture=sys` if you ever call `pytest.main`
+  yourself: fd-level capture crashes Pyodide (`pytest_run` does this for you).
 - **`typecheck(strict=False)`** runs mypy on the learner's code and returns `.errors` (mypy's error
   lines) and `.ok`. Needs `packages: [mypy]`.
 - Each test gets its own stdout capture, so learners' `print()` calls never break a test.
@@ -295,6 +298,68 @@ Keep drills deterministic:
   responses and record every request, so tests can assert on prompts and tool calls.
 
 ---
+
+## The automation track: the neutral LLM interface and the fakes
+
+Every AI drill is graded offline with no API key. Learners **build** a provider-neutral client in A2
+(one interface, an Anthropic adapter and an OpenAI adapter, over plain `httpx`). Every later module
+**takes** an object with that interface, so agents, RAG and tool loops are testable with a scripted
+fake. Use this interface exactly, so the modules fit together.
+
+### The interface (as learners write it in A2)
+
+```python norun
+@dataclass
+class ToolCall:
+    id: str
+    name: str
+    arguments: dict            # already parsed from JSON
+
+@dataclass
+class Usage:
+    input_tokens: int
+    output_tokens: int
+
+@dataclass
+class LLMResponse:
+    text: str                  # "" when the model only called tools
+    tool_calls: list[ToolCall]
+    stop_reason: str           # "end_turn" | "tool_use" | "max_tokens"
+    usage: Usage
+    model: str
+
+class LLM(Protocol):
+    def complete(self, messages: list[dict], *, system: str | None = None,
+                 tools: list[dict] | None = None, model: str | None = None,
+                 max_tokens: int = 1024, temperature: float | None = None) -> LLMResponse: ...
+```
+
+- **Messages** are neutral dicts: `{"role": "user", "content": "…"}`,
+  `{"role": "assistant", "content": "…", "tool_calls": [{"id", "name", "arguments"}]}` and
+  `{"role": "tool", "tool_call_id": "…", "content": "…"}`. The adapters translate these into each
+  provider's format (Anthropic `tool_use`/`tool_result` blocks, OpenAI `tool_calls` with JSON-string
+  `arguments`).
+- **Tools** are neutral: `{"name", "description", "parameters": <JSON schema>}`. Anthropic calls the
+  schema `input_schema`; OpenAI wraps it as `{"type": "function", "function": {...}}`.
+
+### The fakes (`from plp_fakes import …`, no package needed except `httpx` for HTTP-level fakes)
+
+| Fake | For | Use |
+|------|-----|-----|
+| `anthropic_api(replies)` / `openai_api(replies)` | A2: the learner's own HTTP adapters | `httpx.Client(transport=api.transport, base_url="https://api.anthropic.com")`. It answers like the real endpoint (`POST /v1/messages` or `/v1/chat/completions`), checks auth headers (401), `max_tokens` for Anthropic (400), supports `"stream": true` (real SSE events), and records `.requests` / `.last` (method, path, headers, parsed `json`) |
+| `ScriptedLLM(replies)` | A3–A8: anything that takes an `llm` | Returns `LLMResponse`s in order; `.calls` holds every `complete()` call's arguments (messages copied), so tests assert on prompts, tools offered and history; raises a clear error if the code calls more times than scripted |
+| `fake_api({"GET /v1/deals/{id}": …})` | Slack, CRMs, sheets, any JSON API | A handler (`lambda req, id: {...}`) or a plain value; return `(status, json)` or `(status, json, headers)` for errors; `.requests` and `.calls("POST /path")` record traffic; `.async_transport` for `AsyncClient` |
+| `fake_embed(texts, dim=64)`, `cosine(a, b)` | A4: RAG | Deterministic embeddings where shared (stemmed) words mean similarity, so retrieval, ranking and recall@k are testable without a model |
+| `McpHarness(handle)` | A6: MCP | Drives a JSON-RPC handler like a client: `.initialize()`, `.list_tools()`, `.call_tool(name, args)`, `.list_resources()`, `.read_resource(uri)`; checks ids and `jsonrpc: "2.0"` |
+
+A reply in a script is `"text"`, `tool_call("name", **arguments)` (or a list of them),
+`Reply(text=, tool_calls=, stop_reason=, usage=)`, `Fail(429, retry_after=2)` / `Fail(500)`, or a
+function of the request that returns one of these (for replies that depend on the prompt).
+`estimate_tokens(text)` is the fakes' token rule (about 4 characters per token), handy for cost drills.
+
+Lessons show real calls to `https://api.anthropic.com` and `https://api.openai.com` as
+```` ```python norun ```` with the learner's own key from an environment variable, and put the
+runnable version against a fake right next to them. Never hard-code a key, even a fake-looking one.
 
 ## Capstones
 

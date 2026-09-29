@@ -1,0 +1,8 @@
+title: A benchmark that lies
+type: fix
+difficulty: stretch
+tags: [benchmarking, timing, mutation]
+hints:
+  - The same list object is passed to every run. A candidate that sorts in place leaves it sorted for every run after the first, and for the caller.
+  - Make a fresh copy, list(data), for every single run.
+  - Make the copy before start = clock(), so copying isn't part of the time.

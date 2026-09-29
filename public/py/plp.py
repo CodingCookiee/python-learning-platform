@@ -108,6 +108,14 @@ def _importable(name: str) -> bool:
     return importlib.util.find_spec(name) is not None
 
 
+@contextlib.contextmanager
+def _untimed_default():
+    yield
+
+
+# The runner replaces this with a pause of the per-test time limit
+_untimed = _untimed_default
+
 # Tests registered by the current tests.py, in definition order
 _REGISTRY: list[dict] = []
 
@@ -535,11 +543,27 @@ def source_avoids(*, node: str | None = None, call: str | None = None, name: str
 
 
 class PytestResult:
-    def __init__(self, passed: list[str], failed: list[str], errors: list[str], output: str):
+    """.passed / .failed / .errors are lists of test names; .details maps a failed or
+    errored test to pytest's explanation (its E lines); .explain() is a short summary."""
+
+    def __init__(self, passed: list[str], failed: list[str], errors: list[str], output: str, details: dict | None = None):
         self.passed = passed
         self.failed = failed
         self.errors = errors
         self.output = output
+        self.details = details or {}
+
+    def explain(self, limit: int = 3) -> str:
+        """One line per failing test, e.g. "test_total: assert 18 == 20" (at most `limit`)."""
+        lines = []
+        for name in (self.failed + self.errors)[:limit]:
+            detail = self.details.get(name, "")
+            e_lines = [l[1:].strip() for l in detail.splitlines() if l.startswith("E ")]
+            lines.append(f"{name}: {e_lines[0] if e_lines else (detail.strip().splitlines() or ['failed'])[-1]}")
+        more = len(self.failed) + len(self.errors) - limit
+        if more > 0:
+            lines.append(f"…and {more} more")
+        return "\n".join(lines)
 
     @property
     def total(self) -> int:
@@ -578,15 +602,20 @@ def pytest_run(files: dict[str, str]) -> PytestResult:
         sys.modules.pop(stem, None)
 
     outcome: dict[str, list[str]] = {"passed": [], "failed": [], "errors": []}
+    details: dict[str, str] = {}
 
     class _Collector:
         def pytest_runtest_logreport(self, report):
+            name = report.nodeid.split("::", 1)[-1]
             if report.when == "call":
                 bucket = "passed" if report.passed else "failed" if report.failed else None
                 if bucket:
-                    outcome[bucket].append(report.nodeid.split("::", 1)[-1])
+                    outcome[bucket].append(name)
+                if report.failed:
+                    details[name] = report.longreprtext[-2000:]
             elif report.failed:  # setup or teardown blew up (e.g. a broken fixture)
-                outcome["errors"].append(report.nodeid.split("::", 1)[-1])
+                outcome["errors"].append(name)
+                details[name] = report.longreprtext[-2000:]
 
         def pytest_collectreport(self, report):
             if report.failed:
@@ -597,7 +626,7 @@ def pytest_run(files: dict[str, str]) -> PytestResult:
     sys.path.insert(0, folder)
     try:
         os.chdir(folder)
-        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(out):
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(out), _untimed():
             pytest.main(
                 # fd-level capture and faulthandler need real OS file descriptors, which Pyodide lacks
                 [folder, "-q", "--no-header", "--capture=sys", "-p", "no:cacheprovider", "-p", "no:faulthandler"],
@@ -608,7 +637,7 @@ def pytest_run(files: dict[str, str]) -> PytestResult:
         sys.path.remove(folder)
         for stem in stems:
             sys.modules.pop(stem, None)
-    return PytestResult(outcome["passed"], outcome["failed"], outcome["errors"], out.getvalue())
+    return PytestResult(outcome["passed"], outcome["failed"], outcome["errors"], out.getvalue(), details)
 
 
 # mypy: grading type-hint drills (needs packages: [mypy])
@@ -648,7 +677,8 @@ def typecheck(source: str | None = None, *, strict: bool = False, extra_files: d
     cwd = os.getcwd()
     try:
         os.chdir(folder)
-        stdout, stderr, _status = api.run(args)
+        with _untimed():
+            stdout, stderr, _status = api.run(args)
     finally:
         os.chdir(cwd)
     lines = [

@@ -1,0 +1,7 @@
+title: The basket that added coroutines
+type: fix
+difficulty: core
+tags: [asyncio, await, coroutines, bugs]
+hints:
+  - "The TypeError says the right-hand side of += is a coroutine. client.price(sku) only creates one; it needs await to run and give back a number."
+  - There's a second call to an async method that nobody awaits. It raises no error at all, which is why it's easy to miss.

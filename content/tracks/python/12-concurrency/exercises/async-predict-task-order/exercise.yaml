@@ -1,0 +1,8 @@
+title: "Predict: who runs when"
+type: predict
+difficulty: core
+tags: [asyncio, create-task, await, event-loop]
+hints:
+  - create_task schedules a task but doesn't start it. It starts the next time main awaits something that actually waits.
+  - sms is a bare coroutine, not a task. Awaiting it runs it inside main, straight away, and main is paused while it sleeps. That's when the email task gets its first turn.
+  - "sleep(0) still pauses: push prints its first line, lets the loop run once, then prints its second. The email task wakes last, at 0.03 s."

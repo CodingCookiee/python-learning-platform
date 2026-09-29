@@ -1,0 +1,8 @@
+title: Measure a job
+type: function
+difficulty: stretch
+tags: [profiling, perf-counter, process-time, dataclasses, keyword-only]
+hints:
+  - Read both clocks before calling the job and again after it, and subtract. Call wall_clock() and cpu_clock(), not time.perf_counter() directly, so the tests' clocks are the ones used.
+  - "*args and **kwargs pass straight through to the job: job(*args, **kwargs). Put the clocks after *args in the signature, which makes them keyword-only."
+  - Round both durations before building the Profile, and check for a zero wall time before dividing.

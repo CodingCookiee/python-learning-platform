@@ -1,0 +1,7 @@
+title: Your first coroutine
+type: function
+difficulty: warm-up
+tags: [asyncio, async-def, await, coroutines]
+hints:
+  - The function must be defined with async def, and the client's fetch_order is a coroutine function too, so its result needs await.
+  - "order = await client.fetch_order(order_id), then sum quantity * unit_price over order[\"lines\"] and round to 2 decimals."

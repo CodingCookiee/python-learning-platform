@@ -1,0 +1,8 @@
+title: Pick the right tool
+type: function
+difficulty: core
+tags: [asyncio, threads, processes, gil, free-threading]
+hints:
+  - Check the rule that needs no other information first. One task has nothing to overlap, whatever kind it is.
+  - For I/O-bound work, the question is whether the library can await. If it only blocks, threads can wait on it instead.
+  - For CPU-bound work, the question is whether threads can run Python in parallel, which only a free-threaded build allows.

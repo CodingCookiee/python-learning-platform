@@ -1,0 +1,7 @@
+title: A tax rate you can call
+type: function
+difficulty: warm-up
+tags: [dunder, call, callable]
+hints:
+  - "Calling an instance, vat(10.00), runs type(vat).__call__(vat, 10.00). Define __call__(self, amount) on the class."
+  - "return round(amount * (100 + self.percent) / 100, 2)"

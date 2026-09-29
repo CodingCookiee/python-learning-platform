@@ -1,0 +1,20 @@
+slug: performance
+title: Performance and profiling
+summary: Measure first, find the hot spot with a profiler, then fix it with the right data structure, a cache, a generator or numpy.
+description: >
+  Slow Python is almost never slow everywhere. It's slow in one loop that scans a list instead of
+  hashing into a set, or rebuilds the same thing a thousand times, or builds a string one copy at a
+  time. This module teaches the working habit that finds that loop: time it with timeit and
+  perf_counter, profile the whole program with cProfile, read the profile, then fix the real
+  cause. You'll learn what built-in operations actually cost and why, choose data structures for
+  speed, cache and hoist repeated work (and learn when caching is a bug), keep memory flat with
+  generators, vectorise number crunching with numpy, and know when it's time to leave Python for
+  C, Rust or PyPy. Speed drills are graded honestly: the slow version runs out of time.
+hours: 7
+outcomes:
+  - Time code reliably with perf_counter and timeit, and avoid the benchmarking mistakes that make results lie
+  - Profile a program with cProfile, read tottime, cumtime and call counts, and name the function worth fixing
+  - Explain the cost of list, set, dict and deque operations, and choose the structure that makes a slow loop fast
+  - Speed up repeated work with caching, hoisting and precomputing, and recognise when a cache returns wrong answers
+  - Measure memory with sys.getsizeof and tracemalloc, keep it flat with generators, and build strings in linear time
+  - Replace Python loops over numbers with vectorised numpy code and broadcasting, and judge when an optimisation is worth it

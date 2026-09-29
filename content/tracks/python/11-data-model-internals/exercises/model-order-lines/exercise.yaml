@@ -1,0 +1,8 @@
+title: Order lines that act like a sequence
+type: function
+difficulty: core
+tags: [dunder, container-protocol, getitem, slicing]
+hints:
+  - "Keep a list of (sku, quantity) tuples. __len__, __iter__ and __bool__ can all lean on it; with __len__ defined you don't need __bool__ at all."
+  - "__getitem__ receives a slice object for lines[1:3]. Check isinstance(index, slice) and wrap the sliced list in a new OrderLines; otherwise index the list, which handles negatives and IndexError for you."
+  - "\"MUG-01\" in lines should look at SKUs, not whole tuples, so it needs its own __contains__: any(sku == wanted for sku, _ in self._lines)."

@@ -1,0 +1,7 @@
+title: "Predict: what timeit runs"
+type: predict
+difficulty: core
+tags: [timeit, benchmarking]
+hints:
+  - timeit.timeit runs setup once, then the statement number times.
+  - timeit.repeat is timeit called repeat times, so setup runs once per repeat. The counts carry on from the first call.

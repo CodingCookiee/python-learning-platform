@@ -1,0 +1,7 @@
+title: A dashboard that waits in line
+type: refactor
+difficulty: core
+tags: [asyncio, create-task, concurrency, refactoring]
+hints:
+  - The three requests don't depend on each other, so none of them needs to wait for another to finish.
+  - Wrap each call in asyncio.create_task(...) first, and only then await the three tasks. Awaiting each one straight after creating it would make it sequential again.

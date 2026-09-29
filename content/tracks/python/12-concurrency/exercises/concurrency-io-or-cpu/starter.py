@@ -1,0 +1,3 @@
+def classify(cpu_seconds, wall_seconds):
+    """"cpu-bound", "io-bound" or "mixed", from the share of wall time spent on the CPU."""
+    ...

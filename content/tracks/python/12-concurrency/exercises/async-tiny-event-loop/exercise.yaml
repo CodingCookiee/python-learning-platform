@@ -1,0 +1,8 @@
+title: Build a tiny event loop
+type: function
+difficulty: stretch
+tags: [event-loop, coroutines, send, heapq, generators]
+hints:
+  - "Drive each coroutine with coro.send(None). It either returns the number of ticks it wants to sleep (the value Sleep yields), or raises StopIteration, whose .value is what the coroutine returned."
+  - Keep sleeping coroutines in a heap of (wake_at, order, coroutine) tuples. The order is a counter that goes up every time something is pushed, so ties wake first-in first-out and the heap never has to compare two coroutines.
+  - "Start by pushing every coroutine with wake_at 0. Then loop: pop the earliest, set now to its wake_at, send into it, and either push it back at now + ticks or record (now, result)."

@@ -1,0 +1,7 @@
+title: I/O-bound or CPU-bound?
+type: function
+difficulty: warm-up
+tags: [io-bound, cpu-bound, profiling]
+hints:
+  - Divide CPU time by wall time. That's the share of the run the CPU was busy.
+  - "0.8 or more is cpu-bound, 0.2 or less is io-bound, and anything in between is mixed. Compare the ratio with >= and <=."

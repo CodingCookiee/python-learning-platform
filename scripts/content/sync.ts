@@ -222,7 +222,7 @@ async function main() {
             requirements: JSON.stringify(c.requirements),
             successCriteria: JSON.stringify(c.criteria),
             starterTemplate: c.starter,
-            estimatedTime: Math.round(c.hours),
+            estimatedTime: Math.round(c.hours * 60), // minutes, as the project pages expect
             xpReward: c.xp,
             archivedAt: null,
           };

@@ -161,8 +161,8 @@ pytest.main(["-s", "-p", "no:terminal", "-p", "no:cacheprovider", "-p", "no:faul
 
 The second test fails, and its account is still deleted. It's the same guarantee a `with` block
 gives you (module 6), and for the same reason: cleanup that only runs on success leaves a mess
-exactly when something has gone wrong. Notice too that the second test saw `"free"`: the first
-test's account was deleted and a new one made.
+exactly when something has gone wrong. Notice too that "create" and "delete" appear around each
+test: every test gets an account of its own, so the second test's upgrade can't leak into a third.
 
 > [!TIP]
 > If a fixture wraps something that's already a context manager, yield inside its `with`:

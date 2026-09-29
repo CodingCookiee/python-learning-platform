@@ -1,0 +1,8 @@
+title: "Predict: taking turns"
+type: predict
+difficulty: core
+tags: [concurrency, generators, event-loop, scheduling]
+hints:
+  - Each next(job) runs a generator from where it paused up to its next yield. A job that isn't finished goes to the back of the line.
+  - The value a generator returns travels in StopIteration.value, so a job prints its result only when the loop calls next on it after its last yield.
+  - "Track the line after every step: it starts as [payments, refunds, emails]. payments pauses twice, refunds once, emails not at all."

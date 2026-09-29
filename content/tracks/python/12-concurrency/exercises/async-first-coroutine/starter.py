@@ -1,0 +1,3 @@
+async def order_total(client, order_id):
+    """Fetch the order and return its total, rounded to 2 decimal places."""
+    ...
