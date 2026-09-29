@@ -40,7 +40,8 @@ def _():
 def _():
     message = {"error": "days must be a whole number from 1 to 7"}
     for days in ["0", "8", "two", "2.5", "-1"]:
-        assert error(client().get("/v1/forecast", params={"city": "Lisbon", "days": days})) == (400, message)
+        response = client().get("/v1/forecast", params={"city": "Lisbon", "days": days})
+        assert error(response) == (400, message), f"days={days!r} should get a 400 with {message}, got {error(response)}"
 
 
 @test("Other methods get a 405 with an Allow header")

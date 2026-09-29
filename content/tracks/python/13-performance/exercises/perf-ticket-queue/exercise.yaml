@@ -1,0 +1,7 @@
+title: A queue that's fast at the front
+type: refactor
+difficulty: core
+tags: [deque, complexity, queue]
+hints:
+  - "from collections import deque, then self._tickets = deque()."
+  - insert(0, x) becomes appendleft(x) and pop(0) becomes popleft(). append, [0] and len() work on a deque as they are.

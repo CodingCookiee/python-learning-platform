@@ -4,5 +4,5 @@ difficulty: core
 tags: [json, regex, llm-output]
 hints:
   - Strip the surrounding whitespace first, then check whether the text starts with three backticks.
-  - "A regular expression can capture what's between the fences: r\"^```(?:json)?\s*(.*?)\s*```$\" with re.DOTALL, so . also matches newlines. re.IGNORECASE handles JSON in capitals."
+  - 'A regular expression can capture what''s between the fences: r"^```(?:json)?\s*(.*?)\s*```$" with re.DOTALL, so . also matches newlines, and re.IGNORECASE for JSON in capitals.'
   - If the pattern matches, parse the captured group; otherwise parse the stripped text as it is.

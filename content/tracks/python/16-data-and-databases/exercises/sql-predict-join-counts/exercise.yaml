@@ -1,0 +1,8 @@
+title: "Predict: how many rows does the join return?"
+type: predict
+difficulty: warm-up
+tags: [sql, join, left-join, row-counts]
+hints:
+  - A JOIN gives one row per matching pair. Northwind has 2 applications and 3 contacts; Globex has 1 application and no contacts; Initech has 1 contact and no applications.
+  - A LEFT JOIN also keeps each left-hand row that matched nothing, once, with NULLs on the right.
+  - Joining a company to its applications and its contacts pairs every application with every contact, so Northwind alone gives 2 × 3 = 6 rows.

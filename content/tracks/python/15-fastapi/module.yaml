@@ -1,0 +1,22 @@
+slug: fastapi
+title: Web services with FastAPI
+summary: Build typed, validated, documented and tested HTTP services with FastAPI, from the first route to a structured app.
+description: >
+  In module 14 you called other people's APIs. Here you build your own. FastAPI reads the type hints
+  on your functions and turns them into request parsing, validation, JSON responses and interactive
+  OpenAPI docs, so the code you write is mostly the part that's specific to your business. This
+  module starts from what a web service is (an ASGI function the server calls once per request),
+  then covers routes and parameters, Pydantic request and response models, status codes and a
+  consistent error shape, dependency injection, API-key and token auth, background tasks and
+  middleware, and structuring a larger app with routers, settings and an app factory. Every
+  example and drill runs in your browser against the real app over httpx, which is also exactly
+  how you'll test your services.
+hours: 9
+outcomes:
+  - Explain what ASGI is and how FastAPI turns type hints into validation, JSON and OpenAPI docs
+  - Design routes with typed, constrained path, query and body parameters, and predict which route a request matches
+  - Separate create, read and update models so responses never leak internal fields, and patch only what the client sent
+  - Return the right status code for every outcome, with a consistent error shape across the whole API
+  - Share work between endpoints with dependencies, including resources with yield, and override them in tests
+  - Protect endpoints with API keys and signed tokens, and never trust identity, prices or roles sent by the client
+  - Add background tasks and middleware, and structure a larger app with routers, settings and an app factory

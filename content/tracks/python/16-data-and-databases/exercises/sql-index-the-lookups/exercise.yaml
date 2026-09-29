@@ -1,0 +1,8 @@
+title: Make the lookups use an index
+type: function
+difficulty: stretch
+tags: [sql, indexes, explain-query-plan, performance]
+hints:
+  - "query_plan runs \"EXPLAIN QUERY PLAN \" + sql with the same parameters, and keeps the last column of each row (row[3])."
+  - "Each query needs an index whose leftmost columns are the ones it filters on. The interviews query also sorts, so put scheduled_at in the same index after application_id."
+  - "CREATE INDEX IF NOT EXISTS idx_interviews_application ON interviews (application_id, scheduled_at). IF NOT EXISTS makes add_indexes safe to run twice."

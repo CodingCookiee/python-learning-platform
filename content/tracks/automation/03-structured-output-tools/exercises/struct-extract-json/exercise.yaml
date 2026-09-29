@@ -1,0 +1,8 @@
+title: Dig the JSON out of a reply
+type: function
+difficulty: core
+tags: [json, raw_decode, llm-output]
+hints:
+  - "json.JSONDecoder().raw_decode(text, index) parses one JSON value starting at index and returns (value, end). It ignores whatever comes after."
+  - Try it at the first "{" in the text. If it fails, or the value isn't a dict, move on to the next "{" with text.find("{", start + 1).
+  - When find returns -1 there are no more candidates, so raise ValueError("No JSON object found in the reply").

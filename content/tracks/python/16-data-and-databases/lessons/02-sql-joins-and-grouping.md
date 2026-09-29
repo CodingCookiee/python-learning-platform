@@ -159,7 +159,8 @@ conn.execute("""
 
 Look at Initech: `count(*)` says 1, because the LEFT JOIN gave it one row of NULLs, while
 `count(a.id)` correctly says 0. Count a column from the right-hand table whenever you count
-through a LEFT JOIN.
+through a LEFT JOIN. And when a join has multiplied rows, `count(DISTINCT a.id)` counts each
+application once however many times it appears.
 
 The rule for `SELECT` with `GROUP BY`: every column you select is either one you grouped by or
 inside an aggregate. (SQLite lets you break it and quietly picks a value from some row;

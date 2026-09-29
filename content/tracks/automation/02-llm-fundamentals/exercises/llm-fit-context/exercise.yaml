@@ -1,0 +1,8 @@
+title: Trim a conversation to fit the window
+type: function
+difficulty: stretch
+tags: [context window, tokens, lists]
+hints:
+  - "Work out the budget first: context_window - max_tokens - the system prompt's tokens. Everything you keep has to fit in that."
+  - Walk the messages from newest to oldest, adding each one while it still fits, and stop at the first that doesn't. Then put the kept ones back in their original order.
+  - After trimming, drop assistant messages from the front until the history starts with a user message. Build a new list rather than deleting from the one you were given.

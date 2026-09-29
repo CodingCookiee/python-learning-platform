@@ -1,0 +1,8 @@
+title: A Python loop into GROUP BY
+type: refactor
+difficulty: core
+tags: [sql, group-by, refactoring, aggregates]
+hints:
+  - "The if status != 'paid' is a WHERE clause, the running total per region is sum(total_cents) with GROUP BY region, and the sort is ORDER BY."
+  - "ORDER BY revenue DESC, region matches the sort key (-revenue, region)."
+  - "The whole function body can be return conn.execute(\"SELECT region, sum(total_cents) AS revenue FROM orders WHERE status = 'paid' GROUP BY region ORDER BY revenue DESC, region\").fetchall()."

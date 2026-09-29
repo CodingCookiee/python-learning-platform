@@ -1,0 +1,8 @@
+title: Hold the blocked customers' orders
+type: refactor
+difficulty: warm-up
+timeout: 10
+tags: [complexity, set, membership, speed]
+hints:
+  - "customer_id in blocked_customers scans the whole list for every order: 5 000 x 100 000 comparisons."
+  - Build a set from the list once, before the comprehension, and check membership against the set.

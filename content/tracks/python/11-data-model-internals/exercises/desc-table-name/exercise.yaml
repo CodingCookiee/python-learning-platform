@@ -1,0 +1,7 @@
+title: A table name from the class name
+type: function
+difficulty: warm-up
+tags: [descriptors, get, non-data-descriptor]
+hints:
+  - "__get__(self, instance, owner) receives the class the attribute was read through as owner, for instance reads and class reads alike. Build the name from owner.__name__."
+  - "Define only __get__. Without __set__ it's a non-data descriptor, so an instance that assigns its own table keeps it."

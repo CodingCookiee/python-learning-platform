@@ -9,7 +9,7 @@ async def send(channel, delay):
 
 
 async def main():
-    email = asyncio.create_task(send("email", 0.03))
+    email = asyncio.create_task(send("email", 0.06))
     sms = send("sms", 0.01)
     print("created")
     print(await sms)

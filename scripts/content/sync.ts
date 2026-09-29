@@ -134,7 +134,7 @@ async function main() {
       prisma.$executeRaw`UPDATE "modules" SET "order" = -1000 - "order" WHERE "order" > 0 AND "slug" = ANY(${syncing})`,
       prisma.$executeRaw`UPDATE "lessons" SET "order" = -1000 - "order" WHERE "order" > 0 AND "slug" IS NOT NULL AND "moduleId" IN (SELECT "id" FROM "modules" WHERE "slug" = ANY(${syncing}))`,
       prisma.$executeRaw`UPDATE "exercises" SET "order" = -1000 - "order" WHERE "order" > 0 AND "slug" IS NOT NULL AND "lessonId" IN (SELECT l."id" FROM "lessons" l JOIN "modules" m ON m."id" = l."moduleId" WHERE m."slug" = ANY(${syncing}))`,
-    ]);
+    ], { maxWait: 30_000, timeout: 60_000 }); // Neon's free tier can take a while to wake
 
     for (const t of tracks) {
       const track = await prisma.track.upsert({

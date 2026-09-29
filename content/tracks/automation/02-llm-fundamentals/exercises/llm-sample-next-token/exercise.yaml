@@ -1,0 +1,8 @@
+title: A next-token sampler
+type: function
+difficulty: core
+tags: [sampling, temperature, top-p, softmax, random]
+hints:
+  - "token_probabilities: divide each logit by the temperature, subtract the largest scaled value, take math.exp of each, then divide each by the total."
+  - "For top-p, sort the (token, probability) pairs from most to least likely and keep adding them until the running total reaches top_p. Those are the only candidates."
+  - "rng.choices(tokens, weights=probabilities)[0] picks one token in proportion to its weight; the weights don't need to add up to 1."

@@ -1,0 +1,21 @@
+slug: automation-foundations
+title: Automation foundations
+summary: Decide what's worth automating, then automate it with files, CSV, schedules, webhooks, SaaS APIs, commands, scrapers and n8n.
+description: >
+  Clients don't pay for scripts. They pay for a process that used to eat somebody's afternoon and
+  now runs by itself, correctly, every time. This module turns the Python you already write into
+  that kind of work. It starts with automation thinking: every automation is a trigger, some
+  context, a decision and an action, and only some processes are worth the build. Then come the
+  building blocks clients ask for most: file and folder clean-ups, CSV reports, jobs on a schedule,
+  signed and idempotent webhooks in FastAPI, Slack, sheets and CRM integrations, shell commands and
+  Docker, scraping and browser automation, and n8n workflows that call your own Python service.
+  Everything that can run in the browser is drilled there against fakes; cron, Docker, Playwright
+  and n8n are local labs you run on your machine.
+hours: 12
+outcomes:
+  - Break a business process into trigger, context, decision and action, and estimate whether automating it pays back
+  - Sort, rename, deduplicate and archive files safely with pathlib, and turn CSV exports into reports
+  - Read and check cron expressions, and schedule jobs with cron, APScheduler and GitHub Actions without missing or repeating work
+  - Receive webhooks in FastAPI that verify HMAC signatures, reject replays, ignore duplicates and acknowledge fast
+  - Integrate Slack, Google Sheets and CRM-style APIs with timeouts, error handling and upserts
+  - Run commands safely with subprocess, scrape HTML politely with BeautifulSoup, and build n8n workflows that call your Python service

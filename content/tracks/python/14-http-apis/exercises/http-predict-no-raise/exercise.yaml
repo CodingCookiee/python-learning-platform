@@ -1,0 +1,9 @@
+title: "Predict: a 404 is still a response"
+type: predict
+difficulty: warm-up
+tags: [httpx, status-codes, raise-for-status, exceptions]
+packages: [httpx]
+hints:
+  - httpx only raises for an error status when you call raise_for_status(). Until then a 404 is an ordinary response with a JSON body.
+  - raise_for_status() returns the response itself when the status is 2xx, which is why it can be chained.
+  - HTTPStatusError is a kind of HTTPError, but not a RequestError. RequestError is for when there was no answer at all.

@@ -1,0 +1,8 @@
+title: Top customers for a period
+type: function
+difficulty: stretch
+tags: [sql, join, group-by, having, count-distinct, parameters]
+hints:
+  - "Join customers to orders to order_lines. Keep paid orders in the period with WHERE o.status = 'paid' AND o.placed_on >= ? AND o.placed_on < ?."
+  - "Revenue is sum(l.quantity * l.unit_price_cents). The join gives one row per line, so an order with three lines appears three times: count(DISTINCT o.id) counts orders."
+  - "GROUP BY c.id, HAVING revenue >= ?, ORDER BY revenue DESC, c.name, LIMIT ?. The parameters go in the order their ? appear: (start, end, min_revenue_cents, limit)."

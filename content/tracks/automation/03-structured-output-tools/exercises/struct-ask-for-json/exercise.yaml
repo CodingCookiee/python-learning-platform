@@ -1,0 +1,8 @@
+title: Ask for a lead as JSON
+type: function
+difficulty: stretch
+tags: [llm, prompting, json, delimiters]
+hints:
+  - The system prompt is a constant string. Name each of the four fields in it, say the reply must be only a JSON object, and say to use null when the email doesn't give a value.
+  - "Call llm.complete([{\"role\": \"user\", \"content\": f\"<email>\\n{email}\\n</email>\"}], system=LEAD_SYSTEM, temperature=0)."
+  - Check response.stop_reason == "max_tokens" before parsing, and raise ValueError("The reply was cut off at max_tokens") if so. Otherwise return extract_json(response.text).

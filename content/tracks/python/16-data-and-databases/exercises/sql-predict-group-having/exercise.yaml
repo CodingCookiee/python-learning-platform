@@ -1,0 +1,8 @@
+title: "Predict: groups, NULLs and HAVING"
+type: predict
+difficulty: core
+tags: [sql, group-by, having, aggregates, "null"]
+hints:
+  - "count(*) counts rows; count(coupon) counts only rows where coupon isn't NULL."
+  - WHERE removes the refunded and pending orders before grouping; HAVING then removes whole groups.
+  - "avg and sum skip NULLs, and a group with nothing but NULLs averages to None. An aggregate with no GROUP BY always returns exactly one row, even when WHERE matched nothing."

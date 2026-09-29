@@ -1,0 +1,9 @@
+title: A client for the shop API
+type: function
+difficulty: warm-up
+tags: [httpx, client, base-url, headers, timeouts]
+packages: [httpx]
+hints:
+  - Everything is an argument to httpx.Client(...), so the body is a single return statement.
+  - "httpx.Timeout(10, connect=3) means 10 seconds for read, write and pool, and 3 for connect."
+  - "Pass transport=transport through: None is httpx's own default, the real network."

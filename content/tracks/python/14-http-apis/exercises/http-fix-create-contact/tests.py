@@ -59,6 +59,7 @@ def _():
 def _():
     crm = FakeCrm()
     create_contact(crm.client(), "Grace Hopper", "grace@example.com")
+    assert crm.requests[0].content, "The request should have a JSON body"
     assert json.loads(crm.requests[0].content)["tags"] == []
 
 

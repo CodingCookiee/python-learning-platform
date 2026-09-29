@@ -1,0 +1,7 @@
+title: "Predict: how many comparisons?"
+type: predict
+difficulty: warm-up
+tags: [complexity, set, hashing, eq]
+hints:
+  - A list is searched from the front, calling __eq__ on each item until one matches.
+  - A set jumps to the slot for the hash, and calls __eq__ only on an item whose hash is the same. No item has TEA-01's hash.

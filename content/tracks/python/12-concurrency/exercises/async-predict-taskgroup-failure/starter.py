@@ -18,8 +18,8 @@ async def main():
     try:
         async with asyncio.TaskGroup() as group:
             visa = group.create_task(charge("visa", 0.01))
-            amex = group.create_task(charge("amex", 0.03, declined=True))
-            group.create_task(charge("mastercard", 0.08))
+            amex = group.create_task(charge("amex", 0.04, declined=True))
+            group.create_task(charge("mastercard", 0.1))
             print("all started")
     except* ValueError as failures:
         print("failed:", [str(error) for error in failures.exceptions])

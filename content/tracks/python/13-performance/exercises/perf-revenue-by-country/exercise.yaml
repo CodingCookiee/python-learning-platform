@@ -1,0 +1,9 @@
+title: Revenue by country, without the search
+type: refactor
+difficulty: core
+timeout: 10
+tags: [dict, complexity, lookup, speed]
+hints:
+  - For every order, the inner loop searches the customer list. With 8 000 orders and 4 000 customers that's millions of Python steps.
+  - Before the loop, build a dict from customer id to country, once. Then each order is one lookup.
+  - country_of.get(order["customer_id"], "unknown") handles customers who aren't in the list.

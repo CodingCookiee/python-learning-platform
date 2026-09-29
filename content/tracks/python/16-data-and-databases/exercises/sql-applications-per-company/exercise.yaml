@@ -1,0 +1,8 @@
+title: Applications per company
+type: function
+difficulty: core
+tags: [sql, left-join, group-by, having, count]
+hints:
+  - Start from companies and LEFT JOIN applications, so a company with no applications still has a row.
+  - "count(a.id) counts only real applications; count(*) would give a company with none a count of 1."
+  - "GROUP BY c.id, then HAVING count(a.id) >= ? with min_applications as the parameter, then ORDER BY the count DESC, c.name."
