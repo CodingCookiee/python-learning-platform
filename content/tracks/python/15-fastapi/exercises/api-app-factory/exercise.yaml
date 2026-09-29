@@ -1,0 +1,10 @@
+title: An app factory for two brands
+type: function
+difficulty: stretch
+tags: [fastapi, app-factory, APIRouter, settings, CORS, app-state, SecretStr]
+packages: [fastapi, httpx]
+timeout: 15
+hints:
+  - "Keep the routers at module level; they can be shared, because the state isn't. Dependencies find each app's own state through the request: request.app.state.settings and request.app.state.bookings."
+  - "In create_app: app = FastAPI(title=settings.service_name), set app.state.settings and a fresh app.state.bookings = [], add CORSMiddleware with allow_origins=settings.allowed_origins, include both routers, and return app."
+  - "require_admin compares the X-Admin-Key header with secrets.compare_digest(key, settings.admin_key.get_secret_value()), and the admin router takes dependencies=[Depends(require_admin)]."

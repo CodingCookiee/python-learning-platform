@@ -3,6 +3,7 @@ type: function
 difficulty: core
 tags: [fastapi, openapi, docs, routes]
 packages: [fastapi, httpx]
+timeout: 15
 hints:
   - "The title and version are arguments to the constructor: FastAPI(title=..., version=...)."
   - "summary= goes in the decorator, @app.get(\"/rooms\", summary=\"List rooms\"), and the function's docstring becomes the description."

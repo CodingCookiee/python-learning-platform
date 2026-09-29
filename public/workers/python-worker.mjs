@@ -9,6 +9,7 @@
  *                  { id, kind: "test", solution, tests, importSolution, packages }
  *   worker → main  { type: "ready" }
  *                  { type: "status", text }                 (loading progress)
+ *                  { id, type: "running" }                  (packages loaded, code starting)
  *                  { id, type: "result", result }           (plp_runner JSON)
  *                  { id, type: "failure", message }         (the runtime itself failed)
  */
@@ -93,6 +94,8 @@ self.onmessage = async (event) => {
         errorCallback: () => {},
       });
     }
+    // Packages are in: the job's own time limit starts now (downloads don't count)
+    self.postMessage({ id: msg.id, type: "running" });
     const args =
       msg.kind === "test"
         ? { solution: msg.solution, tests: msg.tests, import_solution: msg.importSolution ?? true }

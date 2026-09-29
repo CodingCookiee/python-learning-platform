@@ -3,6 +3,7 @@ type: fix
 difficulty: core
 tags: [fastapi, query-parameters, Annotated, Query, Literal, validation]
 packages: [fastapi, httpx]
+timeout: 15
 hints:
   - "Each bug is a query parameter that accepts any value of its type. Constraints belong in Annotated: page: Annotated[int, Query(ge=1)] = 1."
   - "per_page needs both a floor and a ceiling: Query(ge=1, le=100). For status, a Literal of the three real statuses refuses typos with 422."

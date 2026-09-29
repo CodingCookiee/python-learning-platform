@@ -12,5 +12,5 @@ largest_orders(lines, 3)
 - Skip blank lines (including ones that are only whitespace or a newline).
 - Orders with the same amount keep the order they arrived in.
 - Fewer than `k` orders in the stream: return them all.
-- `lines` may be a generator that can only be read once. The tests stream 8 000 lines through
+- `lines` may be a generator that can only be read once. The tests stream 5 000 lines through
   your function and check that its peak memory stays small, so keep only what you need.

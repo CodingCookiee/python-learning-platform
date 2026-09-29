@@ -10,4 +10,4 @@ daily_totals(lines)
 
 Refactor `read_orders` into a **generator** that yields one order dict at a time, so the whole job
 runs in constant memory however long the export is. `daily_totals` must return exactly what it
-does now. The tests stream 10 000 lines through it and check its peak memory stays small.
+does now. The tests stream 6 000 lines through it and check its peak memory stays small.

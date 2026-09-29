@@ -1,0 +1,23 @@
+slug: rag
+title: Retrieval (RAG)
+summary: Answer questions from a client's own documents, with citations you can check and an eval that proves retrieval works.
+description: >
+  Most paid AI work is some version of "answer questions from our documents": a staff handbook
+  bot, product-docs support, a policy Q&A for a clinic, a legal FAQ. The model doesn't know those
+  documents, so you find the right passages and hand them over. That's retrieval-augmented
+  generation. This module builds every piece from first principles: embeddings and cosine
+  similarity with numpy, chunking that keeps meaning and metadata intact, a vector index with
+  batching and caching (then pgvector on your own machine), BM25 written by hand and fused with
+  vector search, reranking with a model, and grounded answers with numbered citations that refuse
+  when the documents don't say. Then you measure it, with recall@k, MRR and answer checks, and
+  learn the failure modes that sink RAG systems in production, from lost-in-the-middle to prompt
+  injection hiding inside a document. Everything takes an `embed` function and your neutral `llm`,
+  so it's graded offline with fakes and runs for real with any provider.
+hours: 12
+outcomes:
+  - Explain what embeddings are and why they work, and compute cosine similarity for a whole corpus at once with normalised numpy vectors
+  - Chunk documents by size with overlap, by heading and by sentence, keeping source, title and position on every chunk
+  - Build an in-memory vector index with batched, cached embedding and metadata filters, and set up the same search in Postgres with pgvector and an HNSW index
+  - Implement BM25 by hand and combine it with vector search using reciprocal rank fusion, then rerank the candidates with a model when it pays
+  - Generate grounded answers with numbered sources, parse the citations back to chunks, and refuse when the context doesn't contain the answer
+  - Evaluate retrieval with recall@k and MRR, check citations and faithfulness, and diagnose chunking, filtering, lost-in-the-middle, prompt-injection and stale-index failures

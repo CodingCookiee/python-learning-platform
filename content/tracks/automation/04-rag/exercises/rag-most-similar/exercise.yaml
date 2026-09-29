@@ -1,0 +1,9 @@
+title: Find the closest FAQ answers
+type: function
+difficulty: core
+tags: [embeddings, cosine-similarity, numpy, ranking]
+packages: [numpy]
+hints:
+  - "Call embed([question, *faqs]) once, turn the result into a numpy array, and split it: the first row is the question, the rest are the FAQs."
+  - Normalise every row (guarding zero norms), then scores = faq_matrix @ question_vector gives all the cosines at once.
+  - "np.argsort(-scores, kind=\"stable\")[:k] gives the best k indices with ties in their original order. Return [(faqs[i], float(scores[i])) for i in those]."

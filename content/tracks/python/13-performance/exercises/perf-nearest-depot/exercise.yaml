@@ -5,6 +5,6 @@ packages: [numpy]
 timeout: 10
 tags: [numpy, broadcasting, vectorising, speed]
 hints:
-  - "deliveries[:, np.newaxis, :] has shape (n, 1, 2) and depots[np.newaxis, :, :] has shape (1, m, 2). Subtracting them broadcasts to (n, m, 2): every delivery against every depot."
+  - "deliveries[:, None, :] has shape (n, 1, 2) and depots[None, :, :] has shape (1, m, 2) (None and np.newaxis mean the same thing here). Subtracting them broadcasts to (n, m, 2): every delivery against every depot."
   - Square that, and .sum(axis=2) adds the x and y parts, giving an (n, m) table of squared distances.
   - .argmin(axis=1) gives, for each row, the column of the smallest value, which is the index of the nearest depot. Like the loop, it keeps the first on a tie.

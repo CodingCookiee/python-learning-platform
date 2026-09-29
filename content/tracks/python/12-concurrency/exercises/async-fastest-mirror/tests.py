@@ -40,14 +40,14 @@ class Mirror:
 @test("The first mirror to answer wins")
 async def _():
     net = Network()
-    mirrors = [Mirror(net, "eu-west", 0.03), Mirror(net, "us-east", 0.01), Mirror(net, "ap-south", 0.05)]
+    mirrors = [Mirror(net, "eu-west", 0.3), Mirror(net, "us-east", 0.01), Mirror(net, "ap-south", 0.5)]
     assert await fastest(mirrors, PATH) == ("us-east", f"us-east:{PATH}".encode())
 
 
 @test("The losers are cancelled, and have stopped by the time it returns")
 async def _():
     net = Network()
-    mirrors = [Mirror(net, "eu-west", 0.03), Mirror(net, "us-east", 0.01), Mirror(net, "ap-south", 0.05)]
+    mirrors = [Mirror(net, "eu-west", 0.3), Mirror(net, "us-east", 0.01), Mirror(net, "ap-south", 0.5)]
     await fastest(mirrors, PATH)
     assert net.running == set(), f"still running: {sorted(net.running)}"
     assert net.cancelled == {"eu-west", "ap-south"}
@@ -56,7 +56,7 @@ async def _():
 @test("A mirror that fails is skipped")
 async def _():
     net = Network()
-    mirrors = [Mirror(net, "us-east", 0.0, error=ConnectionError("503 from us-east")), Mirror(net, "eu-west", 0.02)]
+    mirrors = [Mirror(net, "us-east", 0.0, error=ConnectionError("503 from us-east")), Mirror(net, "eu-west", 0.03)]
     assert await fastest(mirrors, PATH) == ("eu-west", f"eu-west:{PATH}".encode())
 
 

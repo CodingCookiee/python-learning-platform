@@ -37,6 +37,7 @@ __all__ = [
     "source_uses",
     "source_avoids",
     "defined_names",
+    "modules",
     "pytest_run",
     "PytestResult",
     "typecheck",
@@ -485,6 +486,48 @@ def load_module(name: str = "learner_module", *, source: str | None = None) -> L
     with contextlib.redirect_stdout(out), as_module(name, _SOLUTION["filename"]) as namespace:
         exec(compile(code, _SOLUTION["filename"], "exec", dont_inherit=True), namespace)
         return LoadedModule(dict(namespace), out.getvalue())
+
+
+@contextlib.contextmanager
+def modules(files: dict[str, str]):
+    """Put several source files on the import path for a multi-file drill:
+
+        with modules({"customers.py": CUSTOMERS, "orders.py": solution_source()}) as folder:
+            import orders
+            assert orders.total_for("C-1") == 42
+
+    Files are written to a fresh folder that goes first on sys.path; the modules they
+    define are imported fresh inside the block and removed again afterwards."""
+    import importlib
+    import os
+    import sys
+    import tempfile
+
+    folder = tempfile.mkdtemp(prefix="plp_modules_")
+    names = set()
+    for rel, source in files.items():
+        target = os.path.join(folder, rel)
+        os.makedirs(os.path.dirname(target), exist_ok=True)
+        with open(target, "w", encoding="utf8") as fh:
+            fh.write(source)
+        stem = rel[:-3] if rel.endswith(".py") else rel
+        names.add(stem.replace("/__init__", "").replace("/", "."))
+    top_levels = {n.split(".")[0] for n in names}
+
+    def drop():
+        for name in list(sys.modules):
+            if name.split(".")[0] in top_levels:
+                sys.modules.pop(name, None)
+
+    drop()
+    sys.path.insert(0, folder)
+    importlib.invalidate_caches()
+    try:
+        yield folder
+    finally:
+        if folder in sys.path:
+            sys.path.remove(folder)
+        drop()
 
 
 def solution_source() -> str:

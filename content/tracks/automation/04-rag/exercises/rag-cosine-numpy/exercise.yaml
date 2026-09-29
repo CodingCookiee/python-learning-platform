@@ -1,0 +1,9 @@
+title: Cosine similarity with numpy
+type: function
+difficulty: warm-up
+tags: [embeddings, cosine-similarity, numpy]
+packages: [numpy]
+hints:
+  - Convert both inputs with np.asarray(..., dtype=float), so plain lists work too.
+  - np.linalg.norm gives a vector's length. If either length is 0, return 0.0 before dividing.
+  - "Return float(a @ b / (norm_a * norm_b)): the float() turns numpy's float64 into a plain Python float."

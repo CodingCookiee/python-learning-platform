@@ -40,8 +40,9 @@ def _():
 @test("Parses a real Anthropic stream")
 def _():
     events = list(parse_sse(real_stream("anthropic", "Your refund was approved today.")))
+    # Real Anthropic streams include "ping" keep-alive events; a parser yields them like any other
     assert [name for name, _ in events] == [
-        "message_start", "content_block_start", "content_block_delta", "content_block_delta",
+        "message_start", "ping", "content_block_start", "content_block_delta", "content_block_delta",
         "content_block_delta", "content_block_stop", "message_delta", "message_stop",
     ]
     texts = [json.loads(data)["delta"]["text"] for name, data in events if name == "content_block_delta"]

@@ -63,6 +63,7 @@ parentPort.on("message", async (msg) => {
     if (msg.scanImports) {
       await py.loadPackagesFromImports(msg.scanImports, { messageCallback: () => {}, errorCallback: () => {} });
     }
+    parentPort.postMessage({ id: msg.id, type: "running" });
     const args =
       msg.kind === "test"
         ? { solution: msg.solution, tests: msg.tests, import_solution: msg.importSolution ?? true }

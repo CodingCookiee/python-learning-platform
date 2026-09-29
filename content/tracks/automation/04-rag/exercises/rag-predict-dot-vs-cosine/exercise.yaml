@@ -1,0 +1,9 @@
+title: "Predict: dot product or cosine"
+type: predict
+difficulty: warm-up
+tags: [embeddings, cosine-similarity, numpy]
+packages: [numpy]
+hints:
+  - "The query is [1, 1, 0]. Its dot product with [1, 1, 0] is 2, and with [4, 3, 5] it's 4 + 3 = 7."
+  - "Cosine divides by both lengths. The long vector has length sqrt(16 + 9 + 25) = sqrt(50), about 7.07, and the query has length sqrt(2)."
+  - Any vector divided by its own length has length 1, so the dot product of two unit vectors is their cosine.

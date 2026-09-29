@@ -1,0 +1,9 @@
+title: Fix the search that prefers long pages
+type: fix
+difficulty: core
+tags: [embeddings, cosine-similarity, normalisation, numpy]
+packages: [numpy]
+hints:
+  - The model behind this search returns vectors that aren't unit length, so a matrix @ vector product is a dot product, not a cosine.
+  - "Divide each row by its own length: np.linalg.norm(matrix, axis=1, keepdims=True) gives a column of row lengths that broadcasts."
+  - "Replace zero norms with 1.0 before dividing (np.where(norms == 0, 1.0, norms)), so an all-zero row scores 0 instead of nan. Normalise the query the same way."

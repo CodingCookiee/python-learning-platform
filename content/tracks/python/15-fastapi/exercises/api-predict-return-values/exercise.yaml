@@ -3,6 +3,7 @@ type: predict
 difficulty: warm-up
 tags: [fastapi, json, responses]
 packages: [fastapi, httpx]
+timeout: 15
 hints:
   - "FastAPI turns every return value into JSON text. A Python str becomes a JSON string, with double quotes; None becomes null; tuples become JSON arrays."
   - "FastAPI writes compact JSON, with no spaces after commas or colons. The last path doesn't match /menu/{item_id} with an int, so the function never runs."

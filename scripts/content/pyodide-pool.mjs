@@ -36,6 +36,11 @@ export class PyodidePool {
         this.fail(slot, new Error(`Pyodide failed to start: ${msg.message}`));
         return;
       }
+      if (msg.type === "running") {
+        // Packages loaded: the job's own time limit starts now
+        if (slot.job && msg.id === slot.job.id) this.arm(slot, slot.job, slot.job.timeoutMs);
+        return;
+      }
       if (slot.job && msg.id === slot.job.id) {
         const job = slot.job;
         clearTimeout(slot.timer);
@@ -78,8 +83,8 @@ export class PyodidePool {
     this.start(slot, job);
   }
 
-  start(slot, job) {
-    slot.job = job;
+  arm(slot, job, ms) {
+    clearTimeout(slot.timer);
     slot.timer = setTimeout(() => {
       // Runaway code: kill the thread, report a timeout, start a replacement
       this.threads.delete(slot);
@@ -87,7 +92,13 @@ export class PyodidePool {
       void slot.worker.terminate();
       job.resolve({ __timeout: true });
       if (!this.closed) this.fill();
-    }, job.timeoutMs);
+    }, ms);
+  }
+
+  start(slot, job) {
+    slot.job = job;
+    // Package downloads get their own generous window; the job's limit starts on "running"
+    this.arm(slot, job, Math.max(job.timeoutMs, 120_000));
     slot.worker.postMessage({ id: job.id, ...job.message });
   }
 

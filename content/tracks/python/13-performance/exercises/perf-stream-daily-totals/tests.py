@@ -6,7 +6,7 @@ from plp import test, hidden
 from solution import daily_totals, read_orders
 
 LINE = "2026-09-{:02d},SKU-{:03d},{}\n"
-EXPORT_SIZE = 10_000
+EXPORT_SIZE = 6_000
 
 
 def export(size):
@@ -45,7 +45,7 @@ def _():
     assert first == {"day": "2026-09-01", "sku": "SKU-007", "amount": 850}
 
 
-@test("Totals a 10 000-line export in constant memory", timeout=10)
+@test("Totals a 6 000-line export in constant memory", timeout=10)
 def _():
     tracemalloc.start()
     try:

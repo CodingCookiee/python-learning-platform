@@ -251,6 +251,10 @@ def _():
 - **`load_module("billing")`** imports a fresh copy of the learner's file under that name (so the
   `__main__` guard is false) and returns it with `.printed`: use it to check a file has no
   side effects on import.
+- **`with modules({"customers.py": CUSTOMERS, "orders.py": solution_source()}):`** puts several
+  files on the import path for multi-file drills (imports, packages, circular imports) and cleans
+  up afterwards. Each run also starts with a clean import state: modules created by earlier runs
+  are gone, so examples don't need to clear `sys.modules` themselves.
 - **`defined_names("function" | "class" | "any")`** lists what the learner's file defines at the top
   level (methods as `Class.method`).
 - **Time limits.** Each test may spend 2 seconds in the learner's code before it fails with "Took
@@ -299,7 +303,7 @@ Keep drills deterministic:
   SQLite (`sqlite://`). Scripts run as a real `__main__` module, so declarative models, dataclasses
   and pickle behave as in a normal file.
 - **Randomness:** have functions accept a `random.Random` instance, or seed it in the test.
-- **LLM calls:** use the fake clients in `plp.fakes` (automation track). They replay scripted
+- **LLM calls:** use the fake clients in `plp_fakes` (automation track). They replay scripted
   responses and record every request, so tests can assert on prompts and tool calls.
 
 ---
@@ -351,16 +355,20 @@ class LLM(Protocol):
 
 | Fake | For | Use |
 |------|-----|-----|
-| `anthropic_api(replies)` / `openai_api(replies)` | A2: the learner's own HTTP adapters | `httpx.Client(transport=api.transport, base_url="https://api.anthropic.com")`. It answers like the real endpoint (`POST /v1/messages` or `/v1/chat/completions`), checks auth headers (401), `max_tokens` for Anthropic (400), supports `"stream": true` (real SSE events), and records `.requests` / `.last` (method, path, headers, parsed `json`) |
-| `ScriptedLLM(replies)` | A3–A8: anything that takes an `llm` | Returns `LLMResponse`s in order; `.calls` holds every `complete()` call's arguments (messages copied), so tests assert on prompts, tools offered and history; raises a clear error if the code calls more times than scripted |
+| `anthropic_api(replies)` / `openai_api(replies)` | A2: the learner's own HTTP adapters | `httpx.Client(transport=api.transport, base_url="https://api.anthropic.com")`. It answers like the real endpoint (`POST /v1/messages` or `/v1/chat/completions`), checks auth headers (401), `max_tokens` for Anthropic (400), rejects `role: "system"` in Anthropic `messages` (400), supports `"stream": true` with real SSE events (text and tool calls, `ping`, OpenAI `stream_options.include_usage`), and records `.requests` / `.last` (method, path, headers, parsed `json`) |
+| `ScriptedLLM(replies, supports_schema=True)` | A3–A8: anything that takes an `llm` | Returns `LLMResponse`s in order; `.calls` holds every `complete()` call's arguments (messages copied), so tests assert on prompts, tools offered and history; a scripted `Fail` raises `FakeLLMError` (`.status`, `.retry_after`); `supports_schema=False` makes `schema=` raise `NotImplementedError`; raises a clear error if the code calls more times than scripted |
 | `fake_api({"GET /v1/deals/{id}": …})` | Slack, CRMs, sheets, any JSON API | A handler (`lambda req, id: {...}`) or a plain value; return `(status, json)` or `(status, json, headers)` for errors; `.requests` and `.calls("POST /path")` record traffic; `.async_transport` for `AsyncClient` |
 | `fake_embed(texts, dim=64)`, `cosine(a, b)` | A4: RAG | Deterministic embeddings where shared (stemmed) words mean similarity, so retrieval, ranking and recall@k are testable without a model |
 | `McpHarness(handle)` | A6: MCP | Drives a JSON-RPC handler like a client: `.initialize()`, `.list_tools()`, `.call_tool(name, args)`, `.list_resources()`, `.read_resource(uri)`; checks ids and `jsonrpc: "2.0"` |
 
 A reply in a script is `"text"`, `tool_call("name", **arguments)` (or a list of them),
-`Reply(text=, tool_calls=, stop_reason=, usage=)`, `Fail(429, retry_after=2)` / `Fail(500)`, or a
+`Reply(text=, tool_calls=, stop_reason=, usage=)`, `Fail(429, retry_after=2)` / `Fail(500)`,
+`Timeout()` (HTTP fakes raise `httpx.ReadTimeout`; `ScriptedLLM` raises `TimeoutError`), or a
 function of the request that returns one of these (for replies that depend on the prompt).
 `estimate_tokens(text)` is the fakes' token rule (about 4 characters per token), handy for cost drills.
+
+Lesson examples can `from plp_fakes import ScriptedLLM` and keep their Run button. Learners who want the
+fakes locally can download them from `/py/plp_fakes.py` on the site.
 
 Lessons show real calls to `https://api.anthropic.com` and `https://api.openai.com` as
 ```` ```python norun ```` with the learner's own key from an environment variable, and put the

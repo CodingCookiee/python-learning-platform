@@ -40,6 +40,8 @@ __all__ = [
     "LLMResponse",
     "Reply",
     "Fail",
+    "Timeout",
+    "FakeLLMError",
     "tool_call",
     "ScriptedLLM",
     "anthropic_api",
@@ -99,6 +101,23 @@ class Fail:
     retry_after: float | None = None
 
 
+@dataclass
+class Timeout:
+    """The request times out: HTTP fakes raise httpx.ReadTimeout, ScriptedLLM raises TimeoutError."""
+
+    message: str = "The read operation timed out"
+
+
+class FakeLLMError(Exception):
+    """What ScriptedLLM raises for a scripted Fail: carries .status and .retry_after."""
+
+    def __init__(self, status: int, message: str = "", retry_after: float | None = None):
+        super().__init__(f"Fake LLM error {status}: {message or 'scripted failure'}")
+        self.status = status
+        self.message = message
+        self.retry_after = retry_after
+
+
 _ids = {"n": 0}
 
 
@@ -117,8 +136,8 @@ def estimate_tokens(text: str) -> int:
     return max(1, math.ceil(len(text) / 4)) if text else 0
 
 
-def _as_reply(item: Any) -> Reply | Fail:
-    if isinstance(item, (Reply, Fail)):
+def _as_reply(item: Any) -> Reply | Fail | Timeout:
+    if isinstance(item, (Reply, Fail, Timeout)):
         return item
     if isinstance(item, str):
         return Reply(text=item)
@@ -135,7 +154,7 @@ class _Script:
         self._name = name
         self.used = 0
 
-    def next(self, request: dict) -> Reply | Fail:
+    def next(self, request: dict) -> Reply | Fail | Timeout:
         if self.used >= len(self._items):
             raise AssertionError(
                 f"{self._name} was called {self.used + 1} times, but the test only scripted "
@@ -143,7 +162,7 @@ class _Script:
             )
         item = self._items[self.used]
         self.used += 1
-        if callable(item) and not isinstance(item, (ToolCall, Reply, Fail)):
+        if callable(item) and not isinstance(item, (ToolCall, Reply, Fail, Timeout)):
             item = item(request)
         return _as_reply(item)
 
@@ -176,9 +195,12 @@ class ScriptedLLM:
     so tests can check prompts, tools offered and conversation history.
     """
 
-    def __init__(self, replies: Iterable[Any], *, model: str = "fake-model"):
+    def __init__(self, replies: Iterable[Any], *, model: str = "fake-model", supports_schema: bool = True):
+        """supports_schema=False makes complete(..., schema=...) raise NotImplementedError,
+        like a client for a provider without native structured outputs."""
         self._script = _Script(replies, "ScriptedLLM")
         self.model = model
+        self.supports_schema = supports_schema
         self.calls: list[dict] = []
 
     def complete(
@@ -202,9 +224,13 @@ class ScriptedLLM:
             **extra,
         }
         self.calls.append(call)
+        if extra.get("schema") is not None and not self.supports_schema:
+            raise NotImplementedError("This fake client doesn't support native structured output (schema=)")
         reply = self._script.next(call)
         if isinstance(reply, Fail):
-            raise RuntimeError(f"Fake LLM error {reply.status}: {reply.message or 'scripted failure'}")
+            raise FakeLLMError(reply.status, reply.message, reply.retry_after)
+        if isinstance(reply, Timeout):
+            raise TimeoutError(reply.message)
         usage = reply.usage or Usage(
             input_tokens=estimate_tokens((system or "") + _messages_text(messages)),
             output_tokens=estimate_tokens(reply.text) + 10 * len(reply.tool_calls),
@@ -368,8 +394,18 @@ class FakeProvider:
             return httpx.Response(400, json=self._error("invalid_request_error", "model and messages are required"))
         if self.kind == "anthropic" and "max_tokens" not in body:
             return httpx.Response(400, json=self._error("invalid_request_error", "max_tokens: Field required"))
+        if self.kind == "anthropic" and any(m.get("role") == "system" for m in body["messages"] if isinstance(m, dict)):
+            return httpx.Response(
+                400,
+                json=self._error(
+                    "invalid_request_error",
+                    'messages: Unexpected role "system". The Messages API accepts a top-level `system` parameter, not "system" as an input message role.',
+                ),
+            )
 
         reply = self._script.next(body)
+        if isinstance(reply, Timeout):
+            raise httpx.ReadTimeout(reply.message, request=request)
         if isinstance(reply, Fail):
             headers = {"retry-after": str(reply.retry_after)} if reply.retry_after is not None else {}
             kind = {429: "rate_limit_error", 529: "overloaded_error", 400: "invalid_request_error"}.get(reply.status, "api_error")
@@ -384,7 +420,12 @@ class FakeProvider:
         )
         model = body.get("model", self.model)
         if body.get("stream"):
-            return httpx.Response(200, headers={"content-type": "text/event-stream"}, content=self._sse(reply, usage, model))
+            include_usage = bool((body.get("stream_options") or {}).get("include_usage"))
+            return httpx.Response(
+                200,
+                headers={"content-type": "text/event-stream"},
+                content=self._sse(reply, usage, model, include_usage=include_usage),
+            )
         payload = self._anthropic(reply, usage, model) if self.kind == "anthropic" else self._openai(reply, usage, model)
         return httpx.Response(200, json=payload)
 
@@ -446,30 +487,58 @@ class FakeProvider:
             },
         }
 
-    def _sse(self, reply: Reply, usage: Usage, model: str) -> bytes:
-        chunks = [reply.text[i : i + 12] for i in range(0, len(reply.text), 12)] or [""]
+    def _sse(self, reply: Reply, usage: Usage, model: str, *, include_usage: bool = False) -> bytes:
+        """Server-sent events shaped like each provider's stream, including tool calls
+        (Anthropic tool_use blocks with input_json_delta; OpenAI tool_calls deltas)."""
+        chunks = [reply.text[i : i + 12] for i in range(0, len(reply.text), 12)] if reply.text else []
+        stop = reply.stop_reason or ("tool_use" if reply.tool_calls else "end_turn")
         lines: list[str] = []
         if self.kind == "anthropic":
 
             def event(name: str, data: dict) -> None:
                 lines.append(f"event: {name}\ndata: {json.dumps(data)}\n\n")
 
-            event("message_start", {"type": "message_start", "message": {**self._anthropic(Reply(), Usage(usage.input_tokens, 0), model), "content": []}})
-            event("content_block_start", {"type": "content_block_start", "index": 0, "content_block": {"type": "text", "text": ""}})
-            for piece in chunks:
-                event("content_block_delta", {"type": "content_block_delta", "index": 0, "delta": {"type": "text_delta", "text": piece}})
-            event("content_block_stop", {"type": "content_block_stop", "index": 0})
-            event(
-                "message_delta",
-                {"type": "message_delta", "delta": {"stop_reason": reply.stop_reason or "end_turn"}, "usage": {"output_tokens": usage.output_tokens}},
-            )
+            event("message_start", {"type": "message_start", "message": {**self._anthropic(Reply(), Usage(usage.input_tokens, 0), model), "content": [], "stop_reason": None}})
+            event("ping", {"type": "ping"})
+            index = 0
+            if chunks:
+                event("content_block_start", {"type": "content_block_start", "index": index, "content_block": {"type": "text", "text": ""}})
+                for piece in chunks:
+                    event("content_block_delta", {"type": "content_block_delta", "index": index, "delta": {"type": "text_delta", "text": piece}})
+                event("content_block_stop", {"type": "content_block_stop", "index": index})
+                index += 1
+            for tc in reply.tool_calls:
+                event("content_block_start", {"type": "content_block_start", "index": index, "content_block": {"type": "tool_use", "id": tc.id, "name": tc.name, "input": {}}})
+                raw = json.dumps(tc.arguments)
+                for i in range(0, len(raw), 10):
+                    event("content_block_delta", {"type": "content_block_delta", "index": index, "delta": {"type": "input_json_delta", "partial_json": raw[i : i + 10]}})
+                event("content_block_stop", {"type": "content_block_stop", "index": index})
+                index += 1
+            event("message_delta", {"type": "message_delta", "delta": {"stop_reason": stop, "stop_sequence": None}, "usage": {"output_tokens": usage.output_tokens}})
             event("message_stop", {"type": "message_stop"})
         else:
             base = {"id": _next_id("chatcmpl"), "object": "chat.completion.chunk", "model": model}
-            lines.append(f"data: {json.dumps({**base, 'choices': [{'index': 0, 'delta': {'role': 'assistant'}}]})}\n\n")
+
+            def chunk(delta: dict, finish: str | None = None, **extra: Any) -> None:
+                choice: dict[str, Any] = {"index": 0, "delta": delta}
+                if finish is not None:
+                    choice["finish_reason"] = finish
+                lines.append(f"data: {json.dumps({**base, 'choices': [choice], **extra})}\n\n")
+
+            chunk({"role": "assistant", "content": ""})
             for piece in chunks:
-                lines.append(f"data: {json.dumps({**base, 'choices': [{'index': 0, 'delta': {'content': piece}}]})}\n\n")
-            lines.append(f"data: {json.dumps({**base, 'choices': [{'index': 0, 'delta': {}, 'finish_reason': 'stop'}]})}\n\n")
+                chunk({"content": piece})
+            for i, tc in enumerate(reply.tool_calls):
+                raw = json.dumps(tc.arguments)
+                chunk({"tool_calls": [{"index": i, "id": tc.id, "type": "function", "function": {"name": tc.name, "arguments": ""}}]})
+                for j in range(0, len(raw), 10):
+                    chunk({"tool_calls": [{"index": i, "function": {"arguments": raw[j : j + 10]}}]})
+            finish = {"end_turn": "stop", "tool_use": "tool_calls", "max_tokens": "length"}.get(stop, "stop")
+            chunk({}, finish)
+            if include_usage:
+                lines.append(
+                    f"data: {json.dumps({**base, 'choices': [], 'usage': {'prompt_tokens': usage.input_tokens, 'completion_tokens': usage.output_tokens, 'total_tokens': usage.total_tokens}})}\n\n"
+                )
             lines.append("data: [DONE]\n\n")
         return "".join(lines).encode("utf8")
 

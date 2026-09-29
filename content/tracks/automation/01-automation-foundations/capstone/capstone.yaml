@@ -1,0 +1,21 @@
+slug: lead-capture-pipeline
+title: Lead capture pipeline
+summary: Form webhook, then validate, enrich, CRM and Slack alert, built once as a tested FastAPI service and once as an n8n workflow.
+hours: 8
+xp: 200
+requirements:
+  - "POST /webhooks/leads verifies the Webhook-Signature header (HMAC-SHA256 over the timestamp and the raw body, constant-time compare, 300-second tolerance) and answers 401 with the reason when it fails"
+  - "A correctly signed body that isn't JSON gets 400; one that fails the Lead model gets 422 with a list of {field, message}; a submission_id already received gets 200 duplicate; a new lead gets 202 queued and is processed in a background task"
+  - "The Lead model strips and requires name and submission_id, lower-cases and checks the email, turns blank company and message into None, restricts budget to the three values, and refuses a submission without consent"
+  - "The pipeline skips enrichment for free-mail domains, treats a 404, an error status or a timeout from the enrichment API as 'no company', scores the lead exactly by the brief's table, and upserts one CRM contact per email without sending empty fields"
+  - "Leads scoring at least high_priority_score get an escaped Slack alert; a Slack failure is logged and recorded as alerted false, never a crash, and a CRM failure marks the lead failed with the error"
+  - "GET /leads/{submission_id} returns the lead's status record, and python lead_pipeline.py prints the sample run from the brief against the unchanged fakes"
+  - "A test file, run in the browser, covers every row of the webhook table, the scoring rules and each failure path, using httpx.ASGITransport and fake services"
+  - "The same flow is built in n8n on your machine (Webhook, validation, enrichment, CRM upsert, Slack), exported as JSON, and verified by posting the brief's sample submissions to it"
+criteria:
+  - The demo output matches the sample run exactly, and the hidden tests pass against fresh fakes, including failures the demo doesn't produce
+  - The raw body is verified before it's parsed, with hmac.compare_digest, and nothing is queued, stored or logged for a request that fails a check
+  - The receiver only verifies, validates, deduplicates and queues; enrichment, CRM and Slack calls happen in the background task, and every outside call has a timeout
+  - Each outside service's failure is handled once, in one place, with the behaviour the brief specifies (skip, mark failed, or log), and secrets never appear in code, logs or the exported workflow
+  - Tests are deterministic (fixed secrets, an injected clock and sleep, fakes instead of the network) and each checks one behaviour
+  - The README compares the Python and n8n builds honestly (what each is better at, what each costs to run and change) and recommends one to the client

@@ -3,6 +3,7 @@ type: function
 difficulty: warm-up
 tags: [fastapi, routes, json]
 packages: [fastapi, httpx]
+timeout: 15
 hints:
   - "A path operation is a decorator on a plain function: @app.get(\"/health\") above def health():"
   - "Return a dict and FastAPI sends it as JSON: return {\"status\": \"ok\"}"

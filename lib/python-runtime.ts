@@ -53,7 +53,9 @@ interface Job {
   resolve: (value: unknown) => void;
 }
 
-const WORKER_URL = "/workers/python-worker.mjs?v=314.0.7-3";
+const WORKER_URL = "/workers/python-worker.mjs?v=314.0.7-4";
+/** Time allowed for downloading a drill's packages (pandas, mypy…) before its code starts */
+const PACKAGE_LOAD_MS = 120_000;
 
 class PythonRuntime {
   private worker: Worker | null = null;
@@ -99,6 +101,11 @@ class PythonRuntime {
         }
         if (data.type === "status") {
           this.setStatus(this.status, data.text ?? "");
+          return;
+        }
+        if (data.type === "running") {
+          // Packages have loaded: restart the clock so downloads never count as a timeout
+          if (this.active && data.id === this.active.id) this.armTimer(this.active);
           return;
         }
         if (data.type === "failure" && data.id === undefined) {
@@ -156,18 +163,24 @@ class PythonRuntime {
       () => {
         if (this.active !== job) return;
         this.setStatus("busy");
-        // The clock starts once Python is loaded, so a slow first load isn't a timeout
-        this.timer = setTimeout(() => {
-          if (this.active !== job) return;
-          this.reset();
-          this.finish({ __timeout: true });
-        }, job.timeoutMs);
+        // Until the worker says packages are loaded, allow a generous download window;
+        // the job's own limit starts on its "running" message
+        this.armTimer(job, PACKAGE_LOAD_MS);
         this.worker!.postMessage({ id: job.id, ...job.message });
       },
       (err: Error) => {
         if (this.active === job) this.finish({ __failure: err.message });
       }
     );
+  }
+
+  private armTimer(job: Job, ms = job.timeoutMs) {
+    if (this.timer) clearTimeout(this.timer);
+    this.timer = setTimeout(() => {
+      if (this.active !== job) return;
+      this.reset();
+      this.finish({ __timeout: true });
+    }, ms);
   }
 
   private enqueue(message: Record<string, unknown>, timeoutMs: number): Promise<unknown> {

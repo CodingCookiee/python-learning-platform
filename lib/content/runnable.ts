@@ -14,7 +14,10 @@ const BROWSER_MODULES = new Set(
     "operator os pathlib pickle platform pprint queue random re reprlib sched secrets shlex shutil " +
     "signal sqlite3 statistics string struct sys tempfile textwrap time timeit tokenize tomllib " +
     "site configparser codecs importlib runpy pkgutil sysconfig stat filecmp concurrent " +
+    "cProfile profile pstats tracemalloc " +
     "traceback types typing unicodedata unittest urllib uuid warnings weakref zipfile zlib zoneinfo " +
+    // pylearn's own helpers (fakes for AI examples)
+    "plp plp_fakes " +
     // Pyodide packages
     "numpy pandas pydantic httpx sqlalchemy fastapi starlette pytest bs4 yaml jinja2 rich attrs " +
     "dateutil pytz regex tiktoken sklearn scipy matplotlib"

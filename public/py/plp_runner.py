@@ -159,6 +159,7 @@ async def run_code(code: str, stdin: list[str] | None = None, filename: str = "m
     started = time.perf_counter()
     status, error = "ok", None
     feed = _Feed(stdin) if stdin is not None else _NoInput()
+    _reset_user_state()
     plp.browser_compat()
     try:
         # dont_inherit: this file's own `from __future__ import annotations` must not leak into
@@ -368,6 +369,13 @@ class _AssertRewriter(ast.NodeTransformer):
                 orelse=[],
             ),
         ]
+        # Release both sides at once, so weakref and refcount tests see objects freed
+        stmts.append(
+            ast.Assign(
+                targets=[ast.Name(id="_plp_l", ctx=ast.Store()), ast.Name(id="_plp_r", ctx=ast.Store())],
+                value=ast.Constant(None),
+            )
+        )
         for stmt in stmts:
             ast.copy_location(stmt, node)
         return stmts
@@ -433,6 +441,56 @@ _deadline = _Deadline()
 plp._untimed = _deadline.paused  # plp helpers wrap heavy work in this
 
 
+# The worker lives across runs; modules the learner's code created or imported from its
+# own files must not leak into the next run (packages and the stdlib stay cached).
+_BASELINE_PATH = list(sys.path)
+_KEEP_PREFIXES = ("/lib/", "/usr/", "/home/pyodide/_plp/")
+
+
+def _reset_user_state() -> None:
+    for name, module in list(sys.modules.items()):
+        if name in ("__main__", "plp", "plp_runner", "plp_fakes"):
+            continue
+        path = getattr(module, "__file__", None) or ""
+        spec = getattr(module, "__spec__", None)
+        user_made = (
+            (path and not path.startswith(_KEEP_PREFIXES) and not path.startswith(sys.prefix))
+            or (spec is None and not path and name in ("solution", "tests"))
+        )
+        if user_made:
+            sys.modules.pop(name, None)
+    sys.path[:] = [p for p in sys.path if p in _BASELINE_PATH] + [p for p in _BASELINE_PATH if p not in sys.path]
+    import importlib
+
+    importlib.invalidate_caches()
+
+
+def _preimport(source: str) -> None:
+    """Import the libraries a learner's file imports at the top level, before any time
+    limit starts: a cold `import pandas` or SQLAlchemy takes seconds in the browser and
+    isn't the learner's code. Failures are ignored; the real import reports them."""
+    import importlib
+
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return
+    for node in tree.body:
+        names: list[str] = []
+        if isinstance(node, ast.Import):
+            names = [alias.name for alias in node.names]
+        elif isinstance(node, ast.ImportFrom) and node.module and node.level == 0:
+            names = [node.module]
+        for name in names:
+            if name.split(".")[0] in ("solution", "tests"):
+                continue
+            try:
+                with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                    importlib.import_module(name)
+            except BaseException:  # noqa: BLE001 — the learner's own import will report it
+                pass
+
+
 def _fresh_module(name: str, filename: str, source: str) -> types.ModuleType:
     module = types.ModuleType(name)
     module.__file__ = filename
@@ -450,6 +508,7 @@ async def run_tests(solution: str, tests: str, import_solution: bool = True) -> 
     """
     plp._REGISTRY.clear()
     plp._SOLUTION.update(source=solution, filename="solution.py")
+    _reset_user_state()
     plp.fresh_logging()
     plp.browser_compat()
     for name in ("solution", "tests"):
@@ -464,6 +523,7 @@ async def run_tests(solution: str, tests: str, import_solution: bool = True) -> 
         code_obj = compile(solution, "solution.py", "exec", dont_inherit=True)
         if import_solution:
             sys.modules["solution"] = module
+            _preimport(solution)
             with contextlib.redirect_stdout(load_out), _patched_input(_NoInput()):
                 _deadline.start(IMPORT_TIMEOUT)
                 try:
@@ -517,7 +577,20 @@ async def run_tests(solution: str, tests: str, import_solution: bool = True) -> 
                 try:
                     outcome = entry["fn"]()
                     if inspect.isawaitable(outcome):
-                        await outcome
+                        # A coroutine can hang on an await that never resolves, where no
+                        # line runs for the tracer to notice; asyncio.timeout catches that
+                        limit = entry.get("timeout", DEFAULT_TEST_TIMEOUT)
+                        if limit is None:
+                            await outcome
+                        else:
+                            try:
+                                async with asyncio.timeout(limit):
+                                    await outcome
+                            except TimeoutError as exc:
+                                raise plp.TestTimeout(
+                                    f"Took longer than {limit:g}s. Look for an await that never finishes "
+                                    "(a queue nobody fills, a task nobody finishes) or a loop that never ends."
+                                ) from exc
                 finally:
                     _deadline.stop()
             passed = True

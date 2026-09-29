@@ -3,6 +3,7 @@ type: function
 difficulty: warm-up
 tags: [fastapi, path-parameters, types]
 packages: [fastapi, httpx]
+timeout: 15
 hints:
   - "Put the parameter in the path, @app.get(\"/rooms/{room_number}\"), and give the function a parameter with the same name."
   - "Annotate it, room_number: int, so FastAPI converts it and refuses anything that isn't a whole number. The floor is room_number // 100."

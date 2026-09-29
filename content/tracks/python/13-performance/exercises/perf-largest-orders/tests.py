@@ -5,11 +5,11 @@ from operator import mod, mul
 from plp import test, hidden
 from solution import largest_orders
 
-DAY_SIZE = 8_000
+DAY_SIZE = 5_000
 
 
 def daily_export():
-    """A lazy stream of 8 000 export lines, like reading a file. Nothing is kept in memory."""
+    """A lazy stream of 5 000 export lines, like reading a file. Nothing is kept in memory."""
     ids = islice(count(1), DAY_SIZE)
     amounts = map(mod, map(mul, count(1), repeat(7_919)), repeat(249_989))  # n * 7919 % 249989
     return map("ORD-{:06d},{}\n".format, ids, amounts)

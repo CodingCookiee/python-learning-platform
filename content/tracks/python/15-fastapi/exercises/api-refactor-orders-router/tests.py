@@ -1,7 +1,7 @@
 import httpx
 
 import solution
-from plp import hidden, source_uses, test
+from plp import hidden, solution_source, source_uses, test
 from solution import app
 
 KEY = {"X-API-Key": "ok-key-1"}
@@ -58,9 +58,6 @@ def _():
 
 @hidden("The key check is declared once, on the router")
 def _():
-    source = solution.solution_source() if hasattr(solution, "solution_source") else None
-    from plp import solution_source
-
     assert solution_source().count("Depends(require_api_key)") == 1, (
         "Declare the API-key dependency once, on the router, not on each route"
     )
