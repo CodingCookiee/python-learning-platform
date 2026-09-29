@@ -1,0 +1,3 @@
+def pick_questions(bank, *, industry, covered=(), limit=8):
+    """Must questions first, then one question per uncovered topic, up to limit."""
+    ...

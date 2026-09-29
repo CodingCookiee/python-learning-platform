@@ -1,0 +1,7 @@
+title: How big is the history?
+type: function
+difficulty: warm-up
+tags: [agents, memory, tokens]
+hints:
+  - "Start from estimate_tokens(system) when there's a system prompt, then add each message."
+  - "message.get('content') or '' copes with a missing or None content. Add estimate_tokens(json.dumps(message['tool_calls'])) when a message has tool calls."

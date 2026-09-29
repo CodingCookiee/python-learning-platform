@@ -1,0 +1,8 @@
+title: Plan, then execute
+type: function
+difficulty: core
+tags: [agents, planning, tool-calling, workflows]
+hints:
+  - "The planner call is llm.complete([{'role': 'user', 'content': planner_prompt(goal, tools)}]) with no tools. parse_plan its text, and raise PlanError before anything else runs if the plan is empty or longer than max_plan_steps."
+  - "For each step: llm.complete([{'role': 'user', 'content': step_prompt(goal, plan, index, results)}], tools=tools). Run every tool call it asks for; the step's result is json.dumps of the list of outputs, or the text if it called no tools."
+  - "Finish with llm.complete([{'role': 'user', 'content': answer_prompt(goal, plan, results)}]) and return PlanRun(plan, results, answer.text)."

@@ -1,0 +1,8 @@
+title: Errors the research agent can act on
+type: fix
+difficulty: core
+tags: [agents, tool-design, error-messages, inspect, logging]
+hints:
+  - "Fix get_contacts first: instead of letting ACCOUNTS[company_id] raise KeyError, check for the id and raise CompanyNotFound with the message from the table."
+  - "In run_tool, check the name, then try inspect.signature(fn).bind(**arguments) and catch TypeError before calling anything. ', '.join(signature.parameters) lists what it takes."
+  - "Then call the tool and catch, in order: CompanyNotFound (send str(error)), CrmUnavailable (send the unavailable message and log the real error), and Exception (the unexpected message)."

@@ -1,0 +1,8 @@
+title: Qualify a client after the call
+type: function
+difficulty: core
+tags: [discovery-calls, qualification, Decimal]
+hints:
+  - "Check each criterion separately: it's met only when its value is known and passes. None is never a pass, but it does go in unknowns."
+  - "Work out the verdict from the score first, then apply the red flags: two or more means decline; exactly one moves the verdict one step down the list."
+  - "STEPS = [\"qualified\", \"follow up\", \"not now\"], then STEPS[min(STEPS.index(verdict) + 1, 2)] for one red flag."

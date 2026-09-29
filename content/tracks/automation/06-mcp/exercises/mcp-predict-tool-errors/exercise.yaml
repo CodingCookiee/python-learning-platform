@@ -1,0 +1,8 @@
+title: "Predict: which failure is which?"
+type: predict
+difficulty: core
+tags: [mcp, tools, is-error, exceptions]
+hints:
+  - Only an unknown tool name becomes a protocol error. Everything else is a result, with isError true or false.
+  - KeyError is a subclass of LookupError, so the except clauses are tried in order and the first match wins.
+  - str() of a KeyError includes quotes around the key, so the missing argument prints as 'order_id'.

@@ -1,0 +1,8 @@
+title: "Predict: filtering after the top k"
+type: predict
+difficulty: warm-up
+tags: [metadata, filtering, vector-search]
+hints:
+  - search keeps only the first `candidates` results, then filters by office, then takes k.
+  - "With candidates=3, the pool is pto#0, pto#1 and leave#0: only one of those is a London chunk."
+  - With candidates=5, the pool stops before leave#2, so a London search for 2 still finds two.

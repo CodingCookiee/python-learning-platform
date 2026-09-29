@@ -1,0 +1,8 @@
+title: A retainer invoice that pays the AI bill for the client
+type: fix
+difficulty: core
+tags: [pricing, retainers, margin, Decimal]
+hints:
+  - Look at when the total is worked out, compared with when the AI line is added to the list.
+  - "A 20% margin means 20% of the price is yours: price = cost / (1 - margin). cost * (1 + margin) is a markup, and earns less."
+  - Work out the total from all the lines, after the last one is appended.

@@ -1,0 +1,8 @@
+title: Quote a range, with assumptions and a value check
+type: function
+difficulty: stretch
+tags: [pricing, estimating, Decimal, rounding]
+hints:
+  - "Validate every task first, and name the task in the error: f\"{task['name']}: low is more than high\"."
+  - "Round the low end down (ROUND_FLOOR) and the high end up (ROUND_CEILING) to a multiple of 50, the same way as the quote drill."
+  - "The value check compares the high price with first_year_value / 2 and first_year_value, in that order."

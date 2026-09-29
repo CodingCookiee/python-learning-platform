@@ -1,0 +1,8 @@
+title: Page the search results
+type: function
+difficulty: core
+tags: [agents, tool-design, pagination, slicing]
+hints:
+  - "Clamp first: size = max(1, min(page_size, max_page_size)). A page below 1 raises ValueError."
+  - "The page starts at start = (page - 1) * size. Keep only the fields you were asked for: {f: item[f] for f in fields}."
+  - "next_page is page + 1 when start + size < len(items), otherwise None. search_deals filters DEALS and then returns page_of(matches, page=page, page_size=page_size, fields=DEAL_FIELDS)."

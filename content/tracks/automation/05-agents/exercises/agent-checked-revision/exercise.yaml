@@ -1,0 +1,8 @@
+title: Check in code before paying for a critic
+type: function
+difficulty: stretch
+tags: [agents, reflection, self-critique, validation, cost]
+hints:
+  - "code_problems checks four things, in the order of the table, and returns the messages for the ones that fail. len(text.split()) counts words; compare lowercased text for the banned phrases."
+  - "In the loop, run code_problems on the draft first. Only when it's empty, ask the critic; APPROVED ends the run, and anything else becomes the problems (one per non-empty line, with a leading '- ' removed)."
+  - "If this was the last round, return the draft with approved=False and the problems. Otherwise revise with revise_prompt(invoice, draft, problems) and go round again."

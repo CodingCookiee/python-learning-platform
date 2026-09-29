@@ -1,0 +1,8 @@
+title: Fix the prompt a document can hijack
+type: fix
+difficulty: core
+tags: [prompt-injection, security, grounded-answers, html]
+hints:
+  - The system prompt must be exactly SYSTEM. Move the documents into the user message, inside <documents> tags, before the question.
+  - "Number the chunks from 1 and write each as f'<document id=\"{n}\" source=\"{chunk[\"source\"]}\">\\n{text}\\n</document>'."
+  - html.escape(chunk["text"], quote=False) turns <, > and & into &lt;, &gt; and &amp;, so a planted </document> can't close the tag.

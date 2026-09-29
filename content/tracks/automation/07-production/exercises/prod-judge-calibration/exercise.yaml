@@ -1,0 +1,8 @@
+title: Calibrate a judge against human labels
+type: function
+difficulty: core
+tags: [evals, llm-judge, calibration, statistics]
+hints:
+  - "Compare the key sets first: sorted(set(human) - set(judge)) and the other way round give the ids to name in the ValueError."
+  - "Loop over human in its own order. A false pass is judge[id] and not human[id]; a false fail is human[id] and not judge[id]."
+  - "false_pass_rate divides by the number of answers the person failed, sum(not ok for ok in human.values()), not by all cases."

@@ -1,0 +1,8 @@
+title: A missing order breaks the server
+type: fix
+difficulty: core
+tags: [mcp, tools, is-error, error-handling, logging]
+hints:
+  - Only the except clause is wrong. A tool that ran and failed is a result, so return result(request_id, tool_failure(...)) instead of error(...).
+  - 'Catch the three cases separately, most specific first: except ToolError, except TypeError, then except Exception.'
+  - 'The last one logs with logger.exception("Tool %s failed", name) and returns the text f"{name} failed", so the carrier''s address stays on the server.'

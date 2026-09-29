@@ -1,0 +1,3 @@
+def order_for_context(ranked):
+    """Chunks reordered so the strongest are at the start and the end of the context."""
+    ...

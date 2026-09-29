@@ -1,0 +1,7 @@
+title: Parse a numbered plan
+type: function
+difficulty: warm-up
+tags: [agents, planning, regex]
+hints:
+  - "A regular expression can match a whole step line: optional spaces, digits, a dot or a closing bracket, at least one space, then the step."
+  - "re.finditer(r'^\\s*\\d+[.)]\\s+(.+)$', text, re.MULTILINE) finds every step; strip each group(1)."

@@ -1,0 +1,8 @@
+title: The stdio transport loop
+type: function
+difficulty: stretch
+tags: [mcp, stdio, transports, json, error-handling]
+hints:
+  - 'Loop with for line in stdin: so each message is handled as soon as it arrives. A real client waits for each reply before it sends the next request, so stdin.read() would wait forever.'
+  - 'Parse with json.loads inside try/except ValueError (the -32700 case). Then isinstance(message, list) is a batch, and anything that isn''t a dict is -32600.'
+  - 'Put the handle(message) call in try/except Exception: log with logger.exception, and only write the -32603 reply when isinstance(message, dict) and "id" in message. A write helper that does stdout.write(json.dumps(reply) + "\n") then stdout.flush() keeps every path the same.'

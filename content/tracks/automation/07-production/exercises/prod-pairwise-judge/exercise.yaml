@@ -1,0 +1,8 @@
+title: A pairwise judge that survives position bias
+type: function
+difficulty: stretch
+tags: [evals, llm-judge, bias, prompts]
+hints:
+  - "Write a helper ask(first, second) that makes one call and returns the winner as \"1\", \"2\" or \"tie\". Call it as ask(answer_a, answer_b), then ask(answer_b, answer_a)."
+  - "Map each reply back to the answers: for the first call {\"1\": \"a\", \"2\": \"b\"}, for the swapped one {\"1\": \"b\", \"2\": \"a\"}, and \"tie\" stays \"tie\". The two mapped verdicts are consistent when they're equal."
+  - "head_to_head starts from {\"a\": 0, \"b\": 0, \"tie\": 0, \"inconsistent\": 0}, adds 1 to the preference's winner, and 1 to inconsistent when not preference.consistent."

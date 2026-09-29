@@ -1,0 +1,8 @@
+title: Trace every model call
+type: function
+difficulty: core
+tags: [tracing, wrappers, cost, llm]
+hints:
+  - "Open the span first: with self._tracer.span(\"llm.complete\", prompt_version=self.prompt_version, requested_model=model or self._llm.model) as span:. Everything else happens inside it."
+  - "Wrap only the call: try: response = self._llm.complete(...) except Exception as exc: span.set(error_type=type(exc).__name__); raise. The tracer marks the span as an error for you."
+  - "After the call: price = self._prices.get(response.model); cost is None without a price, else (input_tokens * price[\"input\"] + output_tokens * price[\"output\"]) / 1_000_000. tool_calls=[call.name for call in response.tool_calls]."

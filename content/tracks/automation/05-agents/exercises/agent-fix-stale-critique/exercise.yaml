@@ -1,0 +1,8 @@
+title: The critic keeps reading the first draft
+type: fix
+difficulty: core
+tags: [agents, reflection, self-critique, debugging]
+hints:
+  - Follow the variable first through the loop. Which drafts does the critic ever see?
+  - Both the critique and the revision must use draft, the latest version. first is only needed once, to start the loop.
+  - After revising, the next round critiques the new draft. The rounds and the return values don't need to change.

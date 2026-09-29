@@ -1,0 +1,8 @@
+title: A redactor that keeps the order numbers
+type: function
+difficulty: stretch
+tags: [pii, redaction, regex, security]
+hints:
+  - "Luhn: walk the digits from the right; double every second one (subtracting 9 when that goes over 9); the number is valid when the total is a multiple of 10."
+  - "re.sub accepts a function instead of a replacement string. Match every candidate with a pattern, then decide in the function: return \"[CARD]\" if luhn_ok(the digits) else match.group(), so non-card numbers come back unchanged."
+  - 'Order matters: secrets, then emails, then cards, then phones. A lookbehind keeps phones from starting mid-word: (?<![\w+])(?:\+|0)[\d()\s-]{8,}\d, with the 10-15 digit count checked in the function.'

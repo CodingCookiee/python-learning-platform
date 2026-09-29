@@ -1,0 +1,7 @@
+title: Works in the tests, fails in Claude Desktop
+type: fix
+difficulty: core
+tags: [mcp, stdio, transports, logging]
+hints:
+  - Over stdio, every line on stdout must be a JSON-RPC message. Find every print() in the file.
+  - The starter already defines logger. logger.info("reading %s", uri) writes to stderr (through the logging system), never to stdout.

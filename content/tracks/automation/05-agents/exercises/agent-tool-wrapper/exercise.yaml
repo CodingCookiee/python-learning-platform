@@ -1,0 +1,8 @@
+title: Make any function an agent-safe tool
+type: function
+difficulty: stretch
+tags: [agents, tool-design, decorators, inspect, functools, logging]
+hints:
+  - "agent_tool(max_chars) returns a decorator; the decorator takes fn and returns a wrapper made with @functools.wraps(fn). The wrapper takes **arguments only."
+  - "In the wrapper: bind the arguments to inspect.signature(fn) first. For the error text, list each parameter, adding ' (optional)' when parameter.default is not inspect.Parameter.empty."
+  - "Call fn; a ToolError becomes {'error': str(error)}; any other exception is logged with logger.warning and becomes the unexpected-failure message. A str result is used as it is, anything else goes through json.dumps(default=str); clip the result to max_chars."

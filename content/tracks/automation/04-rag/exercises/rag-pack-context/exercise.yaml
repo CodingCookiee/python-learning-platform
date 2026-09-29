@@ -1,0 +1,9 @@
+title: Pack the context within a token budget
+type: function
+difficulty: stretch
+tags: [context, tokens, deduplication, lost-in-the-middle, numpy]
+packages: [numpy]
+hints:
+  - "Embed every text in one call and normalise the rows. Keep a list of the rows you've selected; a candidate is a duplicate if max(unit[selected] @ unit[i]) >= duplicate_threshold."
+  - Walk the chunks in rank order with a running budget. Skip duplicates, and skip chunks whose estimate_tokens(text) is more than what's left, but carry on to the next one.
+  - "Finish with selected[0::2] + selected[1::2][::-1], the lost-in-the-middle order."

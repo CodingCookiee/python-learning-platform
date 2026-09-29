@@ -1,0 +1,8 @@
+title: Summarise what you drop
+type: function
+difficulty: core
+tags: [agents, memory, summarisation, history]
+hints:
+  - "If history_tokens(messages) is within max_tokens, return list(messages) without calling the model."
+  - "Otherwise start = safe_start(messages, keep_last); the older part is messages[1:start] and the recent part is messages[start:]."
+  - "Call llm.complete([{'role': 'user', 'content': f'{SUMMARY_PROMPT}\\n\\n<transcript>\\n{transcript(older)}\\n</transcript>'}], max_tokens=400), then return [the task message with the summary added, *recent]."

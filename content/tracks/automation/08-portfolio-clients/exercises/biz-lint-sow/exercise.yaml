@@ -1,0 +1,8 @@
+title: Lint the deliverables in a statement of work
+type: function
+difficulty: core
+tags: [proposals, scoping, regex]
+hints:
+  - "re.findall(r\"[a-z]+\", text.lower()) gives you the words in order. A word is vague when word.startswith(VAGUE_STEMS): startswith takes a tuple."
+  - "For the open-ended phrases, use re.search(rf\"\\b{re.escape(phrase)}\\b\", text, re.IGNORECASE), in OPEN_ENDED order."
+  - "any(ch.isdigit() for ch in text) tells you whether there's a number."

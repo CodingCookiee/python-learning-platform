@@ -1,0 +1,3 @@
+def clip(text, limit=2000):
+    """The text, cut to limit characters with a note saying so."""
+    ...

@@ -1,0 +1,8 @@
+title: Rehearse a discovery call with a role-play client
+type: function
+difficulty: stretch
+tags: [discovery-calls, llm, conversation-history]
+hints:
+  - "Keep one messages list for the role-play: append the user question, call complete(), then append {\"role\": \"assistant\", \"content\": reply.text}."
+  - The coach is a separate, fresh conversation with its own system prompt and a single user message holding the whole transcript.
+  - "\"\\n\".join(f\"You: {q}\\nClient: {a}\" for q, a in transcript) builds the transcript text."

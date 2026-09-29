@@ -1,0 +1,8 @@
+title: Put the best chunks at the edges
+type: function
+difficulty: core
+tags: [context, lost-in-the-middle, slicing]
+hints:
+  - "Write the positions out for five chunks: first, third, fifth, fourth, second. The even positions go forwards, the odd ones backwards."
+  - "ranked[0::2] is the 1st, 3rd, 5th...; ranked[1::2] is the 2nd, 4th..."
+  - Reverse the second slice with [::-1] and add it to the first. Slicing makes new lists, so the input isn't changed.

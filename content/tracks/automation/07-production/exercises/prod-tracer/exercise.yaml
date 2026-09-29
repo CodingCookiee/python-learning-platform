@@ -1,0 +1,7 @@
+title: A tracer with nested spans
+type: function
+difficulty: core
+tags: [tracing, context-managers, contextlib]
+hints:
+  - "The parent is the span on top of self._open when the new one starts: self._open[-1].span_id if self._open else None. Push the new span before yielding it."
+  - "Wrap the yield in try / except Exception as exc / finally. In the except, set status and error, then raise. In the finally, set span.end = self.clock() and pop the stack, so both happen on success and on failure."

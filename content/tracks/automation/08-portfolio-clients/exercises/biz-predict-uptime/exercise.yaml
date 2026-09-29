@@ -1,0 +1,7 @@
+title: "Predict: what an uptime promise allows"
+type: predict
+difficulty: warm-up
+tags: [sla, uptime, Decimal]
+hints:
+  - A 30-day month has 43,200 minutes. 99% uptime allows 1% of them down.
+  - When the automation needs two services up at once, multiply their availabilities. The result is lower than either.

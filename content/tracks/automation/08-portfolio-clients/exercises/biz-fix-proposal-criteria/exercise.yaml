@@ -1,0 +1,8 @@
+title: A proposal that loses its acceptance criteria
+type: fix
+difficulty: core
+tags: [proposals, acceptance-criteria, loops]
+hints:
+  - Look at the indentation of the second half of the function. Which deliverable is `item` when those lines run?
+  - The "Accepted when:" block belongs inside the loop over deliverables, and a deliverable with no criteria should stop the build before anything is returned.
+  - "if not item[\"acceptance\"]: raise ValueError(f\"'{item['title']}' has no acceptance criteria\")"

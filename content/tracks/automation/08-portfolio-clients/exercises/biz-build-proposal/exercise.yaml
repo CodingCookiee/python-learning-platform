@@ -1,0 +1,8 @@
+title: A proposal builder that refuses to send a vague proposal
+type: function
+difficulty: stretch
+tags: [proposals, acceptance-criteria, Decimal, strings]
+hints:
+  - "Collect every problem in a list first, in the documented order, and raise one ValueError(\"; \".join(problems)) if the list isn't empty."
+  - "Build the document as a list of sections, each a list of lines, then join the lines of each with \"\\n\" and the sections with \"\\n\\n\"."
+  - "The milestone amounts follow the invoice drill: each rounded to the cent except the last, which takes the remainder. f\"{amount:,.2f}\" formats 2100 as 2,100.00."

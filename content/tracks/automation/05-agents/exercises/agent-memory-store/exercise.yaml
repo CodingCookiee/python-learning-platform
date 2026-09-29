@@ -1,0 +1,8 @@
+title: A long-term memory store
+type: function
+difficulty: core
+tags: [agents, memory, embeddings, retrieval, classes]
+hints:
+  - "remember embeds the text straight away (self._embed([text])[0]) and stores it with its meta, so recall never re-embeds old memories."
+  - "recall embeds only the query. Skip memories whose meta doesn't match every key in where, score the rest with cosine similarity, and keep scores of at least min_score."
+  - "Sort by score, highest first (sorted is stable, so ties keep the order they were remembered in), take the first k, and return Memory(text, meta, score) for each."

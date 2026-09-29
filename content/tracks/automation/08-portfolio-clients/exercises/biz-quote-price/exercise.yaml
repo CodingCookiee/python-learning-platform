@@ -1,0 +1,8 @@
+title: A cost-plus quote with a risk buffer and AI pass-through
+type: function
+difficulty: core
+tags: [pricing, margin, Decimal, rounding]
+hints:
+  - "Check the arguments first: 0 <= ai_margin < 1 and risk_buffer >= 0, or raise ValueError."
+  - "Rounding up to a multiple of 50: divide by 50, round up to a whole number with to_integral_value(rounding=ROUND_CEILING), and multiply back."
+  - "The AI line is priced at a margin, so divide: ai_cost_per_month / (1 - ai_margin), then quantize to 0.01."

@@ -1,0 +1,8 @@
+title: An ROI summary for the proposal
+type: function
+difficulty: core
+tags: [roi, payback, Decimal, keyword-only-arguments]
+hints:
+  - "Add the three kinds of value, subtract the running cost, and only then divide. Quantize each figure as the table says, with ROUND_HALF_UP."
+  - "A net of zero or less means no payback (None), but the first-year ROI can still be worked out: it's negative."
+  - "first_year_roi = ((net * 12 - build_price) / build_price * 100).quantize(Decimal(\"1\"), rounding=ROUND_HALF_UP)"

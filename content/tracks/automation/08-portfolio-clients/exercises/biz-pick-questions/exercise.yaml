@@ -1,0 +1,8 @@
+title: Pick the questions for the next call
+type: function
+difficulty: core
+tags: [discovery-calls, filtering, sets]
+hints:
+  - "First keep the questions that apply: no industries listed, or the call's industry among them (compare lower-cased)."
+  - Take every must question first. Then go through the rest in bank order, skipping topics that are covered or already used, until you reach the limit.
+  - A set of used topics, started from the covered topics and the must questions' topics, makes the skipping a single check.

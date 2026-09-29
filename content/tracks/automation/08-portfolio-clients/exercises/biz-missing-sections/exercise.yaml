@@ -1,0 +1,7 @@
+title: Which sections is the SOW missing?
+type: function
+difficulty: warm-up
+tags: [proposals, strings, comprehensions]
+hints:
+  - "Collect the level-2 headings first: lines that start with \"## \", with the \"## \" removed, stripped and lower-cased."
+  - "[name for name in REQUIRED if name.lower() not in headings]"

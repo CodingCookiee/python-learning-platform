@@ -1,0 +1,8 @@
+title: Keep the index in sync with the documents
+type: function
+difficulty: core
+tags: [indexing, hashing, stale-index, hashlib]
+hints:
+  - "Fingerprint each document with hashlib.sha256(text.encode()).hexdigest() and compare with hashes.get(source): missing means added, different means updated, equal means unchanged."
+  - Sources in hashes but not in documents were removed. For removed and updated sources, call index.delete_source(source) so no old chunk survives.
+  - "Collect the chunks of every added and updated document (in sorted source order) into one list, and call index.upsert once if it isn't empty. Then update hashes."

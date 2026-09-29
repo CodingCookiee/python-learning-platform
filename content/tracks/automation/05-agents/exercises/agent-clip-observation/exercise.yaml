@@ -1,0 +1,7 @@
+title: Clip an observation
+type: function
+difficulty: warm-up
+tags: [agents, tool-design, observations, strings]
+hints:
+  - Return the text unchanged when len(text) <= limit.
+  - "Otherwise return text[:limit] followed by the note. Format the numbers with {limit:,} and {len(text):,} to get the thousands separators."

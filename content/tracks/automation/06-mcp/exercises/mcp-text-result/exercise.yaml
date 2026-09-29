@@ -1,0 +1,7 @@
+title: A tool result with one text block
+type: function
+difficulty: warm-up
+tags: [mcp, tools, content-blocks, json]
+hints:
+  - 'Pick the text first: value itself if isinstance(value, str), otherwise json.dumps(value, default=str).'
+  - 'Return {"content": [{"type": "text", "text": text}], "isError": is_error}.'

@@ -1,0 +1,8 @@
+title: The staff wiki's resources
+type: function
+difficulty: core
+tags: [mcp, resources, uri-templates, base64, mime-types]
+hints:
+  - 'list_resources is one comprehension over DOCS.items(). For the size, text has to be encoded first: len(doc.content.encode()) for a str, len(doc.content) for bytes.'
+  - 'In read_resource, check the uri param first. Then try DOCS.get(uri); if that''s None, try match_template(PERSON_TEMPLATE["uriTemplate"], uri) and look the handle up in PEOPLE.'
+  - 'Bytes go out as {"uri": uri, "mimeType": ..., "blob": base64.b64encode(content).decode("ascii")}; text as {"uri": ..., "mimeType": ..., "text": ...}. Wrap the item in {"contents": [item]}.'

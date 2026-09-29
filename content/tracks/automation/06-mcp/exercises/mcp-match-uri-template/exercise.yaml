@@ -1,0 +1,8 @@
+title: Match a URI against a template
+type: function
+difficulty: warm-up
+tags: [mcp, resources, uri-templates, regex]
+hints:
+  - Turn the template into a regular expression. Everything outside the braces must match literally, so re.escape the template first.
+  - 're.escape turns {slug} into \{slug\}. Replace each of those with a named group, (?P<slug>[^/]+), using re.sub.'
+  - Use re.fullmatch so the whole URI has to match, and return match.groupdict() or None.

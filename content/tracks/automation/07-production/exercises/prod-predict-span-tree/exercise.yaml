@@ -1,0 +1,7 @@
+title: "Predict: the span tree"
+type: predict
+difficulty: warm-up
+tags: [tracing, context-managers, exceptions]
+hints:
+  - "Spans are appended when they start, so the outer extract_invoice span comes first even though it finishes last. The clock moves 100 ms every time it's read: once when a span starts and once when it ends."
+  - "The TimeoutError marks the vendor span and passes through it, but extract_invoice catches it before it reaches the outer span, so that one stays ok."

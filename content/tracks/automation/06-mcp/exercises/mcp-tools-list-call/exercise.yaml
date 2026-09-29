@@ -1,0 +1,10 @@
+title: tools/list and tools/call with validated arguments
+type: function
+difficulty: core
+tags: [mcp, tools, pydantic, json-schema, validation]
+packages: [pydantic]
+timeout: 10
+hints:
+  - 'For each (args_model, fn) in TOOLS.items(), build the schema with args_model.model_json_schema(), pop "title" and "description" from it, and use inspect.getdoc(args_model) as the tool''s description.'
+  - 'In call_tool: look the name up first (raise UnknownTool(name) if it''s missing), then args_model.model_validate(params.get("arguments") or {}) inside try/except ValidationError.'
+  - 'Each item in error.errors() has a "loc" tuple and a "msg": join the loc parts with ".", add ": " and the msg, and join the problems with "; ". Only after validation passes, call fn(validated) inside try/except LookupError.'

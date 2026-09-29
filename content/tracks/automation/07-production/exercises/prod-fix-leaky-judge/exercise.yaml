@@ -1,0 +1,8 @@
+title: The judge that copies the answer key
+type: fix
+difficulty: core
+tags: [evals, llm-judge, prompts, delimiters]
+hints:
+  - "json.dumps(case) sends every field, including human_label and labeller_notes. Build the message from case[\"question\"] and case[\"reference\"] by name instead."
+  - "Put each part in its own block: f\"<question>\\n{case['question']}\\n</question>\\n<reference>\\n...\\n</reference>\\n<answer>\\n{answer}\\n</answer>\"."
+  - "Keep system=JUDGE_SYSTEM and temperature=0 on the call, and return json.loads(response.text)[\"passes\"] as before."

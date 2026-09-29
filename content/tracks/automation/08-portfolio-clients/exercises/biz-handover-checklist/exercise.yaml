@@ -1,0 +1,8 @@
+title: Check the handover pack before you leave
+type: function
+difficulty: core
+tags: [handover, runbooks, checklists]
+hints:
+  - "Work through the six checks in order, appending to one list. pack.get(\"files\", []) and friends handle missing keys."
+  - "For secrets, look at the file's name after the last \"/\": name.rsplit(\"/\", 1)[-1]. Only \".env\" itself counts, not \".env.example\"."
+  - "For alerts, an address is yours when address.lower().endswith(\"@\" + my_domain.lower()). The problem is when every address is yours, or there are none."

@@ -1,0 +1,8 @@
+title: An invoice schedule from the milestones
+type: function
+difficulty: core
+tags: [proposals, invoicing, Decimal, datetime]
+hints:
+  - "Check the percentages add up to 100, and that each week is at least the one before, before you work anything out."
+  - "Round each amount but the last to the cent. The last is whatever is left of the total, so rounding can never make the invoices add up to the wrong figure."
+  - "due = start + timedelta(weeks=week)"

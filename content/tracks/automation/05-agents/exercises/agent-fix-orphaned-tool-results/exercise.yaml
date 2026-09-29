@@ -1,0 +1,8 @@
+title: Trimming that orphans tool results
+type: fix
+difficulty: core
+tags: [agents, memory, history, tool-calling, slicing]
+hints:
+  - "Work with an index instead of a negative slice: start = len(messages) - keep_last is where the kept part begins."
+  - "While messages[start] is a tool result, its call was cut, so move start one later. A tool call and its results are kept or dropped together."
+  - "Return [messages[0]] + messages[start:]. It may keep fewer than keep_last messages, which is fine."

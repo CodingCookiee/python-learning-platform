@@ -1,0 +1,11 @@
+title: A tool server with structured output
+type: function
+difficulty: stretch
+xp: 40
+tags: [mcp, tools, structured-output, pydantic, json-schema]
+packages: [pydantic]
+timeout: 10
+hints:
+  - Split handle into small functions, one per method, and keep a dict from tool name to Tool. The schema helper is model.model_json_schema() with "title" and "description" popped; use it for both inputSchema and outputSchema.
+  - 'In tools/call, the order is: unknown name (-32602 error), args validation (isError), fn(arguments) with except ToolError (isError), then tool.output.model_validate(value) with except ValidationError (logger.error, isError).'
+  - 'On success, data = checked.model_dump(mode="json"), and the result is {"content": [{"type": "text", "text": json.dumps(data)}], "structuredContent": data, "isError": False}.'

@@ -1,0 +1,8 @@
+title: Customer details in the traces
+type: fix
+difficulty: core
+tags: [tracing, logging, pii, redaction]
+hints:
+  - "Open the span with user=user_ref(email[\"from\"]) and subject=redact(email[\"subject\"]), and set body_chars=len(email[\"body\"]) instead of the preview."
+  - "Log ids, not content: log.info(\"Triaging email %s from %s\", email[\"id\"], user) and log.info(\"Labelled email %s as %s\", email[\"id\"], label)."
+  - "Leave the llm.complete call alone: the model needs the whole email to classify it. Redaction is for what you keep, not for what the model reads."

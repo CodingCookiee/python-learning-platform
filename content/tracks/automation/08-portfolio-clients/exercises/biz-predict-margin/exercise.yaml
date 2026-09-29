@@ -1,0 +1,7 @@
+title: "Predict: markup or margin"
+type: predict
+difficulty: warm-up
+tags: [pricing, margin, Decimal]
+hints:
+  - A 25% markup adds a quarter of the cost. A 25% margin means a quarter of the price is profit, so the price is the cost divided by 0.75.
+  - "Decimal keeps trailing zeros from multiplication: 400 × 1.25 is 500.00. quantize() sets the places explicitly."

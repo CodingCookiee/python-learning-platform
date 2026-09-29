@@ -1,0 +1,8 @@
+title: An agent with a scratchpad
+type: function
+difficulty: stretch
+tags: [agents, memory, scratchpad, agent-loop, history]
+hints:
+  - "Keep two things: messages (the full history, which only grows) and notes (a list of strings). Before each call, build the system prompt with the notes and send trim_history(messages, keep_last=keep_last)."
+  - "take_note is handled by your loop, not the registry: append call.arguments['text'] to notes and answer with json.dumps({'saved': len(notes)})."
+  - "The rest is the agent loop: finish returns NotesResult(answer, notes, step), a plain reply returns NotesResult(response.text, notes, step), and after the cap NotesResult(None, notes, max_steps)."

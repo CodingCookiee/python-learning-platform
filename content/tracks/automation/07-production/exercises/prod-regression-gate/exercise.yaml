@@ -1,0 +1,8 @@
+title: A regression gate for CI
+type: function
+difficulty: core
+tags: [evals, regression, ci, floats]
+hints:
+  - "A rate is sum(results.values()) / len(results). newly_failing is [id for id, ok in candidate.items() if baseline.get(id) is True and not ok], and fixed is the mirror image."
+  - "0.90 - 0.88 is 0.020000000000000018 in floating point, so compare drop > max_drop + 1e-9 to let a drop of exactly max_drop through."
+  - "Format the reasons with f\"{rate:.1%}\": 0.88 becomes \"88.0%\"."
