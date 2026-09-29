@@ -1,0 +1,8 @@
+title: Parse money, hide the plumbing
+type: function
+difficulty: stretch
+tags: [exceptions, raise-from-none, decimal, re]
+hints:
+  - "Two different things can fail while parsing: text.split() into exactly two names raises ValueError, and Decimal() of a non-number raises decimal.InvalidOperation. Catch both in one clause."
+  - "Raise the new ValueError from None inside that clause, so the traceback shows only your message."
+  - "After the try statement, check amount.is_finite() (Decimal accepts \"NaN\" and \"Infinity\") and re.fullmatch(\"[A-Z]{3}\", currency)."

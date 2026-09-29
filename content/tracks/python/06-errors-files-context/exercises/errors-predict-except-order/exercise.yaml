@@ -1,0 +1,7 @@
+title: "Predict: which handler wins?"
+type: predict
+difficulty: warm-up
+tags: [exceptions, custom-exceptions, except-order]
+hints:
+  - "Python runs the first except clause that matches, top to bottom. A clause matches instances of its class and of every subclass."
+  - "FraudSuspected is a CardDeclined, so the CardDeclined clause catches it before the FraudSuspected clause is ever reached. A ValueError matches none of the clauses, so it leaves settle() and reaches the outer try."

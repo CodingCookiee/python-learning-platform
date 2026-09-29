@@ -1,0 +1,8 @@
+title: A range of dates
+type: function
+difficulty: core
+tags: [iterators, iterator-protocol, classes, datetime]
+hints:
+  - The iterator needs to remember one thing between calls, the next date to hand out. Store it on self in __init__.
+  - "__iter__ returns self. __next__ checks whether the next date has reached stop (raise StopIteration if so), otherwise remembers it, moves self forward by timedelta(days=step_days), and returns it."
+  - Because the check happens at the start of every __next__ call, a finished DateRange keeps raising StopIteration without any extra code.

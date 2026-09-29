@@ -1,4 +1,13 @@
 import { prisma } from "@/lib/prisma";
+import { getCurriculumState } from "@/lib/curriculum-state";
+import { achievementCriteriaSchema, type AchievementCriteria } from "@/lib/content/schema";
+
+/**
+ * Achievements (patches) are defined in content/achievements.yaml and synced into
+ * the DB with a JSON `criteria`. After anything that could earn one (a lesson, a
+ * drill, a capstone, a streak day, XP), checkAndUnlockAchievements evaluates every
+ * live achievement the learner doesn't have yet.
+ */
 
 export interface UnlockedAchievement {
   id: string;
@@ -9,6 +18,7 @@ export interface UnlockedAchievement {
   xpReward: number;
 }
 
+/** What just happened. Evaluation checks everything, so this is informational. */
 export type AchievementEvent =
   | { type: "lesson_complete"; lessonId: string }
   | { type: "exercise_pass"; exerciseId: string }
@@ -16,366 +26,191 @@ export type AchievementEvent =
   | { type: "streak_update"; streakDays: number }
   | { type: "xp_update"; totalXp: number };
 
-const moduleAchievementNames: Record<number, string> = {
-  1: "Hello, Python!",
-  2: "Data Master",
-  3: "Function Expert",
-  4: "OOP Master",
-  5: "File Handler",
-  6: "Test Ninja",
-  7: "Package Pro",
-  8: "Async Wizard",
-  9: "Python Sorcerer",
-  10: "Type Guardian",
-  11: "Web Developer",
-  12: "Database Guru",
-  13: "Data Scientist",
-  14: "DevOps Hero",
-  15: "Web Services Pro",
-  16: "Performance Beast",
-};
-
-const projectAchievementNames: Record<number, string> = {
-  1: "Calculator Pro",
-  2: "Task Master",
-  3: "Text Wizard",
-  4: "Library Architect",
-  5: "ETL Engineer",
-  6: "Quality Assurance",
-  7: "Package Publisher",
-  8: "Async Master",
-  9: "Framework Builder",
-  10: "Type Safety Champion",
-  11: "API Architect",
-  12: "Multi-DB Master",
-  13: "Data Analyst",
-  14: "Automation King",
-  15: "Service Builder",
-  16: "Speed Demon",
-};
-
-const phaseAchievementRules = [
-  { name: "Phase 1 Complete", requiredModules: [1, 2, 3] },
-  { name: "Phase 2 Complete", requiredModules: [4, 5, 6, 7] },
-  { name: "Phase 3 Complete", requiredModules: [8, 9, 10] },
-  { name: "Phase 4 Complete", requiredModules: [11, 12, 13, 14, 15, 16] },
-  {
-    name: "Python Master",
-    requiredModules: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
-  },
-] as const;
-
-// ─── Core helpers ────────────────────────────────────────────────────────────
+// Levels
 
 export function calculateLevel(xp: number): number {
   return Math.floor(xp / 500) + 1;
 }
 
 export async function updateUserLevel(userId: string): Promise<void> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { xp: true },
-  });
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { xp: true } });
   if (!user) return;
-  const newLevel = calculateLevel(user.xp);
-  await prisma.user.update({
-    where: { id: userId },
-    data: { level: newLevel },
-  });
+  await prisma.user.update({ where: { id: userId }, data: { level: calculateLevel(user.xp) } });
 }
 
-export async function unlockAchievement(
+// Unlocking
+
+async function unlock(
   userId: string,
-  achievementName: string
+  achievement: { id: string; name: string; description: string; icon: string; tier: string; xpReward: number }
 ): Promise<UnlockedAchievement | null> {
-  const achievement = await prisma.achievement.findUnique({
-    where: { name: achievementName },
-  });
-  if (!achievement) return null;
-
-  const existing = await prisma.userAchievement.findUnique({
-    where: { userId_achievementId: { userId, achievementId: achievement.id } },
-  });
-  if (existing) return null;
-
-  await prisma.userAchievement.create({
-    data: { userId, achievementId: achievement.id },
-  });
-
-  if (achievement.xpReward > 0) {
-    await prisma.user.update({
-      where: { id: userId },
-      data: { xp: { increment: achievement.xpReward } },
-    });
+  try {
+    await prisma.userAchievement.create({ data: { userId, achievementId: achievement.id } });
+  } catch {
+    return null; // already unlocked (unique constraint), e.g. by a concurrent request
   }
-
-  return {
-    id: achievement.id,
-    name: achievement.name,
-    description: achievement.description,
-    icon: achievement.icon,
-    tier: achievement.tier,
-    xpReward: achievement.xpReward,
-  };
+  if (achievement.xpReward > 0) {
+    await prisma.user.update({ where: { id: userId }, data: { xp: { increment: achievement.xpReward } } });
+  }
+  const { id, name, description, icon, tier, xpReward } = achievement;
+  return { id, name, description, icon, tier, xpReward };
 }
 
-// ─── Streak management ───────────────────────────────────────────────────────
+/** Unlock one achievement by name (kept for callers that award something directly). */
+export async function unlockAchievement(userId: string, achievementName: string): Promise<UnlockedAchievement | null> {
+  const achievement = await prisma.achievement.findFirst({ where: { name: achievementName, archivedAt: null } });
+  if (!achievement) return null;
+  return unlock(userId, achievement);
+}
+
+// Streaks
 
 export async function updateStreak(userId: string): Promise<number> {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-
   const yesterday = new Date(today);
   yesterday.setDate(today.getDate() - 1);
 
-  let streak = await prisma.streak.findUnique({ where: { userId } });
-
+  const streak = await prisma.streak.findUnique({ where: { userId } });
   if (!streak) {
-    streak = await prisma.streak.create({
-      data: { userId, currentStreak: 1, longestStreak: 1, lastActivityDate: today },
-    });
+    await prisma.streak.create({ data: { userId, currentStreak: 1, longestStreak: 1, lastActivityDate: today } });
     await checkAndUnlockAchievements(userId, { type: "streak_update", streakDays: 1 });
     return 1;
   }
 
   const last = new Date(streak.lastActivityDate);
   last.setHours(0, 0, 0, 0);
+  if (last.getTime() === today.getTime()) return streak.currentStreak;
 
-  if (last.getTime() === today.getTime()) {
-    return streak.currentStreak; // already recorded today
-  }
-
-  let newStreak: number;
-  if (last.getTime() === yesterday.getTime()) {
-    newStreak = streak.currentStreak + 1;
-  } else {
-    newStreak = 1; // reset
-  }
-
-  const newLongest = Math.max(newStreak, streak.longestStreak);
-
+  const next = last.getTime() === yesterday.getTime() ? streak.currentStreak + 1 : 1;
   await prisma.streak.update({
     where: { userId },
-    data: { currentStreak: newStreak, longestStreak: newLongest, lastActivityDate: today },
+    data: { currentStreak: next, longestStreak: Math.max(next, streak.longestStreak), lastActivityDate: today },
   });
-
-  await checkAndUnlockAchievements(userId, { type: "streak_update", streakDays: newStreak });
-  return newStreak;
+  await checkAndUnlockAchievements(userId, { type: "streak_update", streakDays: next });
+  return next;
 }
 
-// ─── Achievement criteria ────────────────────────────────────────────────────
+// Evaluation
 
-async function checkLessonAchievements(
-  userId: string,
-  lessonId: string
-): Promise<UnlockedAchievement[]> {
-  const unlocked: UnlockedAchievement[] = [];
-
-  const completedCount = await prisma.progress.count({
-    where: { userId, completed: true },
-  });
-
-  if (completedCount >= 1) {
-    const firstSteps = await unlockAchievement(userId, "First Steps");
-    if (firstSteps) unlocked.push(firstSteps);
-  }
-
-  // Module completion achievements
-  const lesson = await prisma.lesson.findUnique({
-    where: { id: lessonId },
-    include: { module: { select: { id: true, order: true } } },
-  });
-  if (lesson) {
-    const allModuleLessons = await prisma.lesson.findMany({
-      where: { moduleId: lesson.moduleId },
-      select: { id: true },
-    });
-    const completedInModule = await prisma.progress.count({
-      where: {
-        userId,
-        lessonId: { in: allModuleLessons.map((l) => l.id) },
-        completed: true,
-      },
-    });
-    if (completedInModule >= allModuleLessons.length) {
-      const name = moduleAchievementNames[lesson.module.order];
-      if (name) {
-        const a = await unlockAchievement(userId, name);
-        if (a) unlocked.push(a);
-      }
-    }
-  }
-
-  const completedModuleOrders = await getCompletedModuleOrders(userId);
-  const completedModuleSet = new Set(completedModuleOrders);
-  for (const rule of phaseAchievementRules) {
-    if (rule.requiredModules.every((moduleOrder) => completedModuleSet.has(moduleOrder))) {
-      const achievement = await unlockAchievement(userId, rule.name);
-      if (achievement) unlocked.push(achievement);
-    }
-  }
-
-  return unlocked;
+interface LearnerStats {
+  lessons: number;
+  drills: number;
+  passedModules: Set<string>;
+  capstoneModules: Set<string>;
+  streak: number;
+  xp: number;
 }
 
-async function checkExerciseAchievements(userId: string): Promise<UnlockedAchievement[]> {
-  const unlocked: UnlockedAchievement[] = [];
-
-  const completedCount = await prisma.exerciseSubmission.findMany({
-    where: { userId, passed: true },
-    distinct: ["exerciseId"],
-    select: { exerciseId: true },
-  });
-  const count = completedCount.length;
-
-  const thresholds: Array<[number, string]> = [
-    [10, "Problem Solver"],
-    [25, "Coding Machine"],
-    [50, "Exercise Champion"],
-  ];
-  for (const [n, name] of thresholds) {
-    if (count >= n) {
-      const a = await unlockAchievement(userId, name);
-      if (a) unlocked.push(a);
-    }
-  }
-
-  return unlocked;
+async function learnerStats(userId: string): Promise<LearnerStats> {
+  const [lessons, drills, tracks, capstones, streak, user] = await Promise.all([
+    prisma.progress.count({ where: { userId, completed: true, lesson: { archivedAt: null } } }),
+    prisma.exerciseSubmission.findMany({
+      where: { userId, passed: true, exercise: { archivedAt: null } },
+      distinct: ["exerciseId"],
+      select: { exerciseId: true },
+    }),
+    getCurriculumState(userId),
+    prisma.projectSubmission.findMany({
+      where: { userId, status: "approved", project: { archivedAt: null } },
+      select: { project: { select: { module: { select: { slug: true } } } } },
+    }),
+    prisma.streak.findUnique({ where: { userId }, select: { currentStreak: true, longestStreak: true } }),
+    prisma.user.findUnique({ where: { id: userId }, select: { xp: true } }),
+  ]);
+  const passedModules = new Set<string>();
+  for (const t of tracks) for (const m of t.modules) if (m.passed && m.slug) passedModules.add(m.slug);
+  return {
+    lessons,
+    drills: drills.length,
+    passedModules,
+    capstoneModules: new Set(capstones.map((c) => c.project.module.slug).filter((s): s is string => Boolean(s))),
+    // A streak patch is earned once the streak has ever reached that length
+    streak: Math.max(streak?.currentStreak ?? 0, streak?.longestStreak ?? 0),
+    xp: user?.xp ?? 0,
+  };
 }
 
-async function checkProjectAchievements(
-  userId: string,
-  moduleOrder: number
-): Promise<UnlockedAchievement[]> {
-  const unlocked: UnlockedAchievement[] = [];
-
-  const name = projectAchievementNames[moduleOrder];
-  if (name) {
-    const a = await unlockAchievement(userId, name);
-    if (a) unlocked.push(a);
+function met(criteria: AchievementCriteria, stats: LearnerStats): boolean {
+  switch (criteria.kind) {
+    case "lessons":
+      return stats.lessons >= criteria.count;
+    case "drills":
+      return stats.drills >= criteria.count;
+    case "modules":
+      return criteria.modules.every((slug) => stats.passedModules.has(slug));
+    case "capstone":
+      return stats.capstoneModules.has(criteria.module);
+    case "streak":
+      return stats.streak >= criteria.days;
+    case "xp":
+      return stats.xp >= criteria.amount;
   }
-
-  return unlocked;
 }
 
-async function checkStreakAchievements(
-  userId: string,
-  streakDays: number
-): Promise<UnlockedAchievement[]> {
-  const unlocked: UnlockedAchievement[] = [];
-
-  const thresholds: Array<[number, string]> = [
-    [7, "Consistent Learner"],
-    [30, "Dedication Master"],
-    [100, "Unstoppable"],
-  ];
-  for (const [n, name] of thresholds) {
-    if (streakDays >= n) {
-      const a = await unlockAchievement(userId, name);
-      if (a) unlocked.push(a);
-    }
+function parseCriteria(text: string): AchievementCriteria | null {
+  try {
+    const parsed = achievementCriteriaSchema.safeParse(JSON.parse(text));
+    return parsed.success ? parsed.data : null;
+  } catch {
+    return null;
   }
-
-  return unlocked;
 }
 
-async function checkXpAchievements(
-  userId: string,
-  totalXp: number
-): Promise<UnlockedAchievement[]> {
-  const unlocked: UnlockedAchievement[] = [];
-
-  const thresholds: Array<[number, string]> = [
-    [500, "XP Collector"],
-    [1000, "XP Hoarder"],
-    [5000, "XP Legend"],
-  ];
-  for (const [n, name] of thresholds) {
-    if (totalXp >= n) {
-      const a = await unlockAchievement(userId, name);
-      if (a) unlocked.push(a);
-    }
-  }
-
-  return unlocked;
-}
-
-// ─── Main entry point ────────────────────────────────────────────────────────
-
+/**
+ * Unlock every live achievement whose criteria the learner now meets. XP from an
+ * unlock can itself cross an XP threshold, so it re-checks once after unlocking.
+ */
 export async function checkAndUnlockAchievements(
   userId: string,
-  event: AchievementEvent
+  event?: AchievementEvent
 ): Promise<UnlockedAchievement[]> {
+  void event;
   try {
-    switch (event.type) {
-      case "lesson_complete":
-        return await checkLessonAchievements(userId, event.lessonId);
-      case "exercise_pass":
-        return await checkExerciseAchievements(userId);
-      case "project_complete":
-        return await checkProjectAchievements(userId, event.moduleOrder);
-      case "streak_update":
-        return await checkStreakAchievements(userId, event.streakDays);
-      case "xp_update":
-        return await checkXpAchievements(userId, event.totalXp);
-      default:
-        return [];
+    const unlocked: UnlockedAchievement[] = [];
+    for (let pass = 0; pass < 2; pass++) {
+      const candidates = await prisma.achievement.findMany({
+        where: { archivedAt: null, users: { none: { userId } } },
+        orderBy: { order: "asc" },
+      });
+      if (candidates.length === 0) break;
+      const stats = await learnerStats(userId);
+      let any = false;
+      for (const a of candidates) {
+        const criteria = parseCriteria(a.criteria);
+        if (!criteria || !met(criteria, stats)) continue;
+        const result = await unlock(userId, a);
+        if (result) {
+          unlocked.push(result);
+          any = true;
+        }
+      }
+      if (!any) break;
+      await updateUserLevel(userId);
     }
+    return unlocked;
   } catch (error) {
     console.error("Error checking achievements:", error);
     return [];
   }
 }
 
-async function getCompletedModuleOrders(userId: string): Promise<number[]> {
-  const [modules, completedLessons] = await Promise.all([
-    prisma.module.findMany({
-      select: {
-        order: true,
-        lessons: {
-          select: { id: true },
-        },
-      },
-      orderBy: { order: "asc" },
-    }),
-    prisma.progress.findMany({
-      where: { userId, completed: true },
-      select: { lessonId: true },
-    }),
-  ]);
-
-  const completedLessonIds = new Set(completedLessons.map((lesson) => lesson.lessonId));
-  return modules
-    .filter(
-      (module) =>
-        module.lessons.length > 0 &&
-        module.lessons.every((lesson) => completedLessonIds.has(lesson.id))
-    )
-    .map((module) => module.order);
-}
-
-// ??? Milestone detection ?????????????????????????????????????????????????????
+// Milestones
 
 /**
- * Returns the milestone percentage (25 | 50 | 75 | 100) if the overall
- * completion just crossed one, otherwise null.
- * @param userId  The user whose progress to check.
+ * The completion milestone (25 | 50 | 75 | 100 percent of live lessons and
+ * capstones) the learner has reached, or null below 25%.
  */
 export async function checkMilestone(userId: string): Promise<25 | 50 | 75 | 100 | null> {
   const [totalLessons, totalProjects, completedLessons, completedProjects] = await Promise.all([
-    prisma.lesson.count(),
-    prisma.project.count(),
-    prisma.progress.count({ where: { userId, completed: true } }),
-    prisma.projectSubmission.count({ where: { userId, status: "approved" } }),
+    prisma.lesson.count({ where: { archivedAt: null, module: { archivedAt: null } } }),
+    prisma.project.count({ where: { archivedAt: null, module: { archivedAt: null } } }),
+    prisma.progress.count({ where: { userId, completed: true, lesson: { archivedAt: null } } }),
+    prisma.projectSubmission.count({ where: { userId, status: "approved", project: { archivedAt: null } } }),
   ]);
-
   const total = totalLessons + totalProjects;
   if (total === 0) return null;
-
-  const done = completedLessons + completedProjects;
-  const pct = (done / total) * 100;
-
-  // Check thresholds from highest to lowest so we return the most significant one
+  const pct = ((completedLessons + completedProjects) / total) * 100;
   if (pct >= 100) return 100;
   if (pct >= 75) return 75;
   if (pct >= 50) return 50;

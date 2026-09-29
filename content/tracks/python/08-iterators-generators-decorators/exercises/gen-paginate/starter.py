@@ -1,0 +1,3 @@
+def paginate(fetch_page):
+    """Yield every item from every page, fetching each page only when it's needed."""
+    ...

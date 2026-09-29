@@ -232,6 +232,141 @@ async def _explain_assertion(exc: AssertionError, tests_tree: ast.Module) -> str
     return f"Check failed: {ast.unparse(test)}"
 
 
+def _assert_fail(left, right, op: str, left_src: str, right_src: str, kind: str, msg) -> AssertionError:
+    """Build the message for a rewritten `assert L op R` from the values the test already computed."""
+    if msg is not None and str(msg):
+        return AssertionError(str(msg))
+    if kind == "program":
+        subject, verb = "Your program", "printed"
+    elif kind in ("call", "await"):
+        subject, verb = left_src.removeprefix("await "), "returned"
+    else:
+        subject, verb = left_src, "is"
+    if op == "==":
+        text = f"{subject} {verb} {_short_repr(left)}, expected {_short_repr(right)}"
+    elif op == "!=":
+        text = f"{subject} {verb} {_short_repr(left)}, which it shouldn't be"
+    elif op in ("in", "not in"):
+        container = "your program's output" if "run_program(" in right_src else right_src
+        text = f"Expected {_short_repr(left)} {op} {container}"
+    else:
+        text = f"Expected {left_src} {op} {_short_repr(right)}, but it {verb} {_short_repr(left)}"
+    return AssertionError(text)
+
+
+class _AssertRewriter(ast.NodeTransformer):
+    """Rewrite `assert L op R[, msg]` so both sides are evaluated exactly once:
+
+        _plp_l = L
+        _plp_r = R
+        if not (_plp_l op _plp_r):
+            raise _plp_assert_fail(_plp_l, _plp_r, "op", "L", "R", kind, msg)
+
+    Re-running the learner's code to explain a failure would repeat side effects
+    (mutation, printing) and could report different values than the ones checked.
+    """
+
+    def visit_Assert(self, node: ast.Assert):
+        test = node.test
+        # `assert A and B` → `assert A` then `assert B`: same short-circuit, and each half explains itself
+        if isinstance(test, ast.BoolOp) and isinstance(test.op, ast.And):
+            parts = [ast.copy_location(ast.Assert(test=value, msg=node.msg), node) for value in test.values]
+            out = []
+            for part in parts:
+                result = self.visit_Assert(part)
+                out.extend(result if isinstance(result, list) else [result])
+            return out
+        if not (isinstance(test, ast.Compare) and len(test.ops) == 1):
+            return node
+        left_src = ast.unparse(test.left)
+        right_src = ast.unparse(test.comparators[0])
+        kind = (
+            "program"
+            if "run_program(" in left_src
+            else "await"
+            if isinstance(test.left, ast.Await)
+            else "call"
+            if isinstance(test.left, ast.Call)
+            else "value"
+        )
+        load = lambda name: ast.Name(id=name, ctx=ast.Load())  # noqa: E731
+        stmts = [
+            ast.Assign(targets=[ast.Name(id="_plp_l", ctx=ast.Store())], value=test.left),
+            ast.Assign(targets=[ast.Name(id="_plp_r", ctx=ast.Store())], value=test.comparators[0]),
+            ast.If(
+                test=ast.UnaryOp(
+                    op=ast.Not(),
+                    operand=ast.Compare(left=load("_plp_l"), ops=test.ops, comparators=[load("_plp_r")]),
+                ),
+                body=[
+                    ast.Raise(
+                        exc=ast.Call(
+                            func=load("_plp_assert_fail"),
+                            args=[
+                                load("_plp_l"),
+                                load("_plp_r"),
+                                ast.Constant(_OPS.get(type(test.ops[0]), "?")),
+                                ast.Constant(left_src),
+                                ast.Constant(right_src),
+                                ast.Constant(kind),
+                                node.msg or ast.Constant(None),
+                            ],
+                            keywords=[],
+                        ),
+                        cause=None,
+                    )
+                ],
+                orelse=[],
+            ),
+        ]
+        for stmt in stmts:
+            ast.copy_location(stmt, node)
+        return stmts
+
+
+# Per-test time limits, enforced only inside the learner's own code
+
+DEFAULT_TEST_TIMEOUT = 2.0
+IMPORT_TIMEOUT = 3.0
+
+
+class _Deadline:
+    """A sys.settrace tracer that raises plp.TestTimeout once learner code runs past a deadline.
+
+    Only frames from solution.py (and main.py) are traced, so test helpers, pytest,
+    mypy and imported packages run at full speed and never count against the limit.
+    """
+
+    def __init__(self):
+        self.until: float | None = None
+        self.seconds = 0.0
+
+    def start(self, seconds: float | None):
+        self.seconds = seconds or 0.0
+        self.until = None if seconds is None else time.perf_counter() + seconds
+        sys.settrace(self._global if seconds is not None else None)
+
+    def stop(self):
+        sys.settrace(None)
+        self.until = None
+
+    def _global(self, frame, event, arg):
+        if frame.f_code.co_filename in USER_FILES:
+            return self._local
+        return None
+
+    def _local(self, frame, event, arg):
+        if event == "line" and self.until is not None and time.perf_counter() > self.until:
+            self.until = None
+            raise plp.TestTimeout(
+                f"Took longer than {self.seconds:g}s. Look for a loop that never ends, or code that is far too slow."
+            )
+        return self._local
+
+
+_deadline = _Deadline()
+
+
 def _fresh_module(name: str, filename: str, source: str) -> types.ModuleType:
     module = types.ModuleType(name)
     module.__file__ = filename
@@ -262,7 +397,11 @@ async def run_tests(solution: str, tests: str, import_solution: bool = True) -> 
         if import_solution:
             sys.modules["solution"] = module
             with contextlib.redirect_stdout(load_out), _patched_input(_NoInput()):
-                exec(code_obj, module.__dict__)
+                _deadline.start(IMPORT_TIMEOUT)
+                try:
+                    exec(code_obj, module.__dict__)
+                finally:
+                    _deadline.stop()
     except BaseException as exc:  # noqa: BLE001
         sys.modules.pop("solution", None)
         return {
@@ -276,9 +415,11 @@ async def run_tests(solution: str, tests: str, import_solution: bool = True) -> 
 
     # 2. The drill's tests (errors here are the author's, not the learner's)
     tests_module = _fresh_module("tests", "tests.py", tests)
+    tests_module.__dict__["_plp_assert_fail"] = _assert_fail
     try:
         tests_tree = ast.parse(tests, "tests.py")
-        exec(compile(tests_tree, "tests.py", "exec"), tests_module.__dict__)
+        rewritten = ast.fix_missing_locations(_AssertRewriter().visit(ast.parse(tests, "tests.py")))
+        exec(compile(rewritten, "tests.py", "exec"), tests_module.__dict__)
     except BaseException as exc:  # noqa: BLE001
         # An ImportError naming something the learner was asked to define is theirs to fix
         missing = isinstance(exc, ImportError) and getattr(exc, "name", None) == "solution"
@@ -302,12 +443,20 @@ async def run_tests(solution: str, tests: str, import_solution: bool = True) -> 
         passed, message, error = False, None, None
         try:
             with contextlib.redirect_stdout(out), _patched_input(_NoInput()):
-                outcome = entry["fn"]()
-                if inspect.isawaitable(outcome):
-                    await outcome
+                _deadline.start(entry.get("timeout", DEFAULT_TEST_TIMEOUT))
+                try:
+                    outcome = entry["fn"]()
+                    if inspect.isawaitable(outcome):
+                        await outcome
+                finally:
+                    _deadline.stop()
             passed = True
         except AssertionError as exc:
             message = await _explain_assertion(exc, tests_tree)
+        except plp.TestTimeout as exc:
+            error = _describe_exception(exc, files=("solution.py",))
+            where = f" It was running line {error['line']} when it stopped." if error["line"] else ""
+            message = f"{exc}{where}"
         except BaseException as exc:  # noqa: BLE001
             error = _describe_exception(exc, files=("solution.py",))
             where = f" (line {error['line']})" if error["line"] else ""

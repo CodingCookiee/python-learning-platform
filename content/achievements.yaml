@@ -1,0 +1,168 @@
+# Achievements (patches). Synced by `npm run content:sync`; evaluated by lib/achievements.ts.
+# criteria kinds: lessons {count} · drills {count} · modules {modules: [slugs]} (all passed)
+#                 capstone {module} (approved) · streak {days} · xp {amount}
+# Names match earlier achievements where they overlap, so learners keep what they earned.
+
+# Learning: the habit of practice
+- slug: first-lesson
+  name: First Steps
+  description: Complete your first lesson
+  icon: Footprints
+  category: Learning
+  tier: bronze
+  xp: 10
+  criteria: { kind: lessons, count: 1 }
+- slug: first-drill
+  name: First Drill
+  description: Pass your first drill
+  icon: CheckSquare
+  category: Learning
+  tier: bronze
+  xp: 10
+  criteria: { kind: drills, count: 1 }
+- slug: drills-25
+  name: Problem Solver
+  description: Pass 25 drills
+  icon: ListChecks
+  category: Learning
+  tier: silver
+  xp: 50
+  criteria: { kind: drills, count: 25 }
+- slug: drills-100
+  name: Coding Machine
+  description: Pass 100 drills
+  icon: Cpu
+  category: Learning
+  tier: gold
+  xp: 150
+  criteria: { kind: drills, count: 100 }
+- slug: drills-300
+  name: Exercise Champion
+  description: Pass 300 drills
+  icon: Trophy
+  category: Learning
+  tier: platinum
+  xp: 400
+  criteria: { kind: drills, count: 300 }
+- slug: lessons-50
+  name: Well Read
+  description: Complete 50 lessons
+  icon: Library
+  category: Learning
+  tier: silver
+  xp: 100
+  criteria: { kind: lessons, count: 50 }
+
+# Belts and grades
+- slug: belt-yellow
+  name: Yellow Belt
+  description: Pass the white belt modules (1–3) and earn the yellow belt
+  icon: Award
+  category: Belts
+  tier: silver
+  xp: 150
+  criteria: { kind: modules, modules: [python-basics, collections-and-control-flow, functions-and-modules] }
+- slug: belt-green
+  name: Green Belt
+  description: Pass modules 1–7 and earn the green belt
+  icon: Award
+  category: Belts
+  tier: gold
+  xp: 250
+  criteria:
+    kind: modules
+    modules: [python-basics, collections-and-control-flow, functions-and-modules, pythonic-stdlib, oop, errors-files-context, testing-pytest]
+- slug: belt-blue
+  name: Blue Belt
+  description: Pass modules 1–10 and earn the blue belt
+  icon: Award
+  category: Belts
+  tier: gold
+  xp: 350
+  criteria:
+    kind: modules
+    modules: [python-basics, collections-and-control-flow, functions-and-modules, pythonic-stdlib, oop, errors-files-context, testing-pytest, iterators-generators-decorators, typing-pydantic, tooling-packaging]
+- slug: belt-brown
+  name: Brown Belt
+  description: Pass modules 1–13 and earn the brown belt
+  icon: Award
+  category: Belts
+  tier: platinum
+  xp: 450
+  criteria:
+    kind: modules
+    modules: [python-basics, collections-and-control-flow, functions-and-modules, pythonic-stdlib, oop, errors-files-context, testing-pytest, iterators-generators-decorators, typing-pydantic, tooling-packaging, data-model-internals, concurrency, performance]
+- slug: belt-black
+  name: Python Master
+  description: Pass all 16 Python modules and earn the black belt, 1st dan
+  icon: Medal
+  category: Belts
+  tier: legendary
+  xp: 1000
+  criteria:
+    kind: modules
+    modules: [python-basics, collections-and-control-flow, functions-and-modules, pythonic-stdlib, oop, errors-files-context, testing-pytest, iterators-generators-decorators, typing-pydantic, tooling-packaging, data-model-internals, concurrency, performance, http-apis, fastapi, data-and-databases]
+- slug: automation-engineer
+  name: Automation Engineer
+  description: Pass all eight automation modules and reach 9th dan
+  icon: GraduationCap
+  category: Belts
+  tier: legendary
+  xp: 1500
+  criteria:
+    kind: modules
+    modules: [automation-foundations, llm-fundamentals, structured-output-tools, rag, agents, mcp, production, portfolio-clients]
+
+# Modules: one patch per module passed
+- { slug: module-python-basics, name: "Hello, Python!", description: Pass Python for developers, icon: Terminal, category: Modules, tier: bronze, xp: 50, criteria: { kind: modules, modules: [python-basics] } }
+- { slug: module-collections, name: Data Master, description: Pass Collections and control flow, icon: Layers, category: Modules, tier: bronze, xp: 50, criteria: { kind: modules, modules: [collections-and-control-flow] } }
+- { slug: module-functions, name: Function Expert, description: Pass Functions and modules, icon: Braces, category: Modules, tier: bronze, xp: 50, criteria: { kind: modules, modules: [functions-and-modules] } }
+- { slug: module-stdlib, name: Pythonista, description: Pass Pythonic idioms and the standard library, icon: Sparkles, category: Modules, tier: silver, xp: 75, criteria: { kind: modules, modules: [pythonic-stdlib] } }
+- { slug: module-oop, name: OOP Master, description: Pass Object-oriented Python, icon: Blocks, category: Modules, tier: silver, xp: 75, criteria: { kind: modules, modules: [oop] } }
+- { slug: module-errors-files, name: File Handler, description: Pass Errors, files and context managers, icon: FileStack, category: Modules, tier: silver, xp: 75, criteria: { kind: modules, modules: [errors-files-context] } }
+- { slug: module-pytest, name: Test Ninja, description: Pass Testing with pytest, icon: TestTube, category: Modules, tier: silver, xp: 75, criteria: { kind: modules, modules: [testing-pytest] } }
+- { slug: module-generators, name: Python Sorcerer, description: Pass Iterators, generators and decorators, icon: Repeat, category: Modules, tier: gold, xp: 100, criteria: { kind: modules, modules: [iterators-generators-decorators] } }
+- { slug: module-typing, name: Type Guardian, description: Pass Types, Protocols and Pydantic, icon: Shield, category: Modules, tier: gold, xp: 100, criteria: { kind: modules, modules: [typing-pydantic] } }
+- { slug: module-tooling, name: Package Pro, description: Pass Tooling and packaging, icon: Package, category: Modules, tier: gold, xp: 100, criteria: { kind: modules, modules: [tooling-packaging] } }
+- { slug: module-internals, name: Under the Hood, description: Pass Data model and internals, icon: Cog, category: Modules, tier: gold, xp: 125, criteria: { kind: modules, modules: [data-model-internals] } }
+- { slug: module-concurrency, name: Async Wizard, description: "Pass Concurrency: asyncio, threads and processes", icon: Timer, category: Modules, tier: gold, xp: 125, criteria: { kind: modules, modules: [concurrency] } }
+- { slug: module-performance, name: Performance Beast, description: Pass Performance and profiling, icon: Gauge, category: Modules, tier: gold, xp: 125, criteria: { kind: modules, modules: [performance] } }
+- { slug: module-http, name: API Client, description: Pass HTTP and APIs, icon: Globe, category: Modules, tier: platinum, xp: 150, criteria: { kind: modules, modules: [http-apis] } }
+- { slug: module-fastapi, name: Web Services Pro, description: Pass Web services with FastAPI, icon: Server, category: Modules, tier: platinum, xp: 150, criteria: { kind: modules, modules: [fastapi] } }
+- { slug: module-databases, name: Database Guru, description: Pass Data and databases, icon: Database, category: Modules, tier: platinum, xp: 150, criteria: { kind: modules, modules: [data-and-databases] } }
+- { slug: module-automation-foundations, name: Automator, description: Pass Automation foundations (2nd dan), icon: Webhook, category: Modules, tier: platinum, xp: 150, criteria: { kind: modules, modules: [automation-foundations] } }
+- { slug: module-llm, name: Prompt Engineer, description: Pass LLM fundamentals (3rd dan), icon: MessagesSquare, category: Modules, tier: platinum, xp: 150, criteria: { kind: modules, modules: [llm-fundamentals] } }
+- { slug: module-tools, name: Tool Builder, description: Pass Structured output and tool calling (4th dan), icon: Wrench, category: Modules, tier: platinum, xp: 150, criteria: { kind: modules, modules: [structured-output-tools] } }
+- { slug: module-rag, name: Retriever, description: Pass Retrieval (RAG) (5th dan), icon: Search, category: Modules, tier: platinum, xp: 175, criteria: { kind: modules, modules: [rag] } }
+- { slug: module-agents, name: Agent Smith, description: Pass Agents (6th dan), icon: Bot, category: Modules, tier: platinum, xp: 175, criteria: { kind: modules, modules: [agents] } }
+- { slug: module-mcp, name: Protocol Speaker, description: Pass MCP (7th dan), icon: Plug, category: Modules, tier: platinum, xp: 175, criteria: { kind: modules, modules: [mcp] } }
+- { slug: module-production, name: Production Ready, description: Pass Production AI systems (8th dan), icon: ShieldCheck, category: Modules, tier: legendary, xp: 200, criteria: { kind: modules, modules: [production] } }
+- { slug: module-portfolio, name: Open for Business, description: Pass Portfolio and client work (9th dan), icon: Briefcase, category: Modules, tier: legendary, xp: 200, criteria: { kind: modules, modules: [portfolio-clients] } }
+
+# Capstones: one patch per approved capstone
+- { slug: capstone-receipt-printer, name: Receipt Printer, description: Get the Receipt printer capstone approved, icon: Calculator, category: Capstones, tier: bronze, xp: 50, criteria: { kind: capstone, module: python-basics } }
+- { slug: capstone-gradebook, name: Gradebook, description: Get the Gradebook report capstone approved, icon: ChartColumn, category: Capstones, tier: bronze, xp: 50, criteria: { kind: capstone, module: collections-and-control-flow } }
+- { slug: capstone-expense-splitter, name: Fair Share, description: Get the Expense splitter capstone approved, icon: Handshake, category: Capstones, tier: bronze, xp: 50, criteria: { kind: capstone, module: functions-and-modules } }
+- { slug: capstone-log-analyzer, name: Log Detective, description: Get the Log analyzer capstone approved, icon: Microscope, category: Capstones, tier: silver, xp: 75, criteria: { kind: capstone, module: pythonic-stdlib } }
+- { slug: capstone-inventory, name: Stock Keeper, description: Get the Inventory system capstone approved, icon: Boxes, category: Capstones, tier: silver, xp: 75, criteria: { kind: capstone, module: oop } }
+- { slug: capstone-csv-cleaner, name: Data Janitor, description: Get the CSV cleaner capstone approved, icon: Wand2, category: Capstones, tier: silver, xp: 75, criteria: { kind: capstone, module: errors-files-context } }
+- { slug: capstone-legacy-tests, name: Bug Hunter, description: Get the Test a legacy module capstone approved, icon: Target, category: Capstones, tier: silver, xp: 75, criteria: { kind: capstone, module: testing-pytest } }
+- { slug: capstone-streaming-etl, name: ETL Engineer, description: Get the Streaming ETL capstone approved, icon: Workflow, category: Capstones, tier: gold, xp: 100, criteria: { kind: capstone, module: iterators-generators-decorators } }
+- { slug: capstone-typed-models, name: Type Safety Champion, description: Get the Typed API models capstone approved, icon: BadgeCheck, category: Capstones, tier: gold, xp: 100, criteria: { kind: capstone, module: typing-pydantic } }
+- { slug: capstone-cli-tool, name: Package Publisher, description: Get the Ship a CLI tool capstone approved, icon: Rocket, category: Capstones, tier: gold, xp: 100, criteria: { kind: capstone, module: tooling-packaging } }
+- { slug: capstone-tiny-orm, name: Framework Builder, description: Get the Tiny ORM capstone approved, icon: Hammer, category: Capstones, tier: gold, xp: 125, criteria: { kind: capstone, module: data-model-internals } }
+- { slug: capstone-concurrent-fetcher, name: Async Master, description: Get the Concurrent fetcher capstone approved, icon: Network, category: Capstones, tier: gold, xp: 125, criteria: { kind: capstone, module: concurrency } }
+- { slug: capstone-make-it-fast, name: Speed Demon, description: Get the Make it fast capstone approved, icon: Zap, category: Capstones, tier: gold, xp: 125, criteria: { kind: capstone, module: performance } }
+- { slug: capstone-api-client, name: API Architect, description: Get the API client library capstone approved, icon: Link, category: Capstones, tier: platinum, xp: 150, criteria: { kind: capstone, module: http-apis } }
+- { slug: capstone-webhook-service, name: Service Builder, description: Get the Webhook-ready service capstone approved, icon: Send, category: Capstones, tier: platinum, xp: 150, criteria: { kind: capstone, module: fastapi } }
+- { slug: capstone-job-tracker, name: Black Belt Grading, description: Pass the black belt grading project, icon: Crown, category: Capstones, tier: legendary, xp: 300, criteria: { kind: capstone, module: data-and-databases } }
+
+# Streaks
+- { slug: streak-7, name: Consistent Learner, description: Practise 7 days in a row, icon: Flame, category: Streaks, tier: bronze, xp: 50, criteria: { kind: streak, days: 7 } }
+- { slug: streak-30, name: Dedication Master, description: Practise 30 days in a row, icon: Flame, category: Streaks, tier: silver, xp: 200, criteria: { kind: streak, days: 30 } }
+- { slug: streak-100, name: Unstoppable, description: Practise 100 days in a row, icon: Flame, category: Streaks, tier: platinum, xp: 500, criteria: { kind: streak, days: 100 } }
+
+# Experience
+- { slug: xp-1000, name: XP Collector, description: Earn 1,000 XP, icon: Zap, category: Experience, tier: bronze, xp: 0, criteria: { kind: xp, amount: 1000 } }
+- { slug: xp-5000, name: XP Hoarder, description: Earn 5,000 XP, icon: Zap, category: Experience, tier: gold, xp: 0, criteria: { kind: xp, amount: 5000 } }
+- { slug: xp-15000, name: XP Legend, description: Earn 15,000 XP, icon: Zap, category: Experience, tier: legendary, xp: 0, criteria: { kind: xp, amount: 15000 } }

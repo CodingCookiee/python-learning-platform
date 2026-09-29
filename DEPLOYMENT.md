@@ -94,12 +94,15 @@ Copy the output and set it as `NEXTAUTH_SECRET` in Vercel.
 After deploying, run migrations in Vercel:
 
 Migrations run automatically during the Vercel build (`prisma migrate deploy`).
-To apply them manually and seed content:
+To apply them manually and load the course content:
 
 ```bash
 npm run db:deploy
-npm run db:seed
+npm run content:validate   # every drill's solution passes, every starter fails
+npm run content:sync       # copy content/ into the database (safe to re-run; never deletes progress)
 ```
+
+Run `content:sync` again whenever files in `content/` change.
 
 For schema changes during development, use `npm run db:migrate -- --name <change>`.
 

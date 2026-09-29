@@ -18,6 +18,8 @@ export interface DrillData {
   tests: string;
   packages: string[];
   timeoutMs: number;
+  /** False for script-style drills: tests run the code rather than import it */
+  importSolution: boolean;
   hints: string[];
   testList: Array<{ name: string; hidden: boolean }>;
   /** Only when solved, or after SOLUTION_AFTER_ATTEMPTS attempts */
@@ -87,6 +89,7 @@ export async function getDrillForUser(id: string, userId: string): Promise<Drill
     tests: exercise.tests,
     packages: exercise.packages,
     timeoutMs: exercise.timeoutMs,
+    importSolution: exercise.importSolution,
     hints: parseJsonArray<string>(exercise.hints).map(String),
     testList: parseJsonArray<{ name: string; hidden: boolean }>(exercise.testCases).filter(
       (t) => typeof t?.name === "string"

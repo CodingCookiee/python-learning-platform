@@ -1,0 +1,8 @@
+title: "Predict: what gets committed?"
+type: predict
+difficulty: core
+tags: [gitignore, venv, fnmatch]
+hints:
+  - Go through FILES one at a time and check each part of the path against each pattern. A pattern ending in / only matches folders, never the file name at the end.
+  - The lockfile and .python-version aren't ignored by any pattern. Everything under .venv, __pycache__ and dist is.
+  - "*.egg-info has no trailing slash, so it matches the folder name invoicer.egg-info as a path part."

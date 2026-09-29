@@ -1,0 +1,3 @@
+def best_match(available, specifier):
+    """The newest version in available that satisfies specifier, or None."""
+    ...

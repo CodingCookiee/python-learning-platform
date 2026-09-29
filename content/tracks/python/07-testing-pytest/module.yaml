@@ -1,0 +1,19 @@
+slug: testing-pytest
+title: Testing with pytest
+summary: Write tests that catch real bugs, with fixtures, parametrize, mocks and real pytest running in your browser.
+description: >
+  A test suite lets you change code without being afraid of it. This module teaches pytest from the
+  mechanism up: how it finds your tests, why a plain assert shows you both sides of a failed
+  comparison, and how fixtures are injected by parameter name. From there it covers parametrized
+  cases, checking exceptions and floats, monkeypatch and unittest.mock (and when mocking goes too
+  far), testing files and printed output with tmp_path and capsys, and test-driven development.
+  In most drills you write the tests, and they are graded by planting bugs in the code under
+  test: your suite passes only if it passes on the correct code and catches every bug.
+hours: 8
+outcomes:
+  - Decide what is worth testing, and write pytest tests that fail for the right reason with a readable message
+  - Share setup with fixtures of the right scope, and clean up after tests with yield fixtures
+  - Cover many cases with parametrize and readable ids, and check exceptions and floats with pytest.raises and pytest.approx
+  - Replace environment variables, clocks and network calls with monkeypatch and unittest.mock, patching where a name is looked up
+  - Test code that reads and writes files or prints, using tmp_path and capsys
+  - Work red, green, refactor, and write focused tests that check behaviour rather than implementation

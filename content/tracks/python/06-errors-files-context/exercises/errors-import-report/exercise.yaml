@@ -1,0 +1,8 @@
+title: A payment import that reports its rejects
+type: function
+difficulty: stretch
+tags: [exceptions, try-except-else, decimal, enumerate, defaultdict]
+hints:
+  - "Put the two risky reads in the try block: Decimal(row[\"amount\"]) and row[\"currency\"]. Give KeyError and InvalidOperation an except clause each."
+  - "The missing key's name is the KeyError's first argument: error.args[0]. Number the rows with enumerate(rows, start=1)."
+  - "Add to the totals in an else clause, so it only runs for rows that parsed. A defaultdict(Decimal) starts every currency at Decimal(\"0\")."

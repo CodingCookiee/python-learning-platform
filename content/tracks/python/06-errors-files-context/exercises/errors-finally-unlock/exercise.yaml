@@ -1,0 +1,8 @@
+title: Always unlock the ledger
+type: function
+difficulty: core
+tags: [exceptions, finally, cleanup]
+hints:
+  - "Call ledger.lock() before the try statement. If locking fails there's nothing to unlock, so it doesn't belong inside the block that finally cleans up after."
+  - "Post the entries inside try, and call ledger.unlock() in finally. Don't write an except clause at all: the error should carry on to the caller."
+  - "Count as you go (posted += 1 after each post) and return the count after the try statement."

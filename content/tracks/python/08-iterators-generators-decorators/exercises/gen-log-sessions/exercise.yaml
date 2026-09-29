@@ -1,0 +1,8 @@
+title: Split a clickstream into sessions
+type: function
+difficulty: stretch
+tags: [generators, yield, laziness, datetime]
+hints:
+  - Keep the clicks of the session you're building in a list. For each click, compare its time with the time of the last click in that list.
+  - "When the gap is bigger than gap, the current session is finished: yield it, then start a new list for the click you're holding. Don't clear() the old list; the caller may still be using it."
+  - The loop ends when the clicks run out, but the last session hasn't been yielded yet. Yield it after the loop, if it has anything in it.

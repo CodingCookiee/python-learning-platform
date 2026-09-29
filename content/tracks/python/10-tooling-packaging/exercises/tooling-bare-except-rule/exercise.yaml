@@ -1,0 +1,8 @@
+title: Write lint rule E722
+type: function
+difficulty: core
+tags: [ast, linting, ruff, exceptions]
+hints:
+  - ast.parse(source) gives a tree, and ast.walk(tree) visits every node in it, however deeply nested.
+  - "An except clause is an ast.ExceptHandler node. Its .type is the exception it catches, which is None for a bare except:."
+  - "Each node has .lineno (from 1) and .col_offset (from 0), so the column is col_offset + 1. Sort the (line, column) pairs before formatting them, because ast.walk isn't in source order."

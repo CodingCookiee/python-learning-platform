@@ -1,0 +1,8 @@
+title: Fair job scheduling
+type: function
+difficulty: stretch
+tags: [iterators, iterator-protocol, deque, laziness]
+hints:
+  - Store an iterator for each queue, iter(queue), not a copy of its jobs. Copying would read an endless queue forever.
+  - A deque of iterators makes the rotation easy. In __next__, pop the iterator on the left and try next() on it. If it gives a job, put it back on the right and return the job.
+  - "If next() raises StopIteration, that queue is finished: don't put it back, and try the next one. When no iterators are left, raise StopIteration yourself."

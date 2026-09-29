@@ -1,0 +1,8 @@
+title: The import that found no money
+type: fix
+difficulty: core
+tags: [exceptions, try-except, bare-except, decimal]
+hints:
+  - "Delete the except clause for a moment and run the example. The real error the bare except was hiding tells you the first bug."
+  - "Decimal(\"n/a\") raises decimal.InvalidOperation. Catch that one type, so a missing key or a typo is no longer mistaken for a bad amount."
+  - "from decimal import Decimal, InvalidOperation, then keep only the Decimal(...) call in the try block and add it to the total after the except."

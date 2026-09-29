@@ -1,0 +1,20 @@
+slug: tooling-packaging
+title: Tooling and packaging
+summary: Virtual environments, uv, pyproject.toml, ruff, mypy, pre-commit, logging config, argparse CLIs and publishing a package.
+description: >
+  Everything so far has run in one file. Real Python lives in projects: a folder with its own
+  interpreter and dependencies, a pyproject.toml that describes it, a lockfile that pins it, and
+  tools that lint, format and type-check it before every commit. This module explains what a
+  virtual environment actually is, then builds a project with uv from `uv init` to a wheel on
+  TestPyPI. Along the way you configure ruff, mypy and pre-commit, set up logging the way
+  applications (not libraries) should, and write command-line interfaces with argparse that are
+  easy to test. The concepts are drilled in the browser; the tools themselves run on your machine,
+  with a checklist in every lesson.
+hours: 7
+outcomes:
+  - Explain what a virtual environment is, using sys.prefix, site-packages and sys.path, and why every project gets its own
+  - Create and run a project with uv, add dependencies, and explain the difference between a version range in pyproject.toml and a pin in uv.lock
+  - Read and write pyproject.toml, including dependency specifiers, tool tables and entry points
+  - Configure ruff, mypy and pre-commit so style, bugs and types are checked before every commit
+  - Configure application logging with dictConfig, and write libraries that log without configuring anything
+  - Build testable command-line tools with argparse, then package, build and publish them with uv

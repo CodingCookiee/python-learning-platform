@@ -1,0 +1,3 @@
+def post_batch(ledger, entries):
+    """Lock the ledger, post every entry, always unlock it, and return how many were posted."""
+    ...

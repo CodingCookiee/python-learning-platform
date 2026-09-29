@@ -18,17 +18,29 @@ import ast
 import builtins
 import contextlib
 import io
-from typing import Callable, Iterable
+import re
+from typing import Any, Callable, Iterable
 
 __all__ = [
     "test",
     "hidden",
+    "raises",
     "run_program",
     "ProgramResult",
+    "load_module",
     "solution_source",
     "source_uses",
     "source_avoids",
+    "defined_names",
+    "TestTimeout",
 ]
+
+
+class TestTimeout(Exception):
+    """Raised inside the learner's code when a test runs past its time limit."""
+
+
+_UNSET: Any = object()
 
 # Tests registered by the current tests.py, in definition order
 _REGISTRY: list[dict] = []
@@ -37,27 +49,92 @@ _REGISTRY: list[dict] = []
 _SOLUTION: dict = {"source": "", "filename": "solution.py"}
 
 
-def _register(name: str | None, *, hidden: bool) -> Callable:
+def _register(name: str | None, *, hidden: bool, timeout: Any) -> Callable:
     def decorator(fn: Callable) -> Callable:
         label = name or fn.__name__.strip("_").replace("_", " ") or f"Test {len(_REGISTRY) + 1}"
-        _REGISTRY.append({"name": label, "fn": fn, "hidden": hidden})
+        entry = {"name": label, "fn": fn, "hidden": hidden}
+        if timeout is not _UNSET:
+            entry["timeout"] = timeout
+        _REGISTRY.append(entry)
         return fn
 
     return decorator
 
 
-def test(name: str | Callable | None = None) -> Callable:
-    """Register a visible test. Use as @test("What it checks") or bare @test."""
+def test(name: str | Callable | None = None, *, timeout: float | None = _UNSET) -> Callable:
+    """Register a visible test. Use as @test("What it checks") or bare @test.
+
+    Each test's time in the learner's code is limited (2 s by default). Pass
+    timeout=10 for a slower check, or timeout=None to switch the limit off (for
+    timing measurements, where the tracer's overhead would skew results).
+    """
     if callable(name):
-        return _register(None, hidden=False)(name)
-    return _register(name, hidden=False)
+        return _register(None, hidden=False, timeout=timeout)(name)
+    return _register(name, hidden=False, timeout=timeout)
 
 
-def hidden(name: str | Callable | None = None) -> Callable:
+def hidden(name: str | Callable | None = None, *, timeout: float | None = _UNSET) -> Callable:
     """Register a hidden test: it runs and reports pass or fail, but its body isn't shown."""
     if callable(name):
-        return _register(None, hidden=True)(name)
-    return _register(name, hidden=True)
+        return _register(None, hidden=True, timeout=timeout)(name)
+    return _register(name, hidden=True, timeout=timeout)
+
+
+def _call_text(fn: Callable, args: tuple, kwargs: dict) -> str:
+    parts = [repr(a) for a in args] + [f"{k}={v!r}" for k, v in kwargs.items()]
+    text = f"{getattr(fn, '__name__', 'the call')}({', '.join(parts)})"
+    return text if len(text) <= 120 else text[:119] + "…"
+
+
+class raises:
+    """Check that code raises an exception, optionally with a matching message.
+
+        raises(ValueError, split_bill, 10, 0)               # call form
+        with raises(ValueError, match="at least one"):       # block form
+            split_bill(10, 0)
+
+    `match` is a regular expression searched in str(exception). The caught
+    exception is available as .value. An exception of a different type is
+    reported as an error in the learner's code, which is what it is.
+    """
+
+    def __init__(self, expected: type[BaseException] | tuple, fn: Callable | None = None, *args, match: str | None = None, **kwargs):
+        self.expected = expected
+        self.match = match
+        self.value: BaseException | None = None
+        self._what = "the code"
+        if fn is not None:
+            self._what = _call_text(fn, args, kwargs)
+            try:
+                fn(*args, **kwargs)
+            except self.expected as exc:  # type: ignore[misc]
+                self._check(exc)
+                return
+            raise AssertionError(f"{self._what} should raise {self._name()}, but it didn't")
+
+    def _name(self) -> str:
+        if isinstance(self.expected, tuple):
+            return " or ".join(e.__name__ for e in self.expected)
+        return self.expected.__name__
+
+    def _check(self, exc: BaseException) -> None:
+        if self.match is not None and not re.search(self.match, str(exc)):
+            raise AssertionError(
+                f"{self._what} raised {type(exc).__name__} as expected, but its message {str(exc)!r} "
+                f"doesn't match {self.match!r}"
+            )
+        self.value = exc
+
+    def __enter__(self) -> "raises":
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> bool:
+        if exc_type is None:
+            raise AssertionError(f"Expected {self._name()} to be raised, but nothing was raised")
+        if not issubclass(exc_type, self.expected):
+            return False  # a different error: let it surface as the learner's error
+        self._check(exc)
+        return True
 
 
 class ProgramResult(str):
@@ -130,27 +207,97 @@ def run_program(
     return result
 
 
+class LoadedModule:
+    """The learner's file loaded as an ordinary module: attributes are its globals,
+    and .printed is everything it printed while loading."""
+
+    def __init__(self, namespace: dict, printed: str):
+        self.__dict__.update(namespace)
+        self.printed = ProgramResult(printed)
+        self.printed.prompts = ""
+
+
+def load_module(name: str = "learner_module", *, source: str | None = None) -> LoadedModule:
+    """Import a fresh copy of the learner's file under `name` (so __name__ != "__main__")
+    and capture what it prints while loading. Use it to check that a file has no
+    side effects on import:
+
+        assert load_module("converter").printed == ""
+    """
+    code = _SOLUTION["source"] if source is None else source
+    namespace = {"__name__": name, "__file__": _SOLUTION["filename"], "__builtins__": builtins}
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out):
+        exec(compile(code, _SOLUTION["filename"], "exec"), namespace)
+    return LoadedModule(namespace, out.getvalue())
+
+
 def solution_source() -> str:
     """The learner's source code, as written."""
     return _SOLUTION["source"]
 
 
+def defined_names(kind: str = "any") -> list[str]:
+    """Top-level names the learner's code defines: kind is "function", "class" or "any".
+    Methods count too for "function" (as "Class.method")."""
+    names: list[str] = []
+    for item in ast.parse(_SOLUTION["source"]).body:
+        if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)) and kind in ("function", "any"):
+            names.append(item.name)
+        elif isinstance(item, ast.ClassDef):
+            if kind in ("class", "any"):
+                names.append(item.name)
+            if kind == "function":
+                names += [
+                    f"{item.name}.{m.name}"
+                    for m in item.body
+                    if isinstance(m, (ast.FunctionDef, ast.AsyncFunctionDef))
+                ]
+        elif isinstance(item, ast.Assign) and kind == "any":
+            names += [t.id for t in item.targets if isinstance(t, ast.Name)]
+    return names
+
+
+def _dotted(node: ast.AST) -> str | None:
+    """"itertools.pairwise" for an Attribute chain, "pairwise" for a Name."""
+    if isinstance(node, ast.Name):
+        return node.id
+    if isinstance(node, ast.Attribute):
+        base = _dotted(node.value)
+        return f"{base}.{node.attr}" if base else node.attr
+    return None
+
+
+def _names_match(node: ast.AST, wanted: str) -> bool:
+    """A Name or Attribute matches "pairwise" as pairwise or itertools.pairwise,
+    and matches "itertools.pairwise" only when written that way or imported from it."""
+    full = _dotted(node)
+    if full is None:
+        return False
+    return full == wanted or full.rsplit(".", 1)[-1] == wanted
+
+
 def _matches(tree: ast.AST, *, node: str | None, call: str | None, name: str | None) -> bool:
+    imported_from: dict[str, str] = {}  # local name -> "module.name", for "from x import y"
+    for item in ast.walk(tree):
+        if isinstance(item, ast.ImportFrom) and item.module:
+            for alias in item.names:
+                imported_from[alias.asname or alias.name] = f"{item.module}.{alias.name}"
     for item in ast.walk(tree):
         if node is not None and type(item).__name__ == node:
             return True
         if call is not None and isinstance(item, ast.Call):
-            target = item.func
-            called = (
-                target.id
-                if isinstance(target, ast.Name)
-                else target.attr
-                if isinstance(target, ast.Attribute)
-                else None
-            )
-            if called == call:
+            if _names_match(item.func, call):
                 return True
-        if name is not None and isinstance(item, ast.Name) and item.id == name:
+            if isinstance(item.func, ast.Name) and imported_from.get(item.func.id) == call:
+                return True
+        if name is not None and isinstance(item, (ast.Name, ast.Attribute)):
+            # Only the outermost part of an attribute chain, so "os.path" isn't also "os"
+            if _names_match(item, name):
+                return True
+            if isinstance(item, ast.Name) and imported_from.get(item.id) == name:
+                return True
+        if name is not None and isinstance(item, ast.alias) and (item.asname or item.name) == name:
             return True
     return False
 

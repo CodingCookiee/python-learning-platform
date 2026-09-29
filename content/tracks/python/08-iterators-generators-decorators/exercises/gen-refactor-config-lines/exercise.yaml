@@ -1,0 +1,8 @@
+title: From iterator class to generator
+type: refactor
+difficulty: core
+tags: [generators, yield, iterator-protocol, refactoring]
+hints:
+  - Everything ConfigLines stores on self (the input iterator, where it's up to) becomes the generator's own paused frame. You don't need to store anything.
+  - "The whole generator is a for loop over lines: strip each one, and yield it if it isn't blank and doesn't start with #."
+  - Delete the class once config_lines is a generator function. Nothing else calls it.

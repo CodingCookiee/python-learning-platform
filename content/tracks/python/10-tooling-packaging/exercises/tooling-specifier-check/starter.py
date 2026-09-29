@@ -1,0 +1,3 @@
+def satisfies(version, specifier):
+    """True if version meets every clause of a specifier like ">=0.27,<1"."""
+    ...

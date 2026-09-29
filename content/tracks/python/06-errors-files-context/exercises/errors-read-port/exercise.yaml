@@ -1,0 +1,7 @@
+title: Config errors in the caller's terms
+type: function
+difficulty: core
+tags: [exceptions, chaining, raise-from, config]
+hints:
+  - "Look the setting up in a try block with except KeyError as error, and raise the new ValueError from error. Do the same around int(text)."
+  - "The range check isn't translating another error, so do it after the try statements, with a plain raise. Raised there, it has no cause and no context."

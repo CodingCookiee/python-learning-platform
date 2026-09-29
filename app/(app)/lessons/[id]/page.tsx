@@ -1,8 +1,9 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { cookies } from "next/headers";
+import { ArrowRight, Check } from "lucide-react";
 import { auth } from "@/auth";
-import { getAppOrigin } from "@/lib/server-url";
+import { prisma } from "@/lib/prisma";
+import { getLessonForUser, type LessonDrill } from "@/lib/lessons";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import {
   LessonSidebar,
@@ -11,98 +12,63 @@ import {
   LessonCompleteButton,
 } from "@/components/lesson";
 import { FadeIn, StaggerContainer } from "@/components/animations";
-import { ArrowRight, Check } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { LockedMark, TapeMark } from "@/components/brand/marks";
 
-// Types
+const DRILL_KIND: Record<string, string> = {
+  function: "Code",
+  program: "Program",
+  predict: "Predict",
+  fix: "Fix",
+  refactor: "Refactor",
+  tests: "Tests",
+};
 
-interface LessonExercise {
-  id: string;
-  title: string;
-  description: string;
-  difficulty: string;
-  order: number;
-  xpReward: number;
-  hasSubmission: boolean;
-  latestSubmission: unknown;
+function DrillList({ drills }: { drills: LessonDrill[] }) {
+  return (
+    <ol className="flex flex-col border-t border-border">
+      {drills.map((drill, i) => (
+        <li key={drill.id}>
+          <Link
+            href={`/exercises/${drill.id}`}
+            className="-mx-3 grid grid-cols-[1.75rem_minmax(0,1fr)_auto] items-center gap-3 rounded-sm border-b border-border px-3 py-3.5 hover:bg-accent/50"
+          >
+            <span className="font-condensed tabular text-sm text-muted-foreground">
+              {String(i + 1).padStart(2, "0")}
+            </span>
+            <span className="flex min-w-0 flex-col gap-1">
+              <span className="font-semibold">{drill.title}</span>
+              {drill.description && (
+                <span className="line-clamp-2 text-sm text-muted-foreground sm:line-clamp-1">
+                  {drill.description}
+                </span>
+              )}
+              <span className="font-condensed tabular flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                <span className="rounded-sm border border-border px-1.5 font-sans font-semibold">
+                  {DRILL_KIND[drill.type] ?? "Code"}
+                </span>
+                <span>{drill.difficulty}</span>
+                <span className="inline-flex items-center gap-1">
+                  <TapeMark className="size-3.5" />
+                  {drill.xpReward} XP
+                </span>
+              </span>
+            </span>
+            {drill.passed ? (
+              <span className="flex items-center gap-1 text-sm font-semibold text-success">
+                <Check className="size-4" aria-hidden="true" />
+                Passed
+              </span>
+            ) : drill.attempted ? (
+              <span className="text-sm whitespace-nowrap text-muted-foreground">Keep going</span>
+            ) : (
+              <ArrowRight className="size-4 text-muted-foreground" aria-hidden="true" />
+            )}
+          </Link>
+        </li>
+      ))}
+    </ol>
+  );
 }
-
-interface LessonNavItem {
-  id: string;
-  title: string;
-  order: number;
-}
-
-interface LessonData {
-  id: string;
-  title: string;
-  description: string;
-  content: string;
-  order: number;
-  estimatedTime: number;
-  module: {
-    id: string;
-    title: string;
-    order: number;
-  };
-  completed: boolean;
-  completedAt: string | null;
-  exercises: LessonExercise[];
-  navigation: {
-    previous: LessonNavItem | null;
-    next: LessonNavItem | null;
-  };
-}
-
-interface ModuleLessonItem {
-  id: string;
-  title: string;
-  order: number;
-  completed: boolean;
-  estimatedTime: number;
-  isUnlocked?: boolean;
-}
-
-interface ModuleData {
-  id: string;
-  title: string;
-  lessons: ModuleLessonItem[];
-  isUnlocked: boolean;
-  prerequisites: Array<{ id: string; title: string; order: number }>;
-}
-
-async function getLesson(id: string, cookieHeader: string): Promise<LessonData | null> {
-  const res = await fetch(`${await getAppOrigin()}/api/lessons/${id}`, {
-    headers: { cookie: cookieHeader },
-    cache: "no-store",
-  });
-  if (res.status === 404) return null;
-  if (!res.ok) return null;
-  return (await res.json()) as LessonData;
-}
-
-async function getModuleLessons(
-  moduleId: string,
-  cookieHeader: string
-): Promise<ModuleData | null> {
-  const res = await fetch(`${await getAppOrigin()}/api/modules/${moduleId}`, {
-    headers: { cookie: cookieHeader },
-    cache: "no-store",
-  });
-  if (!res.ok) return null;
-  return (await res.json()) as ModuleData;
-}
-
-// Helpers
-
-function getDifficultyClass(difficulty: string): string {
-  // Difficulty is information, not reward: one neutral outlined word
-  void difficulty;
-  return "border border-border text-muted-foreground";
-}
-
-// Page
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -110,28 +76,25 @@ interface PageProps {
 
 export default async function LessonPage({ params }: PageProps) {
   const session = await auth();
-  if (!session) redirect("/auth/signin");
+  if (!session?.user?.id) redirect("/auth/signin");
 
   const { id } = await params;
+  const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { id: true } });
+  if (!user) redirect("/auth/signin");
 
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore
-    .getAll()
-    .map((c) => `${c.name}=${c.value}`)
-    .join("; ");
-
-  const lesson = await getLesson(id, cookieHeader);
+  const lesson = await getLessonForUser(id, user.id);
   if (!lesson) notFound();
 
-  const moduleData = await getModuleLessons(lesson.module.id, cookieHeader);
-  const currentLessonUnlocked =
-    moduleData?.lessons.find((item) => item.id === lesson.id)?.isUnlocked ?? false;
-  const lessonLocked = !(moduleData?.isUnlocked && currentLessonUnlocked);
-  const lockedPrerequisites = moduleData?.prerequisites ?? [];
-
-  const sidebarLessons: ModuleLessonItem[] = moduleData?.lessons ?? [];
-
-  const lessonIndex = Math.max(1, sidebarLessons.findIndex((l) => l.id === lesson.id) + 1);
+  const required = lesson.drills.filter((d) => d.required);
+  const optional = lesson.drills.filter((d) => !d.required);
+  const requiredPassed = required.length - lesson.requiredRemaining;
+  const blockedMessage = !lesson.moduleUnlocked
+    ? "Pass the earlier modules to open this one. You can still read ahead."
+    : !lesson.inSequence
+      ? "Finish the earlier lessons in this module first."
+      : lesson.requiredRemaining > 0
+        ? `Pass ${lesson.requiredRemaining === required.length ? "the" : "the remaining"} ${lesson.requiredRemaining} required ${lesson.requiredRemaining === 1 ? "drill" : "drills"} to complete this lesson.`
+        : undefined;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
@@ -154,7 +117,7 @@ export default async function LessonPage({ params }: PageProps) {
                 currentLessonId={lesson.id}
                 moduleId={lesson.module.id}
                 moduleTitle={lesson.module.title}
-                lessons={sidebarLessons}
+                lessons={lesson.lessons}
                 className="sticky top-24"
               />
             </aside>
@@ -169,12 +132,12 @@ export default async function LessonPage({ params }: PageProps) {
                 )}
                 <p className="font-condensed tabular flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                   <span>
-                    Lesson {lessonIndex} of {sidebarLessons.length || "?"}
+                    Lesson {lesson.index + 1} of {lesson.lessons.length}
                   </span>
                   <span>~{lesson.estimatedTime} min</span>
-                  {lesson.exercises.length > 0 && (
+                  {lesson.drills.length > 0 && (
                     <span>
-                      {lesson.exercises.length} {lesson.exercises.length === 1 ? "drill" : "drills"}
+                      {lesson.drills.length} {lesson.drills.length === 1 ? "drill" : "drills"}
                     </span>
                   )}
                   {lesson.completed && (
@@ -186,15 +149,13 @@ export default async function LessonPage({ params }: PageProps) {
                 </p>
               </header>
 
-              {lessonLocked && (
+              {!lesson.moduleUnlocked && (
                 <div className="flex max-w-[70ch] items-start gap-3 rounded-md border border-dashed border-border bg-sheet p-5">
                   <LockedMark className="mt-0.5 size-5 text-muted-foreground" />
                   <div className="flex flex-col gap-1">
                     <p className="font-semibold">Not open yet</p>
                     <p className="text-sm text-muted-foreground">
-                      {lockedPrerequisites.length > 0
-                        ? `Pass ${lockedPrerequisites.map((p) => p.title).join(", ")} first. You can still read ahead.`
-                        : "Finish the earlier lessons in this module first. You can still read ahead."}
+                      Pass the earlier modules to open this one. You can still read ahead.
                     </p>
                   </div>
                 </div>
@@ -202,60 +163,41 @@ export default async function LessonPage({ params }: PageProps) {
 
               <LessonContent content={lesson.content} />
 
-              {lesson.exercises.length > 0 && (
+              {lesson.drills.length > 0 && (
                 <section aria-labelledby="drills-heading" className="flex max-w-[70ch] flex-col gap-4">
-                  <h2 id="drills-heading" className="text-2xl font-semibold">
-                    Drills
-                  </h2>
-                  <ul className="flex flex-col border-t border-border">
-                    {lesson.exercises.map((exercise) => (
-                      <li key={exercise.id}>
-                        <Link
-                          href={`/exercises/${exercise.id}`}
-                          className="-mx-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 rounded-sm border-b border-border px-3 py-4 hover:bg-accent/50"
-                        >
-                          <span className="flex min-w-0 flex-col gap-1">
-                            <span className="font-semibold">{exercise.title}</span>
-                            {exercise.description && (
-                              <span className="line-clamp-1 text-sm text-muted-foreground">
-                                {exercise.description}
-                              </span>
-                            )}
-                            <span className="font-condensed tabular flex items-center gap-3 text-xs text-muted-foreground">
-                              <span className={cn("rounded-sm px-1.5 font-sans font-semibold", getDifficultyClass(exercise.difficulty))}>
-                                {exercise.difficulty}
-                              </span>
-                              <span className="inline-flex items-center gap-1">
-                                <TapeMark className="size-3.5" />
-                                {exercise.xpReward} XP
-                              </span>
-                            </span>
-                          </span>
-                          {exercise.hasSubmission ? (
-                            <Check className="size-5 text-success" aria-label="Attempted" />
-                          ) : (
-                            <ArrowRight className="size-4 text-muted-foreground" aria-hidden="true" />
-                          )}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                    <h2 id="drills-heading" className="text-2xl font-semibold">
+                      Drills
+                    </h2>
+                    {required.length > 0 && (
+                      <span className="font-condensed tabular text-sm text-muted-foreground">
+                        {requiredPassed} of {required.length} required passed
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Passing the required drills is what completes the lesson. They run in your browser and
+                    check your code with real tests.
+                  </p>
+                  {required.length > 0 && <DrillList drills={required} />}
+                  {optional.length > 0 && (
+                    <>
+                      <h3 className="mt-2 text-base font-semibold">Extra practice</h3>
+                      <DrillList drills={optional} />
+                    </>
+                  )}
                 </section>
               )}
 
               <div className="flex max-w-[70ch] flex-col gap-8 border-t border-border pt-8">
                 <LessonCompleteButton
                   lessonId={lesson.id}
-                  nextLessonId={lesson.navigation.next?.id ?? null}
+                  nextLessonId={lesson.next?.id ?? null}
                   initialCompleted={lesson.completed}
-                  isLocked={lessonLocked}
-                  lockedMessage={
-                    lockedPrerequisites.length > 0
-                      ? `Pass ${lockedPrerequisites.map((prereq) => prereq.title).join(", ")} before this lesson can be marked complete.`
-                      : "Finish the earlier lessons in this module before this one can be marked complete."
-                  }
+                  isLocked={!lesson.completed && !lesson.canComplete}
+                  lockedMessage={blockedMessage}
                 />
-                <LessonNavigation previous={lesson.navigation.previous} next={lesson.navigation.next} />
+                <LessonNavigation previous={lesson.previous} next={lesson.next} />
               </div>
             </article>
           </div>

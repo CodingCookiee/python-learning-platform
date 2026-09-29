@@ -6,7 +6,10 @@
  * (hidden from learners) rather than deleted, so no progress is ever lost.
  * Pre-content legacy rows (no slug) are archived too.
  *
- * Refuses to run while content:validate --quick reports errors, unless --force.
+ * Modules with content errors are skipped (their existing rows are left exactly
+ * as they are), so finished modules can ship while others are still being
+ * written. Errors outside any module (achievements, tracks) stop the sync unless
+ * --force.
  */
 
 import dotenv from "dotenv";
@@ -64,10 +67,30 @@ function parkedOrder(id: string): number {
 async function main() {
   const { tracks, achievements, issues } = loadContent(path.join(process.cwd(), "content"));
   const errors = issues.filter((i) => i.level === "error");
-  if (errors.length > 0 && !force) {
-    for (const e of errors) console.error(`error ${e.path}: ${e.message}`);
-    console.error(`\n${errors.length} content error(s). Fix them or pass --force.`);
+  // A module with errors is skipped as a whole; everything else must be clean
+  const modulePaths = tracks.flatMap((t) => t.modules.map((m) => m.path));
+  const brokenModules = new Set(
+    tracks.flatMap((t) =>
+      t.modules.filter((m) => errors.some((e) => e.path === m.path || e.path.startsWith(`${m.path}/`))).map((m) => m.slug)
+    )
+  );
+  // Anything inside a module folder belongs to that module, even before its module.yaml exists
+  const inModuleFolder = (p: string) => /(^|\/)tracks\/[^/]+\/\d{2}-[^/]+(\/|$)/.test(p);
+  const loose = errors.filter(
+    (e) => !inModuleFolder(e.path) && !modulePaths.some((p) => e.path === p || e.path.startsWith(`${p}/`))
+  );
+  if (loose.length > 0 && !force) {
+    for (const e of loose) console.error(`error ${e.path}: ${e.message}`);
+    console.error(`\n${loose.length} content error(s) outside modules. Fix them or pass --force.`);
     process.exit(1);
+  }
+  for (const t of tracks) {
+    const skipped = t.modules.filter((m) => brokenModules.has(m.slug));
+    for (const m of skipped) {
+      const count = errors.filter((e) => e.path.startsWith(m.path)).length;
+      console.warn(`skip  ${m.path}: ${count} error(s); run content:validate --only ${m.slug}`);
+    }
+    t.modules = t.modules.filter((m) => !brokenModules.has(m.slug));
   }
 
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -95,12 +118,14 @@ async function main() {
       return;
     }
 
-    // Park every live order out of the way first, so reordering never collides
+    // Park the live orders of everything being synced, so reordering never collides.
+    // Skipped modules keep their rows (and orders) untouched.
+    const syncing = tracks.flatMap((t) => t.modules.map((m) => m.slug));
     await prisma.$transaction([
       prisma.$executeRaw`UPDATE "tracks" SET "order" = -1000 - "order" WHERE "order" > 0`,
-      prisma.$executeRaw`UPDATE "modules" SET "order" = -1000 - "order" WHERE "order" > 0 AND "slug" IS NOT NULL`,
-      prisma.$executeRaw`UPDATE "lessons" SET "order" = -1000 - "order" WHERE "order" > 0 AND "slug" IS NOT NULL`,
-      prisma.$executeRaw`UPDATE "exercises" SET "order" = -1000 - "order" WHERE "order" > 0 AND "slug" IS NOT NULL`,
+      prisma.$executeRaw`UPDATE "modules" SET "order" = -1000 - "order" WHERE "order" > 0 AND "slug" = ANY(${syncing})`,
+      prisma.$executeRaw`UPDATE "lessons" SET "order" = -1000 - "order" WHERE "order" > 0 AND "slug" IS NOT NULL AND "moduleId" IN (SELECT "id" FROM "modules" WHERE "slug" = ANY(${syncing}))`,
+      prisma.$executeRaw`UPDATE "exercises" SET "order" = -1000 - "order" WHERE "order" > 0 AND "slug" IS NOT NULL AND "lessonId" IN (SELECT l."id" FROM "lessons" l JOIN "modules" m ON m."id" = l."moduleId" WHERE m."slug" = ANY(${syncing}))`,
     ]);
 
     for (const t of tracks) {
@@ -171,6 +196,7 @@ async function main() {
               tags: ex.tags,
               packages: ex.packages,
               timeoutMs: Math.round(ex.timeout * 1000),
+              importSolution: ex.importSolution,
               required,
               order: i + 1,
               xpReward: ex.xpReward,
@@ -250,20 +276,35 @@ async function main() {
       await prisma.track.findMany({ where: { id: { notIn: [...keep.tracks] }, archivedAt: null }, select: { id: true } }),
       (id) => prisma.track.update({ where: { id }, data: { archivedAt: now, order: parkedOrder(id) } })
     );
+    // Rows belonging to skipped modules are neither synced nor archived
+    const skippedSlugs = [...brokenModules];
+    const notSkipped = { OR: [{ slug: null }, { slug: { notIn: skippedSlugs } }] };
     await archive(
-      await prisma.module.findMany({ where: { id: { notIn: [...keep.modules] }, archivedAt: null }, select: { id: true } }),
+      await prisma.module.findMany({
+        where: { id: { notIn: [...keep.modules] }, archivedAt: null, ...notSkipped },
+        select: { id: true },
+      }),
       (id) => prisma.module.update({ where: { id }, data: { archivedAt: now, order: parkedOrder(id) } })
     );
     await archive(
-      await prisma.lesson.findMany({ where: { id: { notIn: [...keep.lessons] }, archivedAt: null }, select: { id: true } }),
+      await prisma.lesson.findMany({
+        where: { id: { notIn: [...keep.lessons] }, archivedAt: null, module: notSkipped },
+        select: { id: true },
+      }),
       (id) => prisma.lesson.update({ where: { id }, data: { archivedAt: now, order: parkedOrder(id) } })
     );
     await archive(
-      await prisma.exercise.findMany({ where: { id: { notIn: [...keep.exercises] }, archivedAt: null }, select: { id: true } }),
+      await prisma.exercise.findMany({
+        where: { id: { notIn: [...keep.exercises] }, archivedAt: null, lesson: { module: notSkipped } },
+        select: { id: true },
+      }),
       (id) => prisma.exercise.update({ where: { id }, data: { archivedAt: now, order: parkedOrder(id) } })
     );
     await archive(
-      await prisma.project.findMany({ where: { id: { notIn: [...keep.projects] }, archivedAt: null }, select: { id: true } }),
+      await prisma.project.findMany({
+        where: { id: { notIn: [...keep.projects] }, archivedAt: null, module: notSkipped },
+        select: { id: true },
+      }),
       (id) => prisma.project.update({ where: { id }, data: { archivedAt: now } })
     );
     await archive(

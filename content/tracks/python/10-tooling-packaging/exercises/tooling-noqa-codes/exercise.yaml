@@ -1,0 +1,8 @@
+title: Does this noqa comment silence the rule?
+type: function
+difficulty: warm-up
+tags: [ruff, linting, re]
+hints:
+  - 'Search the line for the comment with a regex, ignoring case: re.search(r"#\s*noqa", line, re.IGNORECASE). No match means nothing is silenced.'
+  - A bare "# noqa" (no colon after it) silences every rule. With a colon, only the codes listed after it count.
+  - 're.findall(r"[A-Z]+[0-9]+", ...) on the text after the colon gives the codes. Check whether the code is exactly one of them.'

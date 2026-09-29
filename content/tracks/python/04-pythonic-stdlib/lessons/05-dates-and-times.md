@@ -104,7 +104,7 @@ A fixed offset like `timezone(timedelta(hours=5))` is fine for Karachi, which ha
 saving time. London and New York change their offset twice a year, so for a *place* use
 `zoneinfo.ZoneInfo` with a name from the IANA time zone database. It knows every rule change:
 
-```python norun
+```python
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
@@ -114,15 +114,11 @@ winter = datetime(2026, 12, 1, 12, 0, tzinfo=timezone.utc)
 summer.astimezone(london).isoformat(), winter.astimezone(london).isoformat()
 ```
 
-```text
-('2026-07-01T13:00:00+01:00', '2026-12-01T12:00:00+00:00')
-```
-
 Noon UTC is 1pm in a London summer and noon in a London winter. It works the other way too: attach
 a zone to a local wall-clock time and convert it to UTC. A 9am stand-up in New York moves by an hour
 in UTC when the clocks go back on 1 November:
 
-```python norun
+```python
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
@@ -132,14 +128,9 @@ after = datetime(2026, 11, 6, 9, 0, tzinfo=new_york)
 before.astimezone(timezone.utc).isoformat(), after.astimezone(timezone.utc).isoformat()
 ```
 
-```text
-('2026-10-30T13:00:00+00:00', '2026-11-06T14:00:00+00:00')
-```
-
 > [!NOTE]
 > `zoneinfo` reads the time zone database from the operating system. Windows doesn't ship one, so
-> projects that run there add the `tzdata` package (`uv add tzdata`). The drills in this lesson
-> load it for you.
+> projects that run there add the `tzdata` package (`uv add tzdata`). This site loads it for you.
 
 ```quiz
 question: A shop in Europe/London opens at 09:00 local time every day. Which is the right way to store that?

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
 import { getCached } from "@/lib/cache";
 import { formatProjectEstimatedTime } from "@/lib/project-time";
-import { getProjectStarterTemplate } from "@/lib/project-template";
+import { starterTemplateHref } from "@/lib/project-template";
 import { parseProjectListText } from "@/lib/project-content";
 
 /**
@@ -60,7 +60,7 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: 
           description: project.description,
           requirements,
           successCriteria,
-          starterTemplate: getProjectStarterTemplate(project.title, project.starterTemplate),
+          starterTemplate: starterTemplateHref(project.id, project.starterTemplate),
           estimatedTime: formatProjectEstimatedTime(project.estimatedTime),
           xpReward: project.xpReward,
           module: project.module,

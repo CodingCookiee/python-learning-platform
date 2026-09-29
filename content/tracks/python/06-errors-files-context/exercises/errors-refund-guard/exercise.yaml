@@ -1,0 +1,7 @@
+title: Refuse a bad refund
+type: function
+difficulty: warm-up
+tags: [exceptions, raise, valueerror]
+hints:
+  - "Check each rule with an if, and raise ValueError(...) with the exact message when it's broken. Return the amount at the end."
+  - "The second message is an f-string: f\"refund of {amount} is more than the {paid} paid\"."

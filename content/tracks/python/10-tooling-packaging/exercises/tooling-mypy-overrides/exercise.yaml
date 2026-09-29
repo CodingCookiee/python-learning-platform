@@ -1,0 +1,8 @@
+title: Which mypy setting applies?
+type: function
+difficulty: core
+tags: [mypy, pyproject, tomllib, configuration]
+hints:
+  - 'tomllib puts [tool.mypy] at config["tool"]["mypy"], and each [[tool.mypy.overrides]] table becomes one dict in the list config["tool"]["mypy"]["overrides"]. An override''s module can be a string or a list of strings.'
+  - "A pattern matches when it equals the module, or when it ends in \".*\" and the module is the prefix itself or starts with prefix + \".\". Watch out: invoicer.* must not match invoicer_tools."
+  - "Give each matching pattern that sets the option a rank, such as (is_exact, number_of_parts), and take the value from the highest rank. If no override sets it, fall back to the global table with .get(option)."

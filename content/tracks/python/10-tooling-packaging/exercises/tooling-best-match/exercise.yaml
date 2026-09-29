@@ -1,0 +1,8 @@
+title: Pick the newest allowed version
+type: function
+difficulty: stretch
+tags: [versions, specifiers, resolver, sorting]
+hints:
+  - Start from the satisfies() idea in the previous drill (versions as int tuples, zero-padded, every clause must hold), then filter the available versions and take max() with a key that turns each version into a tuple.
+  - A wildcard clause like "==5.2.*" is a prefix check. Pad the version to the prefix's length and compare only that many parts. "!=" with a wildcard is the opposite.
+  - "~=2.2.1 is two clauses in one: >=2.2.1 and ==2.2.* (the version without its last part). Rewrite each ~= clause into those two before checking, and raise ValueError when it has fewer than two parts."

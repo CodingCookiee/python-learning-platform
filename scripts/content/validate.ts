@@ -13,9 +13,8 @@
 
 import path from "node:path";
 import { loadContent } from "../../lib/content/load";
-import { NOT_IMPORTED_TYPES, type ContentExercise, type ContentIssue } from "../../lib/content/schema";
+import type { ContentExercise, ContentIssue } from "../../lib/content/schema";
 import { isBrowserRunnable } from "../../lib/content/runnable";
-// @ts-expect-error: plain ES module without types
 import { PyodidePool } from "./pyodide-pool.mjs";
 
 type TestResult = {
@@ -121,7 +120,7 @@ async function main() {
           runIssues.push({ level: "error", path: ex.path, message: "predict code prints nothing" });
         return;
       }
-      const importSolution = !NOT_IMPORTED_TYPES.has(ex.type);
+      const importSolution = ex.importSolution;
       const [good, bad] = (await Promise.all([
         pool.run({ kind: "test", solution: ex.solution, tests: ex.tests, importSolution, packages: ex.packages }, budget),
         pool.run({ kind: "test", solution: ex.starter, tests: ex.tests, importSolution, packages: ex.packages }, budget),

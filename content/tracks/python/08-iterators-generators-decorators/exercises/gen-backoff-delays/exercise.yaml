@@ -1,0 +1,7 @@
+title: Backoff delays that never run out
+type: function
+difficulty: warm-up
+tags: [generators, yield, infinite]
+hints:
+  - The generator never ends, so its body is a while True loop. Nothing runs until someone calls next(), so that's safe.
+  - "Keep the current delay in a local variable. Each time round: yield min(delay, cap), then multiply delay by factor."

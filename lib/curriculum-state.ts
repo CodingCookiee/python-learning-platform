@@ -138,6 +138,6 @@ export async function getCurriculumState(userId: string | null): Promise<TrackPr
 /** Flat lookup: module id → its progress and track */
 export function indexModules(tracks: TrackProgress[]) {
   const map = new Map<string, { module: ModuleProgress; track: TrackProgress }>();
-  for (const track of tracks) for (const module of track.modules) map.set(module.id, { module, track });
+  for (const track of tracks) for (const m of track.modules) map.set(m.id, { module: m, track });
   return map;
 }

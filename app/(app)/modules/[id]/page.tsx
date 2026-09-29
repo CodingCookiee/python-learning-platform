@@ -5,14 +5,13 @@ import { prisma } from "@/lib/prisma";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import { Button } from "@/components/ui/button";
-import { getLessonEstimatedTime } from "@/lib/lesson-content";
 import { formatProjectEstimatedTime } from "@/lib/project-time";
 import { getLessonAccessState, getSequentialModuleUnlockMap } from "@/lib/module-access";
 import { ArrowLeft, ArrowRight, Check, Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BeltBand } from "@/components/brand/belt";
 import { LockedMark } from "@/components/brand/marks";
-import { beltForModule } from "@/lib/ranks";
+import { beltForModule, ordinal } from "@/lib/ranks";
 
 function getProjectSubmissionState(
   status?: string | null
@@ -47,13 +46,15 @@ export default async function ModuleDetailPage({ params }: PageProps) {
 
   const userId = dbUser.id;
 
-  const learningModule = await prisma.module.findUnique({
-    where: { id },
+  const learningModule = await prisma.module.findFirst({
+    where: { id, archivedAt: null, trackId: { not: null } },
     include: {
+      track: { select: { slug: true, grade: true } },
       lessons: {
+        where: { archivedAt: null },
         orderBy: { order: "asc" },
         include: {
-          exercises: { select: { id: true } },
+          exercises: { where: { archivedAt: null, required: true }, select: { id: true } },
           progress: {
             where: { userId },
             select: { completed: true, completedAt: true },
@@ -61,6 +62,7 @@ export default async function ModuleDetailPage({ params }: PageProps) {
         },
       },
       projects: {
+        where: { archivedAt: null },
         include: {
           submissions: {
             where: { userId },
@@ -86,7 +88,7 @@ export default async function ModuleDetailPage({ params }: PageProps) {
     title: l.title,
     description: l.description,
     order: l.order,
-    estimatedTime: getLessonEstimatedTime(learningModule.title, l.title, l.estimatedTime),
+    estimatedTime: l.estimatedTime,
     exerciseCount: l.exercises.length,
     completed: l.progress[0]?.completed ?? false,
     completedAt: l.progress[0]?.completedAt?.toISOString() ?? null,
@@ -105,7 +107,7 @@ export default async function ModuleDetailPage({ params }: PageProps) {
   const projects = learningModule.projects.map((p) => ({
     id: p.id,
     title: p.title,
-    description: p.description,
+    description: p.summary || p.description,
     estimatedTime: formatProjectEstimatedTime(p.estimatedTime),
     xpReward: p.xpReward,
     latestSubmission: p.submissions[0] ?? null,
@@ -114,6 +116,8 @@ export default async function ModuleDetailPage({ params }: PageProps) {
   const firstIncompleteLesson = lessons.find((l) => !l.completed);
   const firstLesson = lessons[0] ?? null;
   const displayDuration = learningModule.duration;
+  const isDan = learningModule.track?.grade === "dan";
+  const moduleLabel = isDan ? `${ordinal(learningModule.order + 1)} dan` : `Module ${learningModule.order}`;
   const belt = beltForModule(learningModule.order);
   const stripeNumber = learningModule.order - belt.fromModule + 1;
   const stripeSlots = belt.toModule - belt.fromModule + 1;
@@ -121,12 +125,12 @@ export default async function ModuleDetailPage({ params }: PageProps) {
 
   const [prevModule, nextModule] = await Promise.all([
     prisma.module.findFirst({
-      where: { order: { lt: learningModule.order } },
+      where: { trackId: learningModule.trackId, archivedAt: null, order: { lt: learningModule.order } },
       orderBy: { order: "desc" },
       select: { id: true, title: true, order: true },
     }),
     prisma.module.findFirst({
-      where: { order: { gt: learningModule.order } },
+      where: { trackId: learningModule.trackId, archivedAt: null, order: { gt: learningModule.order } },
       orderBy: { order: "asc" },
       select: { id: true, title: true, order: true },
     }),
@@ -175,18 +179,21 @@ export default async function ModuleDetailPage({ params }: PageProps) {
                 {learningModule.description}
               </p>
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
-                <span className="flex items-center gap-2">
-                  <BeltBand
-                    belt={belt.key}
-                    slots={stripeSlots}
-                    filled={isPassed ? stripeNumber : stripeNumber - 1}
-                    className="h-4 w-20"
-                  />
-                  <span>
-                    Module {learningModule.order} · stripe {stripeNumber} of {stripeSlots} on the{" "}
-                    {belt.label.toLowerCase()}
+                {isDan ? (
+                  <span>AI automation · {moduleLabel}</span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <BeltBand
+                      belt={belt.key}
+                      slots={stripeSlots}
+                      filled={isPassed ? stripeNumber : stripeNumber - 1}
+                      className="h-4 w-20"
+                    />
+                    <span>
+                      {moduleLabel} · stripe {stripeNumber} of {stripeSlots} on the {belt.label.toLowerCase()}
+                    </span>
                   </span>
-                </span>
+                )}
                 <span className="font-condensed tabular text-muted-foreground">
                   {totalLessons} {totalLessons === 1 ? "lesson" : "lessons"} · ~{displayDuration} h
                 </span>
@@ -219,15 +226,33 @@ export default async function ModuleDetailPage({ params }: PageProps) {
                     Not open yet
                   </span>
                   <p className="text-sm text-muted-foreground">
-                    Modules open in order. Pass
-                    {prevModule ? ` module ${prevModule.order}, ${prevModule.title},` : " the previous module"} to
-                    open this one.
+                    {isDan && !prevModule
+                      ? "The AI automation track opens once you pass Python module 14."
+                      : `Modules open in order. Pass ${prevModule ? prevModule.title : "the previous module"} to open this one.`}
                   </p>
                 </div>
               )}
             </div>
           </header>
         </FadeIn>
+
+        {learningModule.outcomes.length > 0 && (
+          <FadeIn delay={0.05}>
+            <section aria-labelledby="outcomes-heading" className="flex max-w-3xl flex-col gap-3">
+              <h2 id="outcomes-heading" className="text-xl font-semibold">
+                By the end you can
+              </h2>
+              <ul className="grid gap-x-8 gap-y-2 sm:grid-cols-2">
+                {learningModule.outcomes.map((outcome) => (
+                  <li key={outcome} className="flex gap-2.5 text-[0.9875rem] leading-snug">
+                    <Check className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+                    {outcome}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </FadeIn>
+        )}
 
         {/* Lessons */}
         <FadeIn delay={0.06}>
@@ -354,7 +379,7 @@ export default async function ModuleDetailPage({ params }: PageProps) {
               >
                 <ArrowLeft className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                 <span className="flex min-w-0 flex-col">
-                  <span className="text-sm text-muted-foreground">Module {prevModule.order}</span>
+                  <span className="text-sm text-muted-foreground">{isDan ? `${ordinal(prevModule.order + 1)} dan` : `Module ${prevModule.order}`}</span>
                   <span className="truncate font-semibold">{prevModule.title}</span>
                 </span>
               </Link>
@@ -367,7 +392,7 @@ export default async function ModuleDetailPage({ params }: PageProps) {
                 className="group flex items-center justify-end gap-3 rounded-md border border-border p-4 text-right hover:bg-accent/50"
               >
                 <span className="flex min-w-0 flex-col">
-                  <span className="text-sm text-muted-foreground">Module {nextModule.order}</span>
+                  <span className="text-sm text-muted-foreground">{isDan ? `${ordinal(nextModule.order + 1)} dan` : `Module ${nextModule.order}`}</span>
                   <span className="truncate font-semibold">{nextModule.title}</span>
                 </span>
                 <ArrowRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />

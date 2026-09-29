@@ -1,0 +1,8 @@
+title: Which file does import load?
+type: function
+difficulty: stretch
+tags: [imports, sys-path, packages]
+hints:
+  - Start with a name without dots. Loop over search_path in order; in each folder, check for "name/__init__.py" first, then "name.py", and return the first hit as f"{folder}/{file}".
+  - listing.get(folder, set()) gives an empty set for folders the listing doesn't mention.
+  - For "invoicer.cli", resolve "invoicer" first. It must be a package (its file ends in __init__.py). Then look for "cli/__init__.py" or "cli.py" inside that package's folder only, and repeat for each further part.

@@ -56,6 +56,9 @@ export const exerciseSchema = z.object({
   tags: z.array(text).default([]),
   packages: z.array(text).default([]),
   timeout: z.number().positive().max(30).default(5),
+  /** The learner's code is a script: tests run it with run_program() instead of importing it.
+   *  Always true for program and tests drills; set it for script-style fix/refactor drills. */
+  script: z.boolean().optional(),
   hints: z.array(text).default([]),
 });
 
@@ -121,6 +124,8 @@ export interface ContentExercise extends ExerciseMeta {
   solution: string;
   tests: string;
   xpReward: number;
+  /** False when the code is run as a script rather than imported (see `script`) */
+  importSolution: boolean;
 }
 
 export interface ContentLesson extends LessonMeta {

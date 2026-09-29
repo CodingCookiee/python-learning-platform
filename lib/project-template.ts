@@ -1,28 +1,9 @@
-const starterTemplateMap: Record<string, string> = {
-  "CLI Calculator": "/templates/cli-calculator-starter.py",
-  "Todo List Manager": "/templates/todo-list-manager-starter.py",
-  "Test Suite for Todo App": "/templates/todo-test-suite-starter.py",
-  "Text Processing CLI Tool": "/templates/text-processing-tool-starter.py",
-  "Library Management System": "/templates/library-management-starter.py",
-  "Data ETL Pipeline": "/templates/etl-pipeline-starter.py",
-  "Publish a Python Package": "/templates/python-package-starter.py",
-  "Async Web Scraper": "/templates/async-scraper-starter.py",
-  "Framework Utilities Library": "/templates/utilities-library-starter.py",
-  "Type-Safe API Client": "/templates/typed-api-client-starter.py",
-  "Full REST API": "/templates/full-rest-api-starter.py",
-  "Data Analysis Dashboard": "/templates/data-analysis-starter.py",
-  "DevOps Automation Suite": "/templates/devops-automation-starter.py",
-  "Performance Optimization Suite": "/templates/performance-optimization-starter.py",
-  "Performance Optimization Challenge": "/templates/performance-optimization-starter.py",
-};
-
-export function getProjectStarterTemplate(
-  title: string,
-  starterTemplate: string | null | undefined
-): string | null {
-  if (starterTemplate && (starterTemplate.startsWith("/") || starterTemplate.startsWith("http"))) {
-    return starterTemplate;
-  }
-
-  return starterTemplateMap[title] ?? starterTemplate ?? null;
+/**
+ * Where to download a capstone's starter file. Capstones from content/ store the
+ * starter's source code; it's served by GET /api/projects/[id]/starter.
+ */
+export function starterTemplateHref(projectId: string, starterTemplate: string | null | undefined): string | null {
+  if (!starterTemplate) return null;
+  if (starterTemplate.startsWith("/") || starterTemplate.startsWith("http")) return starterTemplate;
+  return `/api/projects/${projectId}/starter`;
 }

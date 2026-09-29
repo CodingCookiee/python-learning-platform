@@ -1,0 +1,8 @@
+title: Does this version satisfy the range?
+type: function
+difficulty: core
+tags: [versions, specifiers, tuples, parsing]
+hints:
+  - Turn each version into a tuple of ints first. Tuples compare part by part, which is exactly how versions compare. Pad the shorter one with zeros so (2, 0) and (2, 0, 0) are equal.
+  - Split the specifier on ",", strip each clause, and check the two-character operators (">=", "<=", "==", "!=") before the one-character ones (">", "<"), or ">=" will be read as ">".
+  - The operator module maps each operator to a function (operator.ge, operator.lt, and so on). The version satisfies the specifier when every clause is true, and all() of no clauses is True.

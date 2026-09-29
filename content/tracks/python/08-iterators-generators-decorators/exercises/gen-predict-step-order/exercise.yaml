@@ -1,0 +1,8 @@
+title: "Predict: when the generator runs"
+type: predict
+difficulty: core
+tags: [generators, yield, laziness, return]
+hints:
+  - Calling a generator function runs none of its body. The first print in read_orders happens at the first next().
+  - Each next() runs from just after the last yield up to the next one. The for loop picks up where next() left off, and the code after the last yield runs when the loop asks for a value that isn't there.
+  - "A finished generator stays finished: list() on it gives []. A return value travels on the StopIteration exception, as its .value."

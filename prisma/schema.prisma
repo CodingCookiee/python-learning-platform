@@ -173,6 +173,8 @@ model Exercise {
   tags          String[] @default([])
   packages      String[] @default([])
   timeoutMs     Int      @default(5000)
+  /// False for script-style drills (programs, tests, script: true): the code runs, it isn't imported
+  importSolution Boolean  @default(true)
   /// Required drills gate lesson completion; optional ones are extra practice
   required      Boolean  @default(true)
   archivedAt    DateTime?

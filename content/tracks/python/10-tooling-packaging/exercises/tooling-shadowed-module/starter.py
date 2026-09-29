@@ -1,0 +1,3 @@
+def resolve_import(name, search_path, listing):
+    """The file that `import name` would load, or None."""
+    ...

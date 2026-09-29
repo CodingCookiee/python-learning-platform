@@ -1,0 +1,8 @@
+title: An exception that knows the shortfall
+type: function
+difficulty: core
+tags: [exceptions, custom-exceptions, attributes, decimal]
+hints:
+  - "Give InsufficientFunds an __init__(self, balance, amount) that stores both attributes and calls super().__init__(message). shortfall can be a property: self.amount - self.balance."
+  - "InvalidAmount needs two bases, PaymentError and ValueError, and no body beyond a docstring."
+  - "In pay(), check the amount first, then the balance, and only subtract once both checks have passed, so a refused payment leaves the balance alone."

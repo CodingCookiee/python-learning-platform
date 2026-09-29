@@ -1,0 +1,11 @@
+title: Tests that never run
+type: fix
+difficulty: stretch
+tags: [pytest, collection, assert]
+packages: [pytest]
+timeout: 20
+script: true
+hints:
+  - Each of the four tests has a different problem. Two of them are never collected, and two are collected but can never fail.
+  - pytest only collects functions starting with test, and skips a Test class that has an __init__. Set the paid amount inside the test method instead.
+  - A comparison on its own line, or after return, is computed and thrown away. Only assert makes a test fail.

@@ -1,0 +1,8 @@
+title: A batch that only loops once
+type: fix
+difficulty: core
+tags: [iterables, iterators, exhaustion, classes]
+hints:
+  - batch_summary loops over the batch twice. Add a print inside each loop and see how many times each body runs.
+  - OrderBatch.__iter__ returns self, so every loop shares the one position stored in self.index. After the first loop it's at the end.
+  - "A container should hand out a fresh iterator each time: return iter(self.orders) from __iter__. Then __next__ and self.index aren't needed at all."

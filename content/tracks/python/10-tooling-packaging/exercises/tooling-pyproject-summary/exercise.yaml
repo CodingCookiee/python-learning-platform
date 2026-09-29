@@ -1,0 +1,7 @@
+title: Summarise a pyproject.toml
+type: function
+difficulty: warm-up
+tags: [pyproject, tomllib, toml]
+hints:
+  - tomllib.loads(text) returns a dict of dicts. The [project] table is under the key "project".
+  - "Use project.get(\"dependencies\", []) so a project without dependencies counts as zero, and pick \"dependency\" or \"dependencies\" from the count."

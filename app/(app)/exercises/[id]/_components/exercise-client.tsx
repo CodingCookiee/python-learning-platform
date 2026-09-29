@@ -45,8 +45,6 @@ const TYPE_LABEL: Record<DrillType, string> = {
   tests: "Write the tests",
 };
 
-const NOT_IMPORTED: ReadonlySet<DrillType> = new Set(["program", "tests"]);
-
 // Helpers
 
 /** Compare printed output the way a person would: ignore trailing spaces and blank lines at the end */
@@ -158,7 +156,7 @@ function Hints({ hints, used, onReveal }: { hints: string[]; used: number; onRev
           {used === 0 ? "Show a hint" : `Show hint ${used + 1} of ${hints.length}`}
         </Button>
       ) : (
-        <p className="mt-3 text-xs text-muted-foreground">That's every hint.</p>
+        <p className="mt-3 text-xs text-muted-foreground">That’s every hint.</p>
       )}
     </section>
   );
@@ -396,7 +394,7 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
       const result = await runtime.test(code, drill.tests, {
         packages: drill.packages,
         timeoutMs: drill.timeoutMs + 1000,
-        importSolution: !NOT_IMPORTED.has(drill.type),
+        importSolution: drill.importSolution,
       });
       setCheck({ kind: "tests", result });
       // The drill's own tests failing to load isn't the learner's attempt
@@ -417,7 +415,7 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
     busyRef.current = true;
     setBusy("run");
     try {
-      const lines = drill.type === "program" && stdin.length > 0 ? stdin.replace(/\r\n/g, "\n").replace(/\n$/, "").split("\n") : null;
+      const lines = stdin.length > 0 ? stdin.replace(/\r\n/g, "\n").replace(/\n$/, "").split("\n") : null;
       const result = await getPythonRuntime().run(isPredict ? drill.starterCode : code, {
         stdin: lines,
         packages: drill.packages,
@@ -442,6 +440,8 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
   const checkLabel = loading ? "Loading Python…" : busy === "check" ? "Checking…" : isPredict ? "Check answer" : "Run tests";
   // Predict drills show the real output only once solved or after enough tries
   const canRunPredict = !isPredict || solved || solution !== null;
+  // Programs always read input; other drills get the box once their code calls input()
+  const showInput = !isPredict && (drill.type === "program" || /\binput\(/.test(code));
 
   const workspace = (
     <div className="flex flex-col gap-4">
@@ -481,7 +481,7 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
         />
       )}
 
-      {drill.type === "program" && (
+      {showInput && (
         <label className="flex flex-col gap-1.5">
           <span className="flex items-baseline justify-between text-sm font-semibold">
             Input for Run
@@ -544,7 +544,7 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
         {check.kind === "predict" &&
           (check.correct ? (
             <div className="rounded-md border border-success/35 bg-success/6 p-4">
-              <p className="font-semibold text-success">That's exactly what it prints.</p>
+              <p className="font-semibold text-success">That’s exactly what it prints.</p>
             </div>
           ) : (
             <div className="rounded-md border border-border bg-sheet p-4">
@@ -603,7 +603,7 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
             <div className="border-t border-border">
               {!solved && (
                 <p className="border-b border-border px-4 py-2.5 text-sm text-muted-foreground">
-                  Read it, close it, then write it yourself from memory. That's where it sticks.
+                  Read it, close it, then write it yourself from memory. That’s where it sticks.
                 </p>
               )}
               <PythonEditor value={solution} onChange={() => {}} readOnly height="300px" />

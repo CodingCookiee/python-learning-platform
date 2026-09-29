@@ -1,0 +1,8 @@
+title: "Predict: records through a pipeline"
+type: predict
+difficulty: core
+tags: [generators, pipelines, laziness, generator-expressions]
+hints:
+  - Building the pipeline runs nothing, so "pipeline built" comes first.
+  - Each next() pulls one line all the way through read and parse before the next line is read. A line that fails the filter is read and parsed, then the filter pulls another.
+  - list() keeps pulling until read runs out of lines. "read done" only appears when read's loop finishes, during that last pull.

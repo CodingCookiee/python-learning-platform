@@ -1,0 +1,20 @@
+slug: errors-files-context
+title: Errors, files and context managers
+summary: Handle, raise and design exceptions, read and write text, CSV and JSON files safely, and write your own context managers.
+description: >
+  Real programs spend much of their time on the unhappy path: a payment gateway that times out, a
+  CSV export with a broken row, a config file someone edited by hand. This module is about handling
+  those failures on purpose. You'll learn exactly what try, except, else and finally do, how to
+  raise and chain exceptions so tracebacks tell the whole story, how to design an exception
+  hierarchy for your own domain, and how exception groups report several failures at once. Then
+  you'll read and write files properly, with explicit encodings, bytes when you need them, CSV and
+  JSON, and write the context managers that guarantee cleanup. It ends with logging, so a failure
+  that you choose not to crash on still leaves a record.
+hours: 8
+outcomes:
+  - Write try statements whose except, else and finally clauses each do one job, and explain why bare except and except Exception pass are bugs
+  - Raise, re-raise and chain exceptions with from and from None, and read chained tracebacks
+  - Design a small exception hierarchy for a domain, and report several failures at once with exception groups and except*
+  - Read and write text and bytes with explicit encodings, and handle BOMs, legacy encodings and line endings
+  - Read and write CSV and JSON files with the csv and json modules, without losing or mangling data
+  - Write class-based and contextlib context managers, and use ExitStack and suppress, and log errors with logging.getLogger(__name__)

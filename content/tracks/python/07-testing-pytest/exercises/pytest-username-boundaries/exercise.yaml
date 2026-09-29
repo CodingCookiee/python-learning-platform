@@ -1,0 +1,10 @@
+title: Test the username rules at their edges
+type: tests
+difficulty: core
+tags: [pytest, boundaries, edge-cases]
+packages: [pytest]
+timeout: 20
+hints:
+  - A rule like "3 to 15 characters" has four interesting lengths. Test 2, 3, 15 and 16, not 8.
+  - Test each rule on its own, with a name that breaks only that rule, so you know which rule a failure is about.
+  - "Names worth trying: \"ab\", \"abc\", 15 and 16 letters (\"a\" * 15), \"7eleven\", \"_ada\", \"ada-lovelace\", \"ada lovelace\"."

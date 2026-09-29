@@ -1,0 +1,8 @@
+title: Every customer, one page at a time
+type: function
+difficulty: core
+tags: [generators, yield, pagination, laziness]
+hints:
+  - Keep a cursor variable, starting at None. Loop forever, fetching fetch_page(cursor), and stop (return) when the response's next_cursor is None.
+  - Yield each item of a page before fetching the next one. That's what makes it lazy, because the generator pauses at each yield and only fetches again when the caller has used the whole page.
+  - "Check next_cursor after yielding the page's items, not before: the last page still has items to hand out."

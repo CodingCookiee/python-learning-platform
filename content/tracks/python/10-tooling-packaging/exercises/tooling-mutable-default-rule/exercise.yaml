@@ -1,0 +1,8 @@
+title: Write lint rule B006, with noqa
+type: function
+difficulty: stretch
+tags: [ast, linting, ruff, mutable-defaults, noqa]
+hints:
+  - Walk the tree for ast.FunctionDef, ast.AsyncFunctionDef and ast.Lambda. Their defaults are in node.args.defaults and node.args.kw_defaults (which has None for keyword-only parameters without a default).
+  - "A default is mutable if it's an ast.List, ast.Dict, ast.Set, ast.ListComp, ast.DictComp or ast.SetComp, or an ast.Call whose func is a Name or Attribute named list, dict, set, defaultdict, deque, Counter or OrderedDict."
+  - "For noqa, look at the source line the default is on: source.splitlines()[node.lineno - 1]. Reuse the regex idea from the noqa drill: a bare # noqa, or one that lists B006, silences it."

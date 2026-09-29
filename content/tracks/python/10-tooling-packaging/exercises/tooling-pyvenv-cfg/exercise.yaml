@@ -1,0 +1,8 @@
+title: Read pyvenv.cfg properly
+type: fix
+difficulty: core
+tags: [venv, parsing, strings]
+hints:
+  - Run the tests and read the first error. A blank line has no "=" at all, and the command line has more than one.
+  - str.partition("=") splits at the first "=" only, and always returns three parts. Strip the key and the value, and skip lines that are blank after stripping.
+  - bool("false") is True, because any non-empty string is truthy. Compare the text instead, and use .get() so a missing key means False.

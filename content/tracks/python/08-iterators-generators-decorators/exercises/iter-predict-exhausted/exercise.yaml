@@ -1,0 +1,8 @@
+title: "Predict: used-up iterators"
+type: predict
+difficulty: core
+tags: [iterators, exhaustion, map, zip]
+hints:
+  - map and zip return iterators. Whatever consumes them first takes the values, and anything after that finds them empty.
+  - "`in` on an iterator calls next() until it finds a match, then stops. The iterator is left just after the match."
+  - A list hands out a brand-new iterator every time you call iter() on it. An iterator hands out itself.

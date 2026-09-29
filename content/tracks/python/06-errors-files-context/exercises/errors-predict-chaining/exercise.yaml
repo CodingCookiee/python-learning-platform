@@ -1,0 +1,7 @@
+title: "Predict: cause, context, or neither?"
+type: predict
+difficulty: core
+tags: [exceptions, chaining, raise-from]
+hints:
+  - "raise ... from error sets __cause__ to error. Whatever was being handled is also stored as __context__, and from (even from None) sets __suppress_context__ to True."
+  - "In the last case, int(None) raises TypeError, which load_port has no clause for. The AttributeError is raised inside an except block with no from: it gets the TypeError as __context__, no __cause__, and __suppress_context__ stays False."

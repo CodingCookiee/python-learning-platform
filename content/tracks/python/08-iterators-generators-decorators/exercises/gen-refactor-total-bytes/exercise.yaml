@@ -1,0 +1,7 @@
+title: Total bytes without the list
+type: refactor
+difficulty: warm-up
+tags: [generator-expressions, sum, memory, refactoring]
+hints:
+  - "sum() accepts any iterable, including a generator expression written straight inside its brackets: sum(... for line in lines if ...)."
+  - The size is the last field, line.rsplit(" ", 1)[1]. You need it twice (to check for "-" and to convert), so split it off in a small helper, or check line.endswith(" -") instead.

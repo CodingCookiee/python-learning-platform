@@ -1,0 +1,3 @@
+def split_header(rows):
+    """Return (header, rest): the first line, and an iterator over the lines after it."""
+    ...

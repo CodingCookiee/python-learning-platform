@@ -8,7 +8,7 @@ import {
   updateUserLevel,
   checkMilestone,
 } from "@/lib/achievements";
-import { canCompleteLesson, getSequentialModuleUnlockMap } from "@/lib/module-access";
+import { getLessonForUser } from "@/lib/lessons";
 import { z } from "zod";
 
 const lessonProgressSchema = z.object({
@@ -34,82 +34,32 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
 
     const { lessonId, completed } = validation.data;
 
-    const lesson = await prisma.lesson.findUnique({
-      where: { id: lessonId },
-      include: {
-        module: {
-          select: {
-            id: true,
-            title: true,
-          },
-        },
-        progress: {
-          where: { userId: context.userId },
-          select: {
-            completed: true,
-          },
-        },
-      },
-    });
-
+    // Same rules as the lesson page: in sequence, and every required drill passed
+    const lesson = await getLessonForUser(lessonId, context.userId);
     if (!lesson) {
       return NextResponse.json({ error: "Lesson not found" }, { status: 404 });
     }
 
-    const moduleUnlockMap = await getSequentialModuleUnlockMap(context.userId);
-    const isUnlocked = moduleUnlockMap.get(lesson.moduleId) ?? false;
-
-    const siblingLessons = await prisma.lesson.findMany({
-      where: { moduleId: lesson.moduleId },
-      orderBy: { order: "asc" },
-      select: {
-        id: true,
-        title: true,
-        order: true,
-        progress: {
-          where: { userId: context.userId },
-          select: { completed: true },
-        },
-      },
-    });
-
-    const lessonUnlocked = canCompleteLesson(
-      siblingLessons.map((item) => ({
-        id: item.id,
-        title: item.title,
-        order: item.order,
-        completed: item.progress[0]?.completed || false,
-      })),
-      lesson.id,
-      isUnlocked
-    );
-
-    if (completed && !lessonUnlocked) {
+    if (lesson.completed && !completed) {
       return NextResponse.json(
-        {
-          error:
-            "Complete the prerequisite module and previous lessons before marking this lesson complete.",
-        },
+        { error: "Completed lessons are read-only for review and cannot be marked incomplete." },
         { status: 403 }
       );
     }
-
-    const existingProgressCompleted = lesson.progress[0]?.completed ?? false;
-    if (existingProgressCompleted && !completed) {
-      return NextResponse.json(
-        {
-          error: "Completed lessons are read-only for review and cannot be marked incomplete.",
-        },
-        { status: 403 }
-      );
+    if (completed && !lesson.completed && !lesson.canComplete) {
+      const error = !lesson.moduleUnlocked
+        ? "Pass the earlier modules before completing lessons in this one."
+        : !lesson.inSequence
+          ? "Finish the earlier lessons in this module first."
+          : `Pass the ${lesson.requiredRemaining} required ${lesson.requiredRemaining === 1 ? "drill" : "drills"} in this lesson first.`;
+      return NextResponse.json({ error, requiredRemaining: lesson.requiredRemaining }, { status: 403 });
     }
+    // Completing twice changes nothing and earns nothing
+    const firstCompletion = completed && !lesson.completed;
 
     const progress = await prisma.progress.upsert({
       where: { userId_lessonId: { userId: context.userId, lessonId } },
-      update: {
-        completed,
-        completedAt: completed ? new Date() : null,
-      },
+      update: firstCompletion ? { completed, completedAt: new Date() } : {},
       create: {
         userId: context.userId,
         lessonId,
@@ -129,7 +79,7 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
     });
     const oldLevel = userBefore?.level ?? 1;
 
-    if (completed) {
+    if (firstCompletion) {
       xpGained = 10;
       await prisma.user.update({
         where: { id: context.userId },
@@ -140,11 +90,11 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
 
     await invalidateUserCache(context.userId);
 
-    const newAchievements = completed
+    const newAchievements = firstCompletion
       ? await checkAndUnlockAchievements(context.userId, { type: "lesson_complete", lessonId })
       : [];
 
-    if (completed) {
+    if (firstCompletion) {
       await updateStreak(context.userId);
 
       // Check XP achievements after all XP has been awarded
@@ -170,7 +120,7 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
     levelUp = newLevel > oldLevel;
 
     // Milestone detection
-    const milestone = completed ? await checkMilestone(context.userId) : null;
+    const milestone = firstCompletion ? await checkMilestone(context.userId) : null;
 
     return NextResponse.json({
       success: true,

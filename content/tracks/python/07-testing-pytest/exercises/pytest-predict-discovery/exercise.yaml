@@ -1,0 +1,10 @@
+title: "Predict: which tests does pytest find?"
+type: predict
+difficulty: core
+tags: [pytest, collection, naming]
+packages: [pytest]
+timeout: 20
+hints:
+  - "pytest imports test_*.py and *_test.py files only, so nothing in checkout_helpers.py is collected."
+  - "Functions must start with test. Classes must start with Test and have no __init__; their methods must start with test."
+  - "When a file defines two functions with the same name, the second replaces the first, so only one test exists, in the position of the first."

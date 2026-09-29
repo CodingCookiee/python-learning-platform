@@ -1,0 +1,7 @@
+title: A hierarchy for bank statements
+type: function
+difficulty: warm-up
+tags: [exceptions, custom-exceptions, inheritance]
+hints:
+  - "Only the base classes in brackets need to change. StatementError inherits from Exception; the other three inherit from StatementError."
+  - "A class can have two bases: class ParseError(StatementError, ValueError):"

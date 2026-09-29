@@ -1,0 +1,8 @@
+title: Read the header, leave the rest
+type: function
+difficulty: warm-up
+tags: [iterators, next, iter]
+hints:
+  - Slicing (rows[0], rows[1:]) only works on lists. Turn whatever you're given into an iterator with iter(rows) first.
+  - next(it) takes one item and leaves the iterator positioned after it, so the iterator itself is "the rest".
+  - "next(it, None) returns None instead of raising when there's nothing there, which is your cue to raise ValueError."

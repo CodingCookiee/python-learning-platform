@@ -1,0 +1,8 @@
+title: From error codes to exceptions
+type: refactor
+difficulty: core
+tags: [exceptions, custom-exceptions, refactoring]
+hints:
+  - "Start with the classes: PaymentError(Exception), then InvalidAmount(PaymentError, ValueError), CardBlocked(PaymentError) and LimitExceeded(PaymentError). LimitExceeded needs an __init__ that stores limit and passes the message to super().__init__."
+  - "In authorise, each return None, \"...\" becomes a raise of the matching exception, and the success case returns just the code."
+  - "checkout becomes a try block around authorise with one except clause per exception, each returning the same text as before. LimitExceeded's clause reads the limit from the exception: error.limit."

@@ -6,6 +6,7 @@ import {
   achievementSchema,
   capstoneSchema,
   DEFAULT_XP,
+  NOT_IMPORTED_TYPES,
   exerciseSchema,
   lessonFrontmatterSchema,
   moduleSchema,
@@ -93,9 +94,13 @@ export function loadContent(root = path.join(process.cwd(), "content")): LoadRes
     }
   }
 
-  function checkOrder(p: string, orders: number[]) {
+  function checkOrder(p: string, orders: number[], level: "error" | "warning" = "error") {
+    const report = level === "error" ? err : warn;
+    const seenOrders = new Set<number>();
     orders.forEach((order, i) => {
-      if (order !== i + 1) err(p, `numbering should run 01, 02, 03… without gaps (found ${String(order).padStart(2, "0")} at position ${i + 1})`);
+      if (seenOrders.has(order)) err(p, `two items are numbered ${String(order).padStart(2, "0")}`);
+      seenOrders.add(order);
+      if (order !== i + 1) report(p, `numbering should run 01, 02, 03… without gaps (found ${String(order).padStart(2, "0")} at position ${i + 1})`);
     });
   }
 
@@ -133,6 +138,7 @@ export function loadContent(root = path.join(process.cwd(), "content")): LoadRes
       solution: solution ?? starter,
       tests: tests ?? "",
       xpReward: meta.xp ?? DEFAULT_XP[meta.difficulty],
+      importSolution: !(meta.script ?? NOT_IMPORTED_TYPES.has(meta.type)),
     };
   }
 
@@ -220,7 +226,8 @@ export function loadContent(root = path.join(process.cwd(), "content")): LoadRes
         modules.push(mod);
       }
     }
-    checkOrder(dir, modules.map((m) => m.order));
+    // Modules can land out of order while a track is being written
+    checkOrder(dir, modules.map((m) => m.order), "warning");
     if (meta) tracks.push({ ...meta, path: rel(root, dir), modules });
   }
   tracks.sort((a, b) => a.order - b.order);

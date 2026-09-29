@@ -1,0 +1,19 @@
+slug: iterators-generators-decorators
+title: Iterators, generators and decorators
+summary: The iteration protocol, lazy generator pipelines, and decorators built from scratch, the machinery behind a lot of everyday Python.
+description: >
+  This module opens the green belt, the advanced language. Every for loop runs on a two-method
+  protocol, and once you can see it you can write objects that loop, generators whose frames pause
+  between values, and pipelines that stream a log of any size through constant memory. The second
+  half turns closures into decorators: what the @ line really does, why functools.wraps matters,
+  decorators that take arguments, how stacked decorators run, class decorators, and practical ones
+  for timing, retries, caching and validation. It ends where the two halves meet: how
+  @contextmanager turns a generator into a with block.
+hours: 9
+outcomes:
+  - Explain what a for loop does with iter(), next() and StopIteration, and why an iterator is empty after one pass
+  - Write generators, predict the order their steps run in, and use yield from, send and close
+  - Build lazy pipelines from generator expressions and itertools that process any amount of data in constant memory
+  - Write decorators from scratch with functools.wraps, including decorators with arguments and class decorators
+  - Predict the order stacked decorators apply and run in, and build timing, retry, caching and validation decorators that are easy to test
+  - Write generator-based context managers with @contextmanager and explain how the with statement drives the generator

@@ -1,0 +1,7 @@
+title: An amount, or None
+type: function
+difficulty: warm-up
+tags: [exceptions, try-except, float]
+hints:
+  - "float() raises ValueError for text that isn't a number, and TypeError for a value it can't convert at all, such as None."
+  - "One except clause can catch both: except (ValueError, TypeError):"

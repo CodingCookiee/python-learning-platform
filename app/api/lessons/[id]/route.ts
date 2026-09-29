@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
 import { getCached, CacheKeys } from "@/lib/cache";
-import { getLessonContent, getLessonEstimatedTime } from "@/lib/lesson-content";
 import { canCompleteLesson, getSequentialModuleUnlockMap } from "@/lib/module-access";
 
 /**
@@ -92,18 +91,9 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: 
           id: lesson.id,
           title: lesson.title,
           description: lesson.description,
-          content: getLessonContent({
-            moduleTitle: lesson.module.title,
-            title: lesson.title,
-            description: lesson.description,
-            content: lesson.content,
-          }),
+          content: lesson.content,
           order: lesson.order,
-          estimatedTime: getLessonEstimatedTime(
-            lesson.module.title,
-            lesson.title,
-            lesson.estimatedTime
-          ),
+          estimatedTime: lesson.estimatedTime,
           module: {
             ...lesson.module,
             isUnlocked: lessonUnlocked,

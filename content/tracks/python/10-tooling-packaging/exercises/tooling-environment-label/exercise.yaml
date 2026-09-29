@@ -1,0 +1,7 @@
+title: Venv or system Python?
+type: function
+difficulty: warm-up
+tags: [venv, sys-prefix]
+hints:
+  - Inside a virtual environment, sys.prefix points at the venv while sys.base_prefix still points at the real installation.
+  - "Compare the two: if prefix != base_prefix, it's a venv at prefix; otherwise it's the system Python at prefix."

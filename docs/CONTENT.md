@@ -173,7 +173,9 @@ difficulty: core     # warm-up | core | stretch
 xp: 20               # optional; defaults: warm-up 10, core 20, stretch 30
 tags: [unpacking, tuples]   # concept tags for the skill map
 packages: []         # Pyodide packages to load, e.g. [numpy], [pydantic], [pytest]
-timeout: 5           # seconds, optional (default 5)
+timeout: 5           # seconds for the whole run, optional (default 5); each test also has its own limit
+script: false        # optional: true makes a fix/refactor drill a script (tests use run_program(),
+                     # the code isn't imported). Always true for program and tests drills.
 hints:               # revealed one at a time; the last hint is the closest to the answer
   - Python can assign to several names at once.
   - "a, b = b, a"
@@ -202,7 +204,7 @@ The learner's code is importable as `solution`. Tests are plain functions regist
 decorators from `plp`:
 
 ```python
-from plp import test, hidden, run_program, source_uses
+from plp import test, hidden, raises
 from solution import split_bill
 
 
@@ -218,20 +220,37 @@ def _():
 
 @hidden("Refuses zero people")          # runs, but the body isn't shown to the learner
 def _():
-    try:
+    with raises(ValueError, match="at least one"):
         split_bill(10, 0)
-    except ValueError:
-        return
-    raise AssertionError("split_bill(10, 0) should raise ValueError")
 ```
 
 - **Plain `assert` works.** When a comparison fails, the learner sees both sides:
-  `split_bill(100, 3) returned 33.333333333333336, expected 33.33`. Add a message
-  (`assert x, "..."`) when the raw comparison isn't enough on its own.
+  `split_bill(100, 3) returned 33.333333333333336, expected 33.33`. Each side is evaluated once
+  (asserts are rewritten before running), so the message shows exactly the values that were
+  compared, even when the code mutates or prints. `assert a and b` is split into two checks that
+  each explain themselves. Add a message (`assert x, "..."`) when the raw comparison isn't enough.
+- **Put the call inside the assert.** `assert split_bill(90, 3) == 30` reads "split_bill(90, 3)
+  returned …"; `result = split_bill(90, 3)` then `assert result == 30` only says "result is …".
+  The same goes for `run_program(...)`: inside the assert, a failure reads "Your program printed …".
+- **`raises(ValueError, fn, *args, match=None)`** or **`with raises(ValueError, match="regex"):`**
+  checks for an exception (and optionally its message). An exception of a different type is
+  reported as the learner's error.
 - **`run_program(stdin=["Raza", "3"])`** runs the learner's file as a script with those input lines
-  and returns everything it printed.
+  and returns everything it printed (`.lines` gives non-blank lines, trailing spaces stripped).
+  `run_program(source=...)` runs a modified copy, e.g. with a constant changed.
+- **`load_module("billing")`** imports a fresh copy of the learner's file under that name (so the
+  `__main__` guard is false) and returns it with `.printed`: use it to check a file has no
+  side effects on import.
+- **`defined_names("function" | "class" | "any")`** lists what the learner's file defines at the top
+  level (methods as `Class.method`).
+- **Time limits.** Each test may spend 2 seconds in the learner's code before it fails with "Took
+  longer than 2s…" and the line it was on; the other tests still run and report. Use
+  `@test("…", timeout=10)` for a slower check, or `timeout=None` for timing measurements (the
+  limit's tracer slows learner code slightly). This makes "make it faster" drills possible: a
+  large input simply times out on the slow version.
 - **`source_uses(node="ListComp")` / `source_avoids(call="range")`** inspect the learner's code with
-  `ast`, for refactor drills.
+  `ast`, for refactor drills. `call=` and `name=` match both `pairwise` and `itertools.pairwise`,
+  and names brought in with `from x import y`.
 - **`async def` tests** are awaited, so asyncio code can be tested directly.
 - **`pytest_run({"pricing.py": CORRECT, "test_pricing.py": solution_source()})`** runs pytest on
   those files and returns `.passed`, `.failed` and `.errors` (lists of test names). Use it for `tests`
@@ -249,7 +268,8 @@ Keep drills deterministic:
 
 - **HTTP:** give the learner's client an `httpx.Client(transport=httpx.MockTransport(handler))`
   from the test.
-- **Time:** have functions take `now` or a clock as a parameter.
+- **Time:** have functions take `now` or a clock as a parameter. `zoneinfo` works in drills and
+  lesson examples (its tzdata package loads automatically).
 - **Randomness:** have functions accept a `random.Random` instance, or seed it in the test.
 - **LLM calls:** use the fake clients in `plp.fakes` (automation track). They replay scripted
   responses and record every request, so tests can assert on prompts and tool calls.

@@ -1,0 +1,20 @@
+slug: typing-pydantic
+title: Types, Protocols and Pydantic
+summary: Type hints checked by mypy, generics and Protocols, and Pydantic models that validate data at runtime.
+description: >
+  Python never checks a type hint while your program runs, but mypy reads every one of them before
+  it does, and finds the None you forgot to handle, the string passed where a number belongs and the
+  typo in a dictionary key. This module teaches you to write hints that pay for themselves: unions
+  and narrowing, Literal, TypedDict for JSON-shaped data, generics with the Python 3.12 syntax,
+  Protocols for structural typing, and decorators that keep their signatures. Then it crosses the
+  line mypy can't: data from outside your program. Pydantic turns the same hints into runtime
+  validation, so a webhook, an API payload or an environment variable is parsed, checked and
+  converted in one step, with errors precise enough to send back to the client.
+hours: 9
+outcomes:
+  - Annotate functions, collections and constants so mypy --strict passes, and read its error messages
+  - Use unions, None narrowing, Literal and TypedDict to make invalid states and payloads a type error
+  - Write generic functions, classes and aliases with PEP 695 syntax, including decorators typed with ParamSpec
+  - Describe behaviour with Protocols and overloads instead of inheritance and vague unions
+  - Model API payloads with Pydantic, with constraints, validators, aliases and serialization
+  - Parse untrusted JSON and environment settings into validated objects, and report errors field by field

@@ -24,5 +24,7 @@ const BROWSER_MODULES = new Set(
 export function isBrowserRunnable(code: string): boolean {
   const imports = [...code.matchAll(/^\s*(?:from|import)\s+([A-Za-z_]\w*)/gm)].map((m) => m[1]!);
   if (imports.some((m) => !BROWSER_MODULES.has(m))) return false;
-  return !/\binput\(/.test(code);
+  // Comments don't count: "# don't call input() here" shouldn't hide the Run button
+  const withoutComments = code.replace(/#[^\n]*/g, "");
+  return !/\binput\(/.test(withoutComments);
 }

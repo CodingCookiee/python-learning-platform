@@ -44,7 +44,7 @@ Success means a learner can do the thing again without hints. Finishing content 
 
 ## Evidence on Hand
 
-- Real curriculum content: 16 modules, 64 lessons, 16 projects, 41 achievements (in the database and `prisma/seed-data/`).
+- Real curriculum content lives in `content/` (see docs/CURRICULUM.md and docs/CONTENT.md): a 16-module Python track and an 8-module AI automation track, written module by module, with every drill verified by tests.
 - The roadmap document `AI_Automation_Roadmap_Raza_Awan.pdf` defines the AI track.
 - There are no users yet, and no testimonials, learner counts, reviews or press. Do not fabricate any.
 

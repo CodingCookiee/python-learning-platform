@@ -21,7 +21,7 @@ const result =
           kind: "test",
           solution: code,
           tests: existsSync(path.join(dir, "tests.py")) ? read("tests.py") : "",
-          importSolution: !["program", "tests"].includes(meta.type),
+          importSolution: !(meta.script ?? ["program", "tests"].includes(meta.type)),
           packages: meta.packages ?? [],
         },
         (meta.timeout ?? 5) * 1000 + 30_000

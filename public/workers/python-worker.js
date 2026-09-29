@@ -33,6 +33,12 @@ async function installPypiDeps(py, packages) {
   extra.forEach((p) => loaded.add(`pypi:${p}`));
 }
 const withExtras = (packages) => [...new Set((packages ?? []).flatMap((p) => [p, ...(EXTRA_DEPS[p] ?? [])]))];
+// Stdlib modules whose data ships as a separate Pyodide package
+const IMPLICIT = [[/\bzoneinfo\b/, "tzdata"]];
+const implicitPackages = (msg) => {
+  const text = [msg.code, msg.solution, msg.tests, msg.scanImports].filter(Boolean).join("\n");
+  return IMPLICIT.filter(([pattern]) => pattern.test(text)).map(([, pkg]) => pkg);
+};
 
 
 const ready = (async () => {
@@ -76,7 +82,7 @@ self.onmessage = async (event) => {
   const msg = event.data;
   try {
     const py = await ready;
-    await loadPackages(py, msg.packages);
+    await loadPackages(py, [...(msg.packages ?? []), ...implicitPackages(msg)]);
     // Lesson examples load whatever Pyodide packages they import (numpy, pandas…)
     if (msg.scanImports) {
       await py.loadPackagesFromImports(msg.scanImports, {

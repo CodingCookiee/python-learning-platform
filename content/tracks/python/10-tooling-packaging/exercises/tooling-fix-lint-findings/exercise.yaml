@@ -1,0 +1,8 @@
+title: Fix what ruff found
+type: fix
+difficulty: core
+tags: [ruff, linting, mutable-defaults, exceptions]
+hints:
+  - Take the findings one at a time. F401 and E711 are one-line changes; B006 is the one that breaks the second run.
+  - A default value is created once, when def runs, so every call without a seen argument shares the same list. Create the set or list inside the function instead.
+  - "except json.JSONDecodeError: catches bad lines and lets real bugs through, and `if order.get(\"coupon\") is None:` fixes E711."

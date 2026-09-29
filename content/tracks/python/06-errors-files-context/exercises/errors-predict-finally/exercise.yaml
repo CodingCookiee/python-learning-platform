@@ -1,0 +1,7 @@
+title: "Predict: which clauses run?"
+type: predict
+difficulty: warm-up
+tags: [exceptions, try-except, finally, else]
+hints:
+  - "else runs only when the try block finished without raising. finally runs every time, even when the function is about to return."
+  - "finally runs before the function's return value reaches print(), so \"closing session\" comes before \"paid\"."

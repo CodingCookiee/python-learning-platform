@@ -1,0 +1,10 @@
+title: Your first tests
+type: tests
+difficulty: warm-up
+tags: [pytest, assert, test-functions]
+packages: [pytest]
+timeout: 20
+hints:
+  - Each test is a function whose name starts with test_, containing an assert. Call order_total inside the assert.
+  - An order with one line of quantity 1 can't tell "quantity × price" from "price". Give one line a quantity of 2 or more.
+  - "Also test an order with several lines, and check the total includes the last one: assert order_total([(\"MUG\", 2, 800), (\"TEA\", 1, 350)]) == 1950"

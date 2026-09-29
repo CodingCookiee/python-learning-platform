@@ -1,0 +1,8 @@
+title: Dependency names from pyproject.toml
+type: fix
+difficulty: core
+tags: [pyproject, dependencies, re, normalisation]
+hints:
+  - Splitting on ">=" only handles one of the operators. What every dependency string does have is a name at the very start, made of letters, digits, ".", "_" and "-".
+  - 're.match(r"[A-Za-z0-9][A-Za-z0-9._-]*", dependency.strip()) matches exactly the name, and stops at "[", ";", a space or an operator.'
+  - 'Normalise with re.sub(r"[-_.]+", "-", name).lower(), put the names in a set to drop duplicates, and return sorted(...). Use .get("dependencies", []) for projects with none.'

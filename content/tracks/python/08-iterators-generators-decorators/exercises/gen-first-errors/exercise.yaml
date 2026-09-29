@@ -1,0 +1,8 @@
+title: The first slow requests
+type: function
+difficulty: core
+tags: [generators, pipelines, itertools, islice, laziness]
+hints:
+  - "parse_requests is a loop that splits each line and yields (path, int(status), int(ms)). Skip a line with the wrong number of fields, and wrap the int() calls in try/except ValueError to skip the rest."
+  - slow is a one-line filter over the requests. It can be a generator function or return a generator expression.
+  - "first_slow_paths chains them and takes n with islice: list(islice((path for path, _, _ in slow(parse_requests(lines), threshold_ms)), n))."

@@ -1,0 +1,8 @@
+title: What changed in uv.lock?
+type: function
+difficulty: core
+tags: [lockfile, tomllib, dicts, sets]
+hints:
+  - 'Turn each lockfile into a dict of {name: version} with a comprehension over tomllib.loads(text).get("package", []).'
+  - The names in either lockfile are old.keys() | new.keys(). Go through them in sorted order and decide which of the three cases each one is.
+  - 'A name only in the new lock is added ("+ name version"), only in the old one is removed ("- name version"), and in both with different versions is changed ("~ name old -> new"). Skip the rest.'

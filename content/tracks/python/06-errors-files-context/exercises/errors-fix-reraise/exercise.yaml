@@ -1,0 +1,8 @@
+title: Record the failure, keep the error
+type: fix
+difficulty: core
+tags: [exceptions, re-raise, raise]
+hints:
+  - "Two things are wrong: the except clause catches every error, and it replaces the exception with a new, vaguer one."
+  - "Only a ConnectionError should be recorded for a retry, so catch just that. A declined card isn't worth retrying."
+  - "After recording it, a bare raise passes on the very same ConnectionError, with its original traceback."

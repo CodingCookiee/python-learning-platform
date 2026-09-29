@@ -1,0 +1,8 @@
+title: Find a venv's interpreter and site-packages
+type: function
+difficulty: core
+tags: [venv, pathlib, site-packages]
+hints:
+  - pathlib has PurePosixPath and PureWindowsPath, which build paths in either style on any OS without touching the disk.
+  - Only the first two parts of the version go in the folder name, so "3.14.2" becomes "python3.14". Split on "." and keep two parts.
+  - "Pick the path class and the pieces first: on Windows it's Scripts/python.exe and Lib/site-packages; elsewhere bin/python and lib/python3.14/site-packages. Return str() of each."

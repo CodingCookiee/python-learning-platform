@@ -237,6 +237,85 @@ if (process.env.RUNTEST) {
   chrome.kill();
   process.exit(0);
 }
+if (process.env.FLOW) {
+  // Exercise the new drill workspace end to end, like a learner would
+  const d = ids.drills;
+  const waitFor = async (expr, tries = 90) => {
+    for (let i = 0; i < tries; i++) {
+      if (await ev(expr)) return true;
+      await sleep(500);
+    }
+    return false;
+  };
+  const click = (label) =>
+    ev(`(() => { const b = [...document.querySelectorAll('button')].find(b => b.textContent.trim().startsWith(${JSON.stringify(label)})); if (b) b.click(); return !!b; })()`);
+  const setEditor = (code) =>
+    ev(`(() => { const m = window.monaco?.editor?.getModels?.()[0]; if (!m) return false; m.setValue(${JSON.stringify(code)}); return true; })()`);
+  const resultText = () => ev(`[...document.querySelectorAll('[aria-live=polite]')].map(n => n.innerText).join(' | ').slice(0, 600)`);
+
+  // Function drill: starter fails, then the reference answer passes
+  await go(`/exercises/${d["swap-two-values"]}`, 6000);
+  await waitFor(`!!window.monaco?.editor?.getModels?.()[0]`);
+  await shot("flow-drill-function.png");
+  await click("Run tests");
+  await waitFor(`/tests passed/.test(document.body.innerText)`);
+  console.log("function starter:", await resultText());
+  await shot("flow-drill-function-fail.png");
+  console.log("set editor:", await setEditor("def swap(a, b):\n    return b, a\n"));
+  await click("Run tests");
+  await waitFor(`/Drill passed/.test(document.body.innerText)`, 60);
+  console.log("function solution:", await resultText());
+  await shot("flow-drill-function-pass.png");
+
+  // Program drill with stdin, and Run with input
+  await go(`/exercises/${d["hello-pylearn"]}`, 6000);
+  await waitFor(`!!window.monaco?.editor?.getModels?.()[0]`);
+  await setEditor('print("Hello, pylearn!")\nprint("Lets train.")\n');
+  await click("Run tests");
+  await waitFor(`/tests passed/.test(document.body.innerText)`);
+  console.log("program:", await resultText());
+  await shot("flow-drill-program.png");
+
+  // A runaway loop: the runtime must stop it and recover
+  await setEditor("while True:\n    pass\n");
+  await click("Run");
+  await waitFor(`/Timed out|Stopped after/.test(document.body.innerText)`, 40);
+  console.log("loop:", await resultText());
+  await setEditor('print("Hello, pylearn!")\n');
+  await click("Run");
+  await waitFor(`/Hello, pylearn!/.test([...document.querySelectorAll('[aria-live=polite]')].map(n=>n.innerText).join(''))`, 60);
+  console.log("after loop:", await resultText());
+
+  // Predict drill: wrong then right
+  await go(`/exercises/${d["predict-print-arguments"]}`, 6000);
+  const typeAnswer = (text) =>
+    ev(`(() => { const t = document.querySelector('textarea'); Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(t, ${JSON.stringify(text)}); t.dispatchEvent(new Event('input',{bubbles:true})); return true; })()`);
+  await typeAnswer("Total: 12\nA B C\ndone");
+  await click("Check answer");
+  await waitFor(`/Not quite|exactly what it prints/.test(document.body.innerText)`, 60);
+  console.log("predict wrong:", await resultText());
+  await shot("flow-drill-predict-wrong.png");
+  await typeAnswer("Total:12\nA > B > C!\ndone");
+  await click("Check answer");
+  await waitFor(`/exactly what it prints/.test(document.body.innerText)`, 60);
+  console.log("predict right:", await resultText());
+
+  // Lessons, module, syllabus
+  await go(`/lessons/${ids.lesson}`, 5000);
+  await shot("flow-lesson-1.png");
+  await go(`/lessons/${ids.lesson2}`, 5000);
+  await ev(`[...document.querySelectorAll('section button[aria-pressed]')][0]?.click()`);
+  await sleep(500);
+  await shot("flow-lesson-2.png");
+  await go(`/modules/${ids.module}`, 5000);
+  await shot("flow-module.png");
+  await go(`/modules`, 5000);
+  await shot("flow-syllabus.png");
+  console.log("FLOW console:", issues.length ? [...new Set(issues)].map((x) => x.slice(0, 300)) : "none");
+  ws.close();
+  chrome.kill();
+  process.exit(0);
+}
 if (process.env.EVAL) {
   // EVAL="<path>|<js expression>": print the expression's value on that page
   const [path, expr] = process.env.EVAL.split("|");
