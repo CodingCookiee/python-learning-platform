@@ -1,0 +1,9 @@
+title: A booking tool that's safe to call twice
+type: function
+difficulty: stretch
+tags: [idempotency, httpx, tool-design, apis]
+packages: [httpx]
+hints:
+  - 'Start with client.get("/v1/bookings", params={"practitioner": practitioner, "start": start}). The JSON has a "bookings" list; look for one with the same patient_email first, then for any other booking.'
+  - 'Only when the slot is empty, POST the three fields as JSON with headers={"Idempotency-Key": idempotency_key("book_appointment", arguments)}, where arguments is the dict of the three fields.'
+  - A 409 from the POST means someone else got there first; return the same SLOT_TAKEN error as when the GET found another patient's booking.

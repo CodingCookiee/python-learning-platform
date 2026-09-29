@@ -1,0 +1,9 @@
+title: A crawler with manners
+type: function
+difficulty: stretch
+tags: [scraping, robots-txt, beautifulsoup, crawling]
+packages: [beautifulsoup4]
+hints:
+  - "Parse robots.txt once: robots = RobotFileParser(); robots.parse(robots_txt.splitlines()). robots.crawl_delay(user_agent) is None when there's no Crawl-delay, so fall back to 1.0."
+  - "Loop while url is set and fewer than max_pages pages are done: stop if robots.can_fetch(user_agent, url) is false or url was already visited; sleep before every fetch except the first."
+  - "After parsing a page's listings, find its next link with soup.select_one('a[rel~=next]') and urljoin it with the current URL. Keep a set of listing ids, so a listing seen on an earlier page isn't added twice."

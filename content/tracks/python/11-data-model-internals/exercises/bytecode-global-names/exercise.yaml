@@ -1,0 +1,8 @@
+title: List the globals a function uses
+type: function
+difficulty: stretch
+tags: [bytecode, dis, code-objects, recursion]
+hints:
+  - "dis.get_instructions(code) yields Instruction objects. Keep instruction.argval for every instruction whose opname is \"LOAD_GLOBAL\": that's the name being looked up."
+  - "A lambda or nested function is compiled to its own code object, stored in the outer function's co_consts. Check each constant with isinstance(const, types.CodeType) and scan it the same way."
+  - "Start from func.__code__, collect names into a set as you walk every code object, and return sorted(names)."

@@ -1,0 +1,8 @@
+title: Two fans, one seat
+type: fix
+difficulty: core
+tags: [asyncio, race-conditions, lock, check-then-act]
+hints:
+  - Between reading seats_left and reserving, book awaits twice. Every other booking can run in that gap, and they all see the same number of seats.
+  - Make the check and the reserve one step with an asyncio.Lock, held with async with around both.
+  - Give each BoxOffice its own lock, created in __init__. One lock shared by every box office would make bookings at different venues wait for each other.

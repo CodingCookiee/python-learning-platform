@@ -1,0 +1,7 @@
+title: Let the others breathe
+type: refactor
+difficulty: core
+tags: [asyncio, blocking, cpu-bound, cooperative-multitasking]
+hints:
+  - The comprehension never awaits, so no other task can run until every order is scored. Turn it into a loop that appends each result.
+  - "After every `every` orders, await asyncio.sleep(0). It returns straight away, but only after the loop has had a turn to run the other tasks. enumerate(orders, start=1) and n % every == 0 tell you when."

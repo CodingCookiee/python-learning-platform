@@ -1,0 +1,8 @@
+title: The thumbnail job anyone could hijack
+type: fix
+difficulty: core
+tags: [subprocess, security, shell-injection]
+hints:
+  - "Pass a list: [\"magick\", source, \"-resize\", f\"{width}x\", target]. Each item reaches ImageMagick as one argument, whatever characters it contains."
+  - "Drop shell=True, and add check=True (fail loudly) and a timeout, for example timeout=60."
+  - "Validate width before running anything: it must be an int (not a bool) and at least 1, otherwise raise ValueError."

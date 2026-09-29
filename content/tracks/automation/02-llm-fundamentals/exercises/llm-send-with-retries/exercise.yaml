@@ -1,0 +1,9 @@
+title: Retries with Retry-After, timeouts and a log
+type: function
+difficulty: stretch
+tags: [retries, backoff, timeouts, rate limits, errors, logging, httpx]
+packages: [httpx]
+hints:
+  - "Wrap send() in try/except httpx.TransportError (the parent of ReadTimeout, ConnectTimeout and ConnectError) and turn it into an LLMTimeout, chained with raise ... from, or by setting __cause__ if you raise it later."
+  - "The delay is error.retry_after when the provider sent one, otherwise min(max_delay, base_delay * 2 ** attempt)."
+  - "Log before sleeping: log.warning(\"LLM call failed (%s); retrying in %.1fs (attempt %d of %d)\", error, delay, attempt + 2, max_attempts)."

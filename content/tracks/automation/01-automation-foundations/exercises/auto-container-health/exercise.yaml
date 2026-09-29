@@ -1,0 +1,8 @@
+title: Which containers need attention?
+type: function
+difficulty: core
+tags: [subprocess, docker, json, parsing]
+hints:
+  - "Call run([\"docker\", \"ps\", \"--all\", \"--format\", \"{{json .}}\"], capture_output=True, text=True, check=True, timeout=30), then parse result.stdout one non-blank line at a time with json.loads."
+  - "State tells you most of it: \"restarting\" and \"dead\" are problems, \"exited\" is one only when the exit code isn't 0. Read the code from Status with re.search(r\"Exited \\((\\d+)\\)\", status)."
+  - A running container can still be failing its health check. Look for "(unhealthy)" in Status. Sort the results by name at the end.

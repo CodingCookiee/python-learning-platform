@@ -1,0 +1,8 @@
+title: Orders that never free themselves
+type: fix
+difficulty: core
+tags: [weakref, reference-cycles, gc, memory]
+hints:
+  - "Each OrderLine refers to its Order, and the Order's lines list refers to each OrderLine: a cycle, so no count ever reaches zero and only the disabled collector could free them."
+  - "Keep the strong reference that makes sense (an order owns its lines) and make the back-reference weak: store weakref.ref(order) in the line instead of the order itself."
+  - "Turn order into a read-only property that calls the weak reference: return self._order(). It gives the Order while it's alive and None afterwards."

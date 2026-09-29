@@ -1,0 +1,20 @@
+slug: api-client-library
+title: API client library
+summary: A typed, retrying, paginating client for a CRM's contacts and deals, with its own exceptions, safe creates and no secrets in its logs.
+hours: 6
+xp: 150
+requirements:
+  - "Contact and Deal are Pydantic models of the API's JSON, with datetimes parsed, Deal.amount a Decimal, and stage and currency as Literals"
+  - "A CrmError hierarchy: CrmApiError (message, status_code, code, request_id) with BadRequestError, AuthenticationError, NotFoundError, ConflictError, RateLimitError (retry_after) and ServerError under it, and CrmConnectionError beside it"
+  - "CrmClient(api_key, *, base_url, transport, max_attempts, max_wait, sleep, rng, new_key) creates one httpx.Client with the bearer token, a User-Agent and explicit timeouts, closes it with close() or as a context manager, and never shows the key in its repr"
+  - "_request is the only method that sends anything: it retries GET requests, and POSTs that carry an Idempotency-Key, on transport errors, 429 and 5xx, with full-jitter backoff or the server's Retry-After, and raises the client's own exceptions, never httpx's"
+  - "Each retry logs one WARNING line in the brief's format through the crm_client logger, and nothing the client logs contains the API key"
+  - "get_contact, iter_contacts (cursor pagination, optional updated_since), create_contact, update_contact, iter_deals (Link-header pagination, optional stage), create_deal and move_deal, each returning models, with the iterators lazy"
+  - "Every create sends an Idempotency-Key (generated once per call with new_key, or passed in), so a create whose answer was lost is retried without creating a duplicate"
+criteria:
+  - "Running python crm_client.py prints exactly the sample run in the brief, including the four retry warnings and the final request counts"
+  - "Hidden tests against a fresh CrmServer pass: requests have the right methods, paths, query strings, headers and bodies, and every failure maps to the right exception with its status, code and request ID"
+  - "Retry logic lives in one place, retries only what's safe, respects Retry-After and max_wait, and never sleeps after the last attempt; tests run instantly because sleep and rng are injected"
+  - "iter_contacts and iter_deals are generators that fetch one page at a time, follow the cursor and the Link header exactly, and never drop the last page"
+  - "Public methods are thin and typed: each builds a path and a body, calls _request, and returns a model; money stays Decimal on the way in and out"
+  - "The API key appears only in the Authorization header: not in URLs, reprs, exception messages or logs"

@@ -3,9 +3,10 @@
 It's correct, and it's slow. Make build_report at least 20 times faster without changing a single
 character of what it prints. The brief explains how to measure it and what to hand in.
 
-    python report.py                  # print the report for the sample quarter
-    python report.py --orders 2000    # a smaller sample, for quick experiments
-    python report.py --time           # also time build_report (best of 3), printed to stderr
+    python report.py                       # print the report for the sample quarter
+    python report.py --orders 1000         # a smaller sample, for quick experiments
+    python report.py --time                # also print how long build_report took, on stderr
+    python report.py --time --repeat 5     # the best of five runs, once it's fast
 """
 
 import argparse
@@ -60,7 +61,7 @@ HOLIDAYS = {date(2026, 7, 13), date(2026, 8, 3), date(2026, 8, 31), date(2026, 9
 # Sample data ---------------------------------------------------------------
 
 
-def make_sample(order_count=20_000, seed=2026):
+def make_sample(order_count=5_000, seed=2026):
     """Products, customers, orders and discontinued SKUs for July to September 2026.
 
     The data is random but repeatable: the same arguments always give the same data.
@@ -268,19 +269,20 @@ def build_report(products, customers, orders, discontinued):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Print the quarterly order report.")
-    parser.add_argument("--orders", type=int, default=20_000, help="how many sample orders to generate")
-    parser.add_argument("--time", action="store_true", help="time build_report (best of 3) on stderr")
+    parser.add_argument("--orders", type=int, default=5_000, help="how many sample orders to generate")
+    parser.add_argument("--time", action="store_true", help="time build_report and print the time on stderr")
+    parser.add_argument("--repeat", type=int, default=1, help="with --time, run it this many times and keep the best")
     args = parser.parse_args(argv)
 
     data = make_sample(args.orders)
+    runs = []
+    for _ in range(max(args.repeat, 1) if args.time else 1):
+        start = time.perf_counter()
+        report = build_report(*data)
+        runs.append(time.perf_counter() - start)
     if args.time:
-        runs = []
-        for _ in range(3):
-            start = time.perf_counter()
-            build_report(*data)
-            runs.append(time.perf_counter() - start)
-        print(f"build_report, best of 3: {min(runs):.3f} s", file=sys.stderr)
-    print(build_report(*data), end="")
+        print(f"build_report: best of {len(runs)}: {min(runs):.3f} s", file=sys.stderr)
+    print(report, end="")
 
 
 if __name__ == "__main__":

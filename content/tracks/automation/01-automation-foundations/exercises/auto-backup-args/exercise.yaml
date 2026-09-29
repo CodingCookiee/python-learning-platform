@@ -1,0 +1,7 @@
+title: A backup command as a list
+type: function
+difficulty: warm-up
+tags: [subprocess, argument-lists, dates]
+hints:
+  - Return a list with one item per argument, and don't join anything with spaces.
+  - "f\"--file={backup_dir}/{database}-{day.isoformat()}.dump\" is one argument, even if backup_dir contains spaces."

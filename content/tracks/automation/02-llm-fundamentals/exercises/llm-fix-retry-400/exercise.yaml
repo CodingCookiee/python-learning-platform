@@ -1,0 +1,9 @@
+title: A retry loop that retries mistakes
+type: fix
+difficulty: core
+tags: [retries, errors, rate limits, backoff]
+packages: [httpx]
+hints:
+  - Trace a 400 through the loop. What stops it from being sent again?
+  - Every error from error_from_response has a retryable flag. A 400 or 401 isn't retryable.
+  - "Build the error first, then raise it straight away when it's not retryable or this was the last attempt: if not error.retryable or attempt == max_attempts - 1: raise error"

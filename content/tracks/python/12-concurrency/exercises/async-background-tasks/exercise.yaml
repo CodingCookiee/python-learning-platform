@@ -1,0 +1,8 @@
+title: Background tasks that can't vanish
+type: function
+difficulty: stretch
+tags: [asyncio, create-task, garbage-collection, done-callbacks, fire-and-forget]
+hints:
+  - Keep every spawned task in a set. That strong reference is what stops the garbage collector taking a task whose only other reference is the event loop's weak one.
+  - "task.add_done_callback(self._finished) calls your method with the task when it ends. There, discard it from the set and, if it wasn't cancelled and task.exception() isn't None, append the exception to errors."
+  - "drain loops while the set isn't empty: await asyncio.gather(*self._tasks, return_exceptions=True). The loop catches tasks spawned while it was waiting, and return_exceptions stops a failure from ending the drain early."

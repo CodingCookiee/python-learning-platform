@@ -1,0 +1,8 @@
+title: "Predict: local or global?"
+type: predict
+difficulty: core
+tags: [bytecode, dis, scope, code-objects]
+hints:
+  - "The compiler decides once, per function: a name assigned anywhere in the function is local everywhere in it (co_varnames), unless it's declared global. Names that are only read are looked up as globals (co_names)."
+  - "sale_price assigns discount inside an if, so discount is local even when that line doesn't run. With price 50, it's read before it has a value."
+  - "loyalty_price declares discount global, so it reads and changes the module's discount: 5 becomes 6, then 7."

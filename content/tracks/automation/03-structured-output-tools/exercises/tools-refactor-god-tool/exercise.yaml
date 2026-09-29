@@ -1,0 +1,8 @@
+title: Split the god tool
+type: refactor
+difficulty: core
+tags: [tool-design, refactoring, json-schema, Literal]
+hints:
+  - Each branch of the if/elif in crm() becomes its own function, taking the fields it read from the payload as real parameters. The bodies barely change.
+  - 'Each tool gets its own definition with typed properties, a description on every parameter, and "required". The stage is {"type": "string", "enum": list(STAGES)}.'
+  - REGISTRY maps each tool name to its function, so the loop from lesson 6 can call registry[call.name](**call.arguments) with no json.loads anywhere.

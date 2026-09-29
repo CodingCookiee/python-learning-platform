@@ -1,0 +1,20 @@
+slug: make-it-fast
+title: Make it fast
+summary: Take a slow quarterly report generator at least 20 times faster, with identical output, and before-and-after profiles to prove it.
+hours: 6
+xp: 150
+requirements:
+  - build_report(products, customers, orders, discontinued) returns exactly the same text as the starter's version, character for character, for any sample size and seed
+  - build_report is at least 20 times faster than the starter's on the default sample (5 000 orders), measured with python report.py --time on the same machine
+  - make_sample, main and the command-line flags are unchanged, and all the work of building the report still happens inside build_report, starting from the raw data
+  - A test file, test_report.py, checks the new build_report against a saved copy of the starter's output, and checks at least two rewritten helpers against the originals
+  - before-profile.txt and after-profile.txt hold the top functions by tottime from cProfile, for the starter and for the final version
+  - NOTES.md lists each change in the order you made it, with the build_report time measured after it
+  - Standard library only
+criteria:
+  - The output is identical to the starter's, and test_report.py passes
+  - The measured speed-up is at least 20x, and the timings in NOTES.md are consistent with the two profiles
+  - The changes follow the profile, starting with the functions that dominated it, and NOTES.md explains each one with the measurement that justified it
+  - Each fix uses the right tool from the module (a dict or set for lookups, hoisting or precomputing for repeated work, a cache only for a pure function, join for strings) rather than micro-optimisations
+  - The code is still readable, with names and short comments that explain any change that isn't obvious
+  - No work is moved outside build_report, carried over from one call to the next, or special-cased for the sample data

@@ -1,0 +1,8 @@
+title: Lint a tool list
+type: function
+difficulty: core
+tags: [tool-design, regex, json-schema]
+hints:
+  - Loop over the tools and build a list of problem strings. re.fullmatch(r"[a-z][a-z0-9]*(_[a-z0-9]+)+", name) checks for snake_case with at least one underscore.
+  - 'parameters.get("properties", {}) gives each parameter''s schema. A missing or empty "description" is one problem; a name in DATA_PARAMS with "type": "string" is another. Check all descriptions first, then all data parameters, to keep the rule order.'
+  - Keep a set of the names you've seen to catch duplicates, and add each name after checking it.
