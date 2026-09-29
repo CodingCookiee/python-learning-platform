@@ -1,0 +1,10 @@
+title: Check a printed receipt
+type: tests
+difficulty: warm-up
+tags: [pytest, capsys, output]
+packages: [pytest]
+timeout: 20
+hints:
+  - "Ask for capsys as a parameter, call print_receipt, then capsys.readouterr().out is everything it printed, as one string."
+  - ".splitlines() turns the output into a list of lines, so you can check the total line and each item line separately."
+  - "Check an item line with a quantity above 1, the total line of a receipt with two items, and the empty receipt: its output is exactly \"No items\\n\"."

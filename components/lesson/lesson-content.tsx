@@ -9,7 +9,7 @@ import rehypeRaw from "rehype-raw";
 import rehypeHighlight from "rehype-highlight";
 import { ChevronDown, Info, Lightbulb, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { CodeBlock } from "@/components/lesson/code-block";
+import { CodeBlock, RunnableExamples } from "@/components/lesson/code-block";
 import { QuizCheck } from "@/components/lesson/quiz-check";
 import remarkPylearn from "@/components/lesson/remark-pylearn";
 
@@ -57,6 +57,8 @@ interface TocItem {
 export interface LessonContentProps {
   content: string;
   className?: string;
+  /** False for drill prompts and hints: examples are shown, not run */
+  runnable?: boolean;
 }
 
 function TocList({ items, activeSlug }: { items: TocItem[]; activeSlug: string | null }) {
@@ -110,7 +112,11 @@ function H2({ children, ...props }: ComponentPropsWithoutRef<"h2">) {
 
 function H3({ children, ...props }: ComponentPropsWithoutRef<"h3">) {
   return (
-    <h3 id={slugify(nodeText(children))} className="mt-8 mb-3 scroll-mt-24 text-lg font-semibold" {...props}>
+    <h3
+      id={slugify(nodeText(children))}
+      className="mt-8 mb-3 scroll-mt-24 text-lg font-semibold"
+      {...props}
+    >
       {children}
     </h3>
   );
@@ -120,8 +126,25 @@ function H3({ children, ...props }: ComponentPropsWithoutRef<"h3">) {
 function JsMark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 16 16" className={className} aria-hidden="true">
-      <rect x="1.25" y="1.25" width="13.5" height="13.5" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
-      <text x="8" y="11.4" textAnchor="middle" fontSize="7.5" fontWeight="700" fill="currentColor" fontFamily="inherit">
+      <rect
+        x="1.25"
+        y="1.25"
+        width="13.5"
+        height="13.5"
+        rx="1.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <text
+        x="8"
+        y="11.4"
+        textAnchor="middle"
+        fontSize="7.5"
+        fontWeight="700"
+        fill="currentColor"
+        fontFamily="inherit"
+      >
         JS
       </text>
     </svg>
@@ -155,7 +178,11 @@ const CALLOUTS = {
 // new component type for every code block and remount them, wiping their output.
 const components: Components = {
   pre({ children }: ComponentPropsWithoutRef<"pre">) {
-    const child = isValidElement<{ className?: string; children?: ReactNode; "data-meta"?: string }>(children)
+    const child = isValidElement<{
+      className?: string;
+      children?: ReactNode;
+      "data-meta"?: string;
+    }>(children)
       ? children
       : null;
     const language = /language-(\w+)/.exec(child?.props.className ?? "")?.[1] ?? "";
@@ -192,7 +219,10 @@ const components: Components = {
   h2: H2,
   h3: H3,
 
-  blockquote({ children, ...props }: ComponentPropsWithoutRef<"blockquote"> & { "data-callout"?: string }) {
+  blockquote({
+    children,
+    ...props
+  }: ComponentPropsWithoutRef<"blockquote"> & { "data-callout"?: string }) {
     const kind = props["data-callout"];
     if (kind && kind in CALLOUTS) {
       const { label, Icon, className } = CALLOUTS[kind as keyof typeof CALLOUTS];
@@ -299,7 +329,7 @@ const components: Components = {
 
 // LessonContent
 
-export function LessonContent({ content, className }: LessonContentProps) {
+export function LessonContent({ content, className, runnable = true }: LessonContentProps) {
   // The page renders the lesson title; drop a leading markdown h1 that repeats it
   content = content.replace(/^\s*#\s+[^\n]*\n+/, "");
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
@@ -336,20 +366,25 @@ export function LessonContent({ content, className }: LessonContentProps) {
           <details className="mb-8 rounded-md border border-border bg-sheet px-4 py-3 xl:hidden">
             <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold [&::-webkit-details-marker]:hidden">
               On this page
-              <ChevronDown className="size-4 text-muted-foreground transition-transform [details[open]_&]:rotate-180" aria-hidden="true" />
+              <ChevronDown
+                className="size-4 text-muted-foreground transition-transform [details[open]_&]:rotate-180"
+                aria-hidden="true"
+              />
             </summary>
             <div className="mt-3">
               <TocList items={tocItems} activeSlug={activeSlug} />
             </div>
           </details>
         )}
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm, remarkPylearn]}
-          rehypePlugins={[rehypeRaw, [rehypeHighlight, { detect: true }]]}
-          components={components}
-        >
-          {content}
-        </ReactMarkdown>
+        <RunnableExamples.Provider value={runnable}>
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm, remarkPylearn]}
+            rehypePlugins={[rehypeRaw, [rehypeHighlight, { detect: true }]]}
+            components={components}
+          >
+            {content}
+          </ReactMarkdown>
+        </RunnableExamples.Provider>
       </div>
       {hasToc && (
         <aside className="hidden w-56 shrink-0 xl:block">

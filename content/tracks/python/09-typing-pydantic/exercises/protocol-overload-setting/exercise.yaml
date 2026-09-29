@@ -1,0 +1,10 @@
+title: One settings function, three return types
+type: function
+difficulty: stretch
+tags: [overload, Mapping, Optional, mypy]
+packages: [mypy]
+timeout: 30
+hints:
+  - "Write three @overload stubs (bodies are just ...): no default returns str | None, a str default returns str, and an int default returns int. Then the real function, without @overload, whose hints cover all three."
+  - "The implementation's default is str | int | None = None and it returns str | int | None. Return the default when the name is missing."
+  - "When the default is an int, convert with int(raw) inside try/except ValueError, and raise a new ValueError with the message from the prompt."

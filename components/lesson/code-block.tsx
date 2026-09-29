@@ -63,6 +63,13 @@ function buildExampleHarness(code: string): string {
   return `_src = ${JSON.stringify(code)}\n${HARNESS}`;
 }
 
+/**
+ * Whether code blocks in this subtree may get a Run button. Drill prompts turn it
+ * off: their examples call the function the learner is about to write, so running
+ * them on their own would always fail.
+ */
+export const RunnableExamples = React.createContext(true);
+
 export function CodeBlock({
   code,
   language,
@@ -76,7 +83,8 @@ export function CodeBlock({
   /** The highlighted <code> element for display */
   children: React.ReactNode;
 }) {
-  const runnable = language === "python" && !norun && isBrowserRunnable(code);
+  const examplesRunnable = React.useContext(RunnableExamples);
+  const runnable = examplesRunnable && language === "python" && !norun && isBrowserRunnable(code);
   const { run, loading } = usePyodide();
   const [copied, setCopied] = React.useState(false);
   const [editing, setEditing] = React.useState(false);

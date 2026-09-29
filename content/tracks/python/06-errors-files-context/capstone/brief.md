@@ -219,7 +219,7 @@ Before you submit, check each of these:
   `0 rejected rows, 0 problems`, and the exit code is 0.
 - In the REPL, `clean_row` on a dict where every field is `"  "` raises a group of seven
   `FieldError`s, all `is required`.
-- Temporarily add `1 / 0` to one of your field cleaners: every row is rejected with
+- Temporarily add `1 / 0` to your SKU cleaner: every row that reaches it is rejected with
   `unexpected error: ZeroDivisionError: division by zero`, each one's traceback is logged, and the
   program still finishes and prints its summary. Then take it out again.
 

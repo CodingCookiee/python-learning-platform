@@ -1,0 +1,10 @@
+title: Cheapest of anything with a price
+type: function
+difficulty: core
+tags: [Protocol, property, generics, bounds, mypy]
+packages: [mypy]
+timeout: 30
+hints:
+  - "Declare price_cents in the protocol as a read-only property (@property, then def price_cents(self) -> int: ...). A frozen dataclass field or a property both fit that; a plain price_cents: int wouldn't accept the frozen Product."
+  - "cheapest needs a bound so it can read price_cents and still return the caller's own type: def cheapest[T: Priced](items: Iterable[T]) -> T:"
+  - total_price doesn't need to return an item, so Iterable[Priced] is enough there. Convert items to a list first in cheapest, so you can check for an empty input.

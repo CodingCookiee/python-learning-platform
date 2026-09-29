@@ -145,7 +145,7 @@ function Hints({ hints, used, onReveal }: { hints: string[]; used: number; onRev
             <li key={i} className="flex gap-2.5 text-sm leading-relaxed">
               <span className="font-condensed tabular font-bold text-muted-foreground">{i + 1}</span>
               <span className="min-w-0">
-                <LessonContent content={hint} className="[&_p]:mb-0 [&_p]:text-sm" />
+                <LessonContent content={hint} runnable={false} className="[&_p]:mb-0 [&_p]:text-sm" />
               </span>
             </li>
           ))}
@@ -201,7 +201,7 @@ function PromptPanel({
         )}
       </div>
 
-      <LessonContent content={drill.instructions} className="[&_p]:text-base" />
+      <LessonContent content={drill.instructions} runnable={false} className="[&_p]:text-base" />
       {drill.type !== "predict" && <TestList drill={drill} check={check} />}
       <Hints hints={drill.hints} used={hintsUsed} onReveal={onRevealHint} />
     </div>
