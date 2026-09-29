@@ -1,0 +1,8 @@
+title: The contact list with too many columns
+type: fix
+difficulty: core
+tags: [csv, dictwriter, files, quoting]
+hints:
+  - "Joining with \",\" can't cope with a value that contains a comma or a quote. The csv module quotes those values for you."
+  - "Open the file with newline=\"\" as well as the encoding, then build csv.DictWriter(file, fieldnames=[\"name\", \"email\", \"city\"])."
+  - "writer.writeheader() writes the header row, and writer.writerows(contacts) writes every contact."

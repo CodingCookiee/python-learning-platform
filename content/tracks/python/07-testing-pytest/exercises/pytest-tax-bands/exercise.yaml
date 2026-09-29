@@ -1,0 +1,10 @@
+title: Test the tax bands
+type: tests
+difficulty: stretch
+tags: [pytest, parametrize, ids, decimal, rounding]
+packages: [pytest]
+timeout: 20
+hints:
+  - "Test the top of each band, and an income inside each band: 12570, 20000, 50270, 60000, 125140 and 150000 make a good start. The tax on the whole basic band is 20% of 37,700 = 7,540.00."
+  - "A flat-rate bug gives the right answer only for incomes with no tax at all, and a mistyped band limit shows up in any income above it."
+  - "For the rounding bug: 10p taxed at 45% is 4.5p. So an income of 125140.10 owes 37488.045, which rounds half-up to 37488.05 (banker's rounding would give 37488.04)."

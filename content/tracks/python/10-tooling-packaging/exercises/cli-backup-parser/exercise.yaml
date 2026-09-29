@@ -1,0 +1,7 @@
+title: A parser for a backup tool
+type: function
+difficulty: warm-up
+tags: [argparse, cli]
+hints:
+  - One add_argument call per argument. A name without dashes is positional; "--dest" is an option.
+  - 'action="store_true" makes a flag. For the keep option, pass both spellings: add_argument("-k", "--keep", type=int, default=7).'

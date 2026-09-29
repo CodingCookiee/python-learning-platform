@@ -1,0 +1,8 @@
+title: "Predict: what's in the namespace?"
+type: predict
+difficulty: core
+tags: [argparse, cli, defaults]
+hints:
+  - "--dry-run is stored as dry_run. -vv counts as two, and append collects every --tag in order into a list."
+  - "retries has type=int, so \"5\" becomes the int 5 and retries + 1 is 6. A string default goes through type too, so the default \"3\" is the int 3."
+  - An append option that never appears keeps its default, which is None here, not an empty list.

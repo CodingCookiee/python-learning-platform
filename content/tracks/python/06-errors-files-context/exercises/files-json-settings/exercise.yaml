@@ -1,0 +1,8 @@
+title: Settings that survive a bad edit
+type: function
+difficulty: core
+tags: [json, files, exceptions, chaining]
+hints:
+  - "save_settings: open the file in \"w\" mode with encoding=\"utf-8\", then json.dump(settings, file, indent=2, sort_keys=True, ensure_ascii=False) and file.write(\"\\n\")."
+  - "load_settings: json.load the file in a try block. except FileNotFoundError returns dict(defaults); except json.JSONDecodeError as error raises SettingsError(...) from error, using error.lineno."
+  - "After loading, check isinstance(loaded, dict), then return {**defaults, **loaded}: a new dict in which the file's values win."

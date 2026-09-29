@@ -1,0 +1,8 @@
+title: A to-do CLI with subcommands
+type: function
+difficulty: stretch
+tags: [argparse, cli, subcommands, datetime, stderr]
+hints:
+  - "commands = parser.add_subparsers(dest=\"command\", required=True), then one commands.add_parser(...) per subcommand, each with its own add_argument calls. type=date.fromisoformat for --due and type=int for the id."
+  - Write one function per subcommand taking (args, tasks) and returning the exit code, and connect each with sub_parser.set_defaults(handler=...). Then main is two lines.
+  - "The next id is max((task[\"id\"] for task in tasks), default=0) + 1. For each list line: f\"{task['id']:>3} [{'x' if task['done'] else ' '}] {task['title']}\", plus the due part when there is one."

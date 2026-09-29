@@ -1,0 +1,8 @@
+title: Fix the slug command's entry point
+type: fix
+difficulty: core
+tags: [argparse, cli, main, exit-codes, stderr]
+hints:
+  - "Three separate bugs: main ignores its argv, main never returns a number, and the guard compares __name__ with the wrong string."
+  - parse_args(argv) reads the list you pass it, and sys.argv[1:] when argv is None. print(..., file=sys.stderr) sends a line to stderr. Keep a status variable, set it to 1 on a bad title, carry on with the loop, and return it at the end.
+  - The guard is if __name__ == "__main__":, and its body is raise SystemExit(main()), which hands main's return value to the shell as the exit status.

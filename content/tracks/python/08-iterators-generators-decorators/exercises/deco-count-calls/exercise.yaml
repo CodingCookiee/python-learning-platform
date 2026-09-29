@@ -1,0 +1,7 @@
+title: Count the calls
+type: function
+difficulty: warm-up
+tags: [decorators, wraps, closures]
+hints:
+  - Define wrapper(*args, **kwargs) inside count_calls, decorate it with @wraps(func), and set wrapper.calls = 0 before returning it.
+  - "Inside wrapper: wrapper.calls += 1, then return func(*args, **kwargs)."

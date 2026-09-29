@@ -1,0 +1,8 @@
+title: "Predict: when a decorator runs"
+type: predict
+difficulty: warm-up
+tags: [decorators, closures, wraps]
+hints:
+  - "@announce above def refund means refund = announce(refund), run straight after the def. So \"decorating refund\" is printed while the module is still loading."
+  - Every call to refund is now a call to wrapper, which prints before calling the original.
+  - The wrapper doesn't use functools.wraps, so the name refund is bound to a function whose own name is wrapper.

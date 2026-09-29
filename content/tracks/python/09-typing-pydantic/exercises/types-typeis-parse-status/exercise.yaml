@@ -1,0 +1,10 @@
+title: Parse statuses from a CSV export
+type: function
+difficulty: stretch
+tags: [TypeIs, Literal, match, assert_never, mypy]
+packages: [mypy]
+timeout: 30
+hints:
+  - "is_order_status returns TypeIs[OrderStatus]. Its body is a plain membership test against a tuple of the four statuses."
+  - "In parse_statuses, clean each row, then `if not is_order_status(cleaned): raise ...`. After that check, mypy treats cleaned as an OrderStatus, so it can go in a list[OrderStatus]."
+  - "status_label is a match with one case per status and `case _: assert_never(status)` at the end. If a case is missing, mypy points at the assert_never line."

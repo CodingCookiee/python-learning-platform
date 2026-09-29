@@ -1,0 +1,8 @@
+title: A timing decorator with a fake clock
+type: function
+difficulty: core
+tags: [decorators, wraps, testing, try-finally]
+hints:
+  - "Read the clock before calling func and again in a finally block, so the time is recorded whether func returns or raises. return func(*args, **kwargs) inside the try still returns the result."
+  - "Set up wrapper.stats = {\"calls\": 0, \"total\": 0.0, \"slowest\": 0.0} and wrapper.slow_calls = [] after defining the wrapper, before returning it."
+  - "In the finally block: update the three stats, and if elapsed > threshold, append f\"{func.__name__} took {elapsed:.2f}s\" to wrapper.slow_calls."

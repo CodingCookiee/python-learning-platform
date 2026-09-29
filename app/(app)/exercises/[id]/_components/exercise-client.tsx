@@ -323,7 +323,14 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
   const { status: runtimeStatus, text: runtimeText } = useRuntimeStatus();
   const isPredict = drill.type === "predict";
 
-  const [code, setCode] = React.useState(drill.starterCode);
+  const [code, setCodeState] = React.useState(drill.starterCode);
+  // Handlers read the latest code from a ref, so a run started right after an edit
+  // (or from the editor's Ctrl+Enter) never tests a stale copy
+  const codeRef = React.useRef(drill.starterCode);
+  const setCode = React.useCallback((next: string) => {
+    codeRef.current = next;
+    setCodeState(next);
+  }, []);
   const [answer, setAnswer] = React.useState("");
   const [stdin, setStdin] = React.useState("");
   const [busy, setBusy] = React.useState<"check" | "run" | null>(null);
@@ -391,7 +398,8 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
         await record(correct, answer, { kind: "predict", correct });
         return;
       }
-      const result = await runtime.test(code, drill.tests, {
+      const submitted = codeRef.current;
+      const result = await runtime.test(submitted, drill.tests, {
         packages: drill.packages,
         timeoutMs: drill.timeoutMs + 1000,
         importSolution: drill.importSolution,
@@ -400,7 +408,7 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
       // The drill's own tests failing to load isn't the learner's attempt
       if (result.status === "error" && result.phase === "tests") return;
       const passed = result.status === "ok" && result.passed === true;
-      await record(passed, code, {
+      await record(passed, submitted, {
         status: result.status,
         tests: result.tests.map((t) => ({ name: t.name, passed: t.passed })),
       });
@@ -416,7 +424,7 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
     setBusy("run");
     try {
       const lines = stdin.length > 0 ? stdin.replace(/\r\n/g, "\n").replace(/\n$/, "").split("\n") : null;
-      const result = await getPythonRuntime().run(isPredict ? drill.starterCode : code, {
+      const result = await getPythonRuntime().run(isPredict ? drill.starterCode : codeRef.current, {
         stdin: lines,
         packages: drill.packages,
         timeoutMs: drill.timeoutMs + 1000,

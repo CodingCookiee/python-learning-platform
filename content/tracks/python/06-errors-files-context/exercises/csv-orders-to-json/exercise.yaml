@@ -1,0 +1,8 @@
+title: Order lines from CSV to JSON
+type: function
+difficulty: stretch
+tags: [csv, json, decimal, grouping, files]
+hints:
+  - "Read the CSV with csv.DictReader. Keep a dict from order_id to the order being built; the first time you see an id, create {\"order_id\": ..., \"customer\": ..., \"lines\": [], \"total\": Decimal(\"0\")}."
+  - "For each row, append the line (with int(row[\"quantity\"])) and add quantity * Decimal(row[\"unit_price\"]) to the order's total. Dicts keep insertion order, so the orders stay in first-seen order."
+  - "Before writing, turn each total into text with f\"{total:.2f}\", then json.dump(list(orders.values()), file, indent=2, ensure_ascii=False)."

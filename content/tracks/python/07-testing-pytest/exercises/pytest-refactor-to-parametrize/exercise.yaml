@@ -1,0 +1,11 @@
+title: Six tests into one table
+type: refactor
+difficulty: core
+tags: [pytest, parametrize, ids, refactoring]
+packages: [pytest]
+timeout: 20
+script: true
+hints:
+  - "Every test differs only in the password and the expected strength, so those are the two parameters: \"password, strength\"."
+  - Copy each test's two values into a tuple in the table, and name the case with ids= (a list in the same order) or pytest.param(..., id=...).
+  - "The body is one line: assert password_strength(password) == strength. Delete the six old functions."

@@ -1,0 +1,10 @@
+title: "Predict: which cases pass?"
+type: predict
+difficulty: core
+tags: [pytest, parametrize, ids]
+packages: [pytest]
+timeout: 20
+hints:
+  - Work through loyalty_discount by hand for each number of years, and compare with the expected percent in the table. One case disagrees.
+  - "A case given an id shows it in square brackets. Without ids, numbers and strings appear as themselves, and several values are joined with a dash."
+  - "With two stacked parametrize decorators, pytest runs every combination: 2 × 2 here. The decorator nearest the function supplies the first part of each id, so the ids look like 1-basic, and the other decorator's values change fastest."

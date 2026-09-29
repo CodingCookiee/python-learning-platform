@@ -1,0 +1,10 @@
+title: A table of shipping bands
+type: tests
+difficulty: warm-up
+tags: [pytest, parametrize, boundaries]
+packages: [pytest]
+timeout: 20
+hints:
+  - Each case is a (weight_kg, band) tuple in the list. Add one line per case.
+  - "A boundary needs a case on each side of it: 2 is small, and a little over 2 (2.01) is medium."
+  - "Cases that catch most mistakes: (2, \"small\"), (2.01, \"medium\"), (10, \"medium\"), (10.01, \"large\"), and one weight well into the large band."

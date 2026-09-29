@@ -94,6 +94,11 @@ export function PythonEditor({
   }, []);
 
   const saveTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  // The Ctrl+Enter action is registered once at mount; read the latest handler through a ref
+  const onRunRef = React.useRef(onRun);
+  React.useEffect(() => {
+    onRunRef.current = onRun;
+  });
 
   const [initialValue] = React.useState<string>(() => {
     if (storageKey && typeof window !== "undefined") {
@@ -115,13 +120,16 @@ export function PythonEditor({
   }
 
   function handleMount(editor: EditorInstance, monaco: Monaco) {
+    // Code restored from localStorage is what's on screen, so it's what the parent must run
+    if (initialValue !== value) onChange(initialValue);
+
     // Keyboard shortcut to run code
     if (onRun) {
       editor.addAction({
         id: "run-code",
         label: "Run Code",
         keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter],
-        run: () => onRun(),
+        run: () => onRunRef.current?.(),
       });
     }
 

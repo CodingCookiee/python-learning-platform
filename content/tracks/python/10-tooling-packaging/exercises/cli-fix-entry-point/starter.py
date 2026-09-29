@@ -1,0 +1,29 @@
+import argparse
+import re
+import sys
+
+
+def slugify(title, separator="-"):
+    words = re.findall(r"[a-z0-9]+", title.lower())
+    return separator.join(words)
+
+
+def build_parser():
+    parser = argparse.ArgumentParser(prog="slug", description="Turn titles into URL slugs.")
+    parser.add_argument("titles", nargs="+", help="titles to convert")
+    parser.add_argument("--separator", default="-", help="text between words (default: %(default)s)")
+    return parser
+
+
+def main(argv=None):
+    args = build_parser().parse_args()
+    for title in args.titles:
+        slug = slugify(title, args.separator)
+        if not slug:
+            print(f"slug: error: {title!r} has no letters or digits")
+            return
+        print(slug)
+
+
+if __name__ == "main":
+    main()

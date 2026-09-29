@@ -1,0 +1,8 @@
+title: An audit trail that breaks what it audits
+type: fix
+difficulty: core
+tags: [decorators, wraps, args-kwargs]
+hints:
+  - Try refund("A1", 12.5, reason="damaged") in the starter. The wrapper only accepts positional arguments, so a keyword argument can't get through.
+  - Once the keyword arguments get through, refund returns None. Look at the line that calls func inside the wrapper.
+  - "Last, refund.__name__ is \"wrapper\". Decorate the wrapper with @wraps(func) from functools."
