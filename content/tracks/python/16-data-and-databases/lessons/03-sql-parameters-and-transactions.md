@@ -208,23 +208,29 @@ import sqlite3
 conn = sqlite3.connect(":memory:")
 conn.executescript("""
     CREATE TABLE invoices (number TEXT PRIMARY KEY, status TEXT NOT NULL);
-    CREATE TABLE payments (invoice TEXT NOT NULL, amount_cents INTEGER NOT NULL CHECK (amount_cents > 0));
+    CREATE TABLE payments (invoice TEXT NOT NULL, amount_cents INTEGER NOT NULL);
     INSERT INTO invoices VALUES ('INV-0042', 'sent'), ('INV-0043', 'sent');
 """)
 
 def record_payment(number, amount_cents):
     with conn:
         conn.execute("INSERT INTO payments VALUES (?, ?)", (number, amount_cents))
-        conn.execute("UPDATE invoices SET status = 'paid' WHERE number = ?", (number,))
+        updated = conn.execute("UPDATE invoices SET status = 'paid' WHERE number = ?", (number,))
+        if updated.rowcount == 0:
+            raise ValueError(f"No invoice {number}")    # the INSERT above is rolled back
 
 record_payment("INV-0042", 125000)
 try:
-    record_payment("INV-0043", -5)          # the CHECK refuses it
-except sqlite3.IntegrityError as error:
+    record_payment("INV-9999", 5000)
+except ValueError as error:
     print("Refused:", error)
 
 conn.execute("SELECT * FROM invoices").fetchall(), conn.execute("SELECT * FROM payments").fetchall()
 ```
+
+`cursor.rowcount` is the number of rows an `INSERT`, `UPDATE` or `DELETE` changed. The payment for
+the missing invoice was inserted, then rolled back when the block raised, so only one payment
+remains.
 
 > [!WARNING]
 > `with conn:` manages the **transaction**, not the connection: it doesn't close it. That's

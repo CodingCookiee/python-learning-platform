@@ -32,9 +32,9 @@ async def fetch_rate(currency, delay):
 
 async def main():
     rates = await asyncio.gather(
-        fetch_rate("GBP", 0.03),
+        fetch_rate("GBP", 0.06),
         fetch_rate("USD", 0.01),
-        fetch_rate("JPY", 0.02),
+        fetch_rate("JPY", 0.03),
     )
     print(rates)
 
@@ -111,8 +111,8 @@ async def main():
     try:
         async with asyncio.TaskGroup() as group:
             group.create_task(reserve("seat 14A", 0.01))
-            group.create_task(reserve("hotel", 0.02, fail=True))
-            group.create_task(reserve("rental car", 0.05))
+            group.create_task(reserve("hotel", 0.04, fail=True))
+            group.create_task(reserve("rental car", 0.1))
     except* ValueError as failures:
         print("booking failed:", [str(error) for error in failures.exceptions])
 
@@ -198,14 +198,14 @@ async def export_orders(orders):
     print("opened the export file")
     try:
         for order in orders:
-            await asyncio.sleep(0.01)
+            await asyncio.sleep(0.05)
             print("wrote", order)
     finally:
         print("closed the export file")
 
 async def main():
     task = asyncio.create_task(export_orders(["A-1", "A-2", "A-3", "A-4"]))
-    await asyncio.sleep(0.025)
+    await asyncio.sleep(0.12)
     task.cancel()
     try:
         await task

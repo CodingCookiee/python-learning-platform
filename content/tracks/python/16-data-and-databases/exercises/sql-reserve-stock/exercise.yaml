@@ -1,0 +1,8 @@
+title: Reserve stock without losing an update
+type: function
+difficulty: core
+tags: [sql, transactions, update, rowcount, concurrency]
+hints:
+  - "Don't SELECT the stock and decide in Python: another request can change it in between. One UPDATE can do the check and the change."
+  - "UPDATE stock SET on_hand = on_hand - ? WHERE sku = ? AND on_hand >= ? changes one row if there's enough, and none otherwise."
+  - "Run it inside with conn: so it's committed, and return cursor.rowcount == 1. Check quantity before touching the database."

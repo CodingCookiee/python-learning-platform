@@ -1,0 +1,9 @@
+title: Call Claude with raw httpx
+type: function
+difficulty: warm-up
+tags: [anthropic, httpx, messages api]
+packages: [httpx]
+hints:
+  - "POST to the relative path /v1/messages: the client you're given already has base_url set to https://api.anthropic.com."
+  - "Send two headers, x-api-key and anthropic-version (2023-06-01), and a JSON body with model, max_tokens and messages."
+  - "The reply text is in the content list: response.json()[\"content\"][0][\"text\"]. Call response.raise_for_status() first so errors don't turn into a confusing KeyError."

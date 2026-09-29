@@ -1,0 +1,8 @@
+title: Three properties, one descriptor
+type: refactor
+difficulty: core
+tags: [descriptors, set-name, property, refactoring]
+hints:
+  - "Write class PositiveNumber with __set_name__(self, owner, name) storing the name, __get__ returning instance.__dict__[self.name] (or the descriptor itself when instance is None), and __set__ doing the check."
+  - "Store the value on the instance, never on the descriptor: there's one descriptor per class, shared by every Shipment. instance.__dict__[self.name] = value is safe because a data descriptor wins over the instance dict."
+  - "Then the class body is just weight_kg = PositiveNumber(), length_cm = PositiveNumber(), declared_value = PositiveNumber(), and __init__ assigns them as before."

@@ -1,0 +1,9 @@
+title: One error for every way a lookup fails
+type: function
+difficulty: stretch
+tags: [httpx, exceptions, chaining, raise-for-status]
+packages: [httpx]
+hints:
+  - "Keep each try block small: one around the request (catching TimeoutException, then TransportError), one around raise_for_status(), one around response.json()."
+  - "In the HTTPStatusError handler, return None when error.response.status_code == 404. Otherwise raise OrderLookupError(...) from error, so the original is kept as __cause__."
+  - "response.json() raises json.JSONDecodeError, a subclass of ValueError, when the body isn't JSON. Catch ValueError there, not Exception."

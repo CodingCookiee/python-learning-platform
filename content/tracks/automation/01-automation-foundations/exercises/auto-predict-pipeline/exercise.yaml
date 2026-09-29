@@ -1,0 +1,7 @@
+title: "Predict: the reminder pipeline"
+type: predict
+difficulty: warm-up
+tags: [automation-thinking, generators]
+hints:
+  - trigger() is a generator, so each "trigger:" line prints just before that event is handled, not all at the start.
+  - Cancelled events are skipped by the loop before any decision is made, and p9 isn't in the patients dict.

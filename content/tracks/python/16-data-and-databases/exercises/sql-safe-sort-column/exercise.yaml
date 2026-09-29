@@ -1,0 +1,8 @@
+title: Sorting chosen by the user, safely
+type: function
+difficulty: core
+tags: [sql, sql-injection, parameters, whitelist, order-by]
+hints:
+  - A placeholder can't stand for a column name, so keep a dict from each allowed sort name to the column it sorts by, and raise ValueError for anything else.
+  - "Build the WHERE part only when status is given, and pass status as a parameter. The direction is one of two strings your code picks: 'DESC' if descending else 'ASC'."
+  - "ORDER BY {column} {direction}, number, where column and direction come from your own code, and status goes in the params tuple."

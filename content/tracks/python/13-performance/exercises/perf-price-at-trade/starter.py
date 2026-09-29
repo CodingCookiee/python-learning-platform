@@ -1,0 +1,3 @@
+def prices_at(trade_times, change_times, change_prices):
+    """The price in effect at each trade time, or None before the first change."""
+    ...

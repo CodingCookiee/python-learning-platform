@@ -1,0 +1,8 @@
+title: "Predict: what does with conn: keep?"
+type: predict
+difficulty: core
+tags: [sqlite3, transactions, context-managers, commit, rollback]
+hints:
+  - "with conn: commits when the block finishes normally, and rolls back when it raises. The refused block had two inserts; neither survives."
+  - Outside a with block, the INSERT opens a transaction that stays open (in_transaction is True) until commit() or rollback().
+  - "with conn: never closes the connection, so the last query still works."

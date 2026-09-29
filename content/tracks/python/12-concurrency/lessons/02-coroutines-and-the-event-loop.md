@@ -172,15 +172,15 @@ exception, awaiting it raises that exception in the awaiting coroutine. A task i
 ```python
 import asyncio
 
-async def refund(order_id):
-    await asyncio.sleep(0.01)
+async def refund(order_id, delay):
+    await asyncio.sleep(delay)
     if order_id == "A-1043":
         raise ValueError(f"{order_id}: already refunded")
     return f"{order_id} refunded"
 
 async def main():
-    good = asyncio.create_task(refund("A-1042"))
-    bad = asyncio.create_task(refund("A-1043"))
+    good = asyncio.create_task(refund("A-1042", 0.01))
+    bad = asyncio.create_task(refund("A-1043", 0.05))
     print(good.done())               # False: neither task has run yet
     print(await good)
     try:

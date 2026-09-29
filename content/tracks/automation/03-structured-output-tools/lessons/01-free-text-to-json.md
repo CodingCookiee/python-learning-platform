@@ -75,9 +75,8 @@ Then call your A2 client with it, at temperature 0, since extraction wants the s
 time rather than creativity:
 
 ```python norun
-from llm import AnthropicLLM   # the client you built in A2
-
-llm = AnthropicLLM(api_key=os.environ["ANTHROPIC_API_KEY"], model="claude-opus-5")
+# llm is the provider-neutral client you built in A2, made by your factory with
+# the key from ANTHROPIC_API_KEY or OPENAI_API_KEY in the environment.
 response = llm.complete(lead_messages(email), system=LEAD_SYSTEM, temperature=0, max_tokens=300)
 response.text   # '{"company": "Northwind", "seats": 40, "deadline": "before March", "wants_demo": true}'
 ```

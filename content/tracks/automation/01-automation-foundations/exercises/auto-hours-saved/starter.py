@@ -1,0 +1,3 @@
+def hours_saved(runs_per_week, minutes_per_run):
+    """Hours a month of manual work, rounded to 1 decimal place (a month is 52/12 weeks)."""
+    ...

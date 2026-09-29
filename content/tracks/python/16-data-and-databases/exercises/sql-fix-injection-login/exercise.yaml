@@ -1,0 +1,7 @@
+title: Close the injection hole
+type: fix
+difficulty: warm-up
+tags: [sql, sql-injection, parameters, security]
+hints:
+  - The email is pasted into the SQL text, so a quote in it ends the string and the rest becomes SQL.
+  - "Write ? where the value goes, with no quotes around it, and pass the value separately as a one-item tuple: (email,)."

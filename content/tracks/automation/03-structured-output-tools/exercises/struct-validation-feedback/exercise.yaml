@@ -1,0 +1,9 @@
+title: Validation errors the model can read
+type: function
+difficulty: warm-up
+tags: [pydantic, ValidationError, feedback]
+packages: [pydantic]
+hints:
+  - error.errors() returns a list of dicts. Each has "loc" (a tuple of field names and list indexes) and "msg".
+  - '".".join(str(part) for part in item["loc"]) turns ("lines", 0, "quantity") into "lines.0.quantity". Use "(root)" when loc is empty.'
+  - Build one f"{location}: {item['msg']}" string per item and join them with "\n".

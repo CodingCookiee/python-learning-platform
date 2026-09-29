@@ -1,0 +1,9 @@
+title: The job that waited all night
+type: fix
+difficulty: core
+tags: [httpx, timeouts, exceptions]
+packages: [httpx]
+hints:
+  - "Give the client timeout=httpx.Timeout(10, connect=3). A single request can override it: client.get(path, timeout=httpx.Timeout(60, connect=3))."
+  - "Wrap only the request in try/except httpx.TimeoutException and return None there. ReadTimeout and ConnectTimeout are both kinds of TimeoutException."
+  - ConnectError is not a TimeoutException, so it isn't caught and still raises, which is what the job wants.

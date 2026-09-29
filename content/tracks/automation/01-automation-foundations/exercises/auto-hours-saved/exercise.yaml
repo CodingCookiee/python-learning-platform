@@ -1,0 +1,7 @@
+title: Hours saved per month
+type: function
+difficulty: warm-up
+tags: [roi, arithmetic]
+hints:
+  - A month is 52 / 12 weeks on average, not 4.
+  - "Minutes per week are runs_per_week * minutes_per_run. Scale to a month, divide by 60, and round(..., 1)."

@@ -1,0 +1,3 @@
+def reserve_stock(conn, sku, quantity):
+    """Take quantity of sku out of stock and return True, or change nothing and return False."""
+    ...

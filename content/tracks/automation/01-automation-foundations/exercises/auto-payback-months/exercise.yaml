@@ -1,0 +1,8 @@
+title: Payback in months
+type: function
+difficulty: core
+tags: [roi, keyword-only-arguments]
+hints:
+  - "The monthly saving has two parts: the hours saved times the hourly rate, and the errors avoided times what each one costs."
+  - Subtract the running cost before you divide. If what's left is zero or less, the automation never pays back.
+  - "net = time_value + error_value - running_cost_per_month; return None if net <= 0, else round(build_cost / net, 1)."

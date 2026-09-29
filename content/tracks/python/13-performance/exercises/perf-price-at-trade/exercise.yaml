@@ -1,0 +1,9 @@
+title: The price at the moment of each trade
+type: function
+difficulty: stretch
+timeout: 10
+tags: [bisect, complexity, sorted, speed]
+hints:
+  - Scanning the price changes for every trade is O(trades x changes), which the full-day test won't allow.
+  - The change times are sorted, so bisect can find where a trade time falls in O(log n).
+  - bisect_right(change_times, t) is the number of changes at or before t. Subtract 1 for the index of the latest one; -1 means the trade came before the first change.

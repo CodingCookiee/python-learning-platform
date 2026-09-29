@@ -1,0 +1,8 @@
+title: An all-or-nothing payments import
+type: function
+difficulty: stretch
+tags: [sqlite3, transactions, csv, decimal, integrity, error-handling]
+hints:
+  - "Read the text with csv.DictReader(io.StringIO(csv_text)). reader.line_num is the line of the file the current row came from."
+  - "Convert the amount with Decimal and multiply by 100; decimal.InvalidOperation means it wasn't a number. Insert each row yourself (not executemany) so you know which line an IntegrityError came from."
+  - "Put the whole loop inside with conn:, and raise ValueError(f\"line {reader.line_num}: ...\") from the error. Raising inside the block rolls back every row inserted so far."

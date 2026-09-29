@@ -1,0 +1,8 @@
+title: The payment nobody else could see
+type: fix
+difficulty: core
+tags: [sqlite3, transactions, commit, rollback, context-managers]
+hints:
+  - Nothing ever commits, so the writes sit in an open transaction that only this connection can see.
+  - "When the invoice doesn't exist, the payment row has already been inserted. Raising isn't enough: that insert has to be rolled back."
+  - "Wrap both statements, and the raise, in with conn:. It commits if the block finishes and rolls back if it raises."

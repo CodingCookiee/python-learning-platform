@@ -1,0 +1,8 @@
+title: "Predict: descriptor or instance dict?"
+type: predict
+difficulty: core
+tags: [descriptors, set-name, data-descriptor, attribute-lookup]
+hints:
+  - "__set_name__ runs while the class statement finishes, before anything after the class runs."
+  - "Validated defines __set__, so it's a data descriptor: it wins over the instance dict every time, and its __get__ reads the _code key it stored. Putting a code key in the dict by hand changes nothing it reads."
+  - "Label defines only __get__. Once the instance has its own label in its dict, that wins, but only for that instance; the class still sees the descriptor."
