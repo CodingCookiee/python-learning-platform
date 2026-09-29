@@ -1,0 +1,10 @@
+title: Drop the adapter, keep the contract
+type: refactor
+difficulty: core
+tags: [Protocol, abc, structural-typing, refactoring, mypy]
+packages: [mypy]
+timeout: 30
+hints:
+  - "Turn PaymentGateway into a Protocol: class PaymentGateway(Protocol): with the same charge signature and ... as its body."
+  - A Protocol needs no abstractmethod. Delete the ABC imports and the whole PayFastAdapter class.
+  - checkout's signature and body don't change at all. PayFastClient already has a matching charge method, so mypy now accepts it directly.

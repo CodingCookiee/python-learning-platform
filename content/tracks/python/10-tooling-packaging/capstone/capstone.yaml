@@ -1,0 +1,21 @@
+slug: ship-a-cli-tool
+title: Ship a CLI tool
+summary: Build worklog, a command-line tool for logging hours, as a packaged, linted, typed and tested project that installs with uv tool install.
+hours: 6
+xp: 150
+requirements:
+  - "A uv project in the src layout (src/worklog/), created with uv init --package, with pyproject.toml, uv.lock and .python-version committed and .venv ignored"
+  - "pyproject.toml has complete [project] metadata (a real description, readme, requires-python, license, authors), a [project.scripts] entry point worklog = \"worklog.cli:main\", and a [build-system] table"
+  - "worklog add CLIENT HOURS [--date DAY] [--note TEXT], worklog list [--week WEEK] and worklog report [--week WEEK] [--format table|csv|json] work as in the brief, with --file, -v/--verbose, -q/--quiet and --version on the main command"
+  - "Bad arguments (hours outside 0 to 24, a malformed date or week, an unknown format) are argparse usage errors with a clear message and exit status 2; main(argv=None) returns 0 on success"
+  - "Logging is configured once with dictConfig at the start of main(), writes to stderr, and follows -q and -v; every other module only uses logging.getLogger(__name__)"
+  - "Totalling, filtering by week and formatting live in functions outside cli.py, and reading and writing the log file lives in its own module"
+  - "ruff (lint and format) and mypy --strict are configured in pyproject.toml and pass, pytest tests cover the parser, the report logic and main() end to end, and pre-commit runs ruff on every commit"
+  - "The README explains what the tool does, how to install it with uv tool install git+https://github.com/..., how to use each command, and how to run the checks, and the release is tagged v0.1.0"
+criteria:
+  - "uv tool install git+<your repo>@v0.1.0 installs a working worklog command, and worklog --help, worklog --version and the brief's sample run behave as shown"
+  - "uv sync --locked, uv run ruff check, uv run ruff format --check, uv run mypy and uv run pytest all pass on a fresh clone"
+  - "Usage errors exit with status 2 and a message on stderr; normal output goes to stdout only, so worklog report --format csv > hours.csv produces a clean file"
+  - "cli.py is thin: parsing, logging setup and printing only. Hours are Decimal from input to output, and weeks are ISO weeks"
+  - "Tests call main([...]) directly with a temporary log file (tmp_path), check both output and exit codes, and never touch the real ~/.worklog.jsonl"
+  - "The history shows the project growing in sensible commits, with pre-commit installed from the start, and nothing generated (.venv, dist/, __pycache__) committed"

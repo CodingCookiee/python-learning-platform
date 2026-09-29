@@ -1,0 +1,8 @@
+title: "Predict: isinstance with a Protocol"
+type: predict
+difficulty: core
+tags: [Protocol, runtime_checkable, isinstance]
+hints:
+  - "isinstance with a runtime_checkable protocol only asks: does the object have an attribute with each member's name?"
+  - It doesn't look at parameters, return types, or even whether the attribute can be called. Only Invoice has no refund at all.
+  - issubclass works the same way on the class. A protocol never appears in the MRO of a class that didn't inherit from it.

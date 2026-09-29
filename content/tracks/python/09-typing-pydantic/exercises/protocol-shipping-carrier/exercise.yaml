@@ -1,0 +1,10 @@
+title: Any carrier that can quote
+type: function
+difficulty: warm-up
+tags: [Protocol, structural-typing, mypy]
+packages: [mypy]
+timeout: 30
+hints:
+  - "A Protocol lists what a type must have: class Carrier(Protocol): with name: str and a quote method whose body is just ...."
+  - The carrier classes don't inherit from Carrier, and don't need to. Matching attributes and method signatures is enough.
+  - "Build (carrier.name, carrier.quote(weight_grams, country)) for each carrier, raise ValueError for an empty list, and return min(quotes, key=lambda quote: quote[1])."

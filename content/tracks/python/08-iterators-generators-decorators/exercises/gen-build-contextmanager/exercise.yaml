@@ -1,0 +1,8 @@
+title: Build @contextmanager yourself
+type: function
+difficulty: stretch
+tags: [context-managers, generators, decorators, exceptions, throw]
+hints:
+  - my_contextmanager is a decorator. Its wrapper takes the arguments, calls func(*args, **kwargs) to create the generator, and returns GeneratorContextManager(generator). __enter__ is next(self.gen), turning StopIteration into the "didn't yield" RuntimeError.
+  - "__exit__ with no exception: call next(self.gen). If it raises StopIteration, the generator finished, so return False. If it returns, the generator yielded again: raise RuntimeError(\"generator didn't stop\")."
+  - "__exit__ with an exception: call self.gen.throw(exc). StopIteration means the generator handled it and finished: return True to suppress. If throw() raises exc itself, return False so the original error carries on; if it raises something else, let that propagate. If throw() returns, the generator yielded again: raise RuntimeError(\"generator didn't stop after throw()\")."

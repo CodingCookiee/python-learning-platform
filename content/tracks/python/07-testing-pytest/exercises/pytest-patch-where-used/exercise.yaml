@@ -1,0 +1,11 @@
+title: Patch where it's looked up
+type: fix
+difficulty: core
+tags: [mock, patch, imports]
+packages: [pytest]
+timeout: 20
+script: true
+hints:
+  - "from mailer import send_email copies the function into signup's namespace when signup is imported. register() calls that copy, not mailer.send_email."
+  - Patching replaces a name in one module. The name register uses lives in the signup module.
+  - "Change every patch(\"mailer.send_email\") to patch(\"signup.send_email\")."

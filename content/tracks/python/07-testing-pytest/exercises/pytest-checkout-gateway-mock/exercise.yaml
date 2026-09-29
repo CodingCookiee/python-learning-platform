@@ -1,0 +1,10 @@
+title: Mock the payment gateway
+type: tests
+difficulty: core
+tags: [mock, unittest-mock, side-effect, assert-called]
+packages: [pytest]
+timeout: 20
+hints:
+  - "gateway = Mock(), then gateway.charge.return_value = {\"id\": \"ch_1\"}. After checkout(order, gateway), gateway.charge.assert_called_once_with(1999, \"GBP\", idempotency_key=\"order-1042\") checks the amount, the currency and the key in one go."
+  - "gateway.charge.side_effect = PaymentDeclined(\"insufficient funds\") makes the charge fail. Check the result, and that charge was called only once."
+  - "For a free order, check the status and gateway.charge.assert_not_called()."

@@ -155,6 +155,16 @@ dev = [
 `uv remove httpx` takes one out again. To choose the range yourself, quote it:
 `uv add "pydantic>=2.7,<3"`.
 
+```quiz
+question: Someone installs your finished package from PyPI. Which of these do they get?
+options:
+  - httpx only; the dev group is for people working on the project
+  - httpx, pytest, ruff and mypy
+  - Nothing until they run uv sync
+answer: 0
+explain: "[project] dependencies are what your package needs to run, so they're installed with it. [dependency-groups] are local to the project: they're installed by uv sync and uv run in your checkout, never for your users."
+```
+
 ## Reading a version specifier
 
 A dependency string is a name, optional extras in brackets, a specifier, and an optional marker
@@ -278,6 +288,16 @@ uvx pycowsay "Invoices sent"
 
 Tools that your project's checks depend on, like pytest, ruff and mypy, still belong in the dev
 group, so the lockfile pins them and everyone on the team runs the same versions.
+
+```quiz
+question: CI runs `ruff check` on every pull request, and a teammate's ruff reports errors that yours doesn't. What's the fix?
+options:
+  - Everyone runs uv tool install ruff again to get the latest
+  - Add ruff to the dev group and run it with uv run ruff check, so uv.lock pins one version for everyone
+  - Switch CI to uvx ruff check
+answer: 1
+explain: A new ruff release can add or change rules. Pinning it in uv.lock through the dev group means the same version runs on every machine and in CI. uvx and uv tool install take whatever is newest.
+```
 
 > [!JS]
 > Coming from JavaScript: `uvx` is `npx`, and `uv tool install` is `npm install -g`, except that

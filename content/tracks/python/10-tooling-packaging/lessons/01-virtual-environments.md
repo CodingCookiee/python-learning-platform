@@ -137,6 +137,16 @@ Activating a venv only changes your shell's `PATH` so that `python` means `.venv
 isn't required: running `.venv/bin/python main.py` directly gives exactly the same result, and
 that's what tools like uv and your editor do.
 
+```quiz
+question: You activate .venv in one terminal, then open a second terminal in the same folder and run `python main.py`. Which Python runs it?
+options:
+  - The venv's Python, because the venv is in this folder
+  - Whichever python the second terminal's PATH finds, usually the system one
+  - Neither; Python refuses to run while a venv is active elsewhere
+answer: 1
+explain: Activation only changes PATH in the shell where you ran it. Nothing about the folder changes, which is why tools that call .venv/bin/python directly are more reliable than remembering to activate.
+```
+
 > [!WARNING]
 > Never copy, move or commit a venv. Its scripts contain absolute paths to where it was created,
 > and its packages were built for your OS. A venv is disposable: delete the folder and recreate it

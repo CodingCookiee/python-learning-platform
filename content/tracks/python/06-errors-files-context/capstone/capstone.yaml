@@ -1,0 +1,20 @@
+slug: csv-cleaner
+title: CSV cleaner
+summary: Validate a messy order export, write a clean CSV and an error report, and never crash on a bad row.
+hours: 4
+xp: 150
+requirements:
+  - "python cleaner.py <orders.csv> reads the export and writes <name>-clean.csv and <name>-errors.csv next to it, then prints the summary shown in the brief"
+  - Reads UTF-8 with or without a byte order mark, falls back to cp1252 for files that aren't UTF-8, and matches column names whatever their case or spacing
+  - "clean_row(row) cleans and validates all seven fields and raises an ExceptionGroup holding one FieldError per problem, so every problem in a row is reported, not just the first"
+  - "Rows with the wrong number of fields, and repeated order_id and sku pairs, are rejected too; rows whose fields are all empty are skipped"
+  - "The error report has one row per problem, with the line number, order id, field, value and problem; the clean file has the eight clean columns, with money to two decimal places"
+  - "Exits with 0 when every row was clean, 1 when some were rejected, and 2 with a one-line error on stderr, and no traceback, when the file is missing or lacks a required column"
+  - An unexpected error while cleaning one row is logged with its traceback and reported for that row, and the cleaner carries on with the next row
+criteria:
+  - The sample export produces exactly the clean file, error report, summary and exit code shown in the brief
+  - "FieldError and InputFileError share a CleanerError base class; FieldError is also a ValueError and carries field, value and problem attributes"
+  - "No bare except or except Exception: pass anywhere; the one broad except is at the per-row boundary, and it logs with log.exception"
+  - "Every file is opened with with (or ExitStack), an explicit encoding, and newline=\"\" for CSV; outputs are written with csv.DictWriter"
+  - "Money uses Decimal from end to end, and totals are correct to the penny"
+  - "Importing cleaner.py prints nothing and configures no logging; only main() prints and calls logging.basicConfig"

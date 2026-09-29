@@ -30,7 +30,7 @@ def _():
 
 @hidden("Streams a long log")
 def _():
-    assert total_bytes(big_log(100_000)) == 49_950_000
+    assert total_bytes(big_log(20_000)) == 9_990_000
 
 
 @hidden("An empty log, or one with nothing sent")

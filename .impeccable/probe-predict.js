@@ -1,6 +1,8 @@
 (async () => {
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const log = [];
+  for (let i = 0; i < 60 && !document.querySelector('textarea[placeholder^="Type the output"]'); i++) await sleep(500);
+  log.push("at " + location.pathname + " h1=" + document.querySelector("h1")?.textContent + " areas=" + document.querySelectorAll("textarea").length + " ready=" + document.readyState);
   const areas = [...document.querySelectorAll("textarea")].map((t) => t.getAttribute("placeholder") || t.className.slice(0, 30));
   log.push("textareas: " + JSON.stringify(areas));
   const box = document.querySelector('textarea[placeholder^="Type the output"]');

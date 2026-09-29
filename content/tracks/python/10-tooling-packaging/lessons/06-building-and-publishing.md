@@ -139,6 +139,16 @@ module-name = "invoicer"
   it the oldest version you actually test on.
 - `description` still saying "Add your description here" is the classic sign of a rushed release.
 
+```quiz
+question: With the pyproject.toml above published, a user runs `uv add invoicer-ada`. What do they write in their code?
+options:
+  - import invoicer_ada
+  - import invoicer
+  - import invoicer-ada
+answer: 1
+explain: The distribution name is what you install; the import name is the package folder inside, which module-name says is invoicer. (import invoicer-ada isn't even valid Python.)
+```
+
 Versions follow **semantic versioning**: `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new
 features, MAJOR when you break something people rely on. uv edits the number for you:
 
@@ -222,6 +232,16 @@ uv publish --index testpypi --token pypi-AgENdGVzdC5weXBp...
 Check the page at `https://test.pypi.org/project/invoicer-ada/`: the README renders, the links
 work, the description isn't the placeholder. When it all looks right, create an account and token
 on pypi.org and run `uv publish` without `--index`.
+
+```quiz
+question: Why is the testpypi index marked `explicit = true`?
+options:
+  - So that uv publish uploads there by default
+  - So uv only uses it when a command names it, and never resolves your normal dependencies from TestPyPI
+  - TestPyPI rejects uploads from indexes that aren't explicit
+answer: 1
+explain: Anyone can upload anything to TestPyPI, including packages with the same names as real ones. An explicit index is only consulted when you ask for it by name, as uv publish --index testpypi does.
+```
 
 > [!WARNING]
 > A version can only be uploaded once, ever. If `0.1.0` has a mistake, you can't replace it: bump

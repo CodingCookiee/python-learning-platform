@@ -1,0 +1,8 @@
+title: A transaction that never rolls back
+type: fix
+difficulty: core
+tags: [context-managers, contextmanager, exceptions, generators]
+hints:
+  - When the block raises, @contextmanager throws the exception into the generator at the yield line. Nothing after the yield runs, so neither commit nor rollback happens.
+  - "Wrap the yield in try. In an except Exception: branch, roll back and then re-raise with a bare raise, so the caller still sees the error."
+  - "Put db.commit() in an else: branch of the same try, so it runs only when the block finished without an exception."

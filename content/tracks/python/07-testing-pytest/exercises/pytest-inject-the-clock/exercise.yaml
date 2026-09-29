@@ -1,0 +1,8 @@
+title: Pass the clock in
+type: refactor
+difficulty: stretch
+tags: [testability, dependency-injection, datetime]
+hints:
+  - "Add a today parameter to each function and use it wherever date.today() was: def trial_days_left(signed_up, today):"
+  - trial_banner calls trial_days_left, so it has to pass today along. Otherwise the banner would still depend on the real date.
+  - "Once neither function calls date.today(), the date import is only needed by callers, and from datetime import timedelta is enough here."

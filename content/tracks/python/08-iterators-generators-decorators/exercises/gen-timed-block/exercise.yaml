@@ -1,0 +1,8 @@
+title: A timer for blocks and functions
+type: function
+difficulty: core
+tags: [context-managers, contextmanager, decorators, exceptions]
+hints:
+  - Read the clock before the yield. Wrap the yield in try, with an except that handles the failure case and a separate path for success.
+  - "In except Exception: append the failed message, then raise to pass the error on. In else: append the success message. Each reads the clock again to work out the elapsed time."
+  - You don't need to write anything for the decorator form. The object @contextmanager returns already works as a decorator, and builds a fresh generator for every call.
