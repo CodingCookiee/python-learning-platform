@@ -1,0 +1,8 @@
+title: Review an SLA for promises you can't keep
+type: function
+difficulty: core
+tags: [sla, handover, ai-systems]
+hints:
+  - "Go through the five checks in order. sla.get(\"accuracy\") is None when there's no accuracy promise, and then neither accuracy check applies."
+  - "Missing and blank measured_on both count: not (accuracy.get(\"measured_on\") or \"\").strip()."
+  - "Put the two numbers into the uptime message as they are: an f-string prints Decimal(\"99.9\") as 99.9."

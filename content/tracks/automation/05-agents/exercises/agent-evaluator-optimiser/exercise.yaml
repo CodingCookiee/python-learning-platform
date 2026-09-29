@@ -1,0 +1,8 @@
+title: A writer and a judge
+type: function
+difficulty: core
+tags: [workflows, evaluator-optimiser, json, loops]
+hints:
+  - "Write the first draft with writer.complete([{'role': 'user', 'content': write_prompt(brief)}], system=WRITER_SYSTEM). Then loop for round_number in range(1, max_rounds + 1)."
+  - "Each round: ask the judge with judge_prompt(brief, draft), temperature=0, and parse the reply with json.loads (a reply that isn't valid JSON, or has no integer score, scores 0 with empty feedback). Remember the best (draft, score) seen, keeping the earlier one on a tie."
+  - "Stop with Best(draft, score, round_number) when the score reaches threshold. Otherwise, unless it's the last round, improve the draft with improve_prompt(brief, draft, feedback). After the loop, return the best with rounds=max_rounds."

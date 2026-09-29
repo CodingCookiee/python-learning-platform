@@ -1,0 +1,7 @@
+title: Chain the prompts
+type: function
+difficulty: warm-up
+tags: [workflows, prompt-chaining, strings]
+hints:
+  - "Keep the current text in a variable. For each step, the prompt is step.replace('{input}', current)."
+  - "current = llm.complete([{'role': 'user', 'content': prompt}], system=system).text.strip(), and after the last step, return current."

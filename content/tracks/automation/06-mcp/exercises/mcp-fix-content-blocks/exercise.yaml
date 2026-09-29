@@ -1,0 +1,8 @@
+title: The agent only reads the first block
+type: fix
+difficulty: core
+tags: [mcp, content-blocks, agents, is-error]
+hints:
+  - Turn each block into a string on its own (a small function with one branch per block type), then join them with "\n".
+  - 'Use block.get(...) for anything that might be missing: an embedded resource is {"type": "resource", "resource": {"uri": ..., "text": ...}}, and its text is optional.'
+  - 'Check the empty-content case before joining, and wrap the finished text last: json.dumps({"error": text}) when result.get("isError").'

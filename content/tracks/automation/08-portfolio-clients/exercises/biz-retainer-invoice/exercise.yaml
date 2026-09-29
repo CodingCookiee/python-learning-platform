@@ -1,0 +1,8 @@
+title: A maintenance retainer invoice
+type: function
+difficulty: core
+tags: [retainers, invoicing, Decimal, rounding]
+hints:
+  - "Start with the retainer line, then add the other two only when they apply: extra hours above the included ones, and an AI cost above zero."
+  - "Rounding up to the billing increment: (extra / increment).to_integral_value(rounding=ROUND_CEILING) * increment."
+  - "The AI line is passed through at a margin, as in the pricing lesson: cost / (1 - margin), to the cent."

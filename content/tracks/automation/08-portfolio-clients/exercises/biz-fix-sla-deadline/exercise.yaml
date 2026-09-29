@@ -1,0 +1,8 @@
+title: An SLA deadline that forgets about weekends
+type: fix
+difficulty: stretch
+tags: [sla, datetime, business-hours]
+hints:
+  - "Adding a timedelta counts every hour of the day and every day of the week. Only 09:00 to 17:00 on working days should count."
+  - "Walk forward a day at a time. On a working day, the time available is from max(now, 09:00) to 17:00; if what's left fits, you're done, otherwise subtract it and move to 09:00 the next day."
+  - A report after 17:00, at the weekend or on a holiday starts the clock at 09:00 on the next working day. A deadline can land exactly on 17:00.

@@ -1,0 +1,8 @@
+title: Orchestrator and workers
+type: function
+difficulty: stretch
+tags: [workflows, orchestrator-workers, asyncio, gather, json, validation]
+hints:
+  - "Parse the orchestrator's reply with json.loads, and check it's a list of 1 to max_workers dicts that each have string title and instructions. Raise ValueError otherwise, before any worker runs."
+  - "Each worker is await llm.complete([{'role': 'user', 'content': worker_prompt(task, subtask)}], system=WORKER_SYSTEM). asyncio.gather over all of them keeps the findings in subtask order."
+  - "The synthesiser gets synthesis_prompt(task, subtasks, findings) with system=SYNTHESISER_SYSTEM. Return Report(subtasks, findings, answer)."

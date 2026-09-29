@@ -48,7 +48,7 @@ def _():
 
 @test("Records the tool names and the model the response names")
 def _():
-    llm, _fake, tracer = traced([Reply(tool_calls=[tool_call("lookup_vendor", name="Kiln Supplies")], usage=Usage(900, 20))])
+    llm, _fake, tracer = traced([Reply(tool_calls=[tool_call("lookup_vendor", vendor="Kiln Supplies")], usage=Usage(900, 20))])
     llm.complete(DOCUMENT, model="model-large")
     attributes = tracer.spans[0].attributes
     assert attributes["tool_calls"] == ["lookup_vendor"]

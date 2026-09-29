@@ -1,0 +1,8 @@
+title: Brief every account at once
+type: function
+difficulty: core
+tags: [workflows, parallelisation, asyncio, gather, semaphore]
+hints:
+  - "Write an inner async function for one company that awaits llm.complete(...) inside async with semaphore, and returns the text."
+  - "Catch exceptions inside that function and return None, so one failed call doesn't lose the others."
+  - "return await asyncio.gather(*(one(company) for company in companies)) keeps the results in the input order."

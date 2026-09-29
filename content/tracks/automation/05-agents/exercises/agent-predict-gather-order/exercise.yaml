@@ -1,0 +1,8 @@
+title: "Predict: gather's order"
+type: predict
+difficulty: warm-up
+tags: [asyncio, gather, parallelisation]
+hints:
+  - Each await asyncio.sleep(0) hands control back to the event loop, which runs the other tasks before coming back. The task with the fewest pauses finishes first.
+  - log records the order the briefs finished in.
+  - gather returns its results in the order the coroutines were passed to it, not the order they finished.

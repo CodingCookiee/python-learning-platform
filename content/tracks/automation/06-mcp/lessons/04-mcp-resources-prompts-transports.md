@@ -45,6 +45,9 @@ pieces (a folder, for instance). Each item repeats its `uri` and carries either 
 (base64-encoded bytes, for a PDF or an image):
 
 ```python
+DOCS = {"policy://returns": {"mimeType": "text/markdown",
+                             "text": "# Returns\n\nUnused items can be returned within 30 days."}}
+
 def read_resource(params):
     doc = DOCS[params["uri"]]
     return {"contents": [{"uri": params["uri"], "mimeType": doc["mimeType"], "text": doc["text"]}]}

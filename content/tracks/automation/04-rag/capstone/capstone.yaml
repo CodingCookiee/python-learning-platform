@@ -1,0 +1,20 @@
+slug: docs-chatbot
+title: Docs chatbot
+summary: Answer customers' questions from a help centre with numbered citations, refuse what the docs don't cover, and prove it with a retrieval eval that must reach its target.
+hours: 8
+xp: 200
+requirements:
+  - "chatbot.py takes an embed function and an llm with the course's neutral complete() interface, and runs the same code offline (fake_embed and a ScriptedLLM, in the browser) and live (real embeddings and your A2 client, keys from the environment)"
+  - "chunk_docs splits every article at its headings into frozen Chunk dataclasses with ids f\"{source}#{position}\" that match the eval labels, heading-path titles, and long sections packed into whole sentences; for_embedding() puts the title above the text"
+  - "Retriever embeds the chunks in batches through a cache keyed by model and text, keeps unit vectors in a numpy matrix, builds a BM25 index written by hand, and answers search() with reciprocal rank fusion of the vector and BM25 rankings"
+  - "answer() refuses without calling the model when retrieval is weak, packs the context within a token budget with the best chunks at the edges, sends numbered and escaped sources in the user message (never the system prompt), and maps [n] citations back to chunk ids"
+  - "An answer that is the refusal sentence, or cites no valid source, is returned as a refusal; an Answer records its text, cited chunk ids, whether it refused, and the chunk ids the model was given"
+  - "evaluate_retrieval reports recall@5, MRR and misses over the answerable questions, and evaluate_answers grades every question for refusals, citations it wasn't given and irrelevant citations"
+  - "python chatbot.py --eval prints the report in the brief and exits 1 unless recall@5 is at least 0.90, MRR at least 0.70 and the answer pass rate at least 0.90"
+criteria:
+  - "Offline, the sample questions produce the answers and citations shown in the brief, and --eval passes every target, including q17, whose retrieved context contains a planted instruction"
+  - "Chunk ids, titles and positions are exactly as specified, so the eval labels line up, and re-chunking the same docs gives the same ids"
+  - "Cosine similarity is computed on normalised vectors with numpy, BM25 uses the lesson's IDF, saturation and length normalisation, and fusion uses ranks, not raw scores"
+  - "No retrieved text ever reaches the system prompt, document text is escaped inside its tags, and no answer is shown with a citation that doesn't point at a source the model was given"
+  - "Embedding happens in batches, never one text per request, and a Retriever rebuilt with the same cache store embeds nothing new"
+  - "The code is typed and tested with pytest, ScriptedLLM and fake_embed (at least one test per requirement), and runs live with real embeddings and a real model after MIN_SIMILARITY is re-tuned on the eval"

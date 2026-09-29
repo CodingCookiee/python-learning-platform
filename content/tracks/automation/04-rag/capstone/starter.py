@@ -305,11 +305,12 @@ def rrf(rankings: list[list[str]], k: int = 60) -> list[tuple[str, float]]:
 class Retriever:
     """TODO: hybrid search over chunks.
 
-    __init__ embeds every chunk's for_embedding() text in batches (through a CachedEmbedder), stores
-    unit vectors in a numpy matrix, and builds a BM25 index over the same texts.
+    __init__ embeds every chunk's for_embedding() text in batches through a CachedEmbedder that uses
+    store (a dict that can outlive the Retriever, so rebuilding it re-embeds nothing), stores unit
+    vectors in a numpy matrix, and builds a BM25 index over the same texts.
     """
 
-    def __init__(self, chunks: list[Chunk], embed):
+    def __init__(self, chunks: list[Chunk], embed, store: dict | None = None):
         self.chunks = {chunk.id: chunk for chunk in chunks}
         ...
 

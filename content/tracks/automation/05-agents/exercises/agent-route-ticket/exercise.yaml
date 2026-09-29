@@ -1,0 +1,8 @@
+title: Route the support ticket
+type: function
+difficulty: core
+tags: [workflows, routing, classification]
+hints:
+  - "The classifier call is llm.complete([{'role': 'user', 'content': f'<ticket>\\n{ticket}\\n</ticket>'}], system=ROUTER_SYSTEM, temperature=0, max_tokens=5)."
+  - "Normalise the label with .strip().lower().rstrip('.'). If it isn't a key of HANDLERS, return Routed('human', None) without a second call."
+  - "Otherwise make one more call with system=HANDLERS[label] and the ticket as the user message, and return Routed(label, reply_text)."

@@ -1,0 +1,7 @@
+title: MCP tools as neutral tools
+type: function
+difficulty: warm-up
+tags: [mcp, tools, agents, neutral-interface]
+hints:
+  - One comprehension over mcp_tools. The name is f"{prefix}__{tool['name']}" when prefix is given.
+  - 'A tool may have no description: use tool.get("description", ""). Copy the schema with dict(...) so the agent can''t change the server''s list.'

@@ -1,0 +1,10 @@
+title: Test the order server through the protocol
+type: tests
+difficulty: core
+tags: [mcp, pytest, testing, json-rpc, is-error]
+packages: [pytest]
+timeout: 30
+hints:
+  - "A fixture keeps each test short: @pytest.fixture def client(): c = McpHarness(handle); c.initialize(); return c. McpHarness already fails a test when a reply has the wrong id or a notification gets an answer."
+  - 'call_tool fails the test on a protocol error, so use it for results you expect (1042, 9999, 10423). For an unknown tool, use client.request("tools/call", {"name": ..., "arguments": {}}) and check reply["error"]["code"] == -32602.'
+  - 'Check the text as well as isError: result["content"][0]["text"] == "Order 9999 not found", and that a badly formed number gets the "Invalid arguments" message, not a lookup.'
