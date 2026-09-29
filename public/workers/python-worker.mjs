@@ -45,8 +45,9 @@ const implicitPackages = (msg) => {
 const ready = (async () => {
   const py = await loadPyodide({ indexURL: INDEX_URL });
   const version = new URL(self.location.href).searchParams.get("v") ?? "";
-  const [plp, runner] = await Promise.all(
-    ["plp.py", "plp_runner.py"].map((name) =>
+  const files = ["plp.py", "plp_runner.py", "plp_fakes.py"];
+  const sources = await Promise.all(
+    files.map((name) =>
       fetch(`/py/${name}?v=${version}`).then((res) => {
         if (!res.ok) throw new Error(`Couldn't load ${name} (${res.status})`);
         return res.text();
@@ -54,8 +55,7 @@ const ready = (async () => {
     )
   );
   py.FS.mkdirTree("/home/pyodide/_plp");
-  py.FS.writeFile("/home/pyodide/_plp/plp.py", plp);
-  py.FS.writeFile("/home/pyodide/_plp/plp_runner.py", runner);
+  files.forEach((name, i) => py.FS.writeFile(`/home/pyodide/_plp/${name}`, sources[i]));
   py.runPython("import sys\nsys.path.insert(0, '/home/pyodide/_plp')\nimport plp_runner");
   return py;
 })();

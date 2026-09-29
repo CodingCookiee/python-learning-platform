@@ -1,0 +1,7 @@
+title: "Predict: what is the type of a type?"
+type: predict
+difficulty: warm-up
+tags: [type, isinstance, object-model]
+hints:
+  - "type(x) follows 'instance of' one step. The type of any ordinary class, and of type itself, is type."
+  - "Every class, including type, is a subclass of object, and every object (classes too) is an instance of object. bool is a subclass of int, but type(True) is exactly bool."

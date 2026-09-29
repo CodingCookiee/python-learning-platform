@@ -1,0 +1,3 @@
+def make_record(name, fields):
+    """Build and return a record class called name with these fields, using type()."""
+    ...

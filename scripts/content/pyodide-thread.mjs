@@ -37,7 +37,7 @@ const ready = (async () => {
     stderr: () => {},
   });
   py.FS.mkdirTree("/home/pyodide/_plp");
-  for (const name of ["plp.py", "plp_runner.py"]) {
+  for (const name of ["plp.py", "plp_runner.py", "plp_fakes.py"]) {
     py.FS.writeFile(`/home/pyodide/_plp/${name}`, readFileSync(path.join(root, "public", "py", name), "utf8"));
   }
   py.runPython("import sys\nsys.path.insert(0, '/home/pyodide/_plp')\nimport plp_runner");

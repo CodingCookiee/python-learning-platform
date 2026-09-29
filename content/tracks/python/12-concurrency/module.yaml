@@ -1,0 +1,21 @@
+slug: concurrency
+title: "Concurrency: asyncio, threads and processes"
+summary: I/O-bound vs CPU-bound work, the GIL, asyncio from the ground up, thread and process pools, and the bugs concurrent code invites.
+description: >
+  Most programs spend their time waiting: for an API, a database, a disk. Concurrency is how one
+  program gets on with other work while it waits, and parallelism is how it uses more than one CPU
+  core at once. This module starts by telling the two apart, explains the GIL and what
+  free-threaded Python changes, then builds asyncio from the ground up: coroutines, the event
+  loop and tasks, gather and TaskGroup, timeouts and cancellation, semaphores, queues, and async
+  iterators and context managers. Thread and process pools come next, with the pure functions
+  that make work easy to split, and the ways to bridge sync and async code. It ends with the bugs
+  concurrent code invites, from blocking the loop to race conditions. asyncio drills run in the
+  browser; threads and processes are local labs you run on your machine.
+hours: 10
+outcomes:
+  - Tell I/O-bound from CPU-bound work, and choose between asyncio, threads and processes, with or without the GIL
+  - Explain what a coroutine, the event loop and a task are, and predict the order concurrent code runs in
+  - Run work concurrently with gather and TaskGroup, and handle failures, timeouts and cancellation correctly
+  - Limit concurrency with semaphores, and build producer–consumer pipelines with queues
+  - Write async iterators, async generators and async context managers
+  - Use thread and process pools, split work into pure functions they can run, bridge sync and async code, and find and fix blocking calls, forgotten awaits, lost tasks and race conditions

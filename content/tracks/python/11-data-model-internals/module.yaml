@@ -1,0 +1,20 @@
+slug: data-model-internals
+title: Data model and internals
+summary: How Python really works, from the objects and protocols your classes plug into to imports, memory and bytecode.
+description: >
+  This module opens the blue belt. Until now you've used Python's machinery; here you take it
+  apart. Everything is an object, classes included, and the data model is the set of hooks that
+  lets your objects work with len(), in, for, calls and dict keys. From there you'll follow
+  attribute lookup step by step, build descriptors (the mechanism behind property, methods and
+  classmethod), see what the class statement really does and when a metaclass is justified, and
+  look inside the import system, reference counting, the garbage collector and the bytecode your
+  functions compile to. Every claim is shown, not asserted: with vars(), __mro__, sys.modules,
+  sys.getrefcount and dis, in the same CPython you'll run in production.
+hours: 9
+outcomes:
+  - Explain how type, isinstance, identity and hashing relate, and keep the hash contract when defining equality
+  - Make your own classes work with len, indexing, in, iteration, truth tests and calls by implementing the container protocol, __bool__ and __call__
+  - Predict where any attribute lookup ends up, and intercept it with __getattr__, __getattribute__ and __setattr__ when that's justified
+  - Write descriptors with __set_name__, explain data and non-data precedence, and rebuild property from scratch
+  - Hook class creation with __init_subclass__ and class decorators, and recognise the rare job that needs a metaclass
+  - Reason about sys.modules, circular imports, reference counts, cycles, weak references and dis output

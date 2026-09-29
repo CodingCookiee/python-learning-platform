@@ -283,6 +283,13 @@ Keep drills deterministic:
   from the test.
 - **Time:** have functions take `now` or a clock as a parameter. `zoneinfo` works in drills and
   lesson examples (its tzdata package loads automatically).
+- **FastAPI:** test apps with `httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test")`
+  inside an `async def` test (`packages: [fastapi, httpx]`). Sync and async endpoints and
+  dependencies both work: the runner makes anyio run thread-pool work inline in the browser.
+  `fastapi.testclient.TestClient` does **not** work (it needs a real thread); don't use it in drills.
+- **Databases:** `sqlite3` and SQLAlchemy 2.0 (`packages: [sqlalchemy]`) work against in-memory
+  SQLite (`sqlite://`). Scripts run as a real `__main__` module, so declarative models, dataclasses
+  and pickle behave as in a normal file.
 - **Randomness:** have functions accept a `random.Random` instance, or seed it in the test.
 - **LLM calls:** use the fake clients in `plp.fakes` (automation track). They replay scripted
   responses and record every request, so tests can assert on prompts and tool calls.

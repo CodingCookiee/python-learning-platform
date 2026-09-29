@@ -1,0 +1,20 @@
+slug: test-a-legacy-module
+title: Test a legacy module
+summary: Write a pytest suite for an untested pricing module, use it to find the three bugs hiding in it, and fix them with the tests as your safety net.
+hours: 4
+xp: 150
+requirements:
+  - "test_pricing.py tests every public function in pricing.py against the business rules in the brief: load_price_list, line_total, goods_subtotal, coupon_discount, shipping_cost, quote, convert_total and print_quote"
+  - Tests are written from the rules, not from the code, and cover each rule's boundaries and every refusal
+  - The suite uses fixtures for the price list and coupons, parametrize with readable ids for the table-shaped rules, pytest.raises with match for every refusal, tmp_path for price list files and capsys for print_quote
+  - No test touches the network, the real clock or the project folder; fetch_rate is replaced with monkeypatch or patch, and every quote is given its date
+  - Run against the original pricing.py, the suite fails exactly three tests, one for each planted bug
+  - BUGS.md records each bug with the rule it breaks, the test that exposes it, the expected and actual values, and the fix
+  - Each bug is fixed with the smallest change that makes its test pass, and then the whole suite passes
+criteria:
+  - The suite passes on the fixed module and fails exactly the tests named in BUGS.md on the original starter
+  - The suite catches most of a set of further bugs the reviewer plants in the fixed module (boundaries, rounding, validation, the order of operations)
+  - Every test checks one behaviour, is named after it, and follows arrange, act, assert
+  - Tests check behaviour through the public functions; nothing mocks pricing.py's own logic, only the rates service at its boundary
+  - Money is compared exactly as Decimal; pytest.approx isn't used for money
+  - The three fixes are small and separate, and pricing.py is otherwise unchanged

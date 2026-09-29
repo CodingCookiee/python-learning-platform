@@ -1,0 +1,3 @@
+def kind_of(value):
+    """Describe value as "class", "function", "module" or "instance of <TypeName>"."""
+    ...

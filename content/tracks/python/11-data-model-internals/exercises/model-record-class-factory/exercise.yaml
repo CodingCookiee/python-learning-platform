@@ -1,0 +1,8 @@
+title: Build a record class with type()
+type: function
+difficulty: core
+tags: [type, classes, dynamic-classes]
+hints:
+  - "type(name, (), namespace) returns a new class. Write the methods as plain functions first, then put them in the namespace dict with the right dunder names."
+  - "__init__(self, *args, **kwargs) can match args to fields with zip(fields, args), then add kwargs, then check nothing is missing, extra or given twice. setattr(self, field, value) stores each one."
+  - "The inner functions can use fields from make_record's scope (a closure), so every class you make gets its own field list. __eq__ should check type(other) is type(self) before comparing the values."

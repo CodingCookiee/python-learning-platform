@@ -53,7 +53,7 @@ interface Job {
   resolve: (value: unknown) => void;
 }
 
-const WORKER_URL = "/workers/python-worker.mjs?v=314.0.7-2";
+const WORKER_URL = "/workers/python-worker.mjs?v=314.0.7-3";
 
 class PythonRuntime {
   private worker: Worker | null = null;

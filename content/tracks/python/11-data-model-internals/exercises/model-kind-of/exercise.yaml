@@ -1,0 +1,8 @@
+title: What kind of object is this?
+type: function
+difficulty: warm-up
+tags: [type, isinstance, types-module]
+hints:
+  - "Classes are instances of type, so isinstance(value, type) spots every class, built-in or yours."
+  - "The types module names the types of functions and modules: types.FunctionType (def and lambda), types.BuiltinFunctionType (len, print) and types.ModuleType."
+  - "Check for a class first, then a function, then a module, and fall back to f\"instance of {type(value).__name__}\"."
