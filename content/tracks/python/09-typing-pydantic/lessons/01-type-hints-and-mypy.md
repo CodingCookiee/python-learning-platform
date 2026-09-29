@@ -163,6 +163,16 @@ type when the code runs.)
 The hints you do need are on function signatures: parameters and return types. Those are the
 boundaries mypy can't see across, and they're the part a reader wants to know.
 
+```quiz
+question: "`line_total(quantity: int, unit_price_cents: int) -> int` is defined. What does mypy reveal for `reveal_type(line_total(2, 450) > 1000)`?"
+options:
+  - builtins.int
+  - builtins.bool
+  - Any, because it can't run the code
+answer: 1
+explain: mypy knows line_total returns an int, and comparing two ints gives a bool. It works this out from the signature alone, without running anything.
+```
+
 ## Unannotated code isn't checked
 
 Here's the trap. By default, mypy **skips the body of any function without hints**, on the theory
@@ -183,8 +193,8 @@ Found 1 error in 1 file (checked 1 source file)
 ```
 
 Only the annotated function is reported. The other one is silently treated as "anything goes".
-`--strict` switches on a set of stricter checks; among them, every function must be annotated, and
-typed code may not call untyped code:
+`--strict` switches on a set of stricter checks, and the first of them is that every function must
+be annotated:
 
 ```bash
 uv run mypy --strict billing.py
@@ -192,11 +202,14 @@ uv run mypy --strict billing.py
 
 ```text
 billing.py:1: error: Function is missing a type annotation  [no-untyped-def]
-billing.py:9: error: Call to untyped function "shipping_label" in typed context  [no-untyped-call]
+billing.py:6: error: Returning Any from function declared to return "str"  [no-any-return]
+billing.py:6: error: Unsupported operand types for + ("str" and "int")  [operator]
 ```
 
-Every mypy drill in this module checks your code with `--strict`, which is also the right setting
-for new projects. Under `--strict`, even a function that returns nothing needs `-> None`.
+Strict mode also refuses to let typed code call an untyped function (`[no-untyped-call]`), so one
+unannotated helper can't quietly switch checking off for everything that uses it. Every mypy drill
+in this module checks your code with `--strict`, which is also the right setting for new projects.
+Under `--strict`, even a function that returns nothing needs `-> None`.
 
 ```quiz
 question: Without --strict, what does mypy report for a function that has no hints at all?

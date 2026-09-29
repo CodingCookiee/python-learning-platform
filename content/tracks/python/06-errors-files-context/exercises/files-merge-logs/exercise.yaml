@@ -1,0 +1,8 @@
+title: Merge a folder of daily logs
+type: function
+difficulty: stretch
+tags: [files, pathlib, glob, sorting, encoding]
+hints:
+  - "sorted(Path(folder).glob(\"*.log\")) gives the log paths in name order. Skip any that aren't files with path.is_file()."
+  - "Open the output once, in \"w\" mode with encoding=\"utf-8\", and write every log into it inside that one with block."
+  - "For each log, read its text; skip it if it's empty. Otherwise write the header line, then the text, then a \"\\n\" only if the text doesn't already end with one."

@@ -1,0 +1,8 @@
+title: Upload progress with yield from
+type: function
+difficulty: stretch
+tags: [generators, yield-from, return, delegation]
+hints:
+  - upload_batch is a loop that calls upload(record), yields ("uploaded", id) or ("failed", id), and counts the successes. After the loop, return the count.
+  - "In upload_all, uploaded = yield from upload_batch(batch, upload) passes every event straight out to the caller, then gives you the count upload_batch returned."
+  - Keep two running totals in upload_all, records seen and records uploaded, and yield the summary after the loop over batches.

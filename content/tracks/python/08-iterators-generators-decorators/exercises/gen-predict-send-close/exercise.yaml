@@ -1,0 +1,8 @@
+title: "Predict: send, close and yield from"
+type: predict
+difficulty: core
+tags: [generators, send, close, yield-from]
+hints:
+  - next(log) runs audit_log up to its first yield, which yields entries (0). Each send() resumes the paused yield with the sent value, runs the loop body, and returns the value of the next yield.
+  - close() raises GeneratorExit at the paused yield. It isn't caught, so only the finally block runs before the generator ends.
+  - In job(), the yield from hands out everything batch() yields before the print runs. The print happens while list() is asking for the value after "B".

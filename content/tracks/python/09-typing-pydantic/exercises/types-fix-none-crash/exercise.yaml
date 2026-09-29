@@ -1,0 +1,10 @@
+title: The customer who isn't there
+type: fix
+difficulty: core
+tags: [Optional, None, narrowing, mypy]
+packages: [mypy]
+timeout: 30
+hints:
+  - Each error is a place where the value might be None. Check for None there and decide what that case should return.
+  - After "if customer is None:" returns, mypy knows customer is a Customer for the rest of the function.
+  - In banner, keep the message in a variable first, check it, and only then call .upper() on it.

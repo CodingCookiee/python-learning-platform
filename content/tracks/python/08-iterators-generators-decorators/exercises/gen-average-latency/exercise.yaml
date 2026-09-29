@@ -1,0 +1,8 @@
+title: A latency monitor you send readings to
+type: function
+difficulty: core
+tags: [generators, send, coroutines, deque]
+hints:
+  - The shape is a while True loop around one line, reading = yield average. The first yield hands out None (there's no average yet) and pauses until the first send().
+  - Keep the readings in a deque(maxlen=window). A deque with maxlen=None has no limit, so the same code handles both cases, and appending to a full one drops the oldest reading for you.
+  - "After appending, work out round(sum(readings) / len(readings), 1) and yield it on the next time round the loop."

@@ -1,0 +1,7 @@
+title: Paid totals per customer
+type: function
+difficulty: core
+tags: [csv, dictreader, decimal, files]
+hints:
+  - "Open the file with open(path, newline=\"\", encoding=\"utf-8\") and loop over csv.DictReader(file). Each row is a dict keyed by the header."
+  - "Skip rows whose status isn't \"paid\". Add Decimal(row[\"total\"]) to totals.get(customer, Decimal(\"0\"))."

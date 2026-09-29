@@ -1,0 +1,7 @@
+title: UTF-8, or the old accounting package
+type: function
+difficulty: core
+tags: [files, encoding, bytes, unicodedecodeerror]
+hints:
+  - "Read the raw bytes once with Path(path).read_bytes(), then try data.decode(\"utf-8\")."
+  - "If that raises UnicodeDecodeError, return data.decode(\"cp1252\") instead. Catch only UnicodeDecodeError, so a missing file still raises FileNotFoundError."

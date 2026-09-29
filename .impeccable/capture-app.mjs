@@ -247,8 +247,11 @@ if (process.env.FLOW) {
     }
     return false;
   };
-  const click = (label) =>
-    ev(`(() => { const b = [...document.querySelectorAll('button')].find(b => b.textContent.trim().startsWith(${JSON.stringify(label)})); if (b) b.click(); return !!b; })()`);
+  // Exact label first, then prefix; waits until Python has loaded (the button reads "Loading Python…" until then)
+  const click = async (label) => {
+    await waitFor(`!/Loading Python/.test(document.body.innerText)`, 120);
+    return ev(`(() => { const bs = [...document.querySelectorAll('button')]; const b = bs.find(b => b.textContent.trim() === ${JSON.stringify(label)}) ?? bs.find(b => b.textContent.trim().startsWith(${JSON.stringify(label)})); if (b) b.click(); return !!b; })()`);
+  };
   const setEditor = (code) =>
     ev(`(() => { const m = window.monaco?.editor?.getModels?.()[0]; if (!m) return false; m.setValue(${JSON.stringify(code)}); return true; })()`);
   const resultText = () => ev(`[...document.querySelectorAll('[aria-live=polite]')].map(n => n.innerText).join(' | ').slice(0, 600)`);

@@ -22,6 +22,6 @@ def test_converts_euros_to_yen(rates):
     assert convert(Decimal("10.00"), "EUR", "JPY", rates) == Decimal("1624.00")
 
 
-def test_rounds_half_a_cent_up(rates):
-    # 5000 JPY is 30.7881… euros
+def test_rounds_to_the_nearest_cent(rates):
+    # 5000 JPY is 30.788… euros
     assert convert(Decimal("5000"), "JPY", "EUR", rates) == Decimal("30.79")

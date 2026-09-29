@@ -1,0 +1,10 @@
+title: "Predict: which lines does mypy reject?"
+type: predict
+difficulty: core
+tags: [narrowing, Optional, Literal, mypy]
+packages: [mypy]
+timeout: 30
+hints:
+  - "email is str | None. A method call on it is only allowed where a check has ruled None out."
+  - "`isinstance(email, str) or customer_id > 5` can be true when email is None, so it narrows nothing."
+  - "status only accepts the three literal strings. raw is a plain str, and comparing it with == doesn't change its type."

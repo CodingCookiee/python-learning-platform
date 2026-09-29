@@ -1,0 +1,10 @@
+title: Order statuses as literals
+type: function
+difficulty: core
+tags: [Literal, type-aliases, mypy]
+packages: [mypy]
+timeout: 30
+hints:
+  - 'Name the two types first: OrderStatus = Literal["pending", "paid", "shipped", "cancelled"], and the same for OrderEvent.'
+  - "A dict of allowed moves keeps the rules in one place: TRANSITIONS: dict[tuple[OrderStatus, OrderEvent], OrderStatus] = {(\"pending\", \"pay\"): \"paid\", ...}."
+  - "Look up (status, event) with .get(). None means the move isn't allowed, so raise ValueError(f\"can't {event} a {status} order\")."

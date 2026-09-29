@@ -25,7 +25,15 @@ def capture(formatter):
 
 
 def entries(stream):
-    return [json.loads(line) for line in stream.getvalue().splitlines()]
+    text = stream.getvalue()
+    assert text, "Nothing was written: format() should return the JSON line as a str"
+    return [json.loads(line) for line in text.splitlines()]
+
+
+def as_json(record):
+    line = JsonFormatter().format(record)
+    assert isinstance(line, str), f"format() should return one line of JSON as a str, not {type(line).__name__}"
+    return json.loads(line)
 
 
 @test("Formats a warning with extra fields")
@@ -42,7 +50,7 @@ def _():
             "amount": Decimal("25.50"),
         }
     )
-    assert json.loads(JsonFormatter().format(record)) == {
+    assert as_json(record) == {
         "time": "2026-09-29T14:05:00.500Z",
         "level": "WARNING",
         "logger": "invoicer.billing",
@@ -80,8 +88,9 @@ def _():
         1 / 0
     except ZeroDivisionError:
         logger.exception("Could not split INV-1044")
-    assert len(stream.getvalue().splitlines()) == 1, "Each record should be exactly one line"
-    [entry] = entries(stream)
+    written = entries(stream)
+    assert len(written) == 1, "Each record should be exactly one line, with the traceback inside the JSON"
+    entry = written[0]
     assert entry["message"] == "Could not split INV-1044"
     assert "Traceback" in entry.get("exception", ""), "The exception key should hold the formatted traceback"
     assert "ZeroDivisionError" in entry["exception"]
@@ -90,7 +99,7 @@ def _():
 @hidden("Writes the time in UTC with a Z")
 def _():
     record = logging.makeLogRecord({"name": "invoicer", "msg": "Started", "created": WHEN + 3600.25})
-    assert json.loads(JsonFormatter().format(record))["time"] == "2026-09-29T15:05:00.750Z"
+    assert as_json(record)["time"] == "2026-09-29T15:05:00.750Z"
 
 
 @hidden("Works when named in a dictConfig")

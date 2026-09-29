@@ -1,0 +1,10 @@
+title: A coupon that might not be there
+type: function
+difficulty: warm-up
+tags: [Optional, None, narrowing, mypy]
+packages: [mypy]
+timeout: 30
+hints:
+  - "The parameter is str | None. Check for None first and return 0; after that check, mypy knows code is a str."
+  - COUPONS.get(key, 0) returns the percentage, or 0 when the key isn't there.
+  - "def coupon_discount(code: str | None) -> int:"

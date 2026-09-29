@@ -1,0 +1,7 @@
+title: "Predict: what DictReader hands you"
+type: predict
+difficulty: warm-up
+tags: [csv, dictreader]
+hints:
+  - "The quotes around \"Hopper, Grace\" keep the comma inside one value, and the quotes themselves aren't part of it. Every value that's present is a str."
+  - "The last row has only two values, so its total column is None. The row before it has an extra value, which DictReader stores in a list under the key None."

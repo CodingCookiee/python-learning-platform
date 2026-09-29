@@ -1,0 +1,8 @@
+title: The flattener that lost the nested fields
+type: fix
+difficulty: core
+tags: [generators, yield-from, recursion, json]
+hints:
+  - Calling flatten(value, name) inside flatten creates a generator and throws it away, so nothing it would yield ever comes out. The recursive calls need yield from.
+  - Once the nested dicts come through, the tags list crashes. A list can hold plain values as well as dicts, and a plain value has no .items().
+  - "In the list branch, recurse with yield from flatten(item, f\"{name}.{index}\") only when the item is a dict, and yield (f\"{name}.{index}\", item) when it isn't."
