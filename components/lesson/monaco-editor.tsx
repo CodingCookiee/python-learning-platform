@@ -108,6 +108,10 @@ export function PythonEditor({
     return value;
   });
 
+  // Until mount has handed any saved code to the parent, show the saved code;
+  // afterwards the parent's value is the source of truth (so Reset works)
+  const [synced, setSynced] = React.useState(false);
+
   function handleChange(newValue: string | undefined) {
     const val = newValue ?? "";
     onChange(val);
@@ -122,6 +126,7 @@ export function PythonEditor({
   function handleMount(editor: EditorInstance, monaco: Monaco) {
     // Code restored from localStorage is what's on screen, so it's what the parent must run
     if (initialValue !== value) onChange(initialValue);
+    setSynced(true);
 
     // Keyboard shortcut to run code
     if (onRun) {
@@ -180,7 +185,7 @@ export function PythonEditor({
         <MonacoEditor
           height={editorHeight}
           defaultLanguage="python"
-          value={initialValue}
+          value={synced ? value : initialValue}
           theme={monacoTheme}
           onChange={handleChange}
           beforeMount={definePylearnThemes}

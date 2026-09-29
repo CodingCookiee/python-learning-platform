@@ -1,0 +1,8 @@
+title: Which commands does this wheel install?
+type: function
+difficulty: core
+tags: [packaging, wheels, zipfile, configparser]
+hints:
+  - zipfile.ZipFile accepts a file-like object, so wrap the bytes in io.BytesIO. Its namelist() lists every path inside.
+  - Find the name that ends with ".dist-info/entry_points.txt", read it with zf.read(name).decode(), and return {} when there isn't one.
+  - entry_points.txt is INI format. configparser.ConfigParser().read_string(text) parses it; parser["console_scripts"] is the section, and dict() of it gives the commands. Check the section exists first.

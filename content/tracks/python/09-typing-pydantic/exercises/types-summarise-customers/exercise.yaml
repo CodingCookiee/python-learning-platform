@@ -1,0 +1,10 @@
+title: Summarise orders per customer
+type: function
+difficulty: stretch
+tags: [TypedDict, Iterable, dict, sorting, mypy]
+packages: [mypy]
+timeout: 30
+hints:
+  - "Build a summaries: dict[str, CustomerSummary] = {} as you loop. For a customer you haven't seen, store a new summary dict literal; mypy checks its keys against CustomerSummary."
+  - For a customer you have seen, update the stored summary in place. ISO dates compare correctly as strings, so max() gives the later one.
+  - "Finally sort summaries.items() with key=lambda item: (-item[1][\"spent_cents\"], item[0]) and turn the result back into a dict."

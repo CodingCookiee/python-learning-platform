@@ -1,0 +1,3 @@
+def parse_wheel_filename(filename):
+    """Split "name-version-python-abi-platform.whl" into a dict of its five parts."""
+    ...

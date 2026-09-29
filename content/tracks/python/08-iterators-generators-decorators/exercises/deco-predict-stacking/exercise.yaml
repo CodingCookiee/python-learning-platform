@@ -1,0 +1,8 @@
+title: "Predict: three decorators on one function"
+type: predict
+difficulty: warm-up
+tags: [decorators, stacking, decorator-arguments, wraps]
+hints:
+  - Decorator expressions are evaluated top to bottom before anything is applied. tag("auth") and tag("audit") are calls, so they print; shout is just a name.
+  - The decorators then apply from the bottom up, so audit wraps first and auth wraps last, which makes auth the outermost wrapper when the function is called.
+  - Follow the return value back out. audit adds its label, shout upper-cases everything inside it, and auth adds its label last. For __name__, look at which wrapper forgot functools.wraps.

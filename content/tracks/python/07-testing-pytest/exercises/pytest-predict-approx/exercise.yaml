@@ -1,0 +1,10 @@
+title: "Predict: close enough?"
+type: predict
+difficulty: core
+tags: [pytest, approx, floats]
+packages: [pytest]
+timeout: 20
+hints:
+  - "0.1 + 0.2 is 0.30000000000000004, so == is False, but it's well within approx's default tolerance."
+  - "The default tolerance is relative: one part in a million of the expected value. 1.001 is a thousandth away from 1, which is far more than a millionth of 1."
+  - "abs=0.5 accepts anything within 0.5 of the expected value, whatever its size. With a list, every item must be close to the item in the same position."

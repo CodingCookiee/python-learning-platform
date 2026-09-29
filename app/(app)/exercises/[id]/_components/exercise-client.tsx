@@ -375,13 +375,15 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
 
   async function runCheck() {
     if (busyRef.current) return;
+    if (isPredict && !answer.trim()) return;
     busyRef.current = true;
     setBusy("check");
+    // Grading happens here; saving the attempt happens after the result is on screen,
+    // so the buttons are free again as soon as the learner can read the outcome
+    let attempt: { passed: boolean; submitted: string; summary: unknown } | null = null;
     try {
       const runtime = getPythonRuntime();
       if (isPredict) {
-        const trimmed = answer.trim();
-        if (!trimmed) return;
         const real = await runtime.run(drill.starterCode, {
           packages: drill.packages,
           timeoutMs: drill.timeoutMs,
@@ -395,27 +397,29 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
           actual,
           error: real.error,
         });
-        await record(correct, answer, { kind: "predict", correct });
-        return;
+        attempt = { passed: correct, submitted: answer, summary: { kind: "predict", correct } };
+      } else {
+        const submitted = codeRef.current;
+        const result = await runtime.test(submitted, drill.tests, {
+          packages: drill.packages,
+          timeoutMs: drill.timeoutMs + 1000,
+          importSolution: drill.importSolution,
+        });
+        setCheck({ kind: "tests", result });
+        // The drill's own tests failing to load isn't the learner's attempt
+        if (!(result.status === "error" && result.phase === "tests")) {
+          attempt = {
+            passed: result.status === "ok" && result.passed === true,
+            submitted,
+            summary: { status: result.status, tests: result.tests.map((t) => ({ name: t.name, passed: t.passed })) },
+          };
+        }
       }
-      const submitted = codeRef.current;
-      const result = await runtime.test(submitted, drill.tests, {
-        packages: drill.packages,
-        timeoutMs: drill.timeoutMs + 1000,
-        importSolution: drill.importSolution,
-      });
-      setCheck({ kind: "tests", result });
-      // The drill's own tests failing to load isn't the learner's attempt
-      if (result.status === "error" && result.phase === "tests") return;
-      const passed = result.status === "ok" && result.passed === true;
-      await record(passed, submitted, {
-        status: result.status,
-        tests: result.tests.map((t) => ({ name: t.name, passed: t.passed })),
-      });
     } finally {
       busyRef.current = false;
       setBusy(null);
     }
+    if (attempt) await record(attempt.passed, attempt.submitted, attempt.summary);
   }
 
   async function runCode() {

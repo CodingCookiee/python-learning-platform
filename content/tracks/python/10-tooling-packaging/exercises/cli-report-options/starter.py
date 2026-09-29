@@ -1,9 +1,14 @@
 import argparse
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 
 def parse_month(text):
     """ "2026-09" -> (2026, 9). Raise argparse.ArgumentTypeError for anything else."""
+    ...
+
+
+def parse_amount(text):
+    """ "250.00" -> Decimal("250.00"). Raise argparse.ArgumentTypeError if it isn't a number."""
     ...
 
 

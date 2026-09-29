@@ -1,0 +1,7 @@
+title: Read a wheel's filename
+type: function
+difficulty: warm-up
+tags: [packaging, wheels, strings]
+hints:
+  - Remove the ".whl" ending with removesuffix, then split on "-". None of the five parts contains a dash, which is why names use underscores in wheel filenames.
+  - Check the ending and the number of parts before unpacking, and raise ValueError when either is wrong. zip() of the five key names and the parts builds the dict.

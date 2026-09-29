@@ -1,0 +1,10 @@
+title: Accept any sequence of totals
+type: refactor
+difficulty: core
+tags: [Sequence, Iterable, Mapping, variance, mypy]
+packages: [mypy]
+timeout: 30
+hints:
+  - Import Iterable, Sequence and Mapping from collections.abc. Only the parameter hints change; the bodies stay as they are.
+  - total_revenue only loops once, so Iterable[float] is enough. average_order_value calls len(), so it needs Sequence[float].
+  - revenue_by_region only reads its dict and passes each value to total_revenue, so Mapping[str, Iterable[float]] fits. Keep the return type a plain dict.

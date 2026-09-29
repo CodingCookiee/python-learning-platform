@@ -143,7 +143,7 @@ if (process.env.FINAL) {
       // Grade it: tick every criterion, write feedback, approve, catch the seal mid-stamp
       await ev(`(() => {
         document.querySelectorAll('button[aria-pressed="false"]').forEach((b) => b.click());
-        const t = document.querySelector('textarea');
+        const t = document.querySelector('textarea[placeholder^="Type the output"]');
         Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(t, 'Clean structure and clear names. Next, add tests for the edge cases.');
         t.dispatchEvent(new Event('input', { bubbles: true }));
       })()`);

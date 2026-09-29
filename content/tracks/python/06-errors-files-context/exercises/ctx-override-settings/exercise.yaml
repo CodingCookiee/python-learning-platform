@@ -1,0 +1,8 @@
+title: Override settings, then put them back
+type: function
+difficulty: core
+tags: [context-managers, contextlib, contextmanager, dicts]
+hints:
+  - "Before changing anything, remember each key's old value. A sentinel object, MISSING = object(), lets you tell \"had no value\" apart from \"had the value None\"."
+  - "Apply the changes, then yield settings inside try, and restore in finally, so the restoring runs even when the block raises."
+  - "When restoring, a key whose saved value is the sentinel didn't exist before: settings.pop(key, None) removes it. Every other key gets its old value back."

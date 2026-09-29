@@ -108,6 +108,12 @@ A type function signals bad input by raising `argparse.ArgumentTypeError` (or `V
 argparse turns that into an error message. A default that's a string also goes through `type`, so
 `type=int, default="3"` gives you `3`.
 
+> [!WARNING]
+> argparse only turns `ArgumentTypeError`, `ValueError` and `TypeError` into a usage error.
+> `Decimal("lots")` raises `decimal.InvalidOperation`, which isn't any of those, so
+> `--min-total lots` crashes with a traceback. Wrap it in a type function that catches
+> `InvalidOperation` and raises `ArgumentTypeError`.
+
 ## Errors and help end the program
 
 When the arguments are wrong, argparse prints the usage line and an error to stderr, then raises

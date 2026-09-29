@@ -12,6 +12,11 @@ def settings_path():
     return Path(tempfile.mkdtemp()) / "settings.json"
 
 
+def saved_text(path):
+    assert path.is_file(), "save_settings didn't create the file"
+    return path.read_text(encoding="utf-8")
+
+
 @test("Saved settings load back over the defaults")
 def _():
     path = settings_path()
@@ -28,7 +33,7 @@ def _():
 def _():
     path = settings_path()
     save_settings(path, {"theme": "dark", "shop": "Café Lumière"})
-    assert path.read_text(encoding="utf-8") == '{\n  "shop": "Café Lumière",\n  "theme": "dark"\n}\n'
+    assert saved_text(path) == '{\n  "shop": "Café Lumière",\n  "theme": "dark"\n}\n'
 
 
 @test("A missing file gives a copy of the defaults")
@@ -61,7 +66,7 @@ def _():
     path = settings_path()
     save_settings(path, {"currency": "GBP"})
     defaults = dict(DEFAULTS)
-    assert load_settings(str(path), defaults)["currency"] == "GBP"
+    assert load_settings(str(path), defaults) == {**DEFAULTS, "currency": "GBP"}
     assert defaults == DEFAULTS
 
 

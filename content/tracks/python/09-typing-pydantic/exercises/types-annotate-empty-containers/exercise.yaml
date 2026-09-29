@@ -1,0 +1,10 @@
+title: Empty containers need a type
+type: fix
+difficulty: warm-up
+tags: [collections, var-annotated, mypy]
+packages: [mypy]
+timeout: 30
+hints:
+  - mypy's hint says exactly where the annotation goes. Fill in the <type> parts with what each container will hold.
+  - The return type of each function tells you the answer. stock ends up as a dict[str, int], for example.
+  - "stock: dict[str, int] = {}"

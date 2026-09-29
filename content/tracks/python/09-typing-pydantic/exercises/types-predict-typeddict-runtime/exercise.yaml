@@ -1,0 +1,8 @@
+title: "Predict: a TypedDict at runtime"
+type: predict
+difficulty: core
+tags: [TypedDict, runtime, type-hints]
+hints:
+  - Calling a TypedDict class builds an ordinary dict. Nothing checks the values, so "lots" is stored as it is.
+  - A NotRequired key that was never set is simply missing, so .get() returns None.
+  - "A TypedDict is a type for mypy only. isinstance can't check it, and says so with a TypeError."

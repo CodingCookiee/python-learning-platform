@@ -1,0 +1,10 @@
+title: Test the payment failures
+type: tests
+difficulty: stretch
+tags: [pytest, raises, excinfo, custom-exceptions, dates]
+packages: [pytest]
+timeout: 20
+hints:
+  - "A fixture for the card saves repeating it. Pass today explicitly: authorize(card, 1999, today=date(2026, 9, 30))."
+  - "with pytest.raises(CardDeclined) as excinfo: gives you the exception afterwards as excinfo.value, so you can assert excinfo.value.code == \"limit_exceeded\"."
+  - "The edges: the last day of the expiry month still works, the first day of the next month raises CardExpired, a charge of exactly the limit works, and 0 is an invalid amount."

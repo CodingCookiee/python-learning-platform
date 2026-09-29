@@ -1,0 +1,8 @@
+title: Let ExitStack close the files
+type: refactor
+difficulty: core
+tags: [context-managers, contextlib, exitstack, files]
+hints:
+  - "The output file is one known file, and the branch files are a list of unknown length: that's exactly the job ExitStack does."
+  - "Inside with ExitStack() as stack:, open each file with stack.enter_context(open(...)). It returns the open file and promises to close it when the with block ends."
+  - "Once every open is inside stack.enter_context, the try/finally and all the close() calls can go."

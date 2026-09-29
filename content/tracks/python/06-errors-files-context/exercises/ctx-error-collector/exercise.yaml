@@ -1,0 +1,8 @@
+title: A context manager that collects errors
+type: function
+difficulty: stretch
+tags: [context-managers, exit, exceptions, classes]
+hints:
+  - "Store the types as a tuple (self.types = types) and start self.errors as an empty list. __enter__ just returns self."
+  - "In __exit__, if exc_type is None there's nothing to do: return False. issubclass(exc_type, self.types) accepts a tuple of classes and checks subclasses too."
+  - "For a matching exception, append exc (the exception object) to self.errors and return True to suppress it. For anything else, return False so it carries on."

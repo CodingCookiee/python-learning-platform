@@ -1,0 +1,8 @@
+title: "Predict: importing a src-layout package"
+type: predict
+difficulty: core
+tags: [packaging, src-layout, imports, main]
+hints:
+  - The project root contains src/, not invoicer/, so the first import fails with Python's usual "No module named" message.
+  - Importing invoicer.cli runs invoicer/__init__.py first (a package always runs before its submodules), then cli.py. Each module's __name__ is its full dotted name.
+  - Both modules are already in sys.modules by step 3, so nothing prints "runs" again. __main__.py calls main(), which prints the version, and its SystemExit carries main()'s return value.

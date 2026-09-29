@@ -1,0 +1,10 @@
+title: Loan repayments, approximately
+type: tests
+difficulty: core
+tags: [pytest, approx, floats]
+packages: [pytest]
+timeout: 20
+hints:
+  - "assert monthly_payment(10_000, 0.06, 12) == pytest.approx(860.66, abs=0.01) passes for anything within a penny of 860.66."
+  - The zero-rate case has its own branch. A test for it catches the code dividing by zero when that branch goes missing.
+  - "Check a second loan length as well, so an off-by-one in the number of months shows up: monthly_payment(10_000, 0.06, 24) is about 443.21."

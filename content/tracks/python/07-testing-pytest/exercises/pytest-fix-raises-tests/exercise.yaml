@@ -1,0 +1,11 @@
+title: Fix the exception tests
+type: fix
+difficulty: core
+tags: [pytest, raises, match, regex]
+packages: [pytest]
+timeout: 20
+script: true
+hints:
+  - "match= is a regular expression. In \"amount must be > 0 (got -5)\" the parentheses make a group, so the pattern looks for the text without them. Wrap the message in re.escape(...), or match a shorter part of it."
+  - Statements after the raising call inside a with pytest.raises block never run. Move the balance check below the block.
+  - "A try/except that swallows the error passes whether or not anything was raised. Replace it with with pytest.raises(ValueError, match=\"insufficient funds\"):"

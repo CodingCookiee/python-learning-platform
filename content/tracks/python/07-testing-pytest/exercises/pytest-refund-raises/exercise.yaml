@@ -1,0 +1,10 @@
+title: Refunds that must be refused
+type: tests
+difficulty: warm-up
+tags: [pytest, raises, exceptions]
+packages: [pytest]
+timeout: 20
+hints:
+  - "with pytest.raises(ValueError): puts the call that should fail inside the block. The test fails if nothing is raised."
+  - Each validation rule has an edge. Zero is the edge of "must be positive", and refunding exactly what was paid is the edge of "more than was paid".
+  - "Test refund(2000, 0) and refund(2000, 2001) inside pytest.raises, and check that refund(2000, 2000) returns 0."

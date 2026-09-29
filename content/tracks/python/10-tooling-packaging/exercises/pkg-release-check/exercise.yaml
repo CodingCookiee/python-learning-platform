@@ -1,0 +1,8 @@
+title: Check a release before it ships
+type: function
+difficulty: stretch
+tags: [packaging, pyproject, versions, tomllib, validation]
+hints:
+  - Parse once with tomllib, take project = config.get("project", {}), and build the list check by check in the order given. The missing fields are one comprehension over REQUIRED.
+  - 're.fullmatch(r"\d+\.\d+\.\d+", version) checks the shape. If it fails, add that one problem and skip to the scripts check; a helper function for checks 3 to 6 that returns early makes this tidy.'
+  - "Compare versions as tuples of ints: max(published, key=lambda v: tuple(map(int, v.split(\".\")))) is the highest. The scripts check is project.get(\"scripts\"), and the build check is \"build-system\" in config."

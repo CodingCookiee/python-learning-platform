@@ -4,7 +4,7 @@ import io
 from decimal import Decimal
 
 from plp import test, hidden, raises
-from solution import build_parser, parse_month
+from solution import build_parser, parse_amount, parse_month
 
 
 def parse(argv):
@@ -65,7 +65,13 @@ def _():
         assert expected in text, f"The help should mention {expected}"
 
 
-@hidden("--min-total and --limit refuse non-numbers")
+@test("parse_amount reads numbers and refuses anything else")
+def _():
+    assert parse_amount("250.00") == Decimal("250.00")
+    raises(argparse.ArgumentTypeError, parse_amount, "lots")
+
+
+@hidden("--min-total and --limit refuse non-numbers with a usage error")
 def _():
     assert usage_error(["2026-09", "--min-total", "lots"])[0] == 2
     assert usage_error(["2026-09", "--limit", "ten"])[0] == 2

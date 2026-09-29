@@ -4,5 +4,5 @@ difficulty: core
 tags: [argparse, cli, types, decimal]
 hints:
   - parse_month is an ordinary function. Split on "-", check there are two all-digit parts and the month is 1 to 12, and raise argparse.ArgumentTypeError(f"{text} isn't a month; use YYYY-MM") otherwise.
-  - Pass the function itself as the type, type=parse_month, not parse_month(). Decimal works as a type too, and choices=["table", "csv", "json"] limits --format.
+  - 'parse_amount wraps Decimal(text) in try/except decimal.InvalidOperation and raises ArgumentTypeError instead. Pass each function itself as a type (type=parse_month, not parse_month()), and choices=["table", "csv", "json"] limits --format.'
   - "formatter_class=argparse.ArgumentDefaultsHelpFormatter adds \"(default: ...)\" to every option that has help text, or write %(default)s into each help string yourself."

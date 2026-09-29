@@ -1,5 +1,5 @@
 import argparse
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 
 def parse_month(text):
@@ -8,6 +8,14 @@ def parse_month(text):
     if dash and year.isdigit() and month.isdigit() and 1 <= int(month) <= 12:
         return int(year), int(month)
     raise argparse.ArgumentTypeError(f"{text} isn't a month; use YYYY-MM")
+
+
+def parse_amount(text):
+    """ "250.00" -> Decimal("250.00"). Raise argparse.ArgumentTypeError if it isn't a number."""
+    try:
+        return Decimal(text)
+    except InvalidOperation:
+        raise argparse.ArgumentTypeError(f"{text} isn't an amount") from None
 
 
 def build_parser():
@@ -20,5 +28,5 @@ def build_parser():
     parser.add_argument("month", type=parse_month, help="the month to report on, as YYYY-MM")
     parser.add_argument("--format", choices=["table", "csv", "json"], default="table", help="output format")
     parser.add_argument("--limit", type=int, default=10, help="how many customers to list")
-    parser.add_argument("--min-total", type=Decimal, default=Decimal("0"), help="skip invoices below this amount")
+    parser.add_argument("--min-total", type=parse_amount, default=Decimal("0"), help="skip invoices below this amount")
     return parser

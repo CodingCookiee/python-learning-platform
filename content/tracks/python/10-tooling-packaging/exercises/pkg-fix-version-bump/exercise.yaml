@@ -1,0 +1,8 @@
+title: Bump only the project's version
+type: fix
+difficulty: core
+tags: [packaging, versions, pyproject, re]
+hints:
+  - Fix the arithmetic first. A minor bump is f"{major}.{minor + 1}.0", and anything that isn't one of the three parts should raise ValueError instead of quietly becoming a patch bump.
+  - text.replace changes every copy of the old version in the file. Go through the lines instead, remembering which [table] you're in (a line that starts with "[" starts a new table).
+  - 'In the [project] table, match the line with a regex like ^(\s*version\s*=\s*")([^"]*)(".*)$ and rebuild it from group 1, the new version and group 3, so the spacing and the comment survive. Change that one line and join the lines back together.'

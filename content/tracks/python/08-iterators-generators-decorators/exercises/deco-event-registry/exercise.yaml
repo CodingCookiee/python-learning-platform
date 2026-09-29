@@ -1,0 +1,8 @@
+title: A class decorator for webhook events
+type: function
+difficulty: core
+tags: [decorators, class-decorators, registry, dataclasses]
+hints:
+  - event(name) is a factory. It returns a decorator that receives the class, and that decorator must return the class itself, or the name OrderCreated ends up bound to None.
+  - "Inside the decorator: check name isn't already in EVENT_TYPES, set cls.event_name = name, store EVENT_TYPES[name] = cls, and return cls."
+  - "parse_event looks up EVENT_TYPES.get(payload[\"type\"]), raises ValueError if it's None, and otherwise returns cls(**payload[\"data\"])."

@@ -1,0 +1,8 @@
+title: A permission check one level short
+type: fix
+difficulty: core
+tags: [decorators, decorator-arguments, closures, wraps]
+hints:
+  - "@require_role(\"admin\") means delete_customer = require_role(\"admin\")(delete_customer). Here require_role(\"admin\") returns wrapper, so wrapper is called with the function as its user, at import time."
+  - A decorator with settings needs three levels. require_role(role) should return a decorator, decorate(func), and that should return the wrapper.
+  - Add @wraps(func) to the wrapper so the admin panel can still list the protected actions by name.

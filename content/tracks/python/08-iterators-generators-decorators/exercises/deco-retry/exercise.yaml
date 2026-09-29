@@ -1,0 +1,8 @@
+title: Retry with exponential backoff
+type: function
+difficulty: core
+tags: [decorators, decorator-arguments, retries, exceptions]
+hints:
+  - Three levels. retry(...) checks times and returns decorate; decorate(func) returns the wrapper; the wrapper loops over the attempts.
+  - "Catch only the listed errors: except exceptions: works when exceptions is a tuple of classes. Anything else isn't caught, so it passes straight through."
+  - "On a failed attempt that isn't the last, call sleep(delay * 2 ** (attempt - 1)) with attempts counted from 1. On the last attempt, a bare raise re-raises the error you caught."

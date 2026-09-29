@@ -1,0 +1,7 @@
+title: "Predict: enter, exit, suppress"
+type: predict
+difficulty: warm-up
+tags: [context-managers, with, exit]
+hints:
+  - "Managers in one with statement are entered left to right and exited right to left. The name after as is bound to what __enter__ returned."
+  - "Both __exit__ methods see the KeyError. inner returns False, so it carries on to outer, which returns True and suppresses it, so the program carries on after the with block."

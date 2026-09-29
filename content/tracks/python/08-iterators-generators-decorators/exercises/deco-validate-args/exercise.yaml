@@ -1,0 +1,8 @@
+title: Validate arguments by name
+type: function
+difficulty: stretch
+tags: [decorators, decorator-arguments, validation, inspect]
+hints:
+  - "inspect.signature(func) describes func's parameters. Its .parameters is a dict keyed by name, which is how you spot a check for a parameter that doesn't exist, in decorate, before any call."
+  - "In the wrapper, bound = signature.bind(*args, **kwargs) matches the call's arguments to parameter names (and raises TypeError for a bad call, just as calling would). bound.apply_defaults() fills in the defaults, and bound.arguments is then a dict of every parameter's value."
+  - "Loop over checks.items(): if not check(bound.arguments[name]), raise ValueError(f\"{name}={value!r} failed {check.__name__}\"). Then return func(*args, **kwargs)."

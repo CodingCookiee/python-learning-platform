@@ -1,0 +1,8 @@
+title: A cache decorator from scratch
+type: function
+difficulty: stretch
+tags: [decorators, caching, closures, wraps, hashing]
+hints:
+  - Keep a dict in memoize's scope; the wrapper's closure remembers it. The key has to capture both the positional and keyword arguments.
+  - "key = (args, frozenset(kwargs.items())) makes keyword order irrelevant. hash(key) raises TypeError when an argument is unhashable, such as a list; catch that and just return func(*args, **kwargs)."
+  - "Only store a result after func returns, so an exception is never cached. cache_clear is a small function that empties the dict and resets wrapper.hits and wrapper.misses; attach it as wrapper.cache_clear."

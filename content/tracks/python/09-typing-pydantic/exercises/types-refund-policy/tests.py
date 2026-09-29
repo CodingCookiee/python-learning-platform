@@ -15,7 +15,7 @@ REJECTED = [
     'refund_cents(1999, "3")',
     "refund_cents(19.99, 3)",
     "refund_cents(1999, 45, True)",
-    "global RETURN_WINDOW_DAYS; RETURN_WINDOW_DAYS = 60",
+    "def _reassign() -> None: global RETURN_WINDOW_DAYS; RETURN_WINDOW_DAYS = 60",
 ]
 
 

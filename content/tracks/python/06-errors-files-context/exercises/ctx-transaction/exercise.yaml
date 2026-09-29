@@ -1,0 +1,8 @@
+title: A transaction that commits or rolls back
+type: function
+difficulty: core
+tags: [context-managers, classes, enter, exit]
+hints:
+  - "__enter__ marks the transaction as open (self.open = True) and returns self, so the with statement's as name is the transaction."
+  - "__exit__(self, exc_type, exc, tb) marks it closed. When exc_type is None, extend the ledger with the pending entries and set committed; otherwise leave the ledger alone."
+  - "Don't return True from __exit__: returning nothing lets the exception carry on to the caller. add() raises RuntimeError when self.open is false."

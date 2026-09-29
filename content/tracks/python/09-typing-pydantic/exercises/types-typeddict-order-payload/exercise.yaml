@@ -1,0 +1,10 @@
+title: A typed order payload
+type: function
+difficulty: core
+tags: [TypedDict, NotRequired, json, mypy]
+packages: [mypy]
+timeout: 30
+hints:
+  - "Write each TypedDict as a class with one annotated key per line: class LineItem(TypedDict): sku: str, and so on."
+  - "The coupon key may be missing, so its hint is NotRequired[str]. Read it with order.get(\"coupon\"), which gives None when it's absent."
+  - "Sum quantity * unit_price_cents over order[\"lines\"], then subtract subtotal // 10 when the coupon is WELCOME10."
