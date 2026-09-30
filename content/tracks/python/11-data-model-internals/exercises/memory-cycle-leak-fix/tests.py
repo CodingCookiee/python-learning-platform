@@ -18,7 +18,7 @@ def collector_off():
         gc.collect()
 
 
-@test("An order is freed as soon as nothing uses it, with the collector off")
+@test("An order is freed as soon as nothing uses it, with the collector off", timeout=10)
 def _():
     with collector_off():
         order = Order("A1042")
