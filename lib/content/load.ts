@@ -128,6 +128,17 @@ export function loadContent(root = path.join(process.cwd(), "content")): LoadRes
       if (tests === null) err(dir, "missing tests.py");
     }
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) err(dir, "folder name must be a kebab-case slug");
+    const extraFiles = (meta?.files ?? []).flatMap((f) => {
+      const starterFile = readOptional(path.join(dir, "files", f.path));
+      if (starterFile === null) {
+        err(dir, `files/${f.path} is listed in exercise.yaml but doesn't exist`);
+        return [];
+      }
+      const solutionFile = f.editable ? readOptional(path.join(dir, "solution-files", f.path)) : null;
+      return [{ path: f.path, editable: f.editable, starter: starterFile, solution: solutionFile ?? starterFile }];
+    });
+    const mainFile = meta?.main_file ?? (extraFiles.length > 0 ? "main.py" : "solution.py");
+    if (extraFiles.some((f) => f.path === mainFile)) err(dir, `files lists ${mainFile}, which is the main file`);
     if (!meta || prompt === null || starter === null) return null;
     return {
       ...meta,
@@ -139,6 +150,8 @@ export function loadContent(root = path.join(process.cwd(), "content")): LoadRes
       tests: tests ?? "",
       xpReward: meta.xp ?? DEFAULT_XP[meta.difficulty],
       importSolution: !(meta.script ?? NOT_IMPORTED_TYPES.has(meta.type)),
+      mainFile,
+      extraFiles,
     };
   }
 

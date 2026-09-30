@@ -13,6 +13,7 @@ import {
   Settings,
   ShieldCheck,
   Repeat,
+  NotebookPen,
 } from "lucide-react";
 import { SealMark } from "@/components/brand/marks";
 import { motion, AnimatePresence } from "framer-motion";
@@ -37,6 +38,7 @@ const authLinks = [
   { href: "/dashboard", label: "Dashboard", Icon: LayoutDashboard },
   { href: "/modules", label: "Syllabus", Icon: BookOpen },
   { href: "/review", label: "Review", Icon: Repeat },
+  { href: "/log", label: "Learning log", Icon: NotebookPen },
   { href: "/achievements", label: "Achievements", Icon: SealMark },
   { href: "/profile", label: "Profile", Icon: User },
   { href: "/settings", label: "Settings", Icon: Settings },

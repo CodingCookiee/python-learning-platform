@@ -200,6 +200,8 @@ async function main() {
               instructions: ex.prompt,
               starterCode: ex.starter,
               solution: ex.solution,
+              files: ex.extraFiles.length > 0 ? ex.extraFiles : Prisma.DbNull,
+              mainFile: ex.mainFile,
               testCases: JSON.stringify(ex.type === "predict" ? [] : parseTestNames(ex.tests)),
               tests: ex.tests,
               type: ex.type,

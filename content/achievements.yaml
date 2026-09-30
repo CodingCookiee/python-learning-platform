@@ -94,14 +94,13 @@
     modules: [python-basics, collections-and-control-flow, functions-and-modules, pythonic-stdlib, oop, errors-files-context, testing-pytest, iterators-generators-decorators, typing-pydantic, tooling-packaging, data-model-internals, concurrency, performance]
 - slug: belt-black
   name: Python Master
-  description: Pass all 16 Python modules and earn the black belt, 1st dan
+  description: Earn the black belt, 1st dan - every Python checkpoint, advanced topics held at 80%, three capstones approved
   icon: Medal
   category: Belts
   tier: legendary
   xp: 1000
   criteria:
-    kind: modules
-    modules: [python-basics, collections-and-control-flow, functions-and-modules, pythonic-stdlib, oop, errors-files-context, testing-pytest, iterators-generators-decorators, typing-pydantic, tooling-packaging, data-model-internals, concurrency, performance, http-apis, fastapi, data-and-databases]
+    kind: black-belt
 - slug: automation-engineer
   name: Automation Engineer
   description: Pass all eight automation modules and reach 9th dan

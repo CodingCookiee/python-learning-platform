@@ -13,9 +13,12 @@ import ast
 import asyncio
 import builtins
 import contextlib
+import importlib.abc
+import importlib.util
 import inspect
 import io
 import linecache
+import os
 import sys
 import time
 import traceback
@@ -31,6 +34,14 @@ USER_FILES = ("main.py", "solution.py")
 # plp helpers, pytest, mypy and packages are never traced.
 TRACED_FILES = (*USER_FILES, "tests.py")
 
+# Multi-file drills: the learner's other files for the current run. .py files are served
+# to the import system from memory under their own names (so `import utils` works and
+# tracebacks say utils.py); anything else (a CSV, a config) is written to the working
+# directory for the code to open. _traced is what the time limit watches this run.
+_traced: set[str] = set(TRACED_FILES)
+_extra_py: dict[str, str] = {}
+_extra_data: list[str] = []
+
 
 # Helpers
 
@@ -38,6 +49,68 @@ TRACED_FILES = (*USER_FILES, "tests.py")
 def _register_source(filename: str, source: str) -> None:
     """Make tracebacks show source lines for code that never touched the disk."""
     linecache.cache[filename] = (len(source), None, source.splitlines(True), filename)
+
+
+class _FilesLoader(importlib.abc.Loader):
+    def __init__(self, filename: str):
+        self.filename = filename
+
+    def create_module(self, spec):
+        return None
+
+    def exec_module(self, module):
+        source = _extra_py[self.filename]
+        module.__file__ = self.filename
+        _register_source(self.filename, source)
+        exec(compile(source, self.filename, "exec", dont_inherit=True), module.__dict__)
+
+    def get_source(self, fullname):
+        return _extra_py[self.filename]
+
+
+class _FilesFinder(importlib.abc.MetaPathFinder):
+    def find_spec(self, fullname, path=None, target=None):
+        if not _extra_py:
+            return None
+        rel = fullname.replace(".", "/")
+        for candidate, is_package in ((f"{rel}.py", False), (f"{rel}/__init__.py", True)):
+            if candidate in _extra_py:
+                spec = importlib.util.spec_from_loader(fullname, _FilesLoader(candidate), is_package=is_package)
+                spec.origin = candidate
+                spec.has_location = True
+                if is_package:
+                    spec.submodule_search_locations = [rel]
+                return spec
+        return None
+
+
+sys.meta_path.insert(0, _FilesFinder())
+
+
+def _install_files(files: dict[str, str] | None, main: str) -> tuple[str, ...]:
+    """Make the learner's other files visible to this run; returns every learner filename."""
+    for p in _extra_data:
+        with contextlib.suppress(OSError):
+            os.remove(p)
+    _extra_data.clear()
+    _extra_py.clear()
+    for raw, source in (files or {}).items():
+        path = raw.replace("\\", "/").lstrip("/")
+        if not path or ".." in path.split("/") or path == main:
+            continue
+        if path.endswith(".py"):
+            _extra_py[path] = source
+            _register_source(path, source)
+        else:
+            if os.path.dirname(path):
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write(source)
+            _extra_data.append(path)
+    _traced.clear()
+    _traced.update(TRACED_FILES, (main,), _extra_py)
+    importlib.invalidate_caches()
+    return (main, *_extra_py)
 
 
 def _clip(text: str, limit: int = MAX_OUTPUT) -> str:
@@ -152,7 +225,9 @@ async def _execute(code_obj, namespace: dict) -> None:
 # Run mode
 
 
-async def run_code(code: str, stdin: list[str] | None = None, filename: str = "main.py") -> dict:
+async def run_code(
+    code: str, stdin: list[str] | None = None, filename: str = "main.py", files: dict[str, str] | None = None
+) -> dict:
     """Run a program as __main__ in a fresh namespace and capture what it printed."""
     _register_source(filename, code)
     out, err = io.StringIO(), io.StringIO()
@@ -160,6 +235,7 @@ async def run_code(code: str, stdin: list[str] | None = None, filename: str = "m
     status, error = "ok", None
     feed = _Feed(stdin) if stdin is not None else _NoInput()
     _reset_user_state()
+    user_files = _install_files(files, filename)
     plp.browser_compat()
     try:
         # dont_inherit: this file's own `from __future__ import annotations` must not leak into
@@ -181,7 +257,7 @@ async def run_code(code: str, stdin: list[str] | None = None, filename: str = "m
                 "traceback": f"SystemExit: {exc.code}",
             }
     except BaseException as exc:  # noqa: BLE001 — everything the learner raises is reported
-        status, error = "error", _describe_exception(exc, files=(filename,))
+        status, error = "error", _describe_exception(exc, files=user_files)
     return {
         "status": status,
         "stdout": _clip(out.getvalue()),
@@ -447,7 +523,7 @@ class _Deadline:
             sys.settrace(self._global)
 
     def _global(self, frame, event, arg):
-        if frame.f_code.co_filename in TRACED_FILES:
+        if frame.f_code.co_filename in _traced:
             return self._local
         return None
 
@@ -522,16 +598,26 @@ def _fresh_module(name: str, filename: str, source: str) -> types.ModuleType:
     return module
 
 
-async def run_tests(solution: str, tests: str, import_solution: bool = True) -> dict:
+async def run_tests(
+    solution: str,
+    tests: str,
+    import_solution: bool = True,
+    files: dict[str, str] | None = None,
+    main_name: str = "solution.py",
+) -> dict:
     """Import the learner's code as `solution`, then run every registered test.
 
     Program drills pass import_solution=False: their code is a script (it calls
     input() at the top level), so tests only run it through plp.run_program().
     Its syntax is still checked up front.
+
+    Multi-file drills pass their other files in `files` (path -> source) and the
+    main file's name in `main_name` (it's still imported as `solution`).
     """
     plp._REGISTRY.clear()
-    plp._SOLUTION.update(source=solution, filename="solution.py")
+    plp._SOLUTION.update(source=solution, filename=main_name)
     _reset_user_state()
+    user_files = _install_files(files, main_name)
     plp.fresh_logging()
     plp.browser_compat()
     for name in ("solution", "tests"):
@@ -541,12 +627,14 @@ async def run_tests(solution: str, tests: str, import_solution: bool = True) -> 
     load_out = io.StringIO()
 
     # 1. The learner's code
-    module = _fresh_module("solution", "solution.py", solution)
+    module = _fresh_module("solution", main_name, solution)
     try:
-        code_obj = compile(solution, "solution.py", "exec", dont_inherit=True)
+        code_obj = compile(solution, main_name, "exec", dont_inherit=True)
         if import_solution:
             sys.modules["solution"] = module
             _preimport(solution)
+            for extra in _extra_py.values():
+                _preimport(extra)
             with contextlib.redirect_stdout(load_out), _patched_input(_NoInput()):
                 _deadline.start(_import_budget(solution))
                 try:
@@ -559,7 +647,7 @@ async def run_tests(solution: str, tests: str, import_solution: bool = True) -> 
             "status": "error",
             "phase": "solution",
             "stdout": _clip(load_out.getvalue()),
-            "error": _describe_exception(exc, files=("solution.py",)),
+            "error": _describe_exception(exc, files=user_files),
             "tests": [],
             "durationMs": round((time.perf_counter() - started) * 1000),
         }
@@ -577,7 +665,7 @@ async def run_tests(solution: str, tests: str, import_solution: bool = True) -> 
         missing = isinstance(exc, ImportError) and getattr(exc, "name", None) == "solution"
         error = _describe_exception(exc, files=("tests.py",))
         if missing:
-            error["message"] = str(exc).replace(" (solution.py)", "")
+            error["message"] = str(exc).replace(f" ({main_name})", "")
         return {
             "status": "error",
             "phase": "solution" if missing else "tests",
@@ -620,11 +708,11 @@ async def run_tests(solution: str, tests: str, import_solution: bool = True) -> 
         except AssertionError as exc:
             message = await _explain_assertion(exc, tests_tree)
         except plp.TestTimeout as exc:
-            error = _describe_exception(exc, files=("solution.py",))
+            error = _describe_exception(exc, files=user_files)
             where = f" It was running line {error['line']} when it stopped." if error["line"] else ""
             message = f"{exc}{where}"
         except BaseException as exc:  # noqa: BLE001
-            error = _describe_exception(exc, files=("solution.py",))
+            error = _describe_exception(exc, files=user_files)
             where = f" (line {error['line']})" if error["line"] else ""
             if error["line"] is not None:
                 message = f"Your code raised {error['type']}{where}: {error['message']}"

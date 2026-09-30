@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getCurriculumState } from "@/lib/curriculum-state";
 import { achievementCriteriaSchema, type AchievementCriteria } from "@/lib/content/schema";
+import { blackBeltIfDue } from "@/lib/black-belt";
 
 /**
  * Achievements (patches) are defined in content/achievements.yaml and synced into
@@ -100,6 +101,7 @@ interface LearnerStats {
   capstoneModules: Set<string>;
   streak: number;
   xp: number;
+  blackBelt: boolean;
 }
 
 async function learnerStats(userId: string): Promise<LearnerStats> {
@@ -120,6 +122,7 @@ async function learnerStats(userId: string): Promise<LearnerStats> {
   ]);
   const passedModules = new Set<string>();
   for (const t of tracks) for (const m of t.modules) if (m.passed && m.slug) passedModules.add(m.slug);
+  const blackBelt = (await blackBeltIfDue(userId, tracks))?.met ?? false;
   return {
     lessons,
     drills: drills.length,
@@ -128,6 +131,7 @@ async function learnerStats(userId: string): Promise<LearnerStats> {
     // A streak patch is earned once the streak has ever reached that length
     streak: Math.max(streak?.currentStreak ?? 0, streak?.longestStreak ?? 0),
     xp: user?.xp ?? 0,
+    blackBelt,
   };
 }
 
@@ -145,6 +149,8 @@ function met(criteria: AchievementCriteria, stats: LearnerStats): boolean {
       return stats.streak >= criteria.days;
     case "xp":
       return stats.xp >= criteria.amount;
+    case "black-belt":
+      return stats.blackBelt;
   }
 }
 

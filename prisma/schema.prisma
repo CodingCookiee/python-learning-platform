@@ -55,6 +55,7 @@ model User {
   llmUsage            LlmUsage[]
   labRuns             LabRun[]
   drillDrafts         DrillDraft[]
+  learningLog         LearningLogEntry[]
 
   @@map("users")
 }
@@ -200,6 +201,10 @@ model Exercise {
   timeoutMs     Int      @default(5000)
   /// False for script-style drills (programs, tests, script: true): the code runs, it isn't imported
   importSolution Boolean  @default(true)
+  /// Multi-file drills: [{ path, editable, starter, solution }] for the learner's other files
+  files         Json?
+  /// The main file's name (solution.py for single-file drills, main.py by default for multi-file)
+  mainFile      String   @default("solution.py")
   /// Required drills gate lesson completion; optional ones are extra practice
   required      Boolean  @default(true)
   archivedAt    DateTime?
@@ -458,4 +463,27 @@ model DrillDraft {
 
   @@id([userId, exerciseId])
   @@map("drill_drafts")
+}
+
+/// One week of the learning log: the roadmap's weekly check-in, pre-filled from activity and edited by the learner
+model LearningLogEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  /// Monday 00:00 of the week (server time)
+  weekOf    DateTime
+  /// Where the learner was in the course when they wrote it
+  phase     String   @default("")
+  hours     Float    @default(0)
+  built     String   @db.Text @default("")
+  learned   String   @db.Text @default("")
+  stuck     String   @db.Text @default("")
+  nextGoal  String   @db.Text @default("")
+  question  String   @db.Text @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, weekOf])
+  @@map("learning_log")
 }

@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-type AdminSection = "overview" | "submissions" | "content";
+type AdminSection = "overview" | "submissions" | "content" | "ai";
 
 const SECTIONS: Array<{ key: AdminSection; label: string; href: string }> = [
   { key: "overview", label: "Overview", href: "/admin" },
   { key: "submissions", label: "Submissions", href: "/admin/projects" },
   { key: "content", label: "Content", href: "/admin/content" },
+  { key: "ai", label: "AI usage", href: "/admin/ai" },
 ];
 
 /**

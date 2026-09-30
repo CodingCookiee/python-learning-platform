@@ -110,6 +110,25 @@ export const exerciseSchema = z.object({
    *  Always true for program and tests drills; set it for script-style fix/refactor drills. */
   script: z.boolean().optional(),
   hints: z.array(text).default([]),
+  /**
+   * Multi-file drills: the learner's other files, shown as tabs next to the main one.
+   * Starter content lives in files/<path>; the solution's version of an editable file
+   * in solution-files/<path> (omit it when the solution leaves the file as it is).
+   * editable: false marks a given file (a data file, a helper) the learner reads but
+   * doesn't change.
+   */
+  files: z
+    .array(
+      z.object({
+        path: z
+          .string()
+          .regex(/^[A-Za-z0-9_][\w.-]*(\/[A-Za-z0-9_][\w.-]*)*$/, "use a relative path like utils.py or pkg/mod.py"),
+        editable: z.boolean().default(true),
+      })
+    )
+    .default([]),
+  /** The main file's tab name (starter.py / solution.py); defaults to main.py when there are files */
+  main_file: z.string().regex(/^[\w.-]+\.py$/).optional(),
 });
 
 export const capstoneSchema = z.object({
@@ -138,6 +157,8 @@ export const achievementCriteriaSchema = z.discriminatedUnion("kind", [
   /** Every listed module passed (a belt, a track, or one module) */
   z.object({ kind: z.literal("modules"), modules: z.array(slug).min(1) }),
   z.object({ kind: z.literal("capstone"), module: slug }),
+  /** The black belt earned: every Python checkpoint, advanced topics at 80%, three capstones (lib/black-belt.ts) */
+  z.object({ kind: z.literal("black-belt") }),
   z.object({ kind: z.literal("streak"), days: z.number().int().positive() }),
   z.object({ kind: z.literal("xp"), amount: z.number().int().positive() }),
 ]);
@@ -176,6 +197,10 @@ export interface ContentExercise extends ExerciseMeta {
   xpReward: number;
   /** False when the code is run as a script rather than imported (see `script`) */
   importSolution: boolean;
+  /** The main file's name: solution.py for single-file drills */
+  mainFile: string;
+  /** Multi-file drills' other files, with their starter and solution content */
+  extraFiles: Array<{ path: string; editable: boolean; starter: string; solution: string }>;
 }
 
 export interface ContentLesson extends LessonMeta {

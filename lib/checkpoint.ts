@@ -54,6 +54,8 @@ export interface CheckpointDrill {
   type: string;
   difficulty: string;
   lessonTitle: string;
+  lessonId: string;
+  tags: string[];
   passed: boolean;
 }
 
@@ -68,6 +70,27 @@ export interface CheckpointAttemptView {
   score: number | null;
   passed: boolean;
   drills: CheckpointDrill[];
+}
+
+/**
+ * What a closed attempt says to study: the topics of the drills that weren't
+ * passed, most-missed first, and the lessons they come from.
+ */
+export function topicsToReview(drills: CheckpointDrill[]) {
+  const missed = drills.filter((d) => !d.passed);
+  const counts = new Map<string, number>();
+  for (const d of missed) for (const t of new Set(d.tags.map((t) => t.toLowerCase()))) counts.set(t, (counts.get(t) ?? 0) + 1);
+  const lessons = new Map<string, { id: string; title: string; drills: number }>();
+  for (const d of missed) {
+    const l = lessons.get(d.lessonId) ?? { id: d.lessonId, title: d.lessonTitle, drills: 0 };
+    l.drills++;
+    lessons.set(d.lessonId, l);
+  }
+  return {
+    topics: [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([tag, n]) => ({ tag, missed: n })),
+    lessons: [...lessons.values()].sort((a, b) => b.drills - a.drills),
+    missed,
+  };
 }
 
 export interface CheckpointResult {
@@ -247,7 +270,7 @@ export async function getCheckpointAttempt(userId: string, attemptId: string): P
 
   const exercises = await prisma.exercise.findMany({
     where: { id: { in: attempt.exerciseIds } },
-    select: { id: true, title: true, type: true, difficulty: true, lesson: { select: { title: true } } },
+    select: { id: true, title: true, type: true, difficulty: true, tags: true, lesson: { select: { id: true, title: true } } },
   });
   const byId = new Map(exercises.map((e) => [e.id, e]));
   const passed = new Set(attempt.passedIds);
@@ -264,7 +287,18 @@ export async function getCheckpointAttempt(userId: string, attemptId: string): P
     drills: attempt.exerciseIds.flatMap((id) => {
       const e = byId.get(id);
       return e
-        ? [{ id, title: e.title, type: e.type, difficulty: e.difficulty, lessonTitle: e.lesson.title, passed: passed.has(id) }]
+        ? [
+            {
+              id,
+              title: e.title,
+              type: e.type,
+              difficulty: e.difficulty,
+              lessonTitle: e.lesson.title,
+              lessonId: e.lesson.id,
+              tags: e.tags,
+              passed: passed.has(id),
+            },
+          ]
         : [];
     }),
   };

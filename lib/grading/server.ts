@@ -16,6 +16,8 @@ export function isServerGrading(): boolean {
 
 interface PoolJob {
   kind: "run" | "test";
+  files?: Record<string, string>;
+  mainName?: string;
   code?: string;
   solution?: string;
   tests?: string;
@@ -75,6 +77,7 @@ export interface DrillToGrade {
   packages: string[];
   timeoutMs: number;
   importSolution: boolean;
+  mainFile: string;
 }
 
 export type ServerVerdict =
@@ -95,7 +98,11 @@ function testCount(testCases: string): number {
  * Grade a submission. For predict drills `submitted` is the learner's predicted
  * output; for everything else it's their code.
  */
-export async function gradeOnServer(drill: DrillToGrade, submitted: string): Promise<ServerVerdict> {
+export async function gradeOnServer(
+  drill: DrillToGrade,
+  submitted: string,
+  files?: Record<string, string>
+): Promise<ServerVerdict> {
   const p = await pool();
   if (drill.type === "predict") {
     const r = await p.run({ kind: "run", code: drill.starterCode, packages: drill.packages }, drill.timeoutMs + 2000);
@@ -107,7 +114,15 @@ export async function gradeOnServer(drill: DrillToGrade, submitted: string): Pro
   // Each test has its own limit inside the runner; the whole run gets room for all of them
   const budget = Math.max(drill.timeoutMs, (testCount(drill.testCases) + 1) * 2500) + 2000;
   const r = await p.run(
-    { kind: "test", solution: submitted, tests: drill.tests, importSolution: drill.importSolution, packages: drill.packages },
+    {
+      kind: "test",
+      solution: submitted,
+      tests: drill.tests,
+      importSolution: drill.importSolution,
+      packages: drill.packages,
+      files,
+      mainName: drill.mainFile,
+    },
     budget
   );
   if (r.__failure) return { graded: false, reason: r.__failure };

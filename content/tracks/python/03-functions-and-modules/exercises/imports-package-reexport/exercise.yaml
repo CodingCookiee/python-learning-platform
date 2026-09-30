@@ -1,0 +1,13 @@
+title: Make a package re-export its functions
+type: function
+difficulty: stretch
+tags: [imports, packages]
+main_file: main.py
+files:
+  - path: inventory/__init__.py
+  - path: inventory/stock.py
+    editable: false
+hints:
+  - "from inventory import reorder looks for the name reorder in inventory/__init__.py, which is empty."
+  - "In __init__.py, import the names from the stock module: from .stock import LOW_STOCK, reorder (or from inventory.stock import ...)."
+  - "In main.py, format each name reorder gives you as f\"{name} (have {levels[name]})\"."

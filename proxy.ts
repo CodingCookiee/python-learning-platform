@@ -17,7 +17,7 @@ export async function proxy(req: NextRequest) {
 
   // API routes that require authentication
   // (API handlers also enforce auth themselves via withAuth)
-  const protectedApiRoutes = ["/api/progress", "/api/exercises", "/api/profile", "/api/settings", "/api/checkpoints", "/api/review", "/api/tutor", "/api/onboarding"];
+  const protectedApiRoutes = ["/api/progress", "/api/exercises", "/api/profile", "/api/settings", "/api/checkpoints", "/api/review", "/api/tutor", "/api/onboarding", "/api/log"];
   const isProtectedApi = protectedApiRoutes.some((route) => pathname.startsWith(route));
 
   // Protected app routes
@@ -29,6 +29,7 @@ export async function proxy(req: NextRequest) {
     "/checkpoints",
     "/review",
     "/onboarding",
+    "/log",
     "/projects",
     "/achievements",
     "/profile",

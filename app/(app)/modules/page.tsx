@@ -8,6 +8,7 @@ import { SyllabusProgress } from "@/components/brand/syllabus-progress";
 import { LockedMark, SealMark } from "@/components/brand/marks";
 import { AUTOMATION_TRACK, AUTOMATION_UNLOCK_AFTER, getCurriculumState, PYTHON_TRACK } from "@/lib/curriculum-state";
 import { rankFromTracks } from "@/lib/learner-rank";
+import { blackBeltIfDue } from "@/lib/black-belt";
 import { toSyllabus, type SyllabusModule } from "@/lib/syllabus";
 import { DAN_TRACK, ordinal } from "@/lib/ranks";
 import { cn } from "@/lib/utils";
@@ -49,7 +50,7 @@ export default async function ModulesPage() {
   if (!userId) redirect("/auth/signin");
 
   const tracks = await getCurriculumState(userId);
-  const rank = rankFromTracks(tracks);
+  const rank = rankFromTracks(tracks, await blackBeltIfDue(userId, tracks));
   const python = tracks.find((t) => t.slug === PYTHON_TRACK);
   const automation = tracks.find((t) => t.slug === AUTOMATION_TRACK);
   const modules = python ? toSyllabus(python) : [];

@@ -124,9 +124,12 @@ async function main() {
         return;
       }
       const importSolution = ex.importSolution;
+      const filesOf = (which: "starter" | "solution") =>
+        ex.extraFiles.length > 0 ? Object.fromEntries(ex.extraFiles.map((f) => [f.path, f[which]])) : undefined;
+      const common = { tests: ex.tests, importSolution, packages: ex.packages, mainName: ex.mainFile };
       const [good, bad] = (await Promise.all([
-        pool.run({ kind: "test", solution: ex.solution, tests: ex.tests, importSolution, packages: ex.packages }, budget),
-        pool.run({ kind: "test", solution: ex.starter, tests: ex.tests, importSolution, packages: ex.packages }, budget),
+        pool.run({ kind: "test", solution: ex.solution, files: filesOf("solution"), ...common }, budget),
+        pool.run({ kind: "test", solution: ex.starter, files: filesOf("starter"), ...common }, budget),
       ])) as [TestResult, TestResult];
       tick();
       if (!(good.status === "ok" && good.passed)) {

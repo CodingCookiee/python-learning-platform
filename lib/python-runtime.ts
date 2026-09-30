@@ -53,7 +53,7 @@ interface Job {
   resolve: (value: unknown) => void;
 }
 
-const WORKER_URL = "/workers/python-worker.mjs?v=314.0.7-4";
+const WORKER_URL = "/workers/python-worker.mjs?v=314.0.7-5";
 /** Time allowed for downloading a drill's packages (pandas, mypy…) before its code starts */
 const PACKAGE_LOAD_MS = 120_000;
 
@@ -198,6 +198,8 @@ class PythonRuntime {
       /** Source to scan for imports of Pyodide packages, which are then loaded */
       scanImports?: string;
       timeoutMs?: number;
+      /** A multi-file drill's other files (path -> source), importable or readable by the code */
+      files?: Record<string, string>;
     } = {}
   ): Promise<RunResult> {
     const timeoutMs = options.timeoutMs ?? 10_000;
@@ -208,6 +210,7 @@ class PythonRuntime {
         stdin: options.stdin ?? null,
         packages: options.packages ?? [],
         scanImports: options.scanImports ?? null,
+        files: options.files ?? null,
       },
       timeoutMs
     );
@@ -217,7 +220,15 @@ class PythonRuntime {
   async test(
     solution: string,
     tests: string,
-    options: { packages?: string[]; timeoutMs?: number; importSolution?: boolean } = {}
+    options: {
+      packages?: string[];
+      timeoutMs?: number;
+      importSolution?: boolean;
+      /** A multi-file drill's other files (path -> source) */
+      files?: Record<string, string>;
+      /** The main file's name, for tracebacks (it's still imported as `solution`) */
+      mainName?: string;
+    } = {}
   ): Promise<TestRunResult> {
     const timeoutMs = options.timeoutMs ?? 10_000;
     const raw = await this.enqueue(
@@ -227,6 +238,8 @@ class PythonRuntime {
         tests,
         importSolution: options.importSolution ?? true,
         packages: options.packages ?? [],
+        files: options.files ?? null,
+        mainName: options.mainName ?? "solution.py",
       },
       timeoutMs
     );

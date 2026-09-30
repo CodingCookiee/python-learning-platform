@@ -7,8 +7,11 @@ exercises:
   - imports-boxes-needed
   - imports-predict-name
   - imports-group-by-extension
+  - imports-split-pricing
   - imports-main-guard-fix
   - imports-unit-converter-cli
+optional:
+  - imports-package-reexport
 ---
 
 Once a program grows past a couple of hundred lines, one file gets hard to work in. Python's unit of

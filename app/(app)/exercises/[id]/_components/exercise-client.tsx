@@ -9,6 +9,7 @@ import {
   ChevronDown,
   Clock,
   Eye,
+  Lock,
   Lightbulb,
   LoaderCircle,
   Play,
@@ -36,6 +37,7 @@ import type { UnlockedAchievement } from "@/lib/achievements";
 import type { DrillData, DrillMode, DrillType } from "@/lib/drills";
 import { cn } from "@/lib/utils";
 import { TutorPanel, type TutorHandle } from "@/components/tutor/tutor-panel";
+import { combinedSource } from "@/lib/drill-files";
 
 // Copy per drill type
 
@@ -407,6 +409,7 @@ interface SubmitResponse {
   levelUp?: boolean;
   newLevel?: number;
   solution?: string | null;
+  solutionFiles?: Record<string, string> | null;
   review: { counted: boolean; stage: number; nextDueAt: string | null } | null;
   checkpoint:
     | { passedCount: number; total: number; finished: { score: number; passed: boolean } | null }
@@ -461,26 +464,48 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
   // Practice code autosaves to the server a few seconds after the last edit
   const lastSavedRef = React.useRef(initialCode);
   const draftTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Multi-file drills: the other files, as the learner has them
+  const multi = drill.files.length > 0;
+  const starterFiles = React.useMemo(() => Object.fromEntries(drill.files.map((d) => [d.path, d.starter])), [drill.files]);
+  const [files, setFilesState] = React.useState<Record<string, string>>(() =>
+    Object.fromEntries(drill.files.map((d) => [d.path, (d.editable && drill.draft?.files?.[d.path]) || d.starter]))
+  );
+  const filesRef = React.useRef(files);
+  const [activeFile, setActiveFile] = React.useState(drill.mainFile);
+  const activeDef = drill.files.find((d) => d.path === activeFile) ?? null;
+  const lastDraftRef = React.useRef("");
+  const scheduleDraft = React.useCallback(() => {
+    if (drill.mode.kind !== "practice" || drill.type === "predict") return;
+    if (draftTimer.current) clearTimeout(draftTimer.current);
+    draftTimer.current = setTimeout(() => {
+      const now = JSON.stringify([codeRef.current, filesRef.current]);
+      if (now === lastDraftRef.current || (!lastDraftRef.current && codeRef.current === lastSavedRef.current && !multi)) return;
+      const body = JSON.stringify({ code: codeRef.current, ...(multi ? { files: filesRef.current } : {}) });
+      void fetch(`/api/exercises/${drill.id}/draft`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body,
+        keepalive: body.length < 60_000,
+      }).then((r) => {
+        if (r.ok) lastDraftRef.current = now;
+      }, () => {});
+    }, 2500);
+  }, [drill.id, drill.mode.kind, drill.type, multi]);
   const setCode = React.useCallback(
     (next: string) => {
       codeRef.current = next;
       setCodeState(next);
-      if (drill.mode.kind !== "practice" || drill.type === "predict") return;
-      if (draftTimer.current) clearTimeout(draftTimer.current);
-      draftTimer.current = setTimeout(() => {
-        if (codeRef.current === lastSavedRef.current) return;
-        const saving = codeRef.current;
-        void fetch(`/api/exercises/${drill.id}/draft`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code: saving }),
-          keepalive: saving.length < 60_000,
-        }).then((r) => {
-          if (r.ok) lastSavedRef.current = saving;
-        }, () => {});
-      }, 2500);
+      scheduleDraft();
     },
-    [drill.id, drill.mode.kind, drill.type]
+    [scheduleDraft]
+  );
+  const setFile = React.useCallback(
+    (path: string, next: string) => {
+      filesRef.current = { ...filesRef.current, [path]: next };
+      setFilesState(filesRef.current);
+      scheduleDraft();
+    },
+    [scheduleDraft]
   );
   const [answer, setAnswer] = React.useState("");
   const [stdin, setStdin] = React.useState("");
@@ -490,6 +515,7 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
   const [attempts, setAttempts] = React.useState(drill.stats.attempts);
   const [solved, setSolved] = React.useState(drill.stats.solved);
   const [solution, setSolution] = React.useState(drill.solution);
+  const [solutionFiles, setSolutionFiles] = React.useState<Record<string, string> | null>(drill.solutionFiles);
   const [solutionOpen, setSolutionOpen] = React.useState(false);
   const [hintsUsed, setHintsUsed] = React.useState(0);
   const [xpGained, setXpGained] = React.useState<number | null>(null);
@@ -519,6 +545,7 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         code: submitted,
+        ...(multi ? { files: filesRef.current } : {}),
         passed,
         testResults: JSON.stringify(summary),
         hintsUsed: hintsUsed + (tutorUsedRef.current ? 1 : 0),
@@ -548,6 +575,7 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
     setAttempts(data.submission.attempts);
     if (data.submission.passed) setSolved(true);
     if (data.solution) setSolution(data.solution);
+    if (data.solutionFiles) setSolutionFiles(data.solutionFiles);
     if (data.xpGained > 0) {
       setXpGained(data.xpGained);
       setConfetti(true);
@@ -590,6 +618,8 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
           // Each test has its own 2 s limit inside the runner; the whole run gets room for all of them
           timeoutMs: Math.max(drill.timeoutMs, (drill.testList.length + 1) * 2500) + 1000,
           importSolution: drill.importSolution,
+          files: multi ? filesRef.current : undefined,
+          mainName: drill.mainFile,
         });
         setCheck({ kind: "tests", result });
         // The drill's own tests failing to load isn't the learner's attempt
@@ -618,6 +648,7 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
         stdin: lines,
         packages: drill.packages,
         timeoutMs: drill.timeoutMs + 1000,
+        files: multi ? filesRef.current : undefined,
       });
       setRunResult(result);
     } finally {
@@ -628,6 +659,10 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
 
   function reset() {
     setCode(drill.starterCode);
+    if (multi) {
+      filesRef.current = { ...starterFiles };
+      setFilesState(filesRef.current);
+    }
     setCheck({ kind: "idle" });
     setRunResult(null);
   }
@@ -670,14 +705,54 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
           </label>
         </>
       ) : (
-        <PythonEditor
-          value={code}
-          onChange={setCode}
-          storageKey={EDITOR_KEY[mode.kind](drill)}
-          valueSavedAt={drill.draft?.savedAt ?? null}
-          onRun={() => void runCheck()}
-          height="420px"
-        />
+        <div className={cn(multi && "overflow-hidden rounded-md border border-border")}>
+          {multi && (
+            <div role="tablist" aria-label="Files" className="flex flex-wrap gap-px border-b border-border bg-sheet">
+              {[{ path: drill.mainFile, editable: true }, ...drill.files].map((file) => (
+                <button
+                  key={file.path}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeFile === file.path}
+                  onClick={() => setActiveFile(file.path)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3.5 py-2 font-mono text-[0.8125rem]",
+                    activeFile === file.path
+                      ? "bg-background font-semibold text-foreground shadow-[inset_0_-2px_0_var(--primary)]"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {!file.editable && <Lock className="size-3" aria-label="Read-only" />}
+                  {file.path}
+                </button>
+              ))}
+            </div>
+          )}
+          {!activeDef ? (
+            <PythonEditor
+              key="main"
+              value={code}
+              onChange={setCode}
+              storageKey={EDITOR_KEY[mode.kind](drill)}
+              valueSavedAt={drill.draft?.savedAt ?? null}
+              onRun={() => void runCheck()}
+              height="420px"
+            />
+          ) : (
+            <PythonEditor
+              key={activeDef.path}
+              value={files[activeDef.path] ?? activeDef.starter}
+              onChange={(v) => {
+                if (activeDef.editable) setFile(activeDef.path, v);
+              }}
+              readOnly={!activeDef.editable}
+              storageKey={activeDef.editable ? `${EDITOR_KEY[mode.kind](drill)}:${activeDef.path}` : undefined}
+              valueSavedAt={drill.draft?.savedAt ?? null}
+              onRun={() => void runCheck()}
+              height="420px"
+            />
+          )}
+        </div>
       )}
 
       {showInput && (
@@ -724,7 +799,12 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
           </Button>
         )}
         {!isPredict && (
-          <Button variant="ghost" size="sm" onClick={reset} disabled={code === drill.starterCode}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={reset}
+            disabled={code === drill.starterCode && Object.entries(starterFiles).every(([p, v]) => files[p] === v)}
+          >
             <RotateCcw aria-hidden="true" />
             Reset
           </Button>
@@ -845,7 +925,7 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
           exerciseId={drill.id}
           aiReady={aiReady}
           getContext={() => ({
-            code: isPredict ? drill.starterCode : codeRef.current,
+            code: isPredict ? drill.starterCode : combinedSource(drill.mainFile, codeRef.current, multi ? filesRef.current : undefined),
             result: describeCheck(check, runResult, answer),
           })}
           onUsed={() => {
@@ -875,7 +955,12 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
                   Read it, close it, then write it yourself from memory. That’s where it sticks.
                 </p>
               )}
-              <PythonEditor value={solution} onChange={() => {}} readOnly height="300px" />
+              <PythonEditor
+                value={combinedSource(drill.mainFile, solution, drill.solutionFiles ?? solutionFiles ?? undefined)}
+                onChange={() => {}}
+                readOnly
+                height="300px"
+              />
             </div>
           )}
         </section>

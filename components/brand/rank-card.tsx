@@ -1,9 +1,70 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Check, Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { BeltBand, BeltLadder } from "@/components/brand/belt";
 import type { LearnerRank } from "@/lib/learner-rank";
+import type { BlackBeltStatus } from "@/lib/black-belt";
+
+function Requirement({ done, children }: { done: boolean; children: React.ReactNode }) {
+  return (
+    <li className="flex items-start gap-2.5">
+      {done ? (
+        <Check className="mt-0.5 size-4 shrink-0 text-success" aria-label="Done" />
+      ) : (
+        <Circle className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-label="Not yet" />
+      )}
+      <span className="min-w-0">{children}</span>
+    </li>
+  );
+}
+
+/** The black belt grading: what's left once every module is passed */
+function BlackBeltGrading({ status }: { status: BlackBeltStatus }) {
+  const weak = status.topics.filter((t) => t.strength < 0.8).slice(0, 6);
+  return (
+    <div className="flex flex-col gap-3 border-t border-border pt-5">
+      <p>
+        <span className="font-semibold">Black belt grading. </span>
+        <span className="text-muted-foreground">Every module is passed. The black belt means you can use it without looking it up:</span>
+      </p>
+      <ul className="flex flex-col gap-2 text-sm" role="list">
+        <Requirement done={status.checkpoints.passed === status.checkpoints.total}>
+          All {status.checkpoints.total} checkpoints passed
+        </Requirement>
+        <Requirement done={status.topicsMet === status.topics.length}>
+          Advanced topics held at 80%:{" "}
+          <span className="font-condensed tabular">
+            {status.topicsMet} of {status.topics.length}
+          </span>
+          {weak.length > 0 && (
+            <span className="text-muted-foreground">
+              {" "}
+              (weakest: {weak.map((t) => `${t.tag} ${Math.round(t.strength * 100)}%`).join(", ")}). Reviews raise them.
+            </span>
+          )}
+        </Requirement>
+        <Requirement done={status.capstones.approved >= status.capstones.needed}>
+          Capstones approved:{" "}
+          <span className="font-condensed tabular">
+            {status.capstones.approved} of {status.capstones.needed}
+          </span>
+        </Requirement>
+      </ul>
+      <div className="flex flex-wrap gap-2">
+        <Button asChild size="sm">
+          <Link href="/review">
+            Review queue
+            <ArrowRight data-icon="inline-end" aria-hidden="true" />
+          </Link>
+        </Button>
+        <Button asChild size="sm" variant="outline">
+          <Link href="/modules">Capstones in the syllabus</Link>
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 /**
  * The learner's rank at a glance: the grade set at poster scale, their belt
@@ -70,9 +131,11 @@ export function RankCard({
                 </Link>
               </Button>
             </div>
+          ) : rank.blackBeltPending ? (
+            <BlackBeltGrading status={rank.blackBeltPending} />
           ) : (
             <p className="border-t border-border pt-5 font-semibold">
-              Every Python module passed. The AI automation dan ranks open next.
+              Black belt earned. The AI automation dan ranks are next.
             </p>
           )}
         </div>

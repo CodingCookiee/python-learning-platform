@@ -3,6 +3,7 @@ import { getSequentialModuleUnlockMap } from "@/lib/module-access";
 import { openAttemptForDrill } from "@/lib/checkpoint";
 import { getReviewState } from "@/lib/review";
 import { checkpointDeadline } from "@/lib/mastery-rules";
+import { decodeDraft, parseDrillFiles } from "@/lib/drill-files";
 
 /** Attempts after which the reference solution can be revealed without solving */
 export const SOLUTION_AFTER_ATTEMPTS = 3;
@@ -42,6 +43,12 @@ export interface DrillData {
   timeoutMs: number;
   /** False for script-style drills: tests run the code rather than import it */
   importSolution: boolean;
+  /** The main file's name; with `files`, it's the first tab */
+  mainFile: string;
+  /** Multi-file drills' other files (starter content; solutions come with `solutionFiles`) */
+  files: Array<{ path: string; editable: boolean; starter: string }>;
+  /** The solution's version of each editable file, alongside `solution` */
+  solutionFiles: Record<string, string> | null;
   hints: string[];
   testList: Array<{ name: string; hidden: boolean }>;
   /** Only when solved, or after SOLUTION_AFTER_ATTEMPTS attempts */
@@ -51,7 +58,7 @@ export interface DrillData {
   stats: { attempts: number; solved: boolean };
   mode: DrillMode;
   /** The learner's autosaved practice code, if any */
-  draft: { code: string; savedAt: string } | null;
+  draft: { code: string; files: Record<string, string> | null; savedAt: string } | null;
   position: { index: number; total: number };
   previous: { id: string; title: string } | null;
   next: { id: string; title: string } | null;
@@ -131,6 +138,8 @@ export async function getDrillForUser(
     mode = { kind: "review", ...review };
   }
   const exam = mode.kind !== "practice";
+  const showSolution = !exam && Boolean(solved || attempts >= SOLUTION_AFTER_ATTEMPTS);
+  const fileDefs = parseDrillFiles(exercise.files);
 
   const index = siblings.findIndex((s) => s.id === id);
 
@@ -147,17 +156,26 @@ export async function getDrillForUser(
     packages: exercise.packages,
     timeoutMs: exercise.timeoutMs,
     importSolution: exercise.importSolution,
+    mainFile: exercise.mainFile,
+    files: fileDefs.map(({ path, editable, starter }) => ({ path, editable, starter })),
+    solutionFiles: showSolution && fileDefs.length > 0 ? Object.fromEntries(fileDefs.filter((f) => f.editable).map((f) => [f.path, f.solution])) : null,
     hints: mode.kind === "checkpoint" ? [] : parseJsonArray<string>(exercise.hints).map(String),
     testList: parseJsonArray<{ name: string; hidden: boolean }>(exercise.testCases).filter(
       (t) => typeof t?.name === "string"
     ),
-    solution: !exam && (solved || attempts >= SOLUTION_AFTER_ATTEMPTS) ? exercise.solution : null,
+    solution: showSolution ? exercise.solution : null,
     lesson: { id: exercise.lesson.id, title: exercise.lesson.title },
     module: exercise.lesson.module,
     stats: { attempts, solved: Boolean(solved) },
     mode,
     // Drafts are practice code; reviews and checkpoints start from the starter
-    draft: mode.kind === "practice" && draft ? { code: draft.code, savedAt: draft.updatedAt.toISOString() } : null,
+    draft:
+      mode.kind === "practice" && draft
+        ? (() => {
+            const multi = decodeDraft(draft.code);
+            return { code: multi?.main ?? draft.code, files: multi?.files ?? null, savedAt: draft.updatedAt.toISOString() };
+          })()
+        : null,
     position: { index: Math.max(0, index), total: siblings.length },
     // A review stands alone; a checkpoint steps through its own drills
     previous: mode.kind !== "review" && index > 0 ? siblings[index - 1]! : null,

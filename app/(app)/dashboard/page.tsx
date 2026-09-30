@@ -22,7 +22,7 @@ import { SyllabusProgress } from "@/components/brand/syllabus-progress";
 import { SkillMap } from "@/components/mastery/skill-map";
 import { getSkillMap } from "@/lib/skill-map";
 import { countDueReviews } from "@/lib/review";
-import { getPace } from "@/lib/pacing";
+import { getPace, startOfWeek } from "@/lib/pacing";
 
 interface ProgressData {
   user: {
@@ -247,10 +247,14 @@ export default async function DashboardPage() {
     getLearnerRank(dbUser.id),
     getSyllabusProgress(dbUser.id),
   ]);
-  const [skills, reviewsDue, pace] = await Promise.all([
+  const [skills, reviewsDue, pace, checkIn] = await Promise.all([
     getSkillMap(dbUser.id),
     countDueReviews(dbUser.id),
     getPace(dbUser.id),
+    prisma.learningLogEntry.findUnique({
+      where: { userId_weekOf: { userId: dbUser.id, weekOf: startOfWeek() } },
+      select: { id: true },
+    }),
   ]);
   const current = syllabus.find((m) => m.state === "current");
   // Learners who already code can test out of the module in front of them
@@ -342,6 +346,9 @@ export default async function DashboardPage() {
                 <span className="block h-full bg-primary" style={{ width: `${weekPct}%` }} />
               </span>
               <p className="text-xs text-muted-foreground">Estimated from lessons, drills, reviews and checkpoints this week.</p>
+              <Link href="/log" className="w-fit text-sm font-medium text-primary underline">
+                {checkIn ? "This week's check-in is saved" : "Write this week's check-in"}
+              </Link>
             </div>
             <p className="text-[0.9875rem] leading-relaxed text-muted-foreground">
               {pace.projectedFinish ? (

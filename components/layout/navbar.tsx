@@ -20,6 +20,7 @@ const APP_LINKS = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/modules", label: "Syllabus" },
   { href: "/review", label: "Review" },
+  { href: "/log", label: "Log" },
   { href: "/achievements", label: "Achievements" },
 ];
 

@@ -29,7 +29,7 @@ const withExtras = (packages) => [...new Set((packages ?? []).flatMap((p) => [p,
 // Stdlib modules whose data ships as a separate Pyodide package
 const IMPLICIT = [[/\bzoneinfo\b/, "tzdata"]];
 const implicitPackages = (msg) => {
-  const text = [msg.code, msg.solution, msg.tests, msg.scanImports].filter(Boolean).join("\n");
+  const text = [msg.code, msg.solution, msg.tests, msg.scanImports, ...Object.values(msg.files ?? {})].filter(Boolean).join("\n");
   return IMPLICIT.filter(([pattern]) => pattern.test(text)).map(([, pkg]) => pkg);
 };
 
@@ -71,8 +71,14 @@ parentPort.on("message", async (msg) => {
     parentPort.postMessage({ id: msg.id, type: "running" });
     const args =
       msg.kind === "test"
-        ? { solution: msg.solution, tests: msg.tests, import_solution: msg.importSolution ?? true }
-        : { code: msg.code, stdin: msg.stdin ?? null };
+        ? {
+            solution: msg.solution,
+            tests: msg.tests,
+            import_solution: msg.importSolution ?? true,
+            files: msg.files ?? null,
+            main_name: msg.mainName ?? "solution.py",
+          }
+        : { code: msg.code, stdin: msg.stdin ?? null, files: msg.files ?? null };
     py.globals.set("_plp_args", JSON.stringify(args));
     const fn = msg.kind === "test" ? "run_tests" : "run_code";
     const json = await py.runPythonAsync(

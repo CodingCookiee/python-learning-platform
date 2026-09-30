@@ -13,11 +13,14 @@ import { openAttemptForDrill, recordCheckpointRun } from "@/lib/checkpoint";
 import { addToReview, recordReview, type ReviewOutcome } from "@/lib/review";
 import { REVIEW_XP } from "@/lib/mastery-rules";
 import { gradeOnServer, isServerGrading } from "@/lib/grading/server";
+import { combinedSource, filesForRun, parseDrillFiles } from "@/lib/drill-files";
 import { z } from "zod";
 import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 
 const submitSchema = z.object({
   code: z.string().max(100_000),
+  /** A multi-file drill's other files as the learner has them */
+  files: z.record(z.string().max(200), z.string().max(100_000)).optional(),
   passed: z.boolean(),
   testResults: z.string().max(200_000),
   hintsUsed: z.number().int().min(0).default(0),
@@ -43,7 +46,7 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
     if (!validation.success) {
       return NextResponse.json({ error: "Invalid request", details: validation.error.issues }, { status: 400 });
     }
-    const { code, hintsUsed } = validation.data;
+    const { code: mainCode, hintsUsed } = validation.data;
     let { passed, testResults } = validation.data;
     const clientPassed = passed;
 
@@ -51,11 +54,14 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
     if (!exercise) {
       return NextResponse.json({ error: "Exercise not found" }, { status: 404 });
     }
+    const runFiles = filesForRun(parseDrillFiles(exercise.files), validation.data.files);
+    // Stored (and shown) as one text with every file under a header
+    const code = combinedSource(exercise.mainFile, mainCode, runFiles);
 
     // In server mode the browser's verdict is only a preview: re-run the tests here
     const serverGraded = isServerGrading();
     if (serverGraded) {
-      const verdict = await gradeOnServer(exercise, code);
+      const verdict = await gradeOnServer(exercise, mainCode, runFiles);
       if (!verdict.graded) {
         console.error("Server grading failed:", verdict.reason);
         return NextResponse.json(
@@ -132,6 +138,8 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
     await invalidateUserCache(userId);
 
     const finished = checkpoint?.ok ? checkpoint.finished : null;
+    // The reference solution unlocks on a pass, or after enough honest attempts, in practice only
+    const revealSolution = mode === "practice" && (passed || submission.attempts >= SOLUTION_AFTER_ATTEMPTS);
     return NextResponse.json({
       success: true,
       mode,
@@ -159,9 +167,11 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
         : checkpoint
           ? { error: checkpoint.error }
           : null,
-      // The reference solution unlocks on a pass, or after enough honest attempts, in practice only
-      solution:
-        mode === "practice" && (passed || submission.attempts >= SOLUTION_AFTER_ATTEMPTS) ? exercise.solution : null,
+      solution: revealSolution ? exercise.solution : null,
+      solutionFiles:
+        revealSolution && runFiles
+          ? Object.fromEntries(parseDrillFiles(exercise.files).filter((f) => f.editable).map((f) => [f.path, f.solution]))
+          : null,
     });
   } catch (error) {
     console.error("Error submitting exercise:", error);

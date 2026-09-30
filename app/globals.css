@@ -126,6 +126,8 @@
   --chart-3: color-mix(in oklch, var(--primary) 55%, var(--background));
   --chart-4: var(--muted-foreground);
   --chart-5: var(--keyline);
+  /* Single-series bars: validated in the chart lightness band for each mode (dataviz check) */
+  --chart-bar: oklch(0.52 0.11 162);
 
   --sidebar: oklch(0.96 0.015 145);
   --sidebar-foreground: oklch(0.27 0.035 162);
@@ -139,6 +141,7 @@
 
 /* Forest-green cloth in the evening training hall */
 .dark {
+  --chart-bar: oklch(0.66 0.12 158);
   --background: oklch(0.205 0.024 165);
   --foreground: oklch(0.945 0.016 140);
   --sheet: oklch(0.24 0.026 165);

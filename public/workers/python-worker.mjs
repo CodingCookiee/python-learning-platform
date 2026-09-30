@@ -5,8 +5,9 @@
  * starts a fresh one (lib/python-runtime.ts).
  *
  * Protocol
- *   main → worker  { id, kind: "run", code, stdin, packages, scanImports }
- *                  { id, kind: "test", solution, tests, importSolution, packages }
+ *   main → worker  { id, kind: "run", code, stdin, packages, scanImports, files }
+ *                  { id, kind: "test", solution, tests, importSolution, packages, files, mainName }
+ *   (files: a multi-file drill's other files, path -> source)
  *   worker → main  { type: "ready" }
  *                  { type: "status", text }                 (loading progress)
  *                  { id, type: "running" }                  (packages loaded, code starting)
@@ -38,7 +39,7 @@ const withExtras = (packages) => [...new Set((packages ?? []).flatMap((p) => [p,
 // Stdlib modules whose data ships as a separate Pyodide package
 const IMPLICIT = [[/\bzoneinfo\b/, "tzdata"]];
 const implicitPackages = (msg) => {
-  const text = [msg.code, msg.solution, msg.tests, msg.scanImports].filter(Boolean).join("\n");
+  const text = [msg.code, msg.solution, msg.tests, msg.scanImports, ...Object.values(msg.files ?? {})].filter(Boolean).join("\n");
   return IMPLICIT.filter(([pattern]) => pattern.test(text)).map(([, pkg]) => pkg);
 };
 
@@ -98,8 +99,14 @@ self.onmessage = async (event) => {
     self.postMessage({ id: msg.id, type: "running" });
     const args =
       msg.kind === "test"
-        ? { solution: msg.solution, tests: msg.tests, import_solution: msg.importSolution ?? true }
-        : { code: msg.code, stdin: msg.stdin ?? null };
+        ? {
+            solution: msg.solution,
+            tests: msg.tests,
+            import_solution: msg.importSolution ?? true,
+            files: msg.files ?? null,
+            main_name: msg.mainName ?? "solution.py",
+          }
+        : { code: msg.code, stdin: msg.stdin ?? null, files: msg.files ?? null };
     py.globals.set("_plp_args", JSON.stringify(args));
     const fn = msg.kind === "test" ? "run_tests" : "run_code";
     const json = await py.runPythonAsync(

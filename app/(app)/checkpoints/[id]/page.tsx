@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowRight, Check, Circle, X } from "lucide-react";
 import { auth } from "@/auth";
-import { getCheckpointAttempt, getCheckpointSummary } from "@/lib/checkpoint";
+import { getCheckpointAttempt, getCheckpointSummary, topicsToReview } from "@/lib/checkpoint";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { FadeIn } from "@/components/animations";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,7 @@ export default async function CheckpointPage({ params }: PageProps) {
   const total = attempt.drills.length;
   const needed = Math.ceil(attempt.passMark * total - 1e-9);
   const summary = open ? null : await getCheckpointSummary(userId, attempt.module.id);
+  const review = !open && passedCount < total ? topicsToReview(attempt.drills) : null;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
@@ -129,6 +130,65 @@ export default async function CheckpointPage({ params }: PageProps) {
             })}
           </ol>
         </FadeIn>
+
+        {review && (
+          <FadeIn delay={0.08}>
+            <section aria-labelledby="study-heading" className="flex flex-col gap-5 rounded-md border border-border bg-sheet p-6">
+              <div className="flex flex-col gap-1">
+                <h2 id="study-heading" className="text-xl font-semibold">
+                  What to work on
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {attempt.passed
+                    ? "You passed, but these came up in the drills you missed."
+                    : "The drills you missed cover these topics. Rework them before the next attempt; the next set is drawn fresh."}
+                </p>
+              </div>
+              {review.topics.length > 0 && (
+                <ul className="flex flex-wrap gap-2" role="list" aria-label="Topics to review">
+                  {review.topics.map((t) => (
+                    <li key={t.tag} className="rounded-sm border border-border bg-background px-2 py-1 text-sm">
+                      {t.tag}
+                      {t.missed > 1 && (
+                        <span className="font-condensed tabular ml-1.5 text-xs text-muted-foreground">×{t.missed}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="grid gap-6 sm:grid-cols-2">
+                <div className="flex flex-col gap-2">
+                  <h3 className="text-sm font-semibold">Reread</h3>
+                  <ul className="flex flex-col gap-1.5 text-sm" role="list">
+                    {review.lessons.map((l) => (
+                      <li key={l.id}>
+                        <Link href={`/lessons/${l.id}`} className="text-primary underline">
+                          {l.title}
+                        </Link>
+                        <span className="text-muted-foreground">
+                          {" "}
+                          · {l.drills} missed {l.drills === 1 ? "drill" : "drills"}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <h3 className="text-sm font-semibold">Redo, with hints this time</h3>
+                  <ul className="flex flex-col gap-1.5 text-sm" role="list">
+                    {review.missed.map((d) => (
+                      <li key={d.id}>
+                        <Link href={`/exercises/${d.id}`} className="text-primary underline">
+                          {d.title}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </section>
+          </FadeIn>
+        )}
 
         <FadeIn delay={0.09}>
           <div className="flex flex-wrap items-center gap-3">

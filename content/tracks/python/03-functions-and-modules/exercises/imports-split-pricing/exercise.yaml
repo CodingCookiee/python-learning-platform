@@ -1,0 +1,11 @@
+title: Split the pricing rules into their own module
+type: function
+difficulty: core
+tags: [imports, modules]
+main_file: main.py
+files:
+  - path: pricing.py
+hints:
+  - "In pricing.py, with_vat reads the module's own VAT_RATE: round(net * (1 + VAT_RATE), 2)."
+  - "bulk_discount only changes the price when quantity is 10 or more; otherwise it returns net unchanged."
+  - "In main.py, import both functions with from pricing import bulk_discount, with_vat, apply the discount per line, then add VAT once to the total."

@@ -41,29 +41,36 @@ function hoursLeftIn(track: TrackProgress | undefined): number {
   }, 0);
 }
 
-export async function getPace(userId: string): Promise<Pace> {
-  const since = startOfWeek();
-  const [user, lessons, drills, reviews, checkpoints, tracks] = await Promise.all([
-    prisma.user.findUnique({ where: { id: userId }, select: { weeklyHours: true, goal: true } }),
+/** Estimated hours trained between `from` and `to` (default now), to one decimal */
+export async function estimateTrainingHours(userId: string, from: Date, to = new Date()): Promise<number> {
+  const range = { gte: from, lt: to };
+  const [lessons, drills, reviews, checkpoints] = await Promise.all([
     prisma.progress.findMany({
-      where: { userId, completed: true, completedAt: { gte: since } },
+      where: { userId, completed: true, completedAt: range },
       select: { lesson: { select: { estimatedTime: true } } },
     }),
     prisma.exerciseSubmission.findMany({
-      where: { userId, passed: true, mode: "practice", submittedAt: { gte: since } },
+      where: { userId, passed: true, mode: "practice", submittedAt: range },
       distinct: ["exerciseId"],
       select: { exerciseId: true },
     }),
-    prisma.reviewItem.count({ where: { userId, lastReviewedAt: { gte: since } } }),
-    prisma.checkpointAttempt.count({ where: { userId, submittedAt: { gte: since } } }),
-    getCurriculumState(userId),
+    prisma.reviewItem.count({ where: { userId, lastReviewedAt: range } }),
+    prisma.checkpointAttempt.count({ where: { userId, submittedAt: range } }),
   ]);
-
   const minutes =
     lessons.reduce((n, p) => n + p.lesson.estimatedTime, 0) +
     drills.length * DRILL_MINUTES +
     reviews * REVIEW_MINUTES +
     checkpoints * CHECKPOINT_MINUTES;
+  return Math.round((minutes / 60) * 10) / 10;
+}
+
+export async function getPace(userId: string): Promise<Pace> {
+  const [user, hoursThisWeek, tracks] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId }, select: { weeklyHours: true, goal: true } }),
+    estimateTrainingHours(userId, startOfWeek()),
+    getCurriculumState(userId),
+  ]);
 
   const goal = user?.goal === "automation" ? "automation" : "python";
   const python = tracks.find((t) => t.slug === PYTHON_TRACK);
@@ -76,7 +83,7 @@ export async function getPace(userId: string): Promise<Pace> {
   return {
     weeklyHours,
     goal,
-    hoursThisWeek: Math.round((minutes / 60) * 10) / 10,
+    hoursThisWeek,
     hoursLeft,
     projectedFinish,
     goalLabel: goal === "automation" ? "the AI automation dan grades" : "your black belt",
