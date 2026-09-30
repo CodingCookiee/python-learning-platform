@@ -3,10 +3,19 @@ import type { Provider } from "next-auth/providers";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
+import { CredentialsSignin } from "next-auth";
 import { compare } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { env, isBootstrapAdmin } from "@/lib/env";
 import { rateLimit } from "@/lib/rate-limit";
+
+/** Shown to the learner as a code; neither reveals whether an account exists without the password */
+class UnverifiedEmail extends CredentialsSignin {
+  code = "unverified";
+}
+class TooManyAttempts extends CredentialsSignin {
+  code = "rate_limited";
+}
 
 /**
  * NextAuth.js v5 configuration
@@ -27,7 +36,7 @@ const providers: Provider[] = [
       }
       // Slow down password guessing against one account
       const limited = await rateLimit("signIn", String(credentials.email).trim().toLowerCase());
-      if (!limited.ok) return null;
+      if (!limited.ok) throw new TooManyAttempts();
 
       const user = await prisma.user.findUnique({
         where: { email: credentials.email as string },
@@ -42,6 +51,7 @@ const providers: Provider[] = [
       if (!isPasswordValid) {
         return null;
       }
+      if (!user.emailVerified) throw new UnverifiedEmail();
 
       return {
         id: user.id,

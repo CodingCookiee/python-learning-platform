@@ -44,6 +44,12 @@ export default function SignUpPage() {
         return;
       }
 
+      // With email verification on, the account opens from the link in the inbox
+      if (result.needsVerification) {
+        router.push("/auth/signin?check=1");
+        return;
+      }
+
       await signIn("credentials", {
         email: data.email,
         password: data.password,

@@ -4,6 +4,8 @@ import { ZodError } from "zod";
 import { prisma } from "@/lib/prisma";
 import { signUpSchema } from "@/lib/validations/auth";
 import { clientIp, rateLimit, tooManyRequests } from "@/lib/rate-limit";
+import { isEmailConfigured, sendVerificationEmail } from "@/lib/email";
+import { issueToken } from "@/lib/auth-tokens";
 
 export async function POST(req: Request) {
   try {
@@ -30,7 +32,8 @@ export async function POST(req: Request) {
         name: validatedData.name,
         email: validatedData.email,
         password: hashedPassword,
-        emailVerified: new Date(), // Auto-verify for MVP
+        // With email set up, the address is confirmed by link; without it there's no way to, so trust it
+        emailVerified: isEmailConfigured() ? null : new Date(),
       },
     });
 
@@ -43,8 +46,12 @@ export async function POST(req: Request) {
       },
     });
 
+    const needsVerification = isEmailConfigured();
+    if (needsVerification) await sendVerificationEmail(user.email, await issueToken("verify", user.email));
+
     return NextResponse.json(
       {
+        needsVerification,
         user: {
           id: user.id,
           name: user.name,

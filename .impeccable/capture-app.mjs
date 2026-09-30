@@ -319,6 +319,71 @@ if (process.env.FLOW) {
   chrome.kill();
   process.exit(0);
 }
+if (process.env.EMAILFLOW) {
+  // Sign-in codes, email confirmation, password reset and forgot-password, signed out
+  const tokens = JSON.parse((await import("node:fs")).readFileSync(process.env.TEMP + "/m4-email-tokens.json", "utf8"));
+  const waitFor = async (expr, tries = 40) => {
+    for (let i = 0; i < tries; i++) {
+      if (await ev(expr)) return true;
+      await sleep(500);
+    }
+    return false;
+  };
+  const fill = (pairs) =>
+    ev(`(() => { const set = (el, v) => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(el, v); el.dispatchEvent(new Event('input',{bubbles:true})); }; ${pairs
+      .map(([sel, v]) => `set(document.querySelector(${JSON.stringify(sel)}), ${JSON.stringify(v)});`)
+      .join(" ")} })()`);
+  const clickText = (text) =>
+    ev(`(() => { const b = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === ${JSON.stringify(text)}); b?.click(); return !!b; })()`);
+  const signInAs = async (email, password) => {
+    await send("Network.clearBrowserCookies");
+    await go("/auth/signin", 4000);
+    await fill([["#email", email], ["#password", password]]);
+    await sleep(300);
+    await ev(`document.querySelector('form button[type=submit]').click()`);
+    await waitFor(`location.pathname === '/dashboard' || !!document.querySelector('[role=alert]')`, 40);
+    await sleep(800);
+    return ev(`location.pathname === '/dashboard' ? 'dashboard' : document.querySelector('[role=alert]')?.innerText`);
+  };
+
+  console.log("unverified sign-in:", await signInAs("m4-unverified@example.invalid", "Unverified!2026"));
+  console.log("resend button:", await ev(`[...document.querySelectorAll('button')].some(b => b.textContent.includes('Send the link again'))`));
+  await shot("email-signin-unverified.png");
+  await clickText("Send the link again");
+  await sleep(2000);
+  console.log("resend result:", await ev(`document.querySelector('form')?.innerText.split('\\n').filter(l => /link|set up/i.test(l)).join(' | ')`));
+
+  await go(`/auth/verify-email?token=${tokens.verifyToken}`, 4000);
+  await shot("email-verify.png");
+  await clickText("Confirm my email");
+  console.log("confirmed:", await waitFor(`/Email confirmed/.test(document.body.innerText)`, 20));
+  console.log("reuse link:", await (async () => { await go(`/auth/verify-email?token=${tokens.verifyToken}`, 3000); await clickText("Confirm my email"); await sleep(2000); return ev(`document.querySelector('[role=alert]')?.innerText`); })());
+  console.log("verified sign-in:", await signInAs("m4-unverified@example.invalid", "Unverified!2026"));
+
+  await send("Network.clearBrowserCookies");
+  await go(`/auth/reset-password?token=${tokens.resetToken}`, 4000);
+  await shot("email-reset.png");
+  await fill([["#reset-password", "BrandNew!2026"], ["#reset-confirm", "BrandNew!2026"]]);
+  await clickText("Set the new password");
+  await waitFor(`location.search.includes('reset=1')`, 20);
+  await sleep(1000);
+  console.log("after reset:", await ev(`location.pathname + location.search`), "|", await ev(`document.querySelector('[role=status]')?.innerText`));
+  await shot("email-signin-after-reset.png");
+  console.log("old password:", await signInAs("m4-reset@example.invalid", "Unverified!2026"));
+  console.log("new password:", await signInAs("m4-reset@example.invalid", "BrandNew!2026"));
+
+  await send("Network.clearBrowserCookies");
+  await go("/auth/forgot-password", 4000);
+  await fill([["#forgot-email", "m4-reset@example.invalid"]]);
+  await clickText("Send the reset link");
+  await sleep(2000);
+  console.log("forgot (no email configured):", await ev(`document.querySelector('[role=alert]')?.innerText ?? document.body.innerText.match(/Check your inbox/)?.[0]`));
+  await shot("email-forgot.png");
+  console.log("EMAILFLOW console:", issues.length ? [...new Set(issues)].map((x) => x.slice(0, 300)) : "none");
+  ws.close();
+  chrome.kill();
+  process.exit(0);
+}
 if (process.env.CHECKPOINT) {
   // Take module 1's checkpoint as a placement test, solving each drill with its reference solution
   const pg = (await import("pg")).default;
@@ -382,6 +447,7 @@ if (process.env.CHECKPOINT) {
   process.exit(0);
 }
 if (process.env.EVAL) {
+  if (process.env.SIGNED_OUT) await send("Network.clearBrowserCookies");
   // EVAL="<path>|<js expression>": print the expression's value on that page
   // EVAL="<path>" with EVAL_FILE=<file holding the expression>, or EVAL="<path>|<expr>"
   const [path, inline] = process.env.EVAL.split(/\|(.*)/s);

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
@@ -12,11 +12,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthShell, FormError } from "@/components/auth/auth-shell";
 import { signInSchema, type SignInInput } from "@/lib/validations/auth";
+import { ResendVerification } from "@/components/auth/email-flows";
 
-export default function SignInPage() {
+function SignInForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
+  const params = useSearchParams();
+  const notice = params.get("verified")
+    ? "Email confirmed. Sign in to start training."
+    : params.get("reset")
+      ? "Password changed. Sign in with the new one."
+      : params.get("check")
+        ? "Check your inbox: we sent a link to confirm your email."
+        : null;
 
   const {
     register,
@@ -29,6 +39,7 @@ export default function SignInPage() {
   const onSubmit = async (data: SignInInput) => {
     setIsLoading(true);
     setError(null);
+    setUnverifiedEmail(null);
 
     try {
       const result = await signIn("credentials", {
@@ -38,7 +49,14 @@ export default function SignInPage() {
       });
 
       if (result?.error) {
-        setError("That email and password don't match. Check them and try again.");
+        if (result.code === "unverified") {
+          setError("Confirm your email first: the link is in your inbox.");
+          setUnverifiedEmail(data.email);
+        } else if (result.code === "rate_limited") {
+          setError("Too many sign-in attempts. Wait 15 minutes, or reset your password.");
+        } else {
+          setError("That email and password don't match. Check them and try again.");
+        }
         return;
       }
 
@@ -68,7 +86,13 @@ export default function SignInPage() {
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
+          {notice && !error && (
+            <p role="status" className="rounded-sm border border-success/35 bg-success/6 px-3 py-2.5 text-sm text-success">
+              {notice}
+            </p>
+          )}
           {error && <FormError message={error} />}
+          {unverifiedEmail && <ResendVerification email={unverifiedEmail} />}
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="email">Email</Label>
@@ -85,7 +109,12 @@ export default function SignInPage() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="password">Password</Label>
+            <span className="flex items-baseline justify-between">
+              <Label htmlFor="password">Password</Label>
+              <Link href="/auth/forgot-password" className="text-sm text-muted-foreground underline hover:text-foreground">
+                Forgot it?
+              </Link>
+            </span>
             <Input
               id="password"
               type="password"
@@ -106,5 +135,14 @@ export default function SignInPage() {
         </form>
       </div>
     </AuthShell>
+  );
+}
+
+// useSearchParams needs a Suspense boundary so the page can still be prerendered
+export default function SignInPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignInForm />
+    </Suspense>
   );
 }
