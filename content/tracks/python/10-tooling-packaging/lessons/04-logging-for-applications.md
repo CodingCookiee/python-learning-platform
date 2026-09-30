@@ -9,6 +9,18 @@ exercises:
   - logconf-dict-config
   - logconf-library-logging
   - logconf-json-formatter
+lab:
+  title: A console and a log file
+  kind: output
+  instructions: >-
+    With the file handler from step 3 in place, run uv run main.py and paste the last lines of
+    invoicer.log (on Windows PowerShell, Get-Content invoicer.log -Tail 20). The file should have
+    timestamped DEBUG and INFO lines that the console didn't show.
+  command: tail -n 20 invoicer.log
+  patterns:
+    - '\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}'
+    - '\bDEBUG\b'
+    - '\bINFO\b'
 ---
 
 `logging.basicConfig()` is fine for a script. An application needs more: quiet output on the console
@@ -253,6 +265,8 @@ Pass the result into the dict before calling `dictConfig`, for example as the co
 4. `uv add httpx`, make one request, and see httpx's own `INFO` lines. Then set the `httpx` logger to
    `WARNING` in your config and watch them disappear.
 5. Remove `"disable_existing_loggers": False` and run again. Which messages vanished? Put it back.
+6. **Check it:** run `uv run main.py` once more and paste the last lines of `invoicer.log`
+   (`tail -n 20 invoicer.log`) into the lab box below.
 
 ## Where this leaves you
 

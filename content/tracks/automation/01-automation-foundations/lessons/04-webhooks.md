@@ -10,6 +10,17 @@ exercises:
   - auto-verify-webhook
   - auto-fix-signed-parsed-json
   - auto-webhook-endpoint
+lab:
+  title: A signed webhook, verified and forwarded
+  kind: webhook
+  instructions: >-
+    Once the signature check passes, have the receiver POST the parsed event to your lab URL with
+    httpx. Then run send.py with the event from the lesson's first example, evt_1042 for
+    amira@example.com, signed with your secret.
+  expect:
+    id: evt_1042
+    type: form.submitted
+    data.email: amira@example.com
 ---
 
 A marketing agency runs lead forms for a dozen clients. Today an assistant copies each submission
@@ -244,6 +255,8 @@ every event an id, retry on `5xx` and timeouts with backoff, and alert a person 
    form and watch the request arrive.
 5. Stop the server, submit the form again, and restart it a few minutes later. Look in the form
    tool's webhook log for the failed delivery and its retry.
+6. **Check it:** after the signature check passes, POST the parsed event to your lab URL (below this
+   lesson), and send the first example's `evt_1042` body with `send.py`.
 
 ## Where this leaves you
 

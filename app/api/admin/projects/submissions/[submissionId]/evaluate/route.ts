@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { withAuth, isAdmin, AuthContext } from "@/lib/api-auth";
-import { invalidateCache, invalidateUserCache } from "@/lib/cache";
+import { CacheKeys, invalidateCache, invalidateUserCache } from "@/lib/cache";
 import {
   checkAndUnlockAchievements,
   checkMilestone,
@@ -16,9 +16,6 @@ const evaluateSchema = z.object({
   checklist: z.record(z.string(), z.boolean()),
 });
 
-function projectCacheKey(projectId: string, userId: string) {
-  return `project:${projectId}:${userId}`;
-}
 
 /**
  * POST /api/admin/projects/submissions/[submissionId]/evaluate
@@ -183,7 +180,7 @@ export const POST = withAuth<{ submissionId: string }>(
         await invalidateCache(`progress:module:${moduleId}:${submission.userId}`);
       }
 
-      await invalidateCache(projectCacheKey(submission.projectId, submission.userId));
+      await invalidateCache(CacheKeys.project(submission.projectId, submission.userId));
       await invalidateUserCache(submission.userId);
 
       return NextResponse.json({

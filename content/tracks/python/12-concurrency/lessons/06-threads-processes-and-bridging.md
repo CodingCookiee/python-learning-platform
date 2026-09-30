@@ -9,6 +9,19 @@ exercises:
   - concurrency-merge-counts
   - async-sync-wrapper
   - concurrency-parallel-map
+lab:
+  title: Pools on a real machine
+  kind: output
+  instructions: >-
+    Run pools.py exactly as the lesson gives it and paste the output. It should have all five
+    timing lines, three for downloads and two for primes.
+  command: uv run pools.py
+  patterns:
+    - '^downloads, one by one\s+[\d.]+ s'
+    - '^downloads, thread pool\s+[\d.]+ s'
+    - '^downloads, asyncio\.to_thread\s+[\d.]+ s'
+    - '^primes, one by one\s+[\d.]+ s'
+    - '^primes, process pool\s+[\d.]+ s'
 ---
 
 Not everything can be awaited. The shipping company's SDK only has blocking calls, the image
@@ -310,6 +323,7 @@ if __name__ == "__main__":
 4. Delete the `if __name__ == "__main__":` line (and dedent). Each worker now runs the whole
    script when it imports it, and Python stops with a `RuntimeError` about starting a new process
    before the current one has finished bootstrapping. Put it back.
+5. **Check it:** paste the output of `uv run pools.py`, as first written, into the lab box below.
 
 ## Where this leaves you
 

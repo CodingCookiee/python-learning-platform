@@ -9,6 +9,16 @@ exercises:
   - auto-fix-cron-weekday
   - auto-job-watermark
   - auto-next-run
+lab:
+  title: A job GitHub runs on a schedule
+  kind: webhook
+  instructions: >-
+    Save your lab URL as a repository secret named LAB_URL and add the curl step from the lesson's
+    last step to the workflow. It sends the event that started the run and the workflow's name. The
+    check passes when a scheduled run sends it, not a click on "Run workflow".
+  expect:
+    event: schedule
+    workflow: Weekly refunds report
 ---
 
 The clinic's reminder planner from lesson 1 needs a trigger: every hour, on the hour, from 07:00 to
@@ -229,6 +239,16 @@ the next run redoes the batch, and the "record what you did" rule makes the redo
    Stop it with Ctrl+C.
 4. Put the GitHub Actions workflow above in a repository with `workflow_dispatch`, and run it from
    the Actions tab. Then change the cron to five minutes from now in UTC and watch it start (late).
+5. **Check it:** save your lab URL (below this lesson) as the secret `LAB_URL`, add this last step
+   to the job, and let the schedule run it:
+
+   ```yaml
+         - run: |
+             curl -sf -X POST "$LAB_URL" -H "Content-Type: application/json" \
+               -d '{"event": "${{ github.event_name }}", "workflow": "${{ github.workflow }}"}'
+           env:
+             LAB_URL: ${{ secrets.LAB_URL }}
+   ```
 
 ## Where this leaves you
 

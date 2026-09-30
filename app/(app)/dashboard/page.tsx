@@ -22,6 +22,7 @@ import { SyllabusProgress } from "@/components/brand/syllabus-progress";
 import { SkillMap } from "@/components/mastery/skill-map";
 import { getSkillMap } from "@/lib/skill-map";
 import { countDueReviews } from "@/lib/review";
+import { getPace } from "@/lib/pacing";
 
 interface ProgressData {
   user: {
@@ -235,16 +236,26 @@ export default async function DashboardPage() {
 
   const dbUser = await prisma.user.findUnique({
     where: { email: session?.user?.email ?? "" },
-    select: { id: true },
+    select: { id: true, onboardedAt: true, experience: true },
   });
   if (!dbUser) redirect("/auth/signin");
+  // First visit: three questions before the first lesson
+  if (!dbUser.onboardedAt) redirect("/onboarding");
 
   const [data, rank, syllabus] = await Promise.all([
     getProgressData(dbUser.id),
     getLearnerRank(dbUser.id),
     getSyllabusProgress(dbUser.id),
   ]);
-  const [skills, reviewsDue] = await Promise.all([getSkillMap(dbUser.id), countDueReviews(dbUser.id)]);
+  const [skills, reviewsDue, pace] = await Promise.all([
+    getSkillMap(dbUser.id),
+    countDueReviews(dbUser.id),
+    getPace(dbUser.id),
+  ]);
+  const current = syllabus.find((m) => m.state === "current");
+  // Learners who already code can test out of the module in front of them
+  const suggestPlacement = dbUser.experience !== "new" && current && current.lessonsDone === 0 && !current.checkpointDue;
+  const weekPct = Math.min(100, (pace.hoursThisWeek / pace.weeklyHours) * 100);
 
   if (!data) {
     return (
@@ -310,6 +321,53 @@ export default async function DashboardPage() {
               </dd>
             </div>
           </dl>
+        </FadeIn>
+
+        <FadeIn delay={0.065}>
+          <section aria-labelledby="week-heading" className="grid gap-x-10 gap-y-4 rounded-md border border-border p-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] md:items-center">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-baseline justify-between gap-3">
+                <h2 id="week-heading" className="font-semibold">
+                  This week
+                </h2>
+                <Link href="/onboarding" className="text-sm text-muted-foreground underline hover:text-foreground">
+                  Change plan
+                </Link>
+              </div>
+              <p className="font-condensed tabular leading-none">
+                <span className="text-3xl font-extrabold">{pace.hoursThisWeek}</span>
+                <span className="text-lg font-bold text-muted-foreground"> / {pace.weeklyHours} h</span>
+              </p>
+              <span className="h-2 overflow-hidden rounded-[2px] bg-muted" aria-hidden="true">
+                <span className="block h-full bg-primary" style={{ width: `${weekPct}%` }} />
+              </span>
+              <p className="text-xs text-muted-foreground">Estimated from lessons, drills, reviews and checkpoints this week.</p>
+            </div>
+            <p className="text-[0.9875rem] leading-relaxed text-muted-foreground">
+              {pace.projectedFinish ? (
+                <>
+                  About <span className="font-semibold text-foreground">{pace.hoursLeft} hours</span> of training to{" "}
+                  {pace.goalLabel}. At {pace.weeklyHours} h a week that&apos;s around{" "}
+                  <span className="font-semibold text-foreground">
+                    {new Date(pace.projectedFinish).toLocaleDateString([], { month: "long", year: "numeric" })}
+                  </span>
+                  .
+                </>
+              ) : (
+                <>You&apos;ve reached {pace.goalLabel}. Keep your reviews going so it stays sharp.</>
+              )}
+              {suggestPlacement && current && (
+                <>
+                  {" "}
+                  Already comfortable with <span className="font-semibold text-foreground">{current.title}</span>?{" "}
+                  <Link href={`/modules/${current.id}#checkpoint-heading`} className="font-medium text-primary underline">
+                    Test out with its checkpoint
+                  </Link>
+                  .
+                </>
+              )}
+            </p>
+          </section>
         </FadeIn>
 
         {reviewsDue > 0 && (

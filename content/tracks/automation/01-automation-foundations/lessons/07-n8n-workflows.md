@@ -9,6 +9,17 @@ exercises:
   - auto-flatten-form-payload
   - auto-render-expression
   - auto-group-order-items
+lab:
+  title: Lead intake in n8n
+  kind: webhook
+  instructions: >-
+    On the IF node's true branch, add an HTTP Request node that POSTs the scored lead ({{ $json }}
+    from the Score lead node) as JSON to your lab URL. Then send the lesson's curl request for
+    Amira Haddad to the production URL.
+  expect:
+    email: amira@example.com
+    score: 100
+    priority: high
 ---
 
 Half the agencies you'll work with already use a workflow tool, and the other half will ask
@@ -231,6 +242,8 @@ n8n versions, so build it in the editor rather than typing this in):
    Executions list and read the run.
 8. Stop your service and send one more lead. Watch Retry On Fail try again, then see the failed
    execution; restart the service and use "Retry" on the execution.
+9. **Check it:** on the IF node's true branch, add an HTTP Request node that POSTs `{{ $json }}` to
+   your lab URL (below this lesson), and send Amira's `curl` request to the production URL again.
 
 ## Where this leaves you
 

@@ -10,6 +10,16 @@ exercises:
   - auto-find-duplicates
   - auto-fix-excel-export
   - auto-refund-report
+lab:
+  title: Tidy a messy folder
+  kind: output
+  instructions: >-
+    Make the plan end with a line like "3 moves planned". After the --apply run, run the plan once
+    more without --apply and paste its output here. A correct tidy script plans nothing the second
+    time.
+  command: uv run tidy.py ~/Downloads-copy
+  patterns:
+    - '^0 moves planned'
 ---
 
 A bookkeeping firm gives each client a shared folder called `Inbox`. Clients drop in whatever
@@ -266,6 +276,8 @@ explain: "The BOM (U+FEFF) is part of the first field name but doesn't show when
 3. Run `uv run tidy.py ~/Downloads-copy` and read the plan. Add rules until "other" is small.
 4. Run it with `--apply`, then run it again: the second run should plan nothing.
 5. Add duplicate detection as a report: print each group of identical files, and delete nothing.
+6. **Check it:** end the plan with a line like `3 moves planned`, run the plan once more after
+   `--apply`, and paste its output (`0 moves planned`) into the lab box below.
 
 ## Where this leaves you
 

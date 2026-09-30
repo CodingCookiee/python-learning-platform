@@ -1,21 +1,11 @@
 import { env } from "@/lib/env";
+import { publicOrigin } from "@/lib/public-origin";
 
 /**
  * Transactional email through Resend (plain fetch). Without RESEND_API_KEY nothing
  * is sent: sign-ups are verified automatically, and in development the links are
  * printed to the server console so the flows can still be tried.
  */
-
-/**
- * The origin used in emailed links. Always configuration, never the request's Host header,
- * so a forged Host can't turn a reset email into a link to someone else's site.
- */
-function publicOrigin(): string {
-  const configured = process.env.AUTH_URL || process.env.NEXT_PUBLIC_APP_URL;
-  if (configured) return configured.replace(/\/$/, "");
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return "http://localhost:3000";
-}
 
 export function isEmailConfigured(): boolean {
   return Boolean(env().RESEND_API_KEY && env().EMAIL_FROM);

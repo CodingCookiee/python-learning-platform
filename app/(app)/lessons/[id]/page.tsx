@@ -4,6 +4,8 @@ import { ArrowRight, Check } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { getLessonForUser, type LessonDrill } from "@/lib/lessons";
+import { getLabForUser } from "@/lib/labs";
+import { LabPanel } from "@/components/lesson/lab-panel";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import {
   LessonSidebar,
@@ -84,6 +86,7 @@ export default async function LessonPage({ params }: PageProps) {
 
   const lesson = await getLessonForUser(id, user.id);
   if (!lesson) notFound();
+  const lab = lesson.moduleUnlocked ? await getLabForUser(user.id, lesson.id) : null;
 
   const required = lesson.drills.filter((d) => d.required);
   const optional = lesson.drills.filter((d) => !d.required);
@@ -162,6 +165,12 @@ export default async function LessonPage({ params }: PageProps) {
               )}
 
               <LessonContent content={lesson.content} />
+
+              {lab && (
+                <div className="max-w-[70ch]">
+                  <LabPanel initial={lab} />
+                </div>
+              )}
 
               {lesson.drills.length > 0 && (
                 <section aria-labelledby="drills-heading" className="flex max-w-[70ch] flex-col gap-4">

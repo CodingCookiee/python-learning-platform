@@ -8,6 +8,18 @@ exercises:
   - api-predict-return-values
   - api-documented-service
   - api-raw-asgi-health
+lab:
+  title: Your service on localhost
+  kind: output
+  instructions: >-
+    With uv run fastapi dev main.py running, run the command below in a second terminal and paste
+    its output (on Windows PowerShell, type curl.exe). It should show the health check's JSON and
+    the start of the OpenAPI schema.
+  command: curl -s http://127.0.0.1:8000/health http://127.0.0.1:8000/openapi.json
+  patterns:
+    - '"status":\s*"ok"'
+    - '"openapi":\s*"3\.\d+\.\d+"'
+    - '"/health"'
 ---
 
 In module 14 you were the client: you sent requests to someone else's API and made sense of what
@@ -291,6 +303,9 @@ try the request from the docs page. `fastapi dev` reloads the server whenever yo
 `fastapi run main.py` starts it without reloading, for production. Under the hood, both start
 uvicorn, which you can also run yourself as `uv run uvicorn main:app --reload`: `main:app` means
 "the `app` object in `main.py`".
+
+**Check it:** with the server running, paste the output of
+`curl -s http://127.0.0.1:8000/health http://127.0.0.1:8000/openapi.json` into the lab box below.
 
 > [!JS]
 > Coming from Express: there's no `app.listen(8000)` in your code. The server is a separate program

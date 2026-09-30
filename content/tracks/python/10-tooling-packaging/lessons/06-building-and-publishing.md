@@ -9,6 +9,16 @@ exercises:
   - pkg-wheel-entry-points
   - pkg-fix-version-bump
   - pkg-release-check
+lab:
+  title: Build the invoicer package
+  kind: output
+  instructions: >-
+    With the package renamed to invoicer-<your GitHub username>, run the command below in the
+    project folder and paste its output. It should build both an sdist and a wheel.
+  command: uv build
+  patterns:
+    - 'Successfully built dist[\\/]invoicer_\S+\.tar\.gz'
+    - 'Successfully built dist[\\/]invoicer_\S+-py3-none-any\.whl'
 ---
 
 `uv run cli.py` works in your project folder. A teammate, a server or a stranger can't use that:
@@ -276,6 +286,7 @@ git push origin v0.1.0
 6. Publish to TestPyPI with the index config above, and look at your project page.
 7. `uv version --bump patch`, build and publish again, and see both versions on TestPyPI. Tag the
    release in git.
+8. **Check it:** paste the output of your last `uv build` into the lab box below.
 
 ## Where this leaves you
 

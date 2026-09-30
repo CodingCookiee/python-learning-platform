@@ -37,6 +37,46 @@ export const moduleSchema = z.object({
     .default({ pick: 6, pass_mark: 0.8, pool: [] }),
 });
 
+/**
+ * A lesson's local lab, and how the platform confirms it was done:
+ * - webhook: the learner's workflow or script POSTs JSON to their personal lab URL
+ * - url: the platform fetches a URL the learner deployed (https, public hosts only)
+ * - output: the learner pastes a command's output, matched against patterns
+ * `expect` lists JSON fields (dot paths) the webhook body or url response must contain.
+ */
+export const labSpecSchema = z
+  .object({
+    title: text,
+    kind: z.enum(["webhook", "url", "output"]),
+    /** One or two sentences: what to send, deploy or run for the check */
+    instructions: text,
+    expect: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).default({}),
+    /** url: appended to the learner's base URL, e.g. /health */
+    path: z.string().startsWith("/").optional(),
+    /** url: text the response body must contain */
+    contains: z.string().optional(),
+    /** output: regular expressions that must all match the pasted output */
+    patterns: z.array(z.string()).default([]),
+    /** output: the command to run, shown to the learner */
+    command: z.string().optional(),
+  })
+  .superRefine((lab, ctx) => {
+    if (lab.kind === "output" && lab.patterns.length === 0) ctx.addIssue({ code: "custom", message: "output labs need patterns" });
+    if (lab.kind === "url" && !lab.path) ctx.addIssue({ code: "custom", message: "url labs need a path" });
+    if (lab.kind === "webhook" && Object.keys(lab.expect).length === 0) {
+      ctx.addIssue({ code: "custom", message: "webhook labs need expect fields" });
+    }
+    for (const p of lab.patterns) {
+      try {
+        new RegExp(p);
+      } catch {
+        ctx.addIssue({ code: "custom", message: `pattern isn't a valid regular expression: ${p}` });
+      }
+    }
+  });
+
+export type LabSpec = z.infer<typeof labSpecSchema>;
+
 export const lessonFrontmatterSchema = z.object({
   slug,
   title: text,
@@ -44,6 +84,7 @@ export const lessonFrontmatterSchema = z.object({
   minutes: z.number().int().positive(),
   exercises: z.array(slug).default([]),
   optional: z.array(slug).default([]),
+  lab: labSpecSchema.optional(),
 });
 
 export const EXERCISE_TYPES = ["function", "program", "predict", "fix", "refactor", "tests"] as const;

@@ -8,6 +8,19 @@ exercises:
   - sql-fix-rename-migration
   - sql-migration-runner
   - orm-schema-diff
+lab:
+  title: Three Alembic migrations
+  kind: output
+  instructions: >-
+    After the rename migration in step 6 is upgraded, run the command below in the jobtracker
+    folder and paste its output. It should list at least three revisions, starting from "create
+    tables", with the newest one current.
+  command: uv run alembic history; uv run alembic current
+  patterns:
+    - '<base> -> [0-9a-f]{12}, create tables'
+    - '^[0-9a-f]{12} -> [0-9a-f]{12}, '
+    - '^[0-9a-f]{12} -> [0-9a-f]{12} \(head\), '
+    - '^[0-9a-f]{12} \(head\)\s*$'
 ---
 
 The job tracker has been running for a month, with real data in it. You add a `salary` column to
@@ -219,6 +232,8 @@ Alembic needs a real database file and a terminal, so this part runs locally.
 6. Rename a column in the model and autogenerate. Find the drop-and-add, and change it into an
    `op.alter_column(..., new_column_name=...)` before upgrading. Insert a row first, and check it
    survives.
+7. **Check it:** paste the output of `uv run alembic history; uv run alembic current` into the lab
+   box below.
 
 ## Where this leaves you
 

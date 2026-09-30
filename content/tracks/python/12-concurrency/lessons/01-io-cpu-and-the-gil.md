@@ -8,6 +8,19 @@ exercises:
   - concurrency-predict-interleaving
   - concurrency-pick-a-tool
   - concurrency-measure-job
+lab:
+  title: Threads with and without the GIL
+  kind: output
+  instructions: >-
+    Run cpu_demo.py on both builds with the command below and paste all the output. It should show
+    one run with the GIL enabled and one without, each with its three timings.
+  command: uv run --python 3.14 cpu_demo.py; uv run --python 3.14t cpu_demo.py
+  patterns:
+    - '^GIL enabled: True'
+    - '^GIL enabled: False'
+    - '^sequential\s+[\d.]+ s'
+    - '^threads\s+[\d.]+ s'
+    - '^processes\s+[\d.]+ s'
 ---
 
 A price checker visits 200 product pages, one after another, and takes 40 seconds. Profile it and
@@ -241,6 +254,8 @@ explain: "It's CPU-bound, so asyncio and threads both run one job at a time (asy
    threads and processes both take about a second, and the build makes no difference.
 4. Run `python -c "import os; print(os.cpu_count())"`. Try `max_workers` above that number: CPU-bound
    work stops getting faster once every core is busy.
+5. **Check it:** with the prime-counting version back in place, paste the output of
+   `uv run --python 3.14 cpu_demo.py; uv run --python 3.14t cpu_demo.py` into the lab box below.
 
 ## Where this leaves you
 

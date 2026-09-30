@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
-import { invalidateCache, invalidateUserCache } from "@/lib/cache";
+import { CacheKeys, invalidateCache, invalidateUserCache } from "@/lib/cache";
+import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 import { z } from "zod";
 
 const GITHUB_URL_REGEX = /^https?:\/\/(www\.)?github\.com\/.+\/.+/i;
@@ -12,13 +13,20 @@ const submitSchema = z.discriminatedUnion("type", [
     files: z
       .array(
         z.object({
-          name: z.string().min(1),
-          size: z.number().int().min(0),
-          type: z.string(),
-          content: z.string().min(1),
+          name: z
+            .string()
+            .min(1)
+            .max(200)
+            .refine((n) => !n.includes("..") && !/^[\\/]/.test(n), "File names can't point outside the project"),
+          size: z.number().int().min(0).max(1_000_000, "Each file must be under 1 MB"),
+          type: z.string().max(100),
+          // base64, so about 4/3 of the file's size
+          content: z.string().min(1).max(1_400_000),
         })
       )
-      .min(1, "At least one file is required"),
+      .min(1, "At least one file is required")
+      .max(60, "Upload at most 60 files; for bigger projects, link a GitHub repo")
+      .refine((files) => files.reduce((n, f) => n + f.size, 0) <= 4_000_000, "Uploads are limited to 4 MB in total; link a GitHub repo instead"),
     notes: z.string().max(2000).optional(),
   }),
   z.object({
@@ -31,9 +39,6 @@ const submitSchema = z.discriminatedUnion("type", [
   }),
 ]);
 
-function projectCacheKey(projectId: string, userId: string) {
-  return `project:${projectId}:${userId}`;
-}
 
 /**
  * POST /api/projects/[id]/submit
@@ -43,6 +48,8 @@ function projectCacheKey(projectId: string, userId: string) {
 export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id: string }>) => {
   try {
     const { id: projectId } = await context.params;
+    const limited = await rateLimit("projectSubmit", context.userId);
+    if (!limited.ok) return tooManyRequests(limited);
 
     // Validate request body
     let body: unknown;
@@ -104,7 +111,7 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
     });
 
     // Invalidate project detail cache so the latest status shows immediately
-    await invalidateCache(projectCacheKey(projectId, context.userId));
+    await invalidateCache(CacheKeys.project(projectId, context.userId));
     await invalidateUserCache(context.userId);
 
     return NextResponse.json({

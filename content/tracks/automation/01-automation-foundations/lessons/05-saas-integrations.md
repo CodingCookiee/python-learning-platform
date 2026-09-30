@@ -9,6 +9,16 @@ exercises:
   - auto-fix-missing-timeout
   - auto-append-sheet-rows
   - auto-crm-upsert
+lab:
+  title: Slack and Airtable, for real
+  kind: webhook
+  instructions: >-
+    Finish with a script that POSTs two results to your lab URL: "slack_error", the error field
+    Slack returned for the channel that doesn't exist, and "contacts", how many Airtable records
+    have your test email after upserting it twice.
+  expect:
+    slack_error: channel_not_found
+    contacts: 1
 ---
 
 The agency's webhook receiver now has a verified, deduplicated lead in its queue. The worker has
@@ -233,6 +243,8 @@ explain: "Tokens go in environment variables, a .env file that's in .gitignore, 
    one with `USER_ENTERED` containing `=1+1`, and compare.
 4. Create an Airtable base with a Contacts table (Email, Name, Company) and a personal access token
    scoped to it. Upsert the same contact twice and check there's still one record.
+5. **Check it:** POST `{"slack_error": <step 2's error>, "contacts": <records with that email>}`
+   with httpx to your lab URL (below this lesson).
 
 ## Where this leaves you
 

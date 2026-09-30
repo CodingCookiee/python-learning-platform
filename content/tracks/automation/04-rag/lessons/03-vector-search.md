@@ -9,6 +9,17 @@ exercises:
   - rag-embedding-cache
   - rag-refactor-vectorised-search
   - rag-filtered-search
+lab:
+  title: pgvector with an HNSW index
+  kind: output
+  instructions: >-
+    Run EXPLAIN ANALYZE on your search query (from Python, print each row the query returns) and
+    paste the plan. It should show an index scan on chunks_embedding_hnsw. On a small table, run
+    SET enable_seqscan = off first so Postgres uses the index.
+  command: EXPLAIN ANALYZE <your search query>
+  patterns:
+    - 'Index Scan using chunks_embedding_hnsw on chunks'
+    - 'Execution Time: [\d.]+ ms'
 ---
 
 Harbour Physio's policy Q&A has 1,800 chunks: cancellation rules, fees, insurance, safeguarding,
@@ -245,6 +256,8 @@ and evaluation code doesn't change when the storage does.
    `chunks_embedding_hnsw`.
 5. Compare with brute force: drop the index, run the same ten questions, and check the top five
    match. With a few thousand rows they will; the index earns its keep at hundreds of thousands.
+6. **Check it:** recreate the index, and paste the `EXPLAIN ANALYZE` plan from step 4 into the lab
+   box below (`SET enable_seqscan = off` first if a small table gets a sequential scan).
 
 ## Where this leaves you
 

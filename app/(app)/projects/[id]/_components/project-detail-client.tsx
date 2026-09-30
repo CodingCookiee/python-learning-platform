@@ -8,6 +8,8 @@ import { ConfettiEffect } from "@/components/animations";
 import { ArrowRight, Clock, Download } from "lucide-react";
 import { TapeMark } from "@/components/brand/marks";
 import { Seal } from "@/components/brand/seal";
+import { AiReviewPanel } from "@/components/projects/ai-review-panel";
+import type { AiReview } from "@/lib/ai/reviewer";
 
 export interface ProjectSubmission {
   id: string;
@@ -15,6 +17,8 @@ export interface ProjectSubmission {
   feedback: string | null;
   submittedAt: string;
   evaluatedAt: string | null;
+  aiReview: (AiReview & { model?: string; files?: number }) | null;
+  aiReviewedAt: string | null;
 }
 
 export interface ProjectDetailData {
@@ -33,6 +37,8 @@ export interface ProjectDetailData {
     phase: string;
   };
   submission: ProjectSubmission | null;
+  /** The learner has an AI key saved (for the AI review) */
+  aiReady: boolean;
 }
 
 interface ProjectDetailClientProps {
@@ -121,6 +127,15 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
             </h2>
             <p className="leading-relaxed whitespace-pre-line">{project.submission.feedback}</p>
           </section>
+        )}
+
+        {project.submission && !isCompleted && (
+          <AiReviewPanel
+            projectId={project.id}
+            aiReady={project.aiReady}
+            initialReview={project.submission.aiReview}
+            initialReviewedAt={project.submission.aiReviewedAt}
+          />
         )}
 
         <section aria-labelledby="requirements-heading" className="flex flex-col gap-4">

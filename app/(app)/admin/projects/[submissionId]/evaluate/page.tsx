@@ -7,6 +7,7 @@ import { FadeIn, StaggerContainer } from "@/components/animations";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { EvaluateClient } from "./_components/evaluate-client";
 import { parseProjectListText } from "@/lib/project-content";
+import { reviewSchema, type AiReview } from "@/lib/ai/reviewer";
 
 export interface SubmissionDetail {
   id: string;
@@ -32,6 +33,8 @@ export interface SubmissionDetail {
     name: string | null;
     email: string;
   };
+  aiReview: (AiReview & { model?: string; files?: number }) | null;
+  aiReviewedAt: string | null;
 }
 
 async function getSubmissionDetail(submissionId: string): Promise<SubmissionDetail | null> {
@@ -43,6 +46,8 @@ async function getSubmissionDetail(submissionId: string): Promise<SubmissionDeta
       submittedAt: true,
       files: true,
       userId: true,
+      aiReview: true,
+      aiReviewedAt: true,
       project: {
         select: {
           id: true,
@@ -74,6 +79,10 @@ async function getSubmissionDetail(submissionId: string): Promise<SubmissionDeta
     id: submission.id,
     status: submission.status,
     submittedAt: submission.submittedAt.toISOString(),
+    aiReview: reviewSchema.safeParse(submission.aiReview).success
+      ? (submission.aiReview as SubmissionDetail["aiReview"])
+      : null,
+    aiReviewedAt: submission.aiReviewedAt?.toISOString() ?? null,
     filesPayload,
     project: {
       id: submission.project.id,

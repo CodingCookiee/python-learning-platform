@@ -1,17 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
-import { getCached } from "@/lib/cache";
+import { CacheKeys, getCached } from "@/lib/cache";
 import { formatProjectEstimatedTime } from "@/lib/project-time";
 import { starterTemplateHref } from "@/lib/project-template";
 import { parseProjectListText } from "@/lib/project-content";
 
-/**
- * Cache key for a project detail by user
- */
-function projectCacheKey(projectId: string, userId: string) {
-  return `project:v4:${projectId}:${userId}`;
-}
 
 /**
  * GET /api/projects/[id]
@@ -21,7 +15,7 @@ function projectCacheKey(projectId: string, userId: string) {
 export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: string }>) => {
   try {
     const { id } = await context.params;
-    const cacheKey = projectCacheKey(id, context.userId);
+    const cacheKey = CacheKeys.project(id, context.userId);
 
     const response = await getCached(
       cacheKey,
@@ -71,6 +65,8 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: 
                 feedback: latestSubmission.feedback ?? null,
                 submittedAt: latestSubmission.submittedAt,
                 evaluatedAt: latestSubmission.evaluatedAt ?? null,
+                aiReview: latestSubmission.aiReview ?? null,
+                aiReviewedAt: latestSubmission.aiReviewedAt ?? null,
               }
             : null,
         };
@@ -81,8 +77,9 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: 
     if (!response) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
-
-    return NextResponse.json(response);
+    // Not cached: whether the learner has an AI key can change at any time
+    const aiReady = (await prisma.aiCredential.count({ where: { userId: context.userId } })) > 0;
+    return NextResponse.json({ ...response, aiReady });
   } catch (error) {
     console.error("Error fetching project:", error);
     return NextResponse.json({ error: "Failed to fetch project" }, { status: 500 });

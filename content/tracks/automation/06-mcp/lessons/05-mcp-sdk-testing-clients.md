@@ -8,6 +8,15 @@ exercises:
   - mcp-fix-content-blocks
   - mcp-test-order-server
   - mcp-agent-bridge
+lab:
+  title: The order server, tested
+  kind: output
+  instructions: >-
+    Save test_server.py from "Testing at two levels" next to server.py, add pytest and anyio as
+    dev dependencies, run the command below and paste its output. Every test must pass.
+  command: uv run pytest -q
+  patterns:
+    - '^(=+ )?\d+ passed(, \d+ warnings?)? in [\d.]+s'
 ---
 
 You now know every message a server sends and receives, which is exactly what you need to use the
@@ -115,6 +124,8 @@ Arguments = create_model("GetOrderArguments", **fields)
    connection. Take it out again.
 5. Check which version you have with `uv run mcp version`. If it's 1.x, change the import to
    `from mcp.server.fastmcp import FastMCP` and the class to `FastMCP`.
+6. **Check it:** save `test_server.py` from the next section, run `uv run pytest -q`, and paste the
+   output into the lab box below.
 
 ## Testing at two levels
 

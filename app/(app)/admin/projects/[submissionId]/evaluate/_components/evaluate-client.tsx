@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { AiReviewBody } from "@/components/projects/ai-review-panel";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -197,6 +198,15 @@ export function EvaluateClient({ submission }: EvaluateClientProps) {
             </div>
           )}
         </section>
+
+        {submission.aiReview && (
+          <section aria-labelledby="ai-heading" className="flex flex-col gap-3 border-b border-border p-6">
+            <h2 id="ai-heading" className="font-semibold">
+              AI review <span className="font-normal text-muted-foreground">(run by the learner; advice, not a grade)</span>
+            </h2>
+            <AiReviewBody review={submission.aiReview} reviewedAt={submission.aiReviewedAt} />
+          </section>
+        )}
 
         <section aria-labelledby="criteria-heading" className="flex flex-col gap-4 border-b border-border p-6">
           <div className="flex items-baseline justify-between gap-4">

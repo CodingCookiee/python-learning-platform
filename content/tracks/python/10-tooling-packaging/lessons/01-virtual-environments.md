@@ -9,6 +9,17 @@ exercises:
   - tooling-pyvenv-cfg
   - tooling-gitignore-predict
   - tooling-shadowed-module
+lab:
+  title: A venv of your own
+  kind: output
+  instructions: >-
+    With httpx installed in the venv (step 4), run the command below with the venv's Python
+    (on Windows, .venv\Scripts\python) and paste its output. It should print True and a path to
+    httpx inside .venv's site-packages.
+  command: .venv/bin/python -c "import sys, httpx; print(sys.prefix != sys.base_prefix, httpx.__file__)"
+  patterns:
+    - '^True '
+    - '\.venv[\\/].*site-packages[\\/]httpx[\\/]__init__\.py'
 ---
 
 You have two projects on one laptop. The invoicing app was written against Pydantic 1 and nobody has
@@ -193,7 +204,9 @@ parts = "src/invoicer/__pycache__/cli.cpython-314.pyc".split("/")
 4. Install something into the venv: `.venv/bin/python -m pip install httpx`. Check that
    `.venv/bin/python -c "import httpx"` works and that your system `python -c "import httpx"`
    (probably) doesn't.
-5. Delete `.venv`. Nothing else on your machine changed. That's the point.
+5. **Check it:** run `.venv/bin/python -c "import sys, httpx; print(sys.prefix != sys.base_prefix, httpx.__file__)"`
+   and paste the output into the lab box below.
+6. Delete `.venv`. Nothing else on your machine changed. That's the point.
 
 ## Where this leaves you
 

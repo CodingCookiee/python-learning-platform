@@ -9,6 +9,19 @@ exercises:
   - tooling-specifier-check
   - tooling-lock-diff
   - tooling-best-match
+lab:
+  title: The invoicer project
+  kind: output
+  instructions: >-
+    In the invoicer folder, after adding httpx and the dev tools, run the command below and paste
+    its output. It should show invoicer with httpx as a dependency and pytest and ruff in the dev
+    group.
+  command: uv tree
+  patterns:
+    - '^invoicer v\d+\.\d+\.\d+'
+    - 'httpx v\d+\.\d+'
+    - 'pytest v[\d.]+ \(group: dev\)'
+    - 'ruff v[\d.]+ \(group: dev\)'
 ---
 
 The last lesson built a venv by hand. Now multiply that by every project, add "which version of
@@ -339,6 +352,7 @@ sys.version_info[:2], sys.version_info >= (3, 14)
    it in lesson 3.
 8. Commit `pyproject.toml`, `uv.lock` and `.python-version`, and check that `git status` doesn't
    list `.venv`.
+9. **Check it:** run `uv tree` in `invoicer` and paste the output into the lab box below.
 
 ## Where this leaves you
 

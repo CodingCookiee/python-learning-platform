@@ -9,6 +9,18 @@ exercises:
   - auto-container-health
   - auto-scrape-listings
   - auto-polite-crawler
+lab:
+  title: Containers, running and crashing
+  kind: output
+  instructions: >-
+    Start the receiver image in one terminal and the crashy container in another, then run the
+    command below while both exist and paste its output. It should list lead-receiver and crashy
+    restarting. If crashy shows "Up", wait a few seconds and run it again.
+  command: "docker ps --all --format '{{json .}}'"
+  patterns:
+    - '"Image":"lead-receiver"'
+    - '"Names":"crashy"'
+    - '"Status":"Restarting \(1\)'
 ---
 
 Not everything a client needs has an API. The nightly database backup is a command-line tool.
@@ -261,6 +273,8 @@ explain: "robots.txt is a technical courtesy, not a licence. Collecting people's
    and read the code it writes as you click.
 5. Write a script that fetches a real site's `robots.txt` with httpx and prints `can_fetch` for
    three URLs before you ever scrape it.
+6. **Check it:** with the receiver running and `crashy` restarting, paste the output of
+   `docker ps --all --format '{{json .}}'` into the lab box below.
 
 ## Where this leaves you
 

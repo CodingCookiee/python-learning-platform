@@ -16,7 +16,7 @@ import dotenv from "dotenv";
 import path from "node:path";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "../../lib/generated/prisma/client";
+import { Prisma, PrismaClient } from "../../lib/generated/prisma/client";
 import { loadContent } from "../../lib/content/load";
 import { beltForModule, ordinal } from "../../lib/ranks";
 import type { ContentExercise } from "../../lib/content/schema";
@@ -177,6 +177,7 @@ async function main() {
             content: l.body,
             order: l.order,
             estimatedTime: l.minutes,
+            lab: l.lab ?? Prisma.DbNull,
             archivedAt: null,
           };
           const lesson = await prisma.lesson.upsert({

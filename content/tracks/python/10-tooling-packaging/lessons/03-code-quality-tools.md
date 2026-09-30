@@ -9,6 +9,16 @@ exercises:
   - tooling-fix-lint-findings
   - tooling-mypy-overrides
   - tooling-mutable-default-rule
+lab:
+  title: Clean under ruff and strict mypy
+  kind: output
+  instructions: >-
+    Once you've fixed everything ruff and mypy reported in main.py, run the command below in your
+    invoicer project and paste its output. Both tools must come back clean.
+  command: uv run ruff check; uv run mypy main.py
+  patterns:
+    - 'All checks passed!'
+    - 'Success: no issues found in \d+ source files?'
 ---
 
 Code review time is expensive, and too much of it goes on things a program could have spotted: an
@@ -274,6 +284,8 @@ explain: The hook changed files in your working tree but the commit was stopped.
    `pre-commit install`, `pre-commit autoupdate` and `pre-commit run --all-files`.
 7. Add some trailing spaces to a file and try to commit it. Watch the hook fix it and stop the
    commit, then stage the fix and commit again.
+8. **Check it:** run `uv run ruff check; uv run mypy main.py` and paste the output into the lab box
+   below.
 
 ## Where this leaves you
 

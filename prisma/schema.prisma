@@ -38,12 +38,22 @@ model User {
   level         Int       @default(1)
   role          Role      @default(LEARNER)
 
+  /// First-run setup (/onboarding): set once the learner has answered it
+  onboardedAt   DateTime?
+  /// new | other-language | python
+  experience    String?
+  /// python | automation
+  goal          String?
+  /// The weekly training target the dashboard plans around
+  weeklyHours   Int       @default(10)
+
   exerciseSubmissions ExerciseSubmission[]
   projectSubmissions  ProjectSubmission[]
   checkpointAttempts  CheckpointAttempt[]
   reviewItems         ReviewItem[]
   aiCredential        AiCredential?
   llmUsage            LlmUsage[]
+  labRuns             LabRun[]
 
   @@map("users")
 }
@@ -151,12 +161,15 @@ model Lesson {
   content       String   @db.Text
   order         Int
   estimatedTime Int
+  /// The lesson's local lab and how it's verified (lab: in the lesson's frontmatter), if any
+  lab           Json?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   module        Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   exercises     Exercise[]
   progress      Progress[]
+  labRuns       LabRun[]
 
   @@unique([moduleId, order])
   @@map("lessons")
@@ -311,6 +324,9 @@ model ProjectSubmission {
   files       String   @db.Text
   status      String
   feedback    String?  @db.Text
+  /// A rubric review by the learner's own AI key (lib/ai/reviewer.ts); the examiner still decides
+  aiReview     Json?
+  aiReviewedAt DateTime?
   submittedAt DateTime @default(now())
   evaluatedAt DateTime?
 
@@ -404,4 +420,26 @@ model LlmUsage {
 
   @@index([userId, createdAt])
   @@map("llm_usage")
+}
+
+/// A learner's attempt at a lesson's local lab. For webhook labs, token is the
+/// secret part of their personal URL; verifiedAt is set once a check passes.
+model LabRun {
+  id            String    @id @default(cuid())
+  userId        String
+  lessonId      String
+  token         String    @unique
+  verifiedAt    DateTime?
+  /// What the last check saw (a webhook body, a probed response, pasted output), trimmed
+  lastPayload   String?   @db.Text
+  lastResult    String?   @db.Text
+  lastCheckedAt DateTime?
+  checks        Int       @default(0)
+  createdAt     DateTime  @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@map("lab_runs")
 }
