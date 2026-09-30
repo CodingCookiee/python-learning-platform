@@ -70,6 +70,8 @@ async function shot(name) {
 
 // Sign in through the real form
 await setup(1440, 900, "light");
+// A stale session (e.g. a deleted test account) would redirect away from the form
+await send("Network.clearBrowserCookies");
 await go("/auth/signin", 4000);
 await ev(`(() => {
   const set = (el, v) => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(el, v); el.dispatchEvent(new Event('input',{bubbles:true})); };
@@ -315,6 +317,152 @@ if (process.env.FLOW) {
   await go(`/modules`, 5000);
   await shot("flow-syllabus.png");
   console.log("FLOW console:", issues.length ? [...new Set(issues)].map((x) => x.slice(0, 300)) : "none");
+  ws.close();
+  chrome.kill();
+  process.exit(0);
+}
+if (process.env.AXE) {
+  // Accessibility scan (WCAG 2.2 A/AA rules) of the main signed-in pages, light and dark
+  const axe = (await import("node:fs")).readFileSync(new URL("../node_modules/axe-core/axe.min.js", import.meta.url), "utf8");
+  const pages = [
+    ["/dashboard", "dashboard"],
+    ["/modules", "syllabus"],
+    [`/modules/${ids.module}`, "module"],
+    [`/lessons/${ids.lesson2}`, "lesson"],
+    [`/exercises/${ids.drills["swap-two-values"]}`, "drill"],
+    ["/review", "review"],
+    ["/settings", "settings"],
+    ["/onboarding", "onboarding"],
+    ["/achievements", "achievements"],
+    ...(process.env.AXE_CP ? [[`/checkpoints/${process.env.AXE_CP}`, "checkpoint"]] : []),
+    [`/projects/${ids.project}`, "capstone"],
+  ];
+  const report = [];
+  for (const scheme of ["light", "dark"]) {
+    await setup(1440, 900, scheme);
+    for (const [path, name] of pages) {
+      await go(path, 6000);
+      await ev(axe);
+      const res = await ev(`axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"] } }).then(r => r.violations.map(v => ({ id: v.id, impact: v.impact, help: v.help, nodes: v.nodes.length, sample: v.nodes.slice(0, 3).map(n => n.target.join(" ") + " :: " + (n.failureSummary || "").split("\\n").slice(1, 2).join("")) })))`);
+      report.push({ scheme, name, violations: res ?? "scan failed" });
+    }
+  }
+  for (const r of report) {
+    const v = Array.isArray(r.violations) ? r.violations : [];
+    console.log(`${r.scheme.padEnd(5)} ${r.name.padEnd(12)} ${Array.isArray(r.violations) ? `${v.length} rule(s)` : r.violations}`);
+    for (const x of v) console.log(`   [${x.impact}] ${x.id} (${x.nodes}): ${x.help}\n      ${x.sample.join("\n      ")}`);
+  }
+  ws.close();
+  chrome.kill();
+  process.exit(0);
+}
+if (process.env.WORKSPACE) {
+  // Server autosave of drill code, and the lesson scratchpad
+  const d = ids.drills["swap-two-values"];
+  const waitFor = async (expr, tries = 60) => {
+    for (let i = 0; i < tries; i++) {
+      if (await ev(expr)) return true;
+      await sleep(500);
+    }
+    return false;
+  };
+  const marker = `# autosave ${Date.now()}`;
+  await go(`/exercises/${d}`, 6000);
+  await waitFor(`!!window.monaco?.editor?.getModels?.()[0]`);
+  await ev(`window.monaco.editor.getModels()[0].setValue(${JSON.stringify(`def swap(a, b):\n    ${marker}\n    return b, a\n`)})`);
+  await sleep(4500);
+  // A new device: no local copy
+  await ev(`localStorage.clear()`);
+  await go(`/exercises/${d}`, 6000);
+  await waitFor(`!!window.monaco?.editor?.getModels?.()[0]`);
+  console.log("draft restored on a clean browser:", await ev(`window.monaco.editor.getModels()[0].getValue().includes(${JSON.stringify(marker)})`));
+
+  await go(`/lessons/${ids.lesson2}`, 6000);
+  await ev(`[...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Open scratchpad')?.click()`);
+  await waitFor(`!!document.querySelector('#scratchpad')`, 10);
+  const sent = await ev(`(() => { const b = [...document.querySelectorAll('button')].find(b => b.title === 'Open this example in the scratchpad'); b?.click(); return !!b; })()`);
+  await sleep(1500);
+  console.log("example sent to scratchpad:", sent);
+  await waitFor(`!/Loading Python/.test(document.body.innerText)`, 60);
+  await ev(`document.querySelector('#scratchpad button')?.parentElement && [...document.querySelectorAll('#scratchpad button')].find(b => b.textContent.trim() === 'Run')?.click()`);
+  await waitFor(`!!document.querySelector('#scratchpad [aria-live]')`, 60);
+  await sleep(800);
+  console.log("scratchpad output:", await ev(`document.querySelector('#scratchpad [aria-live]')?.innerText.slice(0, 200)`));
+  await ev(`document.querySelector('#scratchpad')?.scrollIntoView({block:'nearest'})`);
+  (await import("node:fs")).writeFileSync(new URL("lesson-scratchpad-view.png", OUT), Buffer.from((await send("Page.captureScreenshot", { format: "png" })).result.data, "base64"));
+  await shot("lesson-scratchpad.png");
+  await setup(390, 844, "light");
+  await go(`/lessons/${ids.lesson2}`, 6000);
+  const r = await send("Page.captureScreenshot", { format: "png" });
+  (await import("node:fs")).writeFileSync(new URL("lesson-scratchpad-mobile.png", OUT), Buffer.from(r.result.data, "base64"));
+  console.log("WORKSPACE console:", issues.length ? [...new Set(issues)].map((x) => x.slice(0, 300)) : "none");
+  ws.close();
+  chrome.kill();
+  process.exit(0);
+}
+if (process.env.LABFLOW) {
+  // Onboarding for the review account, then labs as a learner who has opened every module
+  const labs = JSON.parse((await import("node:fs")).readFileSync(process.env.TEMP + "/m4-labs.json", "utf8"));
+  const waitFor = async (expr, tries = 40) => {
+    for (let i = 0; i < tries; i++) {
+      if (await ev(expr)) return true;
+      await sleep(500);
+    }
+    return false;
+  };
+  const clickText = (text) =>
+    ev(`(() => { const b = [...document.querySelectorAll('button')].find(b => b.textContent.trim().startsWith(${JSON.stringify(text)})); b?.click(); return !!b; })()`);
+
+  await go("/dashboard", 5000);
+  console.log("dashboard sends a new learner to:", await ev("location.pathname"));
+  await shot("onboarding.png");
+  await clickText("I code in another language");
+  await clickText("Python, then AI automation");
+  await clickText("8 h");
+  await sleep(300);
+  await clickText("Start training");
+  await waitFor(`location.pathname === '/dashboard'`, 30);
+  await sleep(3000);
+  console.log("after onboarding:", await ev("location.pathname"), "|", await ev(`document.querySelector('#week-heading')?.closest('section')?.innerText.replace(/\\n+/g, ' ').slice(0, 300)`));
+  await shot("dashboard-pacing.png");
+
+  // Lab tester
+  await send("Network.clearBrowserCookies");
+  await go("/auth/signin", 4000);
+  await ev(`(() => { const set = (el, v) => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(el, v); el.dispatchEvent(new Event('input',{bubbles:true})); }; set(document.querySelector('#email'), 'm4-labs@example.invalid'); set(document.querySelector('#password'), 'LabTester!2026'); })()`);
+  await sleep(300);
+  await ev(`document.querySelector('form button[type=submit]').click()`);
+  await waitFor(`location.pathname === '/dashboard'`, 40);
+  await sleep(1500);
+  await go(`/lessons/${labs.webhooks}`, 6000);
+  console.log("lab panel:", await ev(`document.querySelector('#lab-heading')?.closest('section')?.innerText.slice(0, 160).replace(/\\n+/g, ' | ')`));
+  const post = (body) => fetch(labs.hook, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).then(async (r) => ({ status: r.status, ...(await r.json()) }));
+  const wrong = await post({ id: "evt_1042", type: "form.submitted", data: { email: "someone@else.com" } });
+  console.log("wrong body:", wrong.verified, wrong.notes);
+  const right = await post({ id: "evt_1042", type: "form.submitted", data: { email: "amira@example.com" }, extra: true });
+  console.log("right body:", right.verified, right.newlyVerified, right.notes);
+  const again = await post({ id: "evt_1042", type: "form.submitted", data: { email: "amira@example.com" } });
+  console.log("again (no double XP):", again.newlyVerified);
+  await clickText("Check for my request");
+  await sleep(2500);
+  console.log("panel after:", await ev(`document.querySelector('#lab-heading')?.closest('section')?.innerText.slice(0, 260).replace(/\\n+/g, ' | ')`));
+  await ev(`document.querySelector('#lab-heading')?.scrollIntoView({ block: 'start' })`);
+  await sleep(500);
+  const r = await send("Page.captureScreenshot", { format: "png" });
+  (await import("node:fs")).writeFileSync(new URL("lab-webhook.png", OUT), Buffer.from(r.result.data, "base64"));
+
+  await go(`/lessons/${labs["code-quality-tools"]}`, 6000);
+  await ev(`(() => { const t = document.querySelector('#lab-output'); Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(t, 'All checks passed!\\nSuccess: no issues found in 1 source file'); t.dispatchEvent(new Event('input',{bubbles:true})); })()`);
+  await sleep(300);
+  await ev(`[...document.querySelector('#lab-heading').closest('section').querySelectorAll('button')].find(b => b.textContent.trim() === 'Check')?.click()`);
+  await sleep(2500);
+  await ev(`document.querySelector('#lab-heading')?.scrollIntoView({ block: 'start' })`);
+  await sleep(400);
+  (await import("node:fs")).writeFileSync(new URL("lab-output.png", OUT), Buffer.from((await send("Page.captureScreenshot", { format: "png" })).result.data, "base64"));
+  console.log("direct check:", await ev(`fetch('/api/labs/${labs["code-quality-tools"]}/check', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ output: 'All checks passed!\nSuccess: no issues found in 1 source file' }) }).then(async r => r.status + ' ' + (await r.text()).slice(0, 400))`));
+  console.log("button disabled:", await ev(`[...document.querySelector('#lab-heading').closest('section').querySelectorAll('button')].find(b => b.textContent.trim() === 'Check')?.disabled`), "textarea:", await ev(`document.querySelector('#lab-output')?.value.length`));
+  console.log("output lab:", await ev(`document.querySelector('#lab-heading')?.closest('section')?.innerText.slice(0, 700).replace(/\\n+/g, ' | ')`));
+  console.log("LABFLOW console:", issues.length ? [...new Set(issues)].map((x) => x.slice(0, 300)) : "none");
   ws.close();
   chrome.kill();
   process.exit(0);

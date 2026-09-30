@@ -1,13 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { Check, Copy, LoaderCircle, Pencil, Play, RotateCcw } from "lucide-react";
+import { Check, Copy, LoaderCircle, Pencil, Play, RotateCcw, SquareTerminal } from "lucide-react";
+import { ScratchpadContext } from "@/components/lesson/scratchpad-context";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { usePyodide } from "@/lib/pyodide";
 import { isBrowserRunnable } from "@/lib/content/runnable";
 
-type RunState = {
+export type RunState = {
   status: "idle" | "running" | "ok" | "error";
   output: string;
   values: Array<[string, string]>;
@@ -84,8 +85,10 @@ export function CodeBlock({
   children: React.ReactNode;
 }) {
   const examplesRunnable = React.useContext(RunnableExamples);
+  const scratchpad = React.useContext(ScratchpadContext);
   const runnable = examplesRunnable && language === "python" && !norun && isBrowserRunnable(code);
   const { run, loading } = usePyodide();
+  // (runExample below does the REPL-style run; the scratchpad uses it too)
   const [copied, setCopied] = React.useState(false);
   const [editing, setEditing] = React.useState(false);
   const [draft, setDraft] = React.useState(code);
@@ -102,23 +105,7 @@ export function CodeBlock({
     if (runningRef.current) return;
     runningRef.current = true;
     setResult((r) => ({ ...r, status: "running" }));
-    const source = editing ? draft : code;
-    const { output, error } = await run(buildExampleHarness(source), 8000, { scanImports: source });
-    if (error) {
-      // The last line of a traceback is the part that names the problem
-      const message = error.trim().split("\n").filter(Boolean).at(-1) ?? error;
-      setResult({ status: "error", output: message, values: [] });
-    } else {
-      const idx = output.lastIndexOf(SHOW_MARKER);
-      const printed = idx >= 0 ? output.slice(0, idx) : output;
-      let values: Array<[string, string]> = [];
-      try {
-        values = idx >= 0 ? JSON.parse(output.slice(idx + SHOW_MARKER.length)) : [];
-      } catch {
-        values = [];
-      }
-      setResult({ status: "ok", output: printed.replace(/\n$/, ""), values });
-    }
+    setResult(await runExample(run, editing ? draft : code));
     runningRef.current = false;
   }
 
@@ -152,6 +139,12 @@ export function CodeBlock({
                 <Button variant="ghost" size="xs" onClick={() => setEditing(true)}>
                   <Pencil aria-hidden="true" />
                   Edit
+                </Button>
+              )}
+              {scratchpad && (
+                <Button variant="ghost" size="xs" onClick={() => scratchpad.load(editing ? draft : code)} title="Open this example in the scratchpad">
+                  <SquareTerminal aria-hidden="true" />
+                  <span className="hidden sm:inline">Scratchpad</span>
                 </Button>
               )}
               <Button size="xs" onClick={() => void execute()} aria-busy={busy} className="min-w-20">
@@ -191,14 +184,47 @@ export function CodeBlock({
           className="block w-full resize-none overflow-x-auto bg-transparent px-4 py-3 font-mono text-[0.875rem] leading-6 whitespace-pre text-foreground outline-none"
         />
       ) : (
-        <pre className="overflow-x-auto px-4 py-3 font-mono text-[0.875rem] leading-6">{children}</pre>
+        // Focusable so a long line can be scrolled from the keyboard
+        <pre tabIndex={0} className="overflow-x-auto px-4 py-3 font-mono text-[0.875rem] leading-6 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring">
+          {children}
+        </pre>
       )}
 
+      <ExampleOutput result={result} />
+    </div>
+  );
+}
+
+type RunFn = ReturnType<typeof usePyodide>["run"];
+
+/** Run code the way the REPL would, reporting a final expression's value and what the code changed */
+export async function runExample(run: RunFn, source: string, timeoutMs = 8000): Promise<RunState> {
+  const { output, error } = await run(buildExampleHarness(source), timeoutMs, { scanImports: source });
+  if (error) {
+    // The last line of a traceback is the part that names the problem
+    const message = error.trim().split("\n").filter(Boolean).at(-1) ?? error;
+    return { status: "error", output: message, values: [] };
+  }
+  const idx = output.lastIndexOf(SHOW_MARKER);
+  const printed = idx >= 0 ? output.slice(0, idx) : output;
+  let values: Array<[string, string]> = [];
+  try {
+    values = idx >= 0 ? JSON.parse(output.slice(idx + SHOW_MARKER.length)) : [];
+  } catch {
+    values = [];
+  }
+  return { status: "ok", output: printed.replace(/\n$/, ""), values };
+}
+
+export function ExampleOutput({ result, className }: { result: RunState; className?: string }) {
+  return (
+    <>
       {result.status !== "idle" && (
         <div
           aria-live="polite"
           className={cn(
             "border-t border-border px-4 py-3 font-mono text-[0.8125rem] leading-6 transition-opacity",
+            className,
             result.status === "running" && "opacity-55",
             result.status === "error" ? "bg-destructive/6 text-destructive" : "bg-accent/35"
           )}
@@ -231,6 +257,6 @@ export function CodeBlock({
           )}
         </div>
       )}
-    </div>
+    </>
   );
 }

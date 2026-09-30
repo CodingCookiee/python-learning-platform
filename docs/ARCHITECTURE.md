@@ -436,7 +436,7 @@ Every variable is listed in [`.env.example`](../.env.example). Summary:
 
 Each milestone is shippable and leaves the app better than before.
 
-**Status (2026-09-30).** M0 is done. M1 is largely done, and M2 and M3 are done:
+**Status (2026-09-30).** M0 to M3 are done, and M4/M7 are done apart from the items listed at the end:
 - **Runtime:** a module Web Worker (`public/workers/python-worker.mjs`) running Pyodide 314. It enforces a real timeout by terminating the worker and gives every run a fresh module.
 - **Harness:** the `plp` harness (`public/py/`):
   - failure messages from rewritten asserts;
@@ -449,13 +449,25 @@ Each milestone is shippable and leaves the app better than before.
   - `content:sync`, which upserts by slug, archives removed items instead of deleting them, and can publish only chosen modules;
   - `Track`, slugs and archiving in the schema.
 - **App:** the new drill workspace (function, program, predict, fix, refactor and "write the tests" drills), lesson completion gated on required drills, and achievements evaluated from criteria in `content/achievements.yaml`.
-- **Content:** modules are being written; the live set is tracked in the DB (`npm run content:sync -- --dry-run`).
+- **Content:** all 24 modules are live (162 lessons, 781 drills, 24 capstones); `npm run content:sync -- --dry-run` shows the set.
+- **Workspace (M1):** practice code autosaves to the server (`DrillDraft`, debounced) with localStorage as the fast local copy, newest wins. Lessons have a split view: a scratchpad pane beside the lesson (a bottom drawer on phones) that any runnable example can be sent to.
 
 - **Mastery (M2):** module checkpoints that pass the module, placement tests ("test out"), the spaced-review deck and `/review` queue, and the skill map on the dashboard (§6). Drills inside an open checkpoint are served without hints or solution wherever they're opened.
 
 - **AI (M3):** learners' own keys (Anthropic or OpenAI) encrypted in `AiCredential`, the Socratic tutor and error explainer on drills, and `LlmUsage` logging with a daily limit (§7).
 
-Still open from M1: server-side autosave of drill code (localStorage for now) and the split-view lesson workspace.
+- **Server grading (M4):** with `GRADING_MODE=server` the submit route re-runs the drill's tests in Node Pyodide (`lib/grading/server.ts`, the same pool `content:validate` uses) and records that verdict, not the browser's. If the grader itself fails, the attempt isn't recorded (503). `next.config.ts` traces Pyodide, the pool and the harness into the submit function; downloaded packages cache in `PLP_CACHE_DIR` (`/tmp/pyodide` on Vercel).
+- **Labs (M4):** a lesson's `lab:` frontmatter (docs/CONTENT.md) declares how its local lab is verified: a personal webhook URL (`/api/labs/hook/{token}`, body checked against expected fields), a probe of a deployed https URL (private addresses refused), or pasted command output matched against patterns. 18 lessons have one. Verifying earns 15 XP; labs never block a lesson.
+- **Capstones (M4):** an AI review on the learner's own key (`lib/ai/reviewer.ts`): uploaded files or a public GitHub repo are read against the capstone's criteria and come back as met / partly / not yet with evidence, security notes and next steps. The learner and the examiner both see it; the examiner still decides. Uploads stay in the database (`ProjectSubmission.files`), limited to 60 files and 4 MB, with larger projects linked from GitHub, so Vercel Blob isn't needed.
+- **Accounts (M7):** email verification and password reset with one-time hashed tokens (`lib/auth-tokens.ts`) sent through Resend (`lib/email.ts`); links use the configured origin, never the Host header. Without `RESEND_API_KEY` and `EMAIL_FROM`, sign-ups are verified automatically and reset shows that email isn't set up. Sign-in distinguishes "confirm your email" and "too many attempts".
+- **Rate limits (M7):** fixed-window limits in `lib/rate-limit.ts` (Upstash, or in-memory without it) on sign-in, sign-up, email sends, password changes, submissions, the tutor, reviews, checkpoints, labs and drafts.
+- **Onboarding and pacing (M7):** new learners answer three questions (experience, goal, hours a week) at `/onboarding`. The dashboard shows this week's estimated training against the target, the projected date for the goal, and a nudge to test out of the current module for learners who already code.
+- **Accessibility (M7):** axe (WCAG 2.2 A/AA) is clean on the dashboard, syllabus, module, lesson, drill, review, checkpoint, capstone, settings, onboarding and achievements pages, in light and dark.
+
+Still open:
+- The weekly learning log and check-in (§6.7).
+- Running capstone acceptance tests in a sandbox (E2B or GitHub Actions): the AI review reads the code but doesn't run it.
+- Setting `RESEND_API_KEY` and `EMAIL_FROM` in production, and switching `GRADING_MODE` to `server` before a public launch.
 
 | # | Milestone | Contents | Exit criteria |
 |---|-----------|----------|---------------|

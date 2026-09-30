@@ -111,6 +111,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
 function Toaster({ toasts, dismiss }: { toasts: Toast[]; dismiss: (id: string) => void }) {
   return (
     <div
+      role="region"
       aria-label="Notifications"
       className="fixed bottom-4 right-4 z-[60] flex flex-col gap-2 sm:bottom-6 sm:right-6"
     >

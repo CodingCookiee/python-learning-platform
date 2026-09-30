@@ -1,6 +1,7 @@
 "use client";
 
-import { isValidElement, useEffect, useRef, useState } from "react";
+import { ScratchpadContext } from "@/components/lesson/scratchpad-context";
+import { isValidElement, useContext, useEffect, useRef, useState } from "react";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import type { Components } from "react-markdown";
@@ -359,11 +360,14 @@ export function LessonContent({ content, className, runnable = true }: LessonCon
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content, hasToc]);
 
+  // With the scratchpad open there isn't room for a side table of contents
+  const narrow = useContext(ScratchpadContext)?.open ?? false;
+
   return (
     <div className={cn("flex gap-12", className)}>
       <div ref={contentRef} className="min-w-0 max-w-[70ch] flex-1">
         {hasToc && (
-          <details className="mb-8 rounded-md border border-border bg-sheet px-4 py-3 xl:hidden">
+          <details className={cn("mb-8 rounded-md border border-border bg-sheet px-4 py-3", !narrow && "xl:hidden")}>
             <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold [&::-webkit-details-marker]:hidden">
               On this page
               <ChevronDown
@@ -386,7 +390,7 @@ export function LessonContent({ content, className, runnable = true }: LessonCon
           </ReactMarkdown>
         </RunnableExamples.Provider>
       </div>
-      {hasToc && (
+      {hasToc && !narrow && (
         <aside className="hidden w-56 shrink-0 xl:block">
           <nav aria-label="On this page" className="sticky top-24 flex flex-col gap-3">
             <p className="text-sm font-semibold">On this page</p>

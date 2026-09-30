@@ -64,6 +64,8 @@ export interface PythonEditorProps {
   height?: string;
   readOnly?: boolean;
   storageKey?: string;
+  /** When `value` came from a server-saved draft: a local copy only wins if it's newer */
+  valueSavedAt?: string | null;
   onRun?: () => void;
   className?: string;
 }
@@ -74,6 +76,7 @@ export function PythonEditor({
   height = "300px",
   readOnly = false,
   storageKey,
+  valueSavedAt,
   onRun,
   className,
 }: PythonEditorProps) {
@@ -102,8 +105,14 @@ export function PythonEditor({
 
   const [initialValue] = React.useState<string>(() => {
     if (storageKey && typeof window !== "undefined") {
-      const saved = localStorage.getItem(storageKey);
-      if (saved !== null) return saved;
+      try {
+        const saved = localStorage.getItem(storageKey);
+        const savedAt = Number(localStorage.getItem(`${storageKey}:t`) ?? 0);
+        const serverAt = valueSavedAt ? new Date(valueSavedAt).getTime() : 0;
+        if (saved !== null && savedAt >= serverAt) return saved;
+      } catch {
+        // Storage can be unavailable (private mode); the server draft or starter stands
+      }
     }
     return value;
   });
@@ -118,7 +127,12 @@ export function PythonEditor({
     if (storageKey) {
       if (saveTimer.current) clearTimeout(saveTimer.current);
       saveTimer.current = setTimeout(() => {
-        localStorage.setItem(storageKey, val);
+        try {
+          localStorage.setItem(storageKey, val);
+          localStorage.setItem(`${storageKey}:t`, String(Date.now()));
+        } catch {
+          // Out of space or blocked: the server autosave still has it
+        }
       }, 500);
     }
   }

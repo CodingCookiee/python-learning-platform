@@ -94,6 +94,14 @@ exercises:           # drill slugs, in order; all are required to complete the l
   - swap-without-temp
 optional:            # optional extra practice, not required
   - identity-quiz
+lab:                 # optional: how the lesson's local lab ("Do it on your machine") is verified
+  title: Lead intake in n8n
+  kind: webhook      # webhook | url | output
+  instructions: >-   # one to three plain sentences (shown as text, so no backticks)
+    Add an HTTP Request node on the IF node's true branch that POSTs the lead to your lab URL.
+  expect:            # webhook, and optionally url: dot paths the JSON body must contain, exact values
+    email: amira@example.com
+    priority: high
 ---
 
 Opening paragraph: the problem this lesson solves, in one or two sentences.
@@ -387,6 +395,24 @@ fakes locally can download them from `/py/plp_fakes.py` on the site.
 Lessons show real calls to `https://api.anthropic.com` and `https://api.openai.com` as
 ```` ```python norun ```` with the learner's own key from an environment variable, and put the
 runnable version against a fake right next to them. Never hard-code a key, even a fake-looking one.
+
+### Labs
+
+A `lab:` block turns a lesson's "Do it on your machine" section into something the platform can
+confirm. The lesson page shows a lab panel under the lesson; verifying earns 15 XP and never blocks
+completion.
+
+- **webhook**: the learner gets a personal URL and their workflow, script or scheduled job POSTs JSON
+  to it. Every `expect` path must match exactly. Pick values that only a correct run produces (the
+  lesson's own sample data, a computed score), and say in `instructions` what to send.
+- **url**: the platform fetches `<learner's https URL>` + `path` from the internet (localhost and
+  private networks are refused), then checks `contains` and `expect`. Only for labs that deploy
+  something public.
+- **output**: the learner pastes a command's output (`command`), and every regular expression in
+  `patterns` must match (multiline). Write them in single quotes and keep them robust to versions
+  and timings (`\d+ passed`). This is honour-system checking; it confirms the steps were followed.
+
+End the lab section with a one-line **Check it:** step telling the learner what to send or paste.
 
 ## Capstones
 

@@ -50,6 +50,8 @@ export interface DrillData {
   module: { id: string; title: string };
   stats: { attempts: number; solved: boolean };
   mode: DrillMode;
+  /** The learner's autosaved practice code, if any */
+  draft: { code: string; savedAt: string } | null;
   position: { index: number; total: number };
   previous: { id: string; title: string } | null;
   next: { id: string; title: string } | null;
@@ -95,12 +97,13 @@ export async function getDrillForUser(
   });
   if (!exercise) return null;
 
-  const [unlockMap, attempts, solved, checkpoint, review] = await Promise.all([
+  const [unlockMap, attempts, solved, checkpoint, review, draft] = await Promise.all([
     getSequentialModuleUnlockMap(userId),
     prisma.exerciseSubmission.count({ where: { userId, exerciseId: id, mode: "practice" } }),
     prisma.exerciseSubmission.findFirst({ where: { userId, exerciseId: id, passed: true }, select: { id: true } }),
     openAttemptForDrill(userId, id),
     requested === "review" ? getReviewState(userId, id) : Promise.resolve(null),
+    prisma.drillDraft.findUnique({ where: { userId_exerciseId: { userId, exerciseId: id } } }),
   ]);
   if (!unlockMap.get(exercise.lesson.module.id)) return null;
 
@@ -153,6 +156,8 @@ export async function getDrillForUser(
     module: exercise.lesson.module,
     stats: { attempts, solved: Boolean(solved) },
     mode,
+    // Drafts are practice code; reviews and checkpoints start from the starter
+    draft: mode.kind === "practice" && draft ? { code: draft.code, savedAt: draft.updatedAt.toISOString() } : null,
     position: { index: Math.max(0, index), total: siblings.length },
     // A review stands alone; a checkpoint steps through its own drills
     previous: mode.kind !== "review" && index > 0 ? siblings[index - 1]! : null,

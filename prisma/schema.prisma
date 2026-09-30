@@ -54,6 +54,7 @@ model User {
   aiCredential        AiCredential?
   llmUsage            LlmUsage[]
   labRuns             LabRun[]
+  drillDrafts         DrillDraft[]
 
   @@map("users")
 }
@@ -210,6 +211,7 @@ model Exercise {
   lesson        Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   submissions   ExerciseSubmission[]
   reviewItems   ReviewItem[]
+  drafts        DrillDraft[]
 
   @@unique([lessonId, order])
   @@map("exercises")
@@ -442,4 +444,18 @@ model LabRun {
 
   @@unique([userId, lessonId])
   @@map("lab_runs")
+}
+
+/// The learner's in-progress code for a drill (practice mode), autosaved so it follows them across devices
+model DrillDraft {
+  userId     String
+  exerciseId String
+  code       String   @db.Text
+  updatedAt  DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@id([userId, exerciseId])
+  @@map("drill_drafts")
 }

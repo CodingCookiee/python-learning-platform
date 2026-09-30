@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { getLessonForUser, type LessonDrill } from "@/lib/lessons";
 import { getLabForUser } from "@/lib/labs";
 import { LabPanel } from "@/components/lesson/lab-panel";
+import { LessonWorkspace } from "@/components/lesson/lesson-workspace";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import {
   LessonSidebar,
@@ -81,7 +82,10 @@ export default async function LessonPage({ params }: PageProps) {
   if (!session?.user?.id) redirect("/auth/signin");
 
   const { id } = await params;
-  const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { id: true } });
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { id: true },
+  });
   if (!user) redirect("/auth/signin");
 
   const lesson = await getLessonForUser(id, user.id);
@@ -131,7 +135,9 @@ export default async function LessonPage({ params }: PageProps) {
                   {lesson.title}
                 </h1>
                 {lesson.description && (
-                  <p className="text-lg leading-relaxed text-muted-foreground">{lesson.description}</p>
+                  <p className="text-lg leading-relaxed text-muted-foreground">
+                    {lesson.description}
+                  </p>
                 )}
                 <p className="font-condensed tabular flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                   <span>
@@ -164,7 +170,9 @@ export default async function LessonPage({ params }: PageProps) {
                 </div>
               )}
 
-              <LessonContent content={lesson.content} />
+              <LessonWorkspace lessonId={lesson.id}>
+                <LessonContent content={lesson.content} />
+              </LessonWorkspace>
 
               {lab && (
                 <div className="max-w-[70ch]">
@@ -173,7 +181,10 @@ export default async function LessonPage({ params }: PageProps) {
               )}
 
               {lesson.drills.length > 0 && (
-                <section aria-labelledby="drills-heading" className="flex max-w-[70ch] flex-col gap-4">
+                <section
+                  aria-labelledby="drills-heading"
+                  className="flex max-w-[70ch] flex-col gap-4"
+                >
                   <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                     <h2 id="drills-heading" className="text-2xl font-semibold">
                       Drills
@@ -185,8 +196,8 @@ export default async function LessonPage({ params }: PageProps) {
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Passing the required drills is what completes the lesson. They run in your browser and
-                    check your code with real tests.
+                    Passing the required drills is what completes the lesson. They run in your
+                    browser and check your code with real tests.
                   </p>
                   {required.length > 0 && <DrillList drills={required} />}
                   {optional.length > 0 && (

@@ -453,14 +453,35 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
   const mode = drill.mode;
   const exam = mode.kind !== "practice";
 
-  const [code, setCodeState] = React.useState(drill.starterCode);
+  const initialCode = drill.draft?.code ?? drill.starterCode;
+  const [code, setCodeState] = React.useState(initialCode);
   // Handlers read the latest code from a ref, so a run started right after an edit
   // (or from the editor's Ctrl+Enter) never tests a stale copy
-  const codeRef = React.useRef(drill.starterCode);
-  const setCode = React.useCallback((next: string) => {
-    codeRef.current = next;
-    setCodeState(next);
-  }, []);
+  const codeRef = React.useRef(initialCode);
+  // Practice code autosaves to the server a few seconds after the last edit
+  const lastSavedRef = React.useRef(initialCode);
+  const draftTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const setCode = React.useCallback(
+    (next: string) => {
+      codeRef.current = next;
+      setCodeState(next);
+      if (drill.mode.kind !== "practice" || drill.type === "predict") return;
+      if (draftTimer.current) clearTimeout(draftTimer.current);
+      draftTimer.current = setTimeout(() => {
+        if (codeRef.current === lastSavedRef.current) return;
+        const saving = codeRef.current;
+        void fetch(`/api/exercises/${drill.id}/draft`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: saving }),
+          keepalive: saving.length < 60_000,
+        }).then((r) => {
+          if (r.ok) lastSavedRef.current = saving;
+        }, () => {});
+      }, 2500);
+    },
+    [drill.id, drill.mode.kind, drill.type]
+  );
   const [answer, setAnswer] = React.useState("");
   const [stdin, setStdin] = React.useState("");
   const [busy, setBusy] = React.useState<"check" | "run" | null>(null);
@@ -653,6 +674,7 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
           value={code}
           onChange={setCode}
           storageKey={EDITOR_KEY[mode.kind](drill)}
+          valueSavedAt={drill.draft?.savedAt ?? null}
           onRun={() => void runCheck()}
           height="420px"
         />
