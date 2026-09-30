@@ -25,7 +25,8 @@ const serverSchema = z.object({
   UPSTASH_REDIS_REST_URL: optional,
   UPSTASH_REDIS_REST_TOKEN: optional,
 
-  // Transactional email (verification, password reset). Without both, sign-ups are auto-verified
+  GMAIL_USER: optional,
+  GMAIL_APP_PASSWORD: optional,
   RESEND_API_KEY: optional,
   EMAIL_FROM: optional,
 

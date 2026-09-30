@@ -52,8 +52,9 @@ NEXT_PUBLIC_VERCEL_ANALYTICS_ID=your-analytics-id
 
 ### Email, grading and AI (recommended before a public launch)
 
-- `RESEND_API_KEY` and `EMAIL_FROM` (a sender on a domain verified in Resend) turn on email
-  verification and password reset. Without them, new accounts are verified automatically.
+- Email verification and password reset need a sender: `GMAIL_USER` + `GMAIL_APP_PASSWORD` (an App
+  Password from myaccount.google.com/apppasswords; free, about 500 a day), or `RESEND_API_KEY` +
+  `EMAIL_FROM` on a domain verified in Resend. Without either, new accounts are verified automatically.
 - `AUTH_URL` (or `NEXT_PUBLIC_APP_URL`) must be the public origin: emailed links and lab webhook URLs
   are built from it.
 - `GRADING_MODE=server` re-runs each drill's tests on the server when it's submitted, so a pass can't
