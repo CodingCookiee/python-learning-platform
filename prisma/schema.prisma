@@ -40,6 +40,8 @@ model User {
 
   exerciseSubmissions ExerciseSubmission[]
   projectSubmissions  ProjectSubmission[]
+  checkpointAttempts  CheckpointAttempt[]
+  reviewItems         ReviewItem[]
 
   @@map("users")
 }
@@ -120,8 +122,15 @@ model Module {
   updatedAt   DateTime  @updatedAt
 
   track       Track?    @relation(fields: [trackId], references: [id])
-  lessons     Lesson[]
-  projects    Project[]
+  /// Checkpoint (module exam): how many drills an attempt draws, the pass mark, and an
+  /// optional explicit pool of drill slugs (default: the module's core and stretch drills)
+  checkpointPick     Int      @default(6)
+  checkpointPassMark Float    @default(0.8)
+  checkpointPool     String[] @default([])
+
+  lessons            Lesson[]
+  projects           Project[]
+  checkpointAttempts CheckpointAttempt[]
 
   prerequisites Module[] @relation("ModulePrerequisites")
   dependents    Module[] @relation("ModulePrerequisites")
@@ -185,6 +194,7 @@ model Exercise {
 
   lesson        Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   submissions   ExerciseSubmission[]
+  reviewItems   ReviewItem[]
 
   @@unique([lessonId, order])
   @@map("exercises")
@@ -238,6 +248,9 @@ model ExerciseSubmission {
   testResults String   @db.Text
   hintsUsed   Int      @default(0)
   attempts    Int      @default(1)
+  /// practice (the drill page), review (spaced repetition) or checkpoint (module exam)
+  mode        String   @default("practice")
+  checkpointAttemptId String?
   submittedAt DateTime @default(now())
 
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -245,6 +258,48 @@ model ExerciseSubmission {
 
   @@index([userId, exerciseId])
   @@map("exercise_submissions")
+}
+
+/// One sitting of a module's checkpoint: the drills it drew, which passed, and the score
+model CheckpointAttempt {
+  id          String    @id @default(cuid())
+  userId      String
+  moduleId    String
+  exerciseIds String[]
+  passedIds   String[]  @default([])
+  /// Taken to test out of the module before doing its lessons
+  placement   Boolean   @default(false)
+  score       Float?
+  passed      Boolean   @default(false)
+  startedAt   DateTime  @default(now())
+  submittedAt DateTime?
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  module Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@index([userId, moduleId])
+  @@map("checkpoint_attempts")
+}
+
+/// Spaced review of a passed drill: it comes back with a blank editor when due
+model ReviewItem {
+  id             String    @id @default(cuid())
+  userId         String
+  exerciseId     String
+  /// Index into the review intervals (1, 3, 7, 21, 60, 120 days)
+  stage          Int       @default(0)
+  dueAt          DateTime
+  lapses         Int       @default(0)
+  reviews        Int       @default(0)
+  lastReviewedAt DateTime?
+  createdAt      DateTime  @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, exerciseId])
+  @@index([userId, dueAt])
+  @@map("review_items")
 }
 
 model ProjectSubmission {

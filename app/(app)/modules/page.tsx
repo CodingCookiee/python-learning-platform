@@ -28,6 +28,14 @@ function DanStatus({ module, trackOpen }: { module: SyllabusModule | undefined; 
         Locked
       </span>
     );
+  if (module.checkpointDue) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-sm font-semibold whitespace-nowrap text-primary">
+        <SealMark className="size-4" />
+        Checkpoint due
+      </span>
+    );
+  }
   return (
     <span className="font-condensed tabular text-sm whitespace-nowrap">
       {module.lessonsDone} / {module.lessonsTotal} lessons

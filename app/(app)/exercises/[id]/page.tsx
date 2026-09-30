@@ -8,18 +8,26 @@ import { ExerciseClient } from "./_components/exercise-client";
 
 interface PageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ review?: string }>;
 }
 
-export default async function ExercisePage({ params }: PageProps) {
+export default async function ExercisePage({ params, searchParams }: PageProps) {
   const session = await auth();
   if (!session?.user?.id) redirect("/auth/signin");
 
-  const { id } = await params;
+  const [{ id }, query] = await Promise.all([params, searchParams]);
   const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { id: true } });
   if (!user) redirect("/auth/signin");
 
-  const drill = await getDrillForUser(id, user.id);
+  const drill = await getDrillForUser(id, user.id, query.review ? "review" : "practice");
   if (!drill) notFound();
+
+  const trail =
+    drill.mode.kind === "checkpoint"
+      ? [{ label: "Checkpoint", href: `/checkpoints/${drill.mode.attemptId}` }]
+      : drill.mode.kind === "review"
+        ? [{ label: "Review", href: "/review" }]
+        : [{ label: drill.lesson.title, href: `/lessons/${drill.lesson.id}` }];
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
@@ -30,14 +38,14 @@ export default async function ExercisePage({ params }: PageProps) {
               { label: "Home", href: "/" },
               { label: "Syllabus", href: "/modules" },
               { label: drill.module.title, href: `/modules/${drill.module.id}` },
-              { label: drill.lesson.title, href: `/lessons/${drill.lesson.id}` },
+              ...trail,
               { label: drill.title },
             ]}
           />
         </FadeIn>
 
         <FadeIn delay={0.05}>
-          <ExerciseClient key={drill.id} drill={drill} />
+          <ExerciseClient key={`${drill.id}-${drill.mode.kind}`} drill={drill} />
         </FadeIn>
       </div>
     </div>

@@ -11,7 +11,7 @@ import { StreakDisplay } from "@/components/gamification/streak-display";
 import { XpProgressBar } from "@/components/gamification/xp-progress-bar";
 import { StreakCalendar } from "@/components/gamification/streak-calendar";
 import { MilestoneTracker } from "@/components/gamification/milestone-tracker";
-import { Check } from "lucide-react";
+import { ArrowRight, Check, Repeat } from "lucide-react";
 import { SealMark } from "@/components/brand/marks";
 import { AchievementPatch } from "@/components/gamification/achievement-badge";
 import { tierStyle } from "@/lib/achievement-tier";
@@ -19,6 +19,9 @@ import { RankCard } from "@/components/brand/rank-card";
 import { getLearnerRank } from "@/lib/learner-rank";
 import { getSyllabusProgress } from "@/lib/syllabus";
 import { SyllabusProgress } from "@/components/brand/syllabus-progress";
+import { SkillMap } from "@/components/mastery/skill-map";
+import { getSkillMap } from "@/lib/skill-map";
+import { countDueReviews } from "@/lib/review";
 
 interface ProgressData {
   user: {
@@ -241,6 +244,7 @@ export default async function DashboardPage() {
     getLearnerRank(dbUser.id),
     getSyllabusProgress(dbUser.id),
   ]);
+  const [skills, reviewsDue] = await Promise.all([getSkillMap(dbUser.id), countDueReviews(dbUser.id)]);
 
   if (!data) {
     return (
@@ -308,6 +312,26 @@ export default async function DashboardPage() {
           </dl>
         </FadeIn>
 
+        {reviewsDue > 0 && (
+          <FadeIn delay={0.07}>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-3 rounded-md border border-border bg-accent/45 px-5 py-4">
+              <Repeat className="size-5 shrink-0 text-primary" aria-hidden="true" />
+              <p className="min-w-0 flex-1">
+                <span className="font-semibold">
+                  {reviewsDue} {reviewsDue === 1 ? "drill is" : "drills are"} due for review.
+                </span>{" "}
+                <span className="text-muted-foreground">Solve them again from memory to keep them.</span>
+              </p>
+              <Button asChild>
+                <Link href="/review">
+                  Review now
+                  <ArrowRight data-icon="inline-end" aria-hidden="true" />
+                </Link>
+              </Button>
+            </div>
+          </FadeIn>
+        )}
+
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
           <FadeIn delay={0.08}>
             <section aria-labelledby="log-heading" className="flex flex-col gap-4">
@@ -351,6 +375,22 @@ export default async function DashboardPage() {
             </section>
           </FadeIn>
         </div>
+
+        {skills.modules.length > 0 && (
+          <FadeIn delay={0.11}>
+            <section aria-labelledby="skills-heading" className="flex flex-col gap-4">
+              <div className="flex items-baseline justify-between gap-4">
+                <h2 id="skills-heading" className="text-xl font-semibold">
+                  Skill map
+                </h2>
+                <Link href="/review" className="text-sm font-medium text-primary underline">
+                  Review queue
+                </Link>
+              </div>
+              <SkillMap map={skills} />
+            </section>
+          </FadeIn>
+        )}
 
         {recentLessons.length > 0 && (
           <FadeIn delay={0.12}>

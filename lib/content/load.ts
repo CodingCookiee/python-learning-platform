@@ -204,6 +204,16 @@ export function loadContent(root = path.join(process.cwd(), "content")): LoadRes
       if (by.length > 1) err(path.join(root, "..", ex.path), `is listed in more than one lesson (${by.join(", ")})`);
     }
 
+    if (meta) {
+      const moduleYaml = path.join(dir, "module.yaml");
+      for (const s of meta.checkpoint.pool) {
+        if (!exercises.has(s)) err(moduleYaml, `checkpoint pool drill "${s}" isn't in this module`);
+      }
+      if (meta.checkpoint.pool.length > 0 && meta.checkpoint.pool.length < meta.checkpoint.pick) {
+        err(moduleYaml, `checkpoint pool has ${meta.checkpoint.pool.length} drills but pick is ${meta.checkpoint.pick}`);
+      }
+    }
+
     const capstone = loadCapstone(path.join(dir, "capstone"));
     if (!meta) return null;
     return { ...meta, order, path: rel(root, dir), lessons, exercises, capstone };

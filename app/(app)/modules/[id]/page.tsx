@@ -12,6 +12,81 @@ import { cn } from "@/lib/utils";
 import { BeltBand } from "@/components/brand/belt";
 import { LockedMark } from "@/components/brand/marks";
 import { beltForModule, ordinal } from "@/lib/ranks";
+import { getCheckpointSummary, type CheckpointSummary } from "@/lib/checkpoint";
+import { StartCheckpointButton } from "@/components/mastery/checkpoint-controls";
+
+function CheckpointSection({ moduleId, summary }: { moduleId: string; summary: CheckpointSummary }) {
+  const terms = `${summary.pick} drills from this module, ${summary.minutes} minutes, pass ${Math.round(summary.passMark * 100)}%`;
+  const best = summary.bestScore !== null ? `Best so far: ${Math.round(summary.bestScore * 100)}%.` : null;
+  let body: React.ReactNode;
+  switch (summary.status) {
+    case "passed":
+      body = (
+        <p className="text-muted-foreground">
+          {summary.passedPlacement ? "Passed as a placement test. " : "Passed. "}
+          {best}
+        </p>
+      );
+      break;
+    case "locked":
+      body = <p className="text-muted-foreground">Opens with the module. {terms}.</p>;
+      break;
+    case "open":
+      body = (
+        <div className="flex flex-col items-start gap-3">
+          <p className="text-muted-foreground">You have a checkpoint in progress. The clock is running.</p>
+          <Button asChild>
+            <Link href={`/checkpoints/${summary.openAttemptId}`}>
+              Resume the checkpoint
+              <ArrowRight data-icon="inline-end" aria-hidden="true" />
+            </Link>
+          </Button>
+        </div>
+      );
+      break;
+    case "cooldown":
+      body = (
+        <p className="text-muted-foreground">
+          {best} A fresh set of drills is ready at{" "}
+          {new Date(summary.retryAt!).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}. Meanwhile, redo
+          the drills you missed.
+        </p>
+      );
+      break;
+    case "ready":
+      body = (
+        <div className="flex flex-col items-start gap-3">
+          <p className="text-muted-foreground">
+            Every lesson is done. The checkpoint is what passes the module: {terms}. Each drill starts blank, with no
+            hints and no reference solution. {best}
+          </p>
+          <StartCheckpointButton moduleId={moduleId} label="Take the checkpoint" />
+        </div>
+      );
+      break;
+    case "placement":
+      body = (
+        <div className="flex flex-col items-start gap-3">
+          <p className="text-muted-foreground">
+            It opens once the lessons are done: {terms}. Already know this material? Take it now as a placement test;
+            passing it passes the module without the lessons. {best}
+          </p>
+          <StartCheckpointButton moduleId={moduleId} label="Test out" variant="outline" />
+        </div>
+      );
+      break;
+    default:
+      return null;
+  }
+  return (
+    <section aria-labelledby="checkpoint-heading" className="flex max-w-3xl flex-col gap-3">
+      <h2 id="checkpoint-heading" className="text-xl font-semibold">
+        Checkpoint
+      </h2>
+      {body}
+    </section>
+  );
+}
 
 function getProjectSubmissionState(
   status?: string | null
@@ -80,7 +155,10 @@ export default async function ModuleDetailPage({ params }: PageProps) {
   const totalLessons = learningModule.lessons.length;
   const completedCount = learningModule.lessons.filter((l) => l.progress[0]?.completed).length;
 
-  const moduleUnlockMap = await getSequentialModuleUnlockMap(userId);
+  const [moduleUnlockMap, checkpoint] = await Promise.all([
+    getSequentialModuleUnlockMap(userId),
+    getCheckpointSummary(userId, learningModule.id),
+  ]);
   const isUnlocked = moduleUnlockMap.get(learningModule.id) ?? false;
 
   const lessons = learningModule.lessons.map((l) => ({
@@ -121,7 +199,10 @@ export default async function ModuleDetailPage({ params }: PageProps) {
   const belt = beltForModule(learningModule.order);
   const stripeNumber = learningModule.order - belt.fromModule + 1;
   const stripeSlots = belt.toModule - belt.fromModule + 1;
-  const isPassed = totalLessons > 0 && completedCount === totalLessons;
+  const lessonsComplete = totalLessons > 0 && completedCount === totalLessons;
+  // The checkpoint passes the module; a module without one passes on its lessons
+  const isPassed = checkpoint?.status === "passed" || (checkpoint?.status === "none" && lessonsComplete);
+  const checkpointReady = checkpoint?.status === "ready";
 
   const [prevModule, nextModule] = await Promise.all([
     prisma.module.findFirst({
@@ -207,10 +288,25 @@ export default async function ModuleDetailPage({ params }: PageProps) {
                     <span className="text-6xl font-extrabold tracking-[-0.03em]">{completedCount}</span>
                     <span className="text-2xl font-bold text-muted-foreground"> / {totalLessons}</span>
                     <span className="mt-1 block text-sm font-semibold text-muted-foreground">
-                      {isPassed ? "passed" : "lessons done"}
+                      {isPassed
+                        ? checkpoint?.passedPlacement
+                          ? "passed · tested out"
+                          : "passed"
+                        : lessonsComplete
+                          ? "lessons done · checkpoint due"
+                          : "lessons done"}
                     </span>
                   </p>
-                  {action?.href && (
+                  {checkpointReady ? (
+                    <StartCheckpointButton moduleId={learningModule.id} label="Take the checkpoint" size="lg" />
+                  ) : checkpoint?.status === "open" ? (
+                    <Button asChild size="lg">
+                      <Link href={`/checkpoints/${checkpoint.openAttemptId}`}>
+                        Resume the checkpoint
+                        <ArrowRight data-icon="inline-end" aria-hidden="true" />
+                      </Link>
+                    </Button>
+                  ) : action?.href && (
                     <Button asChild size="lg" variant={action.variant}>
                       <Link href={action.href}>
                         {action.label}
@@ -323,6 +419,12 @@ export default async function ModuleDetailPage({ params }: PageProps) {
             </ol>
           </section>
         </FadeIn>
+
+        {checkpoint && checkpoint.status !== "none" && (
+          <FadeIn delay={0.08}>
+            <CheckpointSection moduleId={learningModule.id} summary={checkpoint} />
+          </FadeIn>
+        )}
 
         {/* Capstone */}
         {projects.length > 0 && (

@@ -19,6 +19,7 @@ import { MobileMenu } from "@/components/layout/mobile-menu";
 const APP_LINKS = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/modules", label: "Syllabus" },
+  { href: "/review", label: "Review" },
   { href: "/achievements", label: "Achievements" },
 ];
 

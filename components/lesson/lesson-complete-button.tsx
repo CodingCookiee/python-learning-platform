@@ -12,6 +12,8 @@ import type { UnlockedAchievement } from "@/lib/achievements";
 export interface LessonCompleteButtonProps {
   lessonId: string;
   nextLessonId?: string | null;
+  /** Where the last lesson sends the learner: the module page, where its checkpoint opens */
+  moduleId?: string;
   initialCompleted?: boolean;
   isLocked?: boolean;
   lockedMessage?: string;
@@ -23,6 +25,7 @@ type Status = "idle" | "loading" | "success" | "error";
 export function LessonCompleteButton({
   lessonId,
   nextLessonId,
+  moduleId,
   initialCompleted = false,
   isLocked = false,
   lockedMessage,
@@ -87,6 +90,10 @@ export function LessonCompleteButton({
         setTimeout(() => {
           router.push(`/lessons/${nextLessonId}`);
         }, 1200);
+      } else if (nowCompleted && moduleId) {
+        setTimeout(() => {
+          router.push(`/modules/${moduleId}#checkpoint-heading`);
+        }, 1800);
       }
 
       setTimeout(() => setStatus("idle"), 1000);
@@ -173,7 +180,7 @@ export function LessonCompleteButton({
             >
               {nextLessonId
                 ? "Lesson complete. You can come back to it any time."
-                : "Lesson complete. That was the last lesson in this module."}
+                : "Lesson complete. That was the last lesson in this module; its checkpoint is open."}
             </motion.p>
           )}
           {status === "error" && (

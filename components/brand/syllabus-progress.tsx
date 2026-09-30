@@ -22,6 +22,14 @@ function ModuleStatus({ m }: { m: SyllabusModule }) {
       </span>
     );
   }
+  if (m.checkpointDue) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-sm font-semibold whitespace-nowrap text-primary">
+        <SealMark className="size-4" />
+        Checkpoint due
+      </span>
+    );
+  }
   const pct = m.lessonsTotal > 0 ? (m.lessonsDone / m.lessonsTotal) * 100 : 0;
   return (
     <span className="flex items-center gap-2.5">

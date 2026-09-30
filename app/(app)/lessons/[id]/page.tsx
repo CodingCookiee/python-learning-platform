@@ -193,6 +193,7 @@ export default async function LessonPage({ params }: PageProps) {
                 <LessonCompleteButton
                   lessonId={lesson.id}
                   nextLessonId={lesson.next?.id ?? null}
+                  moduleId={lesson.module.id}
                   initialCompleted={lesson.completed}
                   isLocked={!lesson.completed && !lesson.canComplete}
                   lockedMessage={blockedMessage}

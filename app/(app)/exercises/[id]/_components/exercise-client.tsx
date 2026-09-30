@@ -7,10 +7,12 @@ import {
   ArrowRight,
   Check,
   ChevronDown,
+  Clock,
   Eye,
   Lightbulb,
   LoaderCircle,
   Play,
+  Repeat,
   RotateCcw,
   TerminalSquare,
   X,
@@ -31,7 +33,7 @@ import {
   type TestRunResult,
 } from "@/lib/python-runtime";
 import type { UnlockedAchievement } from "@/lib/achievements";
-import type { DrillData, DrillType } from "@/lib/drills";
+import type { DrillData, DrillMode, DrillType } from "@/lib/drills";
 import { cn } from "@/lib/utils";
 
 // Copy per drill type
@@ -162,19 +164,83 @@ function Hints({ hints, used, onReveal }: { hints: string[]; used: number; onRev
   );
 }
 
+// Checkpoint and review banners
+
+function useCountdown(deadline: string | null): number | null {
+  const [left, setLeft] = React.useState<number | null>(null);
+  React.useEffect(() => {
+    if (!deadline) return;
+    const end = new Date(deadline).getTime();
+    const tick = () => setLeft(Math.max(0, end - Date.now()));
+    tick();
+    const t = setInterval(tick, 1000);
+    return () => clearInterval(t);
+  }, [deadline]);
+  return left;
+}
+
+function formatClock(ms: number): string {
+  const total = Math.ceil(ms / 1000);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const sec = String(total % 60).padStart(2, "0");
+  return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${sec}` : `${m}:${sec}`;
+}
+
+function ModeBanner({ mode, progress }: { mode: DrillMode; progress: { passedCount: number; total: number } | null }) {
+  const left = useCountdown(mode.kind === "checkpoint" ? mode.deadline : null);
+  if (mode.kind === "practice") return null;
+  if (mode.kind === "review") {
+    return (
+      <div className="flex items-start gap-3 rounded-md border border-border bg-accent/45 px-4 py-3 text-sm">
+        <Repeat className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+        <p>
+          <span className="font-semibold">Review.</span>{" "}
+          {mode.due
+            ? "Solve it from memory. A clean pass pushes the next review further out; hints bring it back tomorrow."
+            : "This one isn't due yet, so this attempt is practice and won't change its schedule."}
+        </p>
+      </div>
+    );
+  }
+  const done = progress ?? { passedCount: mode.passedCount, total: mode.total };
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-md border border-primary/30 bg-primary/6 px-4 py-3 text-sm">
+      <span className="font-semibold">Checkpoint</span>
+      <span className="font-condensed tabular text-muted-foreground">
+        {done.passedCount} of {done.total} passed
+      </span>
+      <span
+        className={cn(
+          "font-condensed tabular ml-auto flex items-center gap-1.5",
+          left !== null && left < 5 * 60_000 ? "font-bold text-destructive" : "text-muted-foreground"
+        )}
+      >
+        <Clock className="size-3.5" aria-hidden="true" />
+        {left === null ? "…" : left === 0 ? "Time’s up" : `${formatClock(left)} left`}
+      </span>
+      <p className="basis-full text-muted-foreground">No hints and no reference solution. Run the tests as often as you like.</p>
+    </div>
+  );
+}
+
 function PromptPanel({
   drill,
   check,
   hintsUsed,
   onRevealHint,
+  progress,
 }: {
   drill: DrillData;
   check: CheckState;
   hintsUsed: number;
   onRevealHint: () => void;
+  progress: { passedCount: number; total: number } | null;
 }) {
+  const inCheckpoint = drill.mode.kind === "checkpoint";
   return (
     <div className="flex flex-col gap-6">
+      <ModeBanner mode={drill.mode} progress={progress} />
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="outline" className="text-muted-foreground">
@@ -194,9 +260,15 @@ function PromptPanel({
           )}
         </div>
         <h1 className="font-condensed text-4xl leading-[0.98] font-extrabold tracking-[-0.02em]">{drill.title}</h1>
-        {drill.position.total > 1 && (
+        {drill.position.total > 1 && drill.mode.kind !== "review" && (
           <p className="font-condensed tabular text-sm text-muted-foreground">
-            Drill {drill.position.index + 1} of {drill.position.total} in {drill.lesson.title}
+            Drill {drill.position.index + 1} of {drill.position.total}{" "}
+            {inCheckpoint ? "in the checkpoint" : `in ${drill.lesson.title}`}
+          </p>
+        )}
+        {drill.mode.kind === "review" && (
+          <p className="text-sm text-muted-foreground">
+            From {drill.lesson.title}, {drill.module.title}
           </p>
         )}
       </div>
@@ -310,6 +382,7 @@ function RunOutput({ result }: { result: RunResult }) {
 // Workspace
 
 interface SubmitResponse {
+  mode: DrillMode["kind"];
   submission: { attempts: number; passed: boolean };
   xpGained: number;
   newlySolved: boolean;
@@ -317,11 +390,29 @@ interface SubmitResponse {
   levelUp?: boolean;
   newLevel?: number;
   solution?: string | null;
+  review: { counted: boolean; stage: number; nextDueAt: string | null } | null;
+  checkpoint:
+    | { passedCount: number; total: number; finished: { score: number; passed: boolean } | null }
+    | { error: string }
+    | null;
+}
+
+const EDITOR_KEY: Record<DrillMode["kind"], (drill: DrillData) => string> = {
+  practice: (d) => `drill-${d.id}`,
+  // Each review starts from a blank starter, not last time's answer
+  review: (d) => `review-${d.id}-${d.mode.kind === "review" ? d.mode.reviews : 0}`,
+  checkpoint: (d) => `checkpoint-${d.mode.kind === "checkpoint" ? d.mode.attemptId : ""}-${d.id}`,
+};
+
+function daysUntil(iso: string): number {
+  return Math.max(1, Math.round((new Date(iso).getTime() - Date.now()) / 86_400_000));
 }
 
 export function ExerciseClient({ drill }: { drill: DrillData }) {
   const { status: runtimeStatus, text: runtimeText } = useRuntimeStatus();
   const isPredict = drill.type === "predict";
+  const mode = drill.mode;
+  const exam = mode.kind !== "practice";
 
   const [code, setCodeState] = React.useState(drill.starterCode);
   // Handlers read the latest code from a ref, so a run started right after an edit
@@ -345,6 +436,10 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
   const [achievements, setAchievements] = React.useState<UnlockedAchievement[]>([]);
   const [confetti, setConfetti] = React.useState(false);
   const [levelUp, setLevelUp] = React.useState<number | null>(null);
+  const [reviewOutcome, setReviewOutcome] = React.useState<SubmitResponse["review"]>(null);
+  const [progress, setProgress] = React.useState<{ passedCount: number; total: number } | null>(null);
+  const [finished, setFinished] = React.useState<{ score: number; passed: boolean } | null>(null);
+  const [saveError, setSaveError] = React.useState<string | null>(null);
   const busyRef = React.useRef(false);
 
   React.useEffect(() => {
@@ -357,14 +452,25 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
     const res = await fetch(`/api/exercises/${drill.id}/submit`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code: submitted, passed, testResults: JSON.stringify(summary), hintsUsed }),
+      body: JSON.stringify({ code: submitted, passed, testResults: JSON.stringify(summary), hintsUsed, mode: mode.kind }),
     });
-    if (!res.ok) return;
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      setSaveError(body?.error ?? "Couldn’t save this attempt.");
+      return;
+    }
+    setSaveError(null);
     const data = (await res.json()) as SubmitResponse;
+    if (data.review?.counted) setReviewOutcome(data.review);
+    if (data.checkpoint && "error" in data.checkpoint) setSaveError(data.checkpoint.error);
+    else if (data.checkpoint) {
+      setProgress({ passedCount: data.checkpoint.passedCount, total: data.checkpoint.total });
+      if (data.checkpoint.finished) setFinished(data.checkpoint.finished);
+    }
     setAttempts(data.submission.attempts);
     if (data.submission.passed) setSolved(true);
     if (data.solution) setSolution(data.solution);
-    if (data.newlySolved) {
+    if (data.xpGained > 0) {
       setXpGained(data.xpGained);
       setConfetti(true);
       setTimeout(() => setConfetti(false), 3200);
@@ -452,8 +558,8 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
     (check.kind === "tests" && check.result.status === "ok" && check.result.passed === true) ||
     (check.kind === "predict" && check.correct);
   const checkLabel = loading ? "Loading Python…" : busy === "check" ? "Checking…" : isPredict ? "Check answer" : "Run tests";
-  // Predict drills show the real output only once solved or after enough tries
-  const canRunPredict = !isPredict || solved || solution !== null;
+  // Predict drills show the real output only once solved or after enough tries, and never in an exam
+  const canRunPredict = !isPredict || (!exam && (solved || solution !== null));
   // Programs always read input; other drills get the box once their code calls input()
   const showInput = !isPredict && (drill.type === "program" || /\binput\(/.test(code));
 
@@ -489,7 +595,7 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
         <PythonEditor
           value={code}
           onChange={setCode}
-          storageKey={`drill-${drill.id}`}
+          storageKey={EDITOR_KEY[mode.kind](drill)}
           onRun={() => void runCheck()}
           height="420px"
         />
@@ -549,7 +655,9 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
             ? runtimeText || "The first run downloads Python (a few seconds)"
             : runtimeText && runtimeStatus === "busy"
               ? runtimeText
-              : `${attempts} ${attempts === 1 ? "attempt" : "attempts"}${solved ? " · solved" : ""}`}
+              : exam
+                ? ""
+                : `${attempts} ${attempts === 1 ? "attempt" : "attempts"}${solved ? " · solved" : ""}`}
         </span>
       </div>
 
@@ -571,9 +679,62 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
             </div>
           ))}
         {runResult && <RunOutput result={runResult} />}
+        {saveError && <p className="text-sm text-destructive">{saveError}</p>}
       </div>
 
-      {allPassed && (
+      {allPassed && mode.kind === "checkpoint" && (
+        <div className="flex flex-wrap items-center gap-5 rounded-md border border-border bg-accent/55 px-5 py-4">
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold">
+              {finished ? (finished.passed ? "Checkpoint passed" : "Checkpoint closed") : "Drill passed"}
+              {xpGained ? <span className="font-condensed tabular text-primary"> · +{xpGained} XP</span> : null}
+            </p>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {finished
+                ? `You scored ${Math.round(finished.score * 100)}%.`
+                : progress
+                  ? `${progress.passedCount} of ${progress.total} done.`
+                  : "Saved."}
+            </p>
+          </div>
+          {drill.next && !finished ? (
+            <Button asChild>
+              <Link href={`/exercises/${drill.next.id}`}>
+                Next drill
+                <ArrowRight aria-hidden="true" />
+              </Link>
+            </Button>
+          ) : (
+            <Button asChild variant={finished ? "default" : "outline"}>
+              <Link href={`/checkpoints/${mode.attemptId}`}>{finished ? "See the result" : "Back to the checkpoint"}</Link>
+            </Button>
+          )}
+          {finished?.passed ? <Seal label="Passed" detail="Checkpoint" animate className="hidden shrink-0 sm:inline-flex" /> : null}
+        </div>
+      )}
+
+      {allPassed && mode.kind === "review" && (
+        <div className="flex flex-wrap items-center gap-5 rounded-md border border-border bg-accent/55 px-5 py-4">
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold">
+              Recalled{xpGained ? <span className="font-condensed tabular text-primary"> · +{xpGained} XP</span> : null}
+            </p>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {reviewOutcome?.nextDueAt
+                ? `It comes back in ${daysUntil(reviewOutcome.nextDueAt)} ${daysUntil(reviewOutcome.nextDueAt) === 1 ? "day" : "days"}.`
+                : "Practice only; the schedule didn’t change."}
+            </p>
+          </div>
+          <Button asChild>
+            <Link href="/review">
+              Back to review
+              <ArrowRight aria-hidden="true" />
+            </Link>
+          </Button>
+        </div>
+      )}
+
+      {allPassed && mode.kind === "practice" && (
         <div className="flex items-center gap-5 rounded-md border border-border bg-accent/55 px-5 py-4">
           <div className="min-w-0 flex-1">
             <p className="font-semibold">
@@ -627,15 +788,23 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
       )}
 
       <nav className="flex items-center justify-between gap-3 border-t border-border pt-4 text-sm" aria-label="Drills">
-        {drill.previous ? (
+        {mode.kind === "review" ? (
+          <Link href="/review" className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="size-4" aria-hidden="true" />
+            The review queue
+          </Link>
+        ) : drill.previous ? (
           <Link href={`/exercises/${drill.previous.id}`} className="flex min-w-0 items-center gap-1.5 text-muted-foreground hover:text-foreground">
             <ArrowLeft className="size-4 shrink-0" aria-hidden="true" />
             <span className="truncate">{drill.previous.title}</span>
           </Link>
         ) : (
-          <Link href={`/lessons/${drill.lesson.id}`} className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
+          <Link
+            href={mode.kind === "checkpoint" ? `/checkpoints/${mode.attemptId}` : `/lessons/${drill.lesson.id}`}
+            className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
+          >
             <ArrowLeft className="size-4" aria-hidden="true" />
-            The lesson
+            {mode.kind === "checkpoint" ? "The checkpoint" : "The lesson"}
           </Link>
         )}
         {drill.next && (
@@ -654,6 +823,7 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
       check={check}
       hintsUsed={hintsUsed}
       onRevealHint={() => setHintsUsed((n) => Math.min(n + 1, drill.hints.length))}
+      progress={progress}
     />
   );
 

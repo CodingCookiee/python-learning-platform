@@ -12,6 +12,8 @@ export interface SyllabusModule {
   lessonsDone: number;
   projectsTotal: number;
   state: ModuleState;
+  /** Every lesson done, and the checkpoint is what stands between the learner and the stripe */
+  checkpointDue: boolean;
 }
 
 /** A track's modules as syllabus rows. "current" is the first unlocked module not yet passed. */
@@ -35,6 +37,7 @@ export function toSyllabus(track: TrackProgress): SyllabusModule[] {
       lessonsDone: m.lessonsDone,
       projectsTotal: m.projectsTotal,
       state,
+      checkpointDue: m.unlocked && !m.passed && m.lessonsComplete && m.checkpoint.poolSize > 0,
     };
   });
 }

@@ -156,6 +156,9 @@ async function main() {
           phase,
           order: m.order,
           duration: Math.round(m.hours),
+          checkpointPick: m.checkpoint.pick,
+          checkpointPassMark: m.checkpoint.pass_mark,
+          checkpointPool: m.checkpoint.pool,
           archivedAt: null,
         };
         const mod = await prisma.module.upsert({

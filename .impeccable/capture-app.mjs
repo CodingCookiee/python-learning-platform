@@ -319,6 +319,68 @@ if (process.env.FLOW) {
   chrome.kill();
   process.exit(0);
 }
+if (process.env.CHECKPOINT) {
+  // Take module 1's checkpoint as a placement test, solving each drill with its reference solution
+  const pg = (await import("pg")).default;
+  (await import("dotenv")).config({ path: process.cwd() + "/.env", quiet: true });
+  const db = new pg.Client({ connectionString: process.env.DATABASE_URL });
+  await db.connect();
+  const waitFor = async (expr, tries = 90) => {
+    for (let i = 0; i < tries; i++) {
+      if (await ev(expr)) return true;
+      await sleep(500);
+    }
+    return false;
+  };
+  const click = async (label) => {
+    await waitFor(`!/Loading Python/.test(document.body.innerText)`, 120);
+    return ev(`(() => { const bs = [...document.querySelectorAll('button')]; const b = bs.find(b => b.textContent.trim() === ${JSON.stringify(label)}) ?? bs.find(b => b.textContent.trim().startsWith(${JSON.stringify(label)})); if (b) b.click(); return !!b; })()`);
+  };
+  const setEditor = (code) =>
+    ev(`(() => { const m = window.monaco?.editor?.getModels?.()[0]; if (!m) return false; m.setValue(${JSON.stringify(code)}); return true; })()`);
+
+  await go(`/modules/${ids.module}`, 6000);
+  await shot("cp-module.png");
+  console.log("test out:", await click("Test out"));
+  await waitFor(`location.pathname.startsWith('/checkpoints/')`, 40);
+  await sleep(2500);
+  const attemptPath = await ev("location.pathname");
+  await shot("cp-attempt.png");
+  const drillIds = await ev(`[...document.querySelectorAll('ol a[href^="/exercises/"]')].map(a => a.getAttribute('href').split('/').pop())`);
+  console.log("drills:", drillIds.length);
+  const sols = (await db.query(`select id, solution from exercises where id = any($1)`, [drillIds])).rows;
+  const byId = Object.fromEntries(sols.map((r) => [r.id, r.solution]));
+  for (const [i, dId] of drillIds.entries()) {
+    await go(`/exercises/${dId}`, 5000);
+    await waitFor(`!!window.monaco?.editor?.getModels?.()[0]`);
+    if (i === 0) {
+      console.log("banner:", await ev(`document.body.innerText.includes('No hints and no reference solution')`));
+      console.log("hints shown:", await ev(`/Show a hint/.test(document.body.innerText)`));
+      await shot("cp-drill.png");
+    }
+    await setEditor(byId[dId]);
+    await click("Run tests");
+    const ok = await waitFor(`/Drill passed|Checkpoint passed|Checkpoint closed/.test(document.body.innerText)`, 90);
+    console.log(`drill ${i + 1}:`, ok ? await ev(`(document.body.innerText.match(/(Drill passed|Checkpoint passed|Checkpoint closed)[^\\n]*\\n[^\\n]*/) ?? [''])[0]`) : await ev(`[...document.querySelectorAll('[aria-live=polite]')].map(n => n.innerText).join(' | ').slice(0, 400)`));
+    if (i === drillIds.length - 1) await shot("cp-drill-last.png");
+  }
+  await go(attemptPath, 5000);
+  await shot("cp-result.png");
+  await go(`/modules/${ids.module}`, 5000);
+  await shot("cp-module-after.png");
+  await go(`/review`, 5000);
+  await shot("cp-review.png");
+  await go(`/dashboard`, 6000);
+  await shot("cp-dashboard.png");
+  await setup(390, 844, "dark");
+  await go(attemptPath, 5000);
+  await shot("cp-result-mobile-dark.png");
+  await db.end();
+  console.log("CHECKPOINT console:", issues.length ? [...new Set(issues)].map((x) => x.slice(0, 300)) : "none");
+  ws.close();
+  chrome.kill();
+  process.exit(0);
+}
 if (process.env.EVAL) {
   // EVAL="<path>|<js expression>": print the expression's value on that page
   // EVAL="<path>" with EVAL_FILE=<file holding the expression>, or EVAL="<path>|<expr>"

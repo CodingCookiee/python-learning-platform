@@ -12,6 +12,7 @@ import {
   User,
   Settings,
   ShieldCheck,
+  Repeat,
 } from "lucide-react";
 import { SealMark } from "@/components/brand/marks";
 import { motion, AnimatePresence } from "framer-motion";
@@ -35,6 +36,7 @@ const publicLinks = [
 const authLinks = [
   { href: "/dashboard", label: "Dashboard", Icon: LayoutDashboard },
   { href: "/modules", label: "Syllabus", Icon: BookOpen },
+  { href: "/review", label: "Review", Icon: Repeat },
   { href: "/achievements", label: "Achievements", Icon: SealMark },
   { href: "/profile", label: "Profile", Icon: User },
   { href: "/settings", label: "Settings", Icon: Settings },

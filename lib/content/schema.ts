@@ -26,6 +26,15 @@ export const moduleSchema = z.object({
   description: text,
   hours: z.number().positive(),
   outcomes: z.array(text).min(1),
+  /** The module's checkpoint (exam). By default it draws from the core and stretch drills. */
+  checkpoint: z
+    .object({
+      pick: z.number().int().min(1).max(20).default(6),
+      pass_mark: z.number().min(0.5).max(1).default(0.8),
+      /** Drill slugs to draw from instead of the default pool */
+      pool: z.array(slug).default([]),
+    })
+    .default({ pick: 6, pass_mark: 0.8, pool: [] }),
 });
 
 export const lessonFrontmatterSchema = z.object({
