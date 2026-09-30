@@ -15,8 +15,7 @@ Fix the server so the token (read from the `KILN_SHOP_TOKEN` environment variabl
 Tool errors are still `isError` results with the error's message, and nothing else changes.
 
 ```python
-client = McpHarness(handle)
-client.initialize()
+client = McpHarness(handle, protocol="2026-07-28")
 client.call_tool("shop_info")["content"][0]["text"]
 # '{"shop": "kiln-and-co", "api_url": "https://kiln-and-co.shop.example/admin/api", "currency": "GBP"}'
 ```

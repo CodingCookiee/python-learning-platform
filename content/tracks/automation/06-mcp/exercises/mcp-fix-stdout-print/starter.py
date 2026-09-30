@@ -20,11 +20,12 @@ def handle(message):
         return None
     reply = {"jsonrpc": "2.0", "id": message["id"]}
     method, params = message["method"], message.get("params") or {}
-    if method == "initialize":
-        reply["result"] = {"protocolVersion": "2025-06-18", "capabilities": {"resources": {}},
-                           "serverInfo": {"name": "kiln-wiki", "version": "0.4.1"}}
+    if method == "server/discover":
+        reply["result"] = {"resultType": "complete", "supportedVersions": ["2026-07-28"],
+                           "capabilities": {"resources": {}},
+                           "_meta": {"io.modelcontextprotocol/serverInfo": {"name": "kiln-wiki", "version": "0.4.1"}}}
     elif method == "resources/read" and params.get("uri") in DOCS:
-        reply["result"] = read_resource(params["uri"])
+        reply["result"] = {"resultType": "complete", **read_resource(params["uri"])}
     elif method == "resources/read":
         reply["error"] = {"code": -32602, "message": f"Resource not found: {params.get('uri')}"}
     else:

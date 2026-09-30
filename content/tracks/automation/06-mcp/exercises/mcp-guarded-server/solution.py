@@ -39,7 +39,8 @@ def guard(handle, *, allowed_tools: set[str], calls_per_minute: int, clock=time.
             refusal = rate_limited()
             if refusal is not None:
                 return {"jsonrpc": "2.0", "id": message["id"],
-                        "result": {"content": [{"type": "text", "text": refusal}], "isError": True}}
+                        "result": {"resultType": "complete", "isError": True,
+                                   "content": [{"type": "text", "text": refusal}]}}
 
         return handle(message)
 

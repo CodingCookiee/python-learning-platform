@@ -2,6 +2,7 @@ from plp import captured_logs, hidden, test
 from plp_fakes import McpHarness
 from solution import Dispatcher, InvalidParams
 
+META = "io.modelcontextprotocol/"
 ORDERS = {"1042": {"status": "shipped"}}
 
 
@@ -10,14 +11,18 @@ def order_desk():
     rpc = Dispatcher()
     seen = []
 
-    @rpc.method("initialize")
-    def initialize(params):
-        return {"protocolVersion": params["protocolVersion"], "capabilities": {"tools": {}},
-                "serverInfo": {"name": "kiln-orders", "version": "1.0.0"}}
+    @rpc.method("server/discover")
+    def discover(params):
+        return {"supportedVersions": ["2026-07-28"], "capabilities": {"tools": {}},
+                "_meta": {META + "serverInfo": {"name": "kiln-orders", "version": "1.0.0"}}}
 
-    @rpc.method("ping")
-    def ping(params):
-        return {}
+    @rpc.method("tools/list")
+    def list_tools(params):
+        return {"tools": []}
+
+    @rpc.method("tasks/get")
+    def task(params):
+        return {"resultType": "input_required", "inputRequests": {}}
 
     @rpc.method("orders/status")
     def status(params):
@@ -27,31 +32,37 @@ def order_desk():
             raise RuntimeError("connection to db-eu-2.internal:5432 refused")
         return ORDERS[params["order_id"]]
 
-    @rpc.notification("notifications/initialized")
-    def initialized(params):
-        seen.append("initialized")
-
     @rpc.notification("notifications/cancelled")
     def cancelled(params):
-        raise KeyError(params["requestId"])
+        seen.append(params["requestId"])
 
-    return rpc, seen, ping
+    @rpc.notification("notifications/progress")
+    def progress(params):
+        raise KeyError(params["token"])
+
+    return rpc, seen, list_tools
 
 
-@test("Answers ping, and the decorators return the function unchanged")
+def modern(rpc):
+    return McpHarness(rpc.handle, protocol="2026-07-28")
+
+
+@test("Answers tools/list with a resultType, and the decorators return the function unchanged")
 def _():
-    rpc, seen, ping = order_desk()
-    assert rpc.handle({"jsonrpc": "2.0", "id": 1, "method": "ping"}) == {"jsonrpc": "2.0", "id": 1, "result": {}}
-    assert ping({}) == {}
+    rpc, seen, list_tools = order_desk()
+    assert rpc.handle({"jsonrpc": "2.0", "id": 1, "method": "tools/list"}) == {
+        "jsonrpc": "2.0", "id": 1, "result": {"resultType": "complete", "tools": []}}
+    assert list_tools({}) == {"tools": []}
 
 
-@test("A full handshake through the harness, with the notification handled")
+@test("Discovery through the harness, and a notification handled")
 def _():
     rpc, seen, _ = order_desk()
-    client = McpHarness(rpc.handle)
-    assert client.initialize()["serverInfo"]["name"] == "kiln-orders"
-    assert seen == ["initialized"]
-    assert client.request("orders/status", {"order_id": "1042"})["result"] == {"status": "shipped"}
+    client = modern(rpc)
+    assert client.discover()["supportedVersions"] == ["2026-07-28"]
+    client.notify("notifications/cancelled", {"requestId": 7})
+    assert seen == [7]
+    assert client.request("orders/status", {"order_id": "1042"})["result"] == {"resultType": "complete", "status": "shipped"}
 
 
 @test("Unknown methods, and params that aren't an object")
@@ -85,24 +96,25 @@ def _():
 def _():
     rpc, _, _ = order_desk()
     invalid = {"code": -32600, "message": "Invalid request"}
-    assert rpc.handle({"jsonrpc": "1.0", "id": 6, "method": "ping"}) == {"jsonrpc": "2.0", "id": 6, "error": invalid}
+    assert rpc.handle({"jsonrpc": "1.0", "id": 6, "method": "tools/list"}) == {"jsonrpc": "2.0", "id": 6, "error": invalid}
     assert rpc.handle({"jsonrpc": "2.0", "id": "r7", "method": ""}) == {"jsonrpc": "2.0", "id": "r7", "error": invalid}
     assert rpc.handle({"jsonrpc": "2.0", "id": True, "method": 12}) == {"jsonrpc": "2.0", "id": None, "error": invalid}
-    assert rpc.handle(["ping"]) == {"jsonrpc": "2.0", "id": None, "error": invalid}
+    assert rpc.handle(["tools/list"]) == {"jsonrpc": "2.0", "id": None, "error": invalid}
 
 
 @hidden("Notifications never get a reply, even unknown or failing ones")
 def _():
     rpc, _, _ = order_desk()
     with captured_logs("kiln_mcp") as logs:
-        assert rpc.handle({"jsonrpc": "2.0", "method": "notifications/cancelled", "params": {"requestId": 9}}) is None
-        assert rpc.handle({"jsonrpc": "2.0", "method": "notifications/progress"}) is None
-        assert rpc.handle({"jsonrpc": "2.0", "method": "ping"}) is None
+        assert rpc.handle({"jsonrpc": "2.0", "method": "notifications/progress", "params": {"progress": 1}}) is None
+        assert rpc.handle({"jsonrpc": "2.0", "method": "notifications/roots/list_changed"}) is None
+        assert rpc.handle({"jsonrpc": "2.0", "method": "tools/list"}) is None
     assert logs.levels == ["ERROR"]
 
 
-@hidden("Id 0 is a request, and missing params are passed as {}")
+@hidden("Id 0 is a request, missing params are {}, and a handler's own resultType is kept")
 def _():
     rpc, _, _ = order_desk()
     assert rpc.handle({"jsonrpc": "2.0", "id": 0, "method": "orders/status"})["error"]["code"] == -32602
-    assert rpc.handle({"jsonrpc": "2.0", "id": 0, "method": "ping"}) == {"jsonrpc": "2.0", "id": 0, "result": {}}
+    assert rpc.handle({"jsonrpc": "2.0", "id": 0, "method": "tools/list"})["result"] == {"resultType": "complete", "tools": []}
+    assert rpc.handle({"jsonrpc": "2.0", "id": 8, "method": "tasks/get"})["result"]["resultType"] == "input_required"

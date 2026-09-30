@@ -55,9 +55,11 @@ def read_resource(params):
 read_resource({"uri": "policy://returns"})
 ```
 
-A server with resources declares `{"resources": {}}` in its capabilities. It can add
-`{"subscribe": true, "listChanged": true}` if it will notify clients when a resource or the list
-changes.
+A server with resources declares `{"resources": {}}` in its capabilities, and adds
+`{"listChanged": true}` if it will tell clients when the list changes (in the current revision,
+clients opt in to such notifications with one long-lived `subscriptions/listen` request). Like
+`tools/list`, the list and read results can carry the `ttlMs` and `cacheScope` caching hints: a
+policy document that changes once a quarter can safely say `"ttlMs": 3600000`.
 
 ## Templates and missing resources
 
@@ -140,7 +142,9 @@ The dispatch function doesn't care how messages arrive. The spec defines two sta
   messages to its stdin, one per line. The server writes its replies to stdout, one per line.
   Messages must not contain newlines, which `json.dumps` without `indent` guarantees. It's the
   simplest transport, there's no network or port, and the server runs as the user who launched the
-  host, which is the right default for local tools.
+  host, which is the right default for local tools. A client that talks to servers of both eras
+  sends `server/discover` first: a modern server answers it, and an error from an older one tells
+  the client to fall back to `initialize`.
 - **Streamable HTTP.** The server is a web service with one endpoint, such as `POST /mcp`. Each
   message the client sends is an HTTP POST; the reply comes back either as a JSON body or as a
   stream of server-sent events, when the server wants to send progress before the final result.
@@ -156,10 +160,10 @@ import json
 def handle(message):
     if "id" not in message:
         return None
-    return {"jsonrpc": "2.0", "id": message["id"], "result": {}}
+    return {"jsonrpc": "2.0", "id": message["id"], "result": {"resultType": "complete", "tools": []}}
 
-stdin = io.StringIO('{"jsonrpc": "2.0", "id": 1, "method": "ping"}\n'
-                    '{"jsonrpc": "2.0", "method": "notifications/initialized"}\n')
+stdin = io.StringIO('{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}\n'
+                    '{"jsonrpc": "2.0", "method": "notifications/cancelled", "params": {"requestId": 1}}\n')
 stdout = io.StringIO()
 for line in stdin:
     reply = handle(json.loads(line))

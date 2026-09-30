@@ -8,6 +8,6 @@ diagnostic messages, but send them through the starter's `logger` at `INFO` leve
 
 ```python
 with contextlib.redirect_stdout(io.StringIO()) as out:
-    serve(handle, stdin=io.StringIO(INITIALIZE + "\n" + READ_RETURNS + "\n"))
+    serve(handle, stdin=io.StringIO(DISCOVER + "\n" + READ_RETURNS + "\n"))
 [json.loads(line)["id"] for line in out.getvalue().splitlines()]    # [1, 2]
 ```

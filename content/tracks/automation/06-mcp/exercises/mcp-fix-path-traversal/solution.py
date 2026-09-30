@@ -35,9 +35,9 @@ class HandbookServer:
         reply = {"jsonrpc": "2.0", "id": message["id"]}
         method, params = message["method"], message.get("params") or {}
         try:
-            if method == "initialize":
-                reply["result"] = {"protocolVersion": "2025-06-18", "capabilities": {"resources": {}},
-                                   "serverInfo": {"name": "kiln-handbook", "version": "1.0.2"}}
+            if method == "server/discover":
+                reply["result"] = {"supportedVersions": ["2026-07-28"], "capabilities": {"resources": {}},
+                                   "_meta": {"io.modelcontextprotocol/serverInfo": {"name": "kiln-handbook", "version": "1.0.2"}}}
             elif method == "resources/list":
                 reply["result"] = self.list_resources()
             elif method == "resources/read":
@@ -46,4 +46,6 @@ class HandbookServer:
                 reply["error"] = {"code": -32601, "message": f"Method not found: {method}"}
         except ResourceNotFound as missing:
             reply["error"] = {"code": -32602, "message": f"Resource not found: {missing}", "data": {"uri": str(missing)}}
+        if "result" in reply:
+            reply["result"] = {"resultType": "complete", **reply["result"]}
         return reply

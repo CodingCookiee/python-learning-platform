@@ -164,9 +164,11 @@ explain: The wiki server can't reliably spot every injection, and filtering word
 ## Audit logs and rate limits
 
 When a client asks "who looked up order 1042 last Tuesday?", you need an answer. Log one
-structured line per `tools/call` and `resources/read`: when, which client (from `clientInfo` in
-`initialize`), which tool or URI, the arguments with anything sensitive redacted, the outcome, and
-how long it took. JSON lines are easy to ship to whatever log store the client uses:
+structured line per `tools/call` and `resources/read`: when, which client (the `clientInfo` in the
+request's own `_meta`, or in `initialize` for an older client), which tool or URI, the arguments
+with anything sensitive redacted, the outcome, and how long it took. `clientInfo` is self-reported,
+so it labels the log; it doesn't prove who called, and it must never decide what a caller may do.
+JSON lines are easy to ship to whatever log store the client uses:
 
 ```python
 import json

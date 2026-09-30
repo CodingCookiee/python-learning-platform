@@ -106,6 +106,8 @@ its identity, and can carry `instructions`, a sentence or two the host gives its
 this server:
 
 ```python
+META = "io.modelcontextprotocol/"
+SUPPORTED = ["2026-07-28"]
 SERVER_INFO = {"name": "kiln-orders", "version": "1.0.0"}
 
 def discover(params):

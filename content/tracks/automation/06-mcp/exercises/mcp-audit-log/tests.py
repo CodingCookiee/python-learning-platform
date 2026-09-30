@@ -33,6 +33,8 @@ def handle(message):
         reply["result"] = {"contents": [{"uri": params["uri"], "mimeType": "text/markdown", "text": DOCS[params["uri"]]}]}
     else:
         reply["error"] = {"code": -32602, "message": "Resource not found"}
+    if "result" in reply:
+        reply["result"] = {"resultType": "complete", **reply["result"]}
     return reply
 
 
@@ -49,10 +51,8 @@ class Clock:
 LOGGER = logging.getLogger("kiln_mcp.audit")
 
 
-def connect():
-    client = McpHarness(audited(handle, LOGGER, clock=Clock()))
-    client.initialize()
-    return client
+def connect(**options):
+    return McpHarness(audited(handle, LOGGER, clock=Clock()), protocol="2026-07-28", **options)
 
 
 def entries(logs):
@@ -75,7 +75,7 @@ def _():
         client = connect()
         assert client.list_tools() == []
         assert client.call_tool("get_order", {"order_id": "1042"}) == {
-            "content": [{"type": "text", "text": '{"status": "shipped"}'}], "isError": False}
+            "resultType": "complete", "content": [{"type": "text", "text": '{"status": "shipped"}'}], "isError": False}
     assert [entry["target"] for entry in entries(logs)] == ["get_order"]
 
 
@@ -114,16 +114,20 @@ def _():
     assert entries(logs)[0]["target"] == "explode"
 
 
-@hidden("Before initialize the client is unknown, and each wrapper remembers its own client")
+@hidden("Each request names its own client, and older clients fall back to their initialize")
 def _():
     with captured_logs("kiln_mcp.audit") as logs:
-        early = McpHarness(audited(handle, LOGGER, clock=Clock()))
-        early.request("tools/call", {"name": "get_order", "arguments": {"order_id": "1042"}})
-        early.initialize()
-        early.request("tools/call", {"name": "get_order", "arguments": {"order_id": "1042"}})
+        wrapped = audited(handle, LOGGER, clock=Clock())
+        old = McpHarness(wrapped)                            # an older client, protocol 2025-06-18
+        old.request("tools/call", {"name": "get_order", "arguments": {"order_id": "1042"}})
+        old.initialize()
+        old.request("tools/call", {"name": "get_order", "arguments": {"order_id": "1042"}})
+        ide = McpHarness(wrapped, protocol="2026-07-28", client_info={"name": "cursor", "version": "2.1"})
+        ide.call_tool("get_order", {"order_id": "1042"})
+        old.request("tools/call", {"name": "get_order", "arguments": {"order_id": "1042"}})
         fresh = McpHarness(audited(handle, LOGGER, clock=Clock()))
         fresh.request("tools/call", {"name": "get_order", "arguments": {"order_id": "1042"}})
-    assert [e["client"] for e in entries(logs)] == ["unknown", "pylearn-test", "unknown"]
+    assert [e["client"] for e in entries(logs)] == ["unknown", "pylearn-test", "cursor", "pylearn-test", "unknown"]
 
 
 @hidden("Notifications are passed on and not logged")

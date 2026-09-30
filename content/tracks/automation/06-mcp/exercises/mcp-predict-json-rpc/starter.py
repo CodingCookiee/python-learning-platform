@@ -1,7 +1,7 @@
 import json
 
 HANDLERS = {
-    "ping": lambda params: {},
+    "server/discover": lambda params: {"supportedVersions": ["2026-07-28"]},
     "tools/list": lambda params: {"tools": [{"name": "get_order"}]},
 }
 
@@ -17,8 +17,8 @@ def handle(message):
 
 
 inbox = [
-    '{"jsonrpc": "2.0", "id": 0, "method": "ping"}',
-    '{"jsonrpc": "2.0", "method": "notifications/initialized"}',
+    '{"jsonrpc": "2.0", "id": 0, "method": "server/discover"}',
+    '{"jsonrpc": "2.0", "method": "notifications/cancelled", "params": {"requestId": 0}}',
     '{"jsonrpc": "2.0", "id": "a1", "method": "tools/list"}',
     '{"jsonrpc": "2.0", "id": 2, "method": "prompts/list"}',
     '{"jsonrpc": "2.0", "method": "prompts/list"}',

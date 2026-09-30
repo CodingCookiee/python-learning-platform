@@ -5,17 +5,18 @@ hours: 6
 xp: 200
 requirements:
   - "kiln_mcp.py has a hand-written KilnServer whose handle(message) is a pure JSON-RPC 2.0 dispatch function, driven in the browser by McpHarness and on your machine by the stdio loop in the starter"
-  - "initialize negotiates the protocol version (the client's if supported, otherwise the newest of 2025-11-25, 2025-06-18 and 2025-03-26), declares the tools and resources capabilities, and records the client's name for the audit log; notifications are never answered"
+  - "The server is dual-era: every 2026-07-28 request is checked on its own _meta (missing fields -32602, an unsupported version -32022 with the supported list), server/discover returns the versions, capabilities, instructions and caching hints, and older clients get the initialize handshake (negotiated against 2025-11-25, 2025-06-18 and 2025-03-26) on their own connection"
   - "Two read-only tools, get_order and search_docs, whose arguments are Pydantic models (extra fields forbidden, bounded lengths and limits); tools/list gives each a title, the model's docstring as description, its inputSchema, and readOnlyHint annotations"
   - "get_order returns order_view(order): status, dates, carrier, tracking, items, total and the customer's first name, never the email, address or payment details, with any customer-written gift message wrapped in an <untrusted> tag"
   - "search_docs returns the best-matching policies by the brief's word-overlap rule, each as a text block with its best paragraph followed by a resource_link to the policy"
   - "The policies are resources (resources/list, resources/templates/list with policy://{slug}, resources/read as text/markdown); anything that isn't exactly policy://<known slug> is -32602 Resource not found with the URI in data"
+  - "Every result has resultType complete and serverInfo in its _meta, and notifications are never answered"
   - "Tool failures, invalid arguments and rate-limit refusals are isError results; unknown tools and resources are -32602, unknown methods -32601, and crashes -32603 Internal error with the details only in the server's log"
-  - "Every tools/call and resources/read writes one JSON audit line (client, method, target, arguments with sensitive keys redacted, outcome, ms) to the kiln_mcp.audit logger, and never to stdout"
+  - "Every tools/call and resources/read writes one JSON audit line (client from the request's own clientInfo, method, target, arguments with sensitive keys redacted, outcome, ms) to the kiln_mcp.audit logger, and never to stdout"
   - "tools/call is limited to 30 calls in any 60 seconds, and every reply and audit line has the configured secrets redacted"
   - "sdk_server.py builds the same two tools and the policy resources with the official Python SDK (mcp 2.x MCPServer) on the same core functions, runs over stdio, and is connected to Claude Desktop or Claude Code"
 criteria:
-  - "The starter's demo prints the brief's sample run, and the hidden review session (odd ids, notifications, a future protocol version, traversal URIs, extra and oversized arguments, a burst of 40 calls, a secret planted in an order) is handled exactly as the brief describes"
+  - "The starter's demo prints the brief's sample run, and the hidden review session (odd ids, notifications, a missing _meta, a future protocol version, an older client's handshake, traversal URIs, extra and oversized arguments, a burst of 40 calls, a secret planted in an order) is handled exactly as the brief describes"
   - "No tool can change anything, no argument reaches a tool unvalidated, and nothing a tool returns includes an email, address, payment detail or secret"
   - "Protocol errors and tool errors are never confused: the model sees isError results it can act on, and the host sees JSON-RPC errors only for bad requests"
   - "The core (order_view, search_docs, RateLimiter, redact) is plain Python with unit tests, and the protocol has harness tests, at least one per requirement"

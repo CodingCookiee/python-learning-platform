@@ -87,9 +87,9 @@ def handle(message):
     reply = {"jsonrpc": "2.0", "id": message["id"]}
     method, params = message["method"], message.get("params") or {}
     try:
-        if method == "initialize":
-            reply["result"] = {"protocolVersion": "2025-06-18", "capabilities": {"resources": {}},
-                               "serverInfo": {"name": "kiln-wiki", "version": "0.4.0"}}
+        if method == "server/discover":
+            reply["result"] = {"supportedVersions": ["2026-07-28"], "capabilities": {"resources": {}},
+                               "_meta": {"io.modelcontextprotocol/serverInfo": {"name": "kiln-wiki", "version": "0.4.0"}}}
         elif method == "resources/list":
             reply["result"] = list_resources()
         elif method == "resources/templates/list":
@@ -103,4 +103,6 @@ def handle(message):
     except ResourceNotFound as missing:
         uri = str(missing)
         reply["error"] = {"code": -32602, "message": f"Resource not found: {uri}", "data": {"uri": uri}}
+    if "result" in reply:
+        reply["result"] = {"resultType": "complete", **reply["result"]}
     return reply

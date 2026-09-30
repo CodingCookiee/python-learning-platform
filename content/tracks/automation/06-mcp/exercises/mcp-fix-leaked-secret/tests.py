@@ -13,9 +13,7 @@ ORIGINAL_FETCH = solution.fetch
 
 
 def connected():
-    client = McpHarness(handle)
-    client.initialize()
-    return client
+    return McpHarness(handle, protocol="2026-07-28")
 
 
 def leaked(client, token=TOKEN):
@@ -35,7 +33,7 @@ def _():
     os.environ["KILN_SHOP_TOKEN"] = TOKEN
     solution.fetch = ORIGINAL_FETCH
     client = connected()
-    assert client.call_tool("sync_status") == {"content": [{"type": "text", "text":
+    assert client.call_tool("sync_status") == {"resultType": "complete", "content": [{"type": "text", "text":
         "Timed out after 10s fetching https://kiln-and-co.shop.example/admin/api/sync"}], "isError": True}
     assert not leaked(client)
 

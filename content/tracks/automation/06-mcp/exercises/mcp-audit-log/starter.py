@@ -2,6 +2,7 @@ import json
 import logging
 import time
 
+META = "io.modelcontextprotocol/"
 SENSITIVE = {"password", "token", "api_key", "card_number", "email"}
 AUDITED_METHODS = {"tools/call", "resources/read"}
 

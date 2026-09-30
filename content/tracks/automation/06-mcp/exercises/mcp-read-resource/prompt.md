@@ -19,9 +19,8 @@ after encoding it as UTF-8).
   `data`.
 
 ```python
-client = McpHarness(handle)
-client.initialize()
+client = McpHarness(handle, protocol="2026-07-28")
 client.read_resource("policy://returns")
-# {"contents": [{"uri": "policy://returns", "mimeType": "text/markdown",
+# {"resultType": "complete", "contents": [{"uri": "policy://returns", "mimeType": "text/markdown",
 #                "text": "# Returns\n\nUnused items can be returned within 30 days of delivery."}]}
 ```

@@ -6,14 +6,12 @@ from solution import handle
 
 
 def connected():
-    client = McpHarness(handle)
-    client.initialize()
-    return client
+    return McpHarness(handle, protocol="2026-07-28")
 
 
 @test("Reads the returns policy as markdown text")
 def _():
-    assert connected().read_resource("policy://returns") == {"contents": [{
+    assert connected().read_resource("policy://returns") == {"resultType": "complete", "contents": [{
         "uri": "policy://returns", "mimeType": "text/markdown",
         "text": "# Returns\n\nUnused items can be returned within 30 days of delivery."}]}
 
@@ -38,8 +36,8 @@ def _():
 @test("Lists the person template, and reads a page through it")
 def _():
     client = connected()
-    assert client.request("resources/templates/list")["result"] == {"resourceTemplates": [{
-        "uriTemplate": "wiki://people/{handle}", "name": "person", "title": "Staff profile", "mimeType": "text/markdown"}]}
+    assert client.list_resource_templates() == [{
+        "uriTemplate": "wiki://people/{handle}", "name": "person", "title": "Staff profile", "mimeType": "text/markdown"}]
     assert client.read_resource("wiki://people/ada")["contents"] == [{
         "uri": "wiki://people/ada", "mimeType": "text/markdown",
         "text": "# Ada Obi\n\nSupport lead. Ask about: refunds, damaged items."}]

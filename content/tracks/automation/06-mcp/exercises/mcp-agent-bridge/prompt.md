@@ -1,8 +1,8 @@
 Kiln & Co's support agent should use the order server and the wiki server over MCP instead of its
 own copies of their tools. Connect your agent loop to them.
 
-**`McpToolbox(prefix, client)`** wraps one connected MCP client (in the tests, an initialized
-`McpHarness`; locally, the SDK's `Client` behind the same two calls):
+**`McpToolbox(prefix, client)`** wraps one connected MCP client (in the tests, a
+`McpHarness(handle, protocol="2026-07-28")`; locally, the SDK's `Client` behind the same two calls):
 
 - `definitions()`: the server's tools as neutral tools, named `<prefix>__<tool name>`, with the
   `description` (or `""`) and the `inputSchema` as `parameters`.

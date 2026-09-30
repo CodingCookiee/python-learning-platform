@@ -21,9 +21,7 @@ SECRET = "KILN_SHOP_TOKEN=do-not-serve-this"
 
 
 def connected():
-    client = McpHarness(HandbookServer(ROOT).handle)
-    client.initialize()
-    return client
+    return McpHarness(HandbookServer(ROOT).handle, protocol="2026-07-28")
 
 
 def refused(client, uri):

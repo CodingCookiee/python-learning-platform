@@ -1,59 +1,65 @@
 from plp import hidden, test
 from plp_fakes import McpHarness
-from solution import handle
+from solution import AppointmentServer
 
 INFO = {"name": "leith-physio-appointments", "version": "2.1.0"}
+MISSING_META = "Invalid params: _meta needs protocolVersion and clientCapabilities"
 
 
-@test("Agrees on a supported version, offers its newest otherwise, and answers ping")
+@test("An older client completes the handshake and lists tools; a modern one still discovers")
 def _():
-    client = McpHarness(handle)
-    assert client.initialize("2025-06-18")["protocolVersion"] == "2025-06-18"
-    assert client.initialize("2024-11-05")["protocolVersion"] == "2025-11-25"
-    assert client.request("ping")["result"] == {}
+    old = McpHarness(AppointmentServer().handle)
+    assert old.initialize()["protocolVersion"] == "2025-06-18"
+    assert [tool["name"] for tool in old.list_tools()] == ["find_slots"]
+    assert McpHarness(AppointmentServer().handle, protocol="2026-07-28").discover()["supportedVersions"] == ["2026-07-28"]
 
 
-@test("The result has the capabilities, server info and instructions")
+@test("The initialize result has the capabilities, server info and instructions")
 def _():
-    client = McpHarness(handle)
-    assert client.initialize("2025-11-25") == {
-        "protocolVersion": "2025-11-25",
-        "capabilities": {"tools": {"listChanged": False}},
-        "serverInfo": INFO,
-        "instructions": "Find and describe appointment slots. Booking is done by reception, not by this server.",
-    }
+    result = McpHarness(AppointmentServer().handle).initialize("2025-11-25")
+    assert result["protocolVersion"] == "2025-11-25"
+    assert result["capabilities"] == {"tools": {}}
+    assert result["serverInfo"] == INFO
+    assert result["instructions"].startswith("Find and describe appointment slots")
 
 
-@test("A version from the future gets the server's newest")
+@test("A version older or newer than the list gets the newest legacy version, stored on the server")
 def _():
-    assert McpHarness(handle).initialize("2027-01-01")["protocolVersion"] == "2025-11-25"
+    server = AppointmentServer()
+    assert McpHarness(server.handle).initialize("2024-11-05")["protocolVersion"] == "2025-11-25"
+    assert server.legacy_version == "2025-11-25"
+    assert McpHarness(AppointmentServer().handle).initialize("2027-01-01")["protocolVersion"] == "2025-11-25"
 
 
-@test("Unknown methods are -32601")
+@test("Before initialize, a request without _meta is still malformed")
 def _():
-    client = McpHarness(handle)
-    client.initialize()
-    assert client.request("tools/call", {"name": "book_slot", "arguments": {}})["error"] == {
-        "code": -32601, "message": "Method not found: tools/call"
-    }
+    old = McpHarness(AppointmentServer().handle)
+    assert old.request("tools/list", {})["error"] == {"code": -32602, "message": MISSING_META}
 
 
-@hidden("A missing or non-string protocolVersion is -32602")
+@hidden("A missing or non-string protocolVersion in initialize is -32602")
 def _():
-    client = McpHarness(handle)
-    missing = client.request("initialize", {"capabilities": {}, "clientInfo": {"name": "t", "version": "1"}})
-    assert missing["error"] == {"code": -32602, "message": "Invalid params: protocolVersion is required"}
-    assert client.request("initialize", {"protocolVersion": 20250618})["error"]["code"] == -32602
-    assert client.request("initialize")["error"]["code"] == -32602
+    server = AppointmentServer()
+    old = McpHarness(server.handle)
+    assert old.request("initialize", {"capabilities": {}, "clientInfo": {"name": "t", "version": "1"}})["error"] == {
+        "code": -32602, "message": "Invalid params: protocolVersion is required"}
+    assert old.request("initialize", {"protocolVersion": 20250618})["error"]["code"] == -32602
+    assert server.legacy_version is None
 
 
-@hidden("Notifications are never answered, known or not")
+@hidden("Modern requests are still checked after an initialize on the same connection")
 def _():
-    assert handle({"jsonrpc": "2.0", "method": "notifications/initialized"}) is None
-    assert handle({"jsonrpc": "2.0", "method": "ping"}) is None
+    server = AppointmentServer()
+    McpHarness(server.handle).initialize()
+    assert McpHarness(server.handle, protocol="2026-07-28").request("tools/list")["result"]["tools"][0]["name"] == "find_slots"
+    assert McpHarness(server.handle, protocol="2027-03-01").request("tools/list")["error"]["code"] == -32022
 
 
-@hidden("Every older supported version is accepted as it is")
+@hidden("Legacy requests get -32601 for unknown methods, and notifications are never answered")
 def _():
-    assert McpHarness(handle).initialize("2025-03-26")["protocolVersion"] == "2025-03-26"
-    assert handle({"jsonrpc": "2.0", "id": "x-1", "method": "ping"}) == {"jsonrpc": "2.0", "id": "x-1", "result": {}}
+    server = AppointmentServer()
+    old = McpHarness(server.handle)
+    old.initialize()
+    assert old.request("prompts/list")["error"] == {"code": -32601, "message": "Method not found: prompts/list"}
+    assert server.handle({"jsonrpc": "2.0", "method": "notifications/initialized"}) is None
+    assert server.handle({"jsonrpc": "2.0", "method": "initialize", "params": {"protocolVersion": "2025-06-18"}}) is None

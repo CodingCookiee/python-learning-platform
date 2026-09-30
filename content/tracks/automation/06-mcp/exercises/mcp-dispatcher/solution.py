@@ -72,4 +72,4 @@ class Dispatcher:
         except Exception:
             logger.exception("Request %s failed", method)
             return _error(request_id, -32603, "Internal error")
-        return {"jsonrpc": "2.0", "id": request_id, "result": result}
+        return {"jsonrpc": "2.0", "id": request_id, "result": {"resultType": "complete", **result}}

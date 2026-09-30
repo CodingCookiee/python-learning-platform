@@ -8,8 +8,10 @@ audited(handle, logger, *, clock=time.monotonic) -> handle
 The returned function passes every message to `handle` and returns its reply unchanged. Along the
 way:
 
-- It remembers the client's name from the `initialize` request's `params["clientInfo"]["name"]`
-  (`"unknown"` until then).
+- It works out the client's name **for each request on its own**: the name in that request's
+  `params["_meta"]["io.modelcontextprotocol/clientInfo"]`, if there is one. An older client sends no
+  `_meta`, so for its requests use the `clientInfo` name from the `initialize` request seen earlier
+  on this wrapper, and `"unknown"` if there hasn't been one.
 - For every **request** whose method is `tools/call` or `resources/read`, it logs one `INFO`
   record on `logger` whose message is `json.dumps(entry)`, with:
 
@@ -29,8 +31,8 @@ Nothing else is logged, and the arguments in the message passed to `handle` are 
 
 ```python
 ticks = iter([100.0, 100.012])          # a clock for the example: the call takes 12 ms
-client = McpHarness(audited(handle, logger, clock=lambda: next(ticks)))
-client.initialize()                     # the harness's clientInfo name is "pylearn-test"
+client = McpHarness(audited(handle, logger, clock=lambda: next(ticks)), protocol="2026-07-28")
+                                        # the harness's clientInfo name is "pylearn-test"
 client.call_tool("get_order", {"order_id": "1042"})
 # logs {"client": "pylearn-test", "method": "tools/call", "target": "get_order",
 #       "arguments": {"order_id": "1042"}, "outcome": "ok", "ms": 12}

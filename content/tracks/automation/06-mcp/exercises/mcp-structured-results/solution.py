@@ -53,8 +53,9 @@ class ToolServer:
             return None
         reply = {"jsonrpc": "2.0", "id": message["id"]}
         method, params = message.get("method"), message.get("params") or {}
-        if method == "initialize":
-            reply["result"] = {"protocolVersion": "2025-06-18", "capabilities": {"tools": {}}, "serverInfo": self.info}
+        if method == "server/discover":
+            reply["result"] = {"supportedVersions": ["2026-07-28"], "capabilities": {"tools": {}},
+                               "_meta": {"io.modelcontextprotocol/serverInfo": self.info}}
         elif method == "tools/list":
             reply["result"] = {"tools": [self.definition(tool) for tool in self.tools.values()]}
         elif method == "tools/call":
@@ -64,6 +65,8 @@ class ToolServer:
                 reply["error"] = {"code": -32602, "message": f"Unknown tool: {unknown}"}
         else:
             reply["error"] = {"code": -32601, "message": f"Method not found: {method}"}
+        if "result" in reply:
+            reply["result"] = {"resultType": "complete", **reply["result"]}
         return reply
 
     def definition(self, tool: Tool) -> dict:

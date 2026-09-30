@@ -14,8 +14,7 @@ that doesn't exist, so the reply doesn't reveal which files exist outside the ha
 
 ```python
 server = HandbookServer(root)            # root holds returns.md; secrets.env sits next to root
-client = McpHarness(server.handle)
-client.initialize()
+client = McpHarness(server.handle, protocol="2026-07-28")
 client.read_resource("handbook://returns.md")["contents"][0]["text"]     # "# Returns\n\n30 days."
 client.request("resources/read", {"uri": "handbook://../secrets.env"})["error"]["code"]   # -32602
 ```

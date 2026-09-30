@@ -1,8 +1,8 @@
-title: The handshake, with version negotiation
+title: Serve older clients too
 type: function
 difficulty: core
-tags: [mcp, initialize, protocol-version, capabilities]
+tags: [mcp, initialize, protocol-version, dual-era, compatibility]
 hints:
-  - Split notifications off first ("id" not in message returns None). Then branch on the method.
-  - 'params = message.get("params") or {}, then requested = params.get("protocolVersion"). If it isn''t a str, answer with the -32602 error.'
-  - 'The version is requested if requested in SUPPORTED_VERSIONS else SUPPORTED_VERSIONS[0]. Build the result from SERVER_INFO, CAPABILITIES and INSTRUCTIONS.'
+  - 'In handle, after the notification check, send method == "initialize" to its own method before any version check: older clients have no _meta to check.'
+  - 'initialize reads (message.get("params") or {}).get("protocolVersion"), refuses a non-str with -32602, and sets self.legacy_version to the requested version if it''s in LEGACY_VERSIONS, else LEGACY_VERSIONS[0].'
+  - 'Run version_error only when self.legacy_version is None or the request has META + "protocolVersion" in its _meta. Otherwise go straight to self.dispatch(message).'

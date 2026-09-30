@@ -11,7 +11,7 @@ exercises:
 ---
 
 You now know every message a server sends and receives, which is exactly what you need to use the
-official SDK well: it writes the envelope, the handshake, the schemas and the transport for you,
+official SDK well: it writes the envelope, the version checks, the schemas and the transport for you,
 and when something goes wrong you know what it's doing underneath. This lesson builds the Kiln & Co
 order server with the SDK on your machine, tests it, and plugs it into the clients people actually
 use, including the agent you built in A5.
@@ -65,8 +65,9 @@ Everything from lessons 2 to 4 is in there, done for you:
 - A `dict` or Pydantic return value is sent as `structuredContent` plus a JSON text block.
 - `@mcp.resource(uri)` registers a resource; a URI with `{placeholders}` becomes a template, and
   the placeholders must match the function's parameters.
-- `mcp.run()` runs the stdio loop and the handshake, and negotiates the protocol version with each
-  client, including the stateless `2026-07-28` style.
+- `mcp.run()` runs the stdio loop and checks each request's protocol version. The SDK is
+  dual-era: it serves the current stateless protocol, `server/discover` included, and answers the
+  `initialize` handshake for older clients.
 
 Keep `mcp.run()` under `if __name__ == "__main__":`. The CLI and the test client import your file,
 and they must not start a server when they do.
@@ -108,7 +109,8 @@ Arguments = create_model("GetOrderArguments", **fields)
 3. In the Inspector, connect, open **Tools**, list them, and call `get_order` with `1042`, then
    `9999`, then `10423`. Check which ones come back with `isError`. Open **Resources** and read
    `policy://returns`. The Inspector's history pane shows the raw JSON-RPC messages: find the
-   `initialize` exchange and compare it with lesson 2.
+   first exchange (`server/discover` from a current Inspector, `initialize` from an older one)
+   and compare it with lesson 2.
 4. Add a `print("hello")` at the top of `get_order`, call it again, and see what happens to the
    connection. Take it out again.
 5. Check which version you have with `uv run mcp version`. If it's 1.x, change the import to
@@ -224,7 +226,7 @@ options:
   - The config's command and paths, and the MCP log for the server's stderr
   - Whether the server declares the prompts capability
 answer: 1
-explain: If the tools don't appear at all, the server usually never started, or crashed during the handshake. A relative path, a missing uv on the app's PATH, or a print() on stdout all show up in the log.
+explain: If the tools don't appear at all, the server usually never started, or crashed on its first request. A relative path, a missing uv on the app's PATH, or a print() on stdout all show up in the log.
 ```
 
 ## Your own agent as an MCP client
@@ -245,18 +247,16 @@ def handle(message):
     if "id" not in message:
         return None
     reply = {"jsonrpc": "2.0", "id": message["id"]}
-    if message["method"] == "initialize":
-        reply["result"] = {"protocolVersion": "2025-06-18", "capabilities": {"tools": {}},
-                           "serverInfo": {"name": "kiln-orders", "version": "1.0.0"}}
-    elif message["method"] == "tools/list":
-        reply["result"] = {"tools": [{"name": "get_order", "description": "Look up an order.",
-                                      "inputSchema": {"type": "object", "properties": {"order_id": {"type": "string"}}}}]}
+    if message["method"] == "tools/list":
+        reply["result"] = {"resultType": "complete", "tools": [{
+            "name": "get_order", "description": "Look up an order.",
+            "inputSchema": {"type": "object", "properties": {"order_id": {"type": "string"}}}}]}
     else:
-        reply["result"] = {"content": [{"type": "text", "text": "Order 9999 not found"}], "isError": True}
+        reply["result"] = {"resultType": "complete", "isError": True,
+                           "content": [{"type": "text", "text": "Order 9999 not found"}]}
     return reply
 
-client = McpHarness(handle)
-client.initialize()
+client = McpHarness(handle, protocol="2026-07-28")
 tools = [{"name": f"orders__{t['name']}", "description": t["description"], "parameters": t["inputSchema"]}
          for t in client.list_tools()]
 result = client.call_tool("get_order", {"order_id": "9999"})
@@ -271,7 +271,7 @@ per server, and the A5 loop routing calls between them.
 ## Where this leaves you
 
 The SDK's `MCPServer` turns decorated, type-hinted functions into tools and resources, with the
-handshake, validation, error mapping and stdio loop done for you; `ToolError` is the model-facing
+version checks, validation, error mapping and stdio loop done for you; `ToolError` is the model-facing
 failure. You inspect a server with `mcp dev`, test its logic as plain functions and its protocol
 through a client, and connect it with a name, a command and an environment, in Claude Desktop's
 config, `claude mcp add` or an IDE's `mcp.json`. Your own agent is one more client: MCP tools become

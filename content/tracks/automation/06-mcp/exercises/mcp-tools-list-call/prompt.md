@@ -1,6 +1,6 @@
 Kiln & Co's order server has two read-only tools. Each one is a Pydantic model for its arguments
 (its docstring is written for the model) and a function that takes a validated instance, registered
-in `TOOLS`. The starter's `handle` does the JSON-RPC part. Write the two functions it calls:
+in `TOOLS`. The starter's `handle` does the JSON-RPC part, `resultType` included. Write the two functions it calls:
 
 **`list_tools() -> dict`** returns `{"tools": [...]}`, one entry per tool in `TOOLS` order:
 
@@ -22,8 +22,7 @@ in `TOOLS`. The starter's `handle` does the JSON-RPC part. Write the two functio
 4. Otherwise return its value as JSON text, with `isError` false.
 
 ```python
-client = McpHarness(handle)
-client.initialize()
+client = McpHarness(handle, protocol="2026-07-28")
 [tool["name"] for tool in client.list_tools()]          # ["get_order", "find_orders"]
 client.call_tool("get_order", {"order_id": "10423"})["content"][0]["text"]
 # "Invalid arguments: order_id: String should match pattern '^\\d{4}$'"

@@ -60,10 +60,12 @@ Three roles, and the names matter because the spec uses them precisely:
 That separation is the security story in one line: the server never sees the conversation, and the
 host decides what the model is allowed to see and do. You'll lean on it in lesson 6.
 
-When a client connects, both sides say what they support. These are **capabilities**: a server that
-has tools says `{"tools": {}}`, one with resources adds `{"resources": {}}`, and a client might
-offer `{"elicitation": {}}` (asking the user a question on the server's behalf). Neither side uses a
-feature the other didn't declare. Here is what a small order-desk server declares:
+Both sides say what they support. These are **capabilities**: a server that has tools says
+`{"tools": {}}`, one with resources adds `{"resources": {}}`, and a client might offer
+`{"elicitation": {}}` (asking the user a question on the server's behalf). In the current protocol
+the client sends its capabilities with every request, and the server publishes its own in answer to
+`server/discover` (lesson 2). Neither side uses a feature the other didn't declare. Here is what a
+small order-desk server declares:
 
 ```python
 server_capabilities = {"tools": {}, "resources": {}}
@@ -98,14 +100,18 @@ the question it asked (several requests can be in flight at once), and exactly o
 `error`:
 
 ```python
-ok = {"jsonrpc": "2.0", "id": 7, "result": {"content": [{"type": "text", "text": "Shipped with DPD"}]}}
+ok = {"jsonrpc": "2.0", "id": 7, "result": {"resultType": "complete",
+                                            "content": [{"type": "text", "text": "Shipped with DPD"}]}}
 failed = {"jsonrpc": "2.0", "id": 8, "error": {"code": -32601, "message": "Method not found: tools/run"}}
 [("result" in ok, "error" in ok), ("result" in failed, "error" in failed)]
 ```
 
+In MCP a result is always an object, and since the `2026-07-28` revision it always says what kind
+of result it is: `"resultType": "complete"` for a finished answer.
+
 A **notification** is a one-way message: a `method` and maybe `params`, and **no `id`**. Nobody
 answers it, not even with an error, because there's no id to answer to. MCP uses them for events:
-`notifications/initialized` ("I'm ready"), `notifications/cancelled` ("stop working on request 7"),
+`notifications/cancelled` ("stop working on request 7"), `notifications/progress` ("40% done"),
 `notifications/tools/list_changed` ("my tools changed, list them again").
 
 ```python
@@ -116,9 +122,9 @@ def kind(message):
 
 messages = [
     {"jsonrpc": "2.0", "id": 1, "method": "tools/list"},
-    {"jsonrpc": "2.0", "method": "notifications/initialized"},
-    {"jsonrpc": "2.0", "id": 1, "result": {"tools": []}},
-    {"jsonrpc": "2.0", "id": 0, "method": "ping"},
+    {"jsonrpc": "2.0", "method": "notifications/cancelled", "params": {"requestId": 1}},
+    {"jsonrpc": "2.0", "id": 1, "result": {"resultType": "complete", "tools": []}},
+    {"jsonrpc": "2.0", "id": 0, "method": "server/discover"},
 ]
 [kind(m) for m in messages]
 ```
@@ -142,8 +148,10 @@ anything machine-readable. JSON-RPC reserves a handful of codes, and MCP uses th
 | -32601 | Method not found | The server doesn't implement that method, e.g. `prompts/list` on a tools-only server |
 | -32602 | Invalid params | The method exists but the params are wrong: an unknown tool name, a missing `uri` |
 | -32603 | Internal error | The server broke while handling a valid request |
+| -32022 | Unsupported protocol version | MCP's own: the request asked for a protocol version the server doesn't speak (lesson 2) |
 
-Codes from -32000 to -32099 are for servers and the MCP spec to define. Any code is a *protocol*
+JSON-RPC leaves -32000 to -32099 for implementations; MCP keeps -32020 to -32099 for codes its spec
+defines, like -32022. Any code is a *protocol*
 error: something is wrong with the request or the server, and the client application sees it.
 You'll meet the other kind of failure in lesson 3: a tool that ran and failed ("order 9999 doesn't
 exist") is a normal result the model reads, not a JSON-RPC error.

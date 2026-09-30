@@ -14,14 +14,13 @@ def handle(message):
         return None
     reply = {"jsonrpc": "2.0", "id": message["id"]}
     method, params = message["method"], message.get("params") or {}
-    if method == "initialize":
-        reply["result"] = {"protocolVersion": "2025-06-18", "capabilities": {"tools": {}},
-                           "serverInfo": {"name": "kiln-orders", "version": "2.1.0"}}
-    elif method == "tools/list":
-        reply["result"] = {"tools": TOOLS, "nextCursor": "page-2"}
+    if method == "tools/list":
+        reply["result"] = {"resultType": "complete", "tools": TOOLS, "nextCursor": "page-2",
+                           "ttlMs": 60000, "cacheScope": "public"}
     elif method == "tools/call":
         calls.append((params["name"], params.get("arguments")))
-        reply["result"] = {"content": [{"type": "text", "text": json.dumps({"ran": params["name"]})}], "isError": False}
+        reply["result"] = {"resultType": "complete", "isError": False,
+                           "content": [{"type": "text", "text": json.dumps({"ran": params["name"]})}]}
     else:
         reply["error"] = {"code": -32601, "message": f"Method not found: {method}"}
     return reply
@@ -30,8 +29,8 @@ def handle(message):
 def connect(limit=2, allowed=frozenset({"get_order", "search_docs"})):
     calls.clear()
     now = [0.0]
-    client = McpHarness(guard(handle, allowed_tools=set(allowed), calls_per_minute=limit, clock=lambda: now[0]))
-    client.initialize()
+    client = McpHarness(guard(handle, allowed_tools=set(allowed), calls_per_minute=limit, clock=lambda: now[0]),
+                        protocol="2026-07-28")
     return client, now
 
 
@@ -48,7 +47,8 @@ def _():
     assert text(client.call_tool("get_order", {"order_id": "1043"})) == '{"ran": "get_order"}'
     now[0] = 45.5
     assert client.call_tool("get_order", {"order_id": "1044"}) == {
-        "content": [{"type": "text", "text": "Rate limit reached: try again in 15 s"}], "isError": True}
+        "resultType": "complete", "content": [{"type": "text", "text": "Rate limit reached: try again in 15 s"}],
+        "isError": True}
 
 
 @test("A tool that isn't allowed looks like one that doesn't exist, and never runs")
@@ -62,7 +62,8 @@ def _():
 @test("The rest of the tools/list reply is kept")
 def _():
     client, _ = connect()
-    assert client.request("tools/list")["result"] == {"tools": [TOOLS[0], TOOLS[2]], "nextCursor": "page-2"}
+    assert client.request("tools/list")["result"] == {"resultType": "complete", "tools": [TOOLS[0], TOOLS[2]],
+                                                      "nextCursor": "page-2", "ttlMs": 60000, "cacheScope": "public"}
     assert [tool["name"] for tool in TOOLS] == ["get_order", "cancel_order", "search_docs", "refund_order"]
 
 

@@ -46,7 +46,10 @@ claims, not guarantees.
 > [!NOTE]
 > The list can be long, so `tools/list` supports pagination: a result may include `nextCursor`, and
 > the client sends it back as `params["cursor"]` for the next page. Small servers return everything
-> in one page and never send a cursor.
+> in one page and never send a cursor. The current revision also adds two caching hints to list
+> results: `ttlMs` (how many milliseconds the list stays fresh) and `cacheScope` (`"public"` if
+> every client sees the same list, `"private"` if it depends on who's asking). A server whose tools
+> never change can send `"ttlMs": 3600000, "cacheScope": "public"` and save clients the polling.
 
 ## tools/call: content blocks
 
@@ -74,11 +77,13 @@ import json
 
 order = {"order_id": "1042", "status": "shipped", "carrier": "DPD"}
 result = {"content": [{"type": "text", "text": json.dumps(order)}], "isError": False}
-result
+{"resultType": "complete", **result}          # what the envelope sends
 ```
 
 The host passes the blocks to its model as the tool's result, which is why text is what matters
-most: it's what the model reads.
+most: it's what the model reads. The tool code builds `content` and `isError`; the dispatch
+envelope from lesson 2 adds `"resultType": "complete"` to this result like any other, so the
+examples below leave it out.
 
 ## Two kinds of failure
 
@@ -167,7 +172,8 @@ your own output too. If it doesn't match, that's a bug in the server, not someth
 
 `McpHarness.call_tool(name, arguments)` sends `tools/call` and returns the result, and it fails the
 test when the reply is a protocol error, because a well-behaved client would too. For a protocol
-error you expect, use `request("tools/call", {...})` and look at `["error"]`:
+error you expect, use `request("tools/call", {...})` and look at `["error"]`. To keep the example
+short, this server skips lesson 2's version check:
 
 ```python
 import json
@@ -175,26 +181,28 @@ from plp_fakes import McpHarness
 
 ORDERS = {"1042": {"status": "shipped"}}
 
+def call_tool(params):
+    if params.get("name") != "get_order":
+        return None                                          # unknown tool
+    order = ORDERS.get(params["arguments"].get("order_id"))
+    text = json.dumps(order) if order else "Order not found"
+    return {"content": [{"type": "text", "text": text}], "isError": order is None}
+
 def handle(message):
     if "id" not in message:
         return None
     method, params = message["method"], message.get("params", {})
     reply = {"jsonrpc": "2.0", "id": message["id"]}
-    if method == "initialize":
-        reply["result"] = {"protocolVersion": "2025-06-18", "capabilities": {"tools": {}},
-                           "serverInfo": {"name": "kiln-orders", "version": "1.0.0"}}
-    elif method == "tools/call" and params.get("name") == "get_order":
-        order = ORDERS.get(params["arguments"].get("order_id"))
-        text = json.dumps(order) if order else "Order not found"
-        reply["result"] = {"content": [{"type": "text", "text": text}], "isError": order is None}
+    result = call_tool(params) if method == "tools/call" else None
+    if result is not None:
+        reply["result"] = {"resultType": "complete", **result}
     elif method == "tools/call":
         reply["error"] = {"code": -32602, "message": f"Unknown tool: {params.get('name')}"}
     else:
         reply["error"] = {"code": -32601, "message": f"Method not found: {method}"}
     return reply
 
-client = McpHarness(handle)
-client.initialize()
+client = McpHarness(handle, protocol="2026-07-28")
 [client.call_tool("get_order", {"order_id": "9999"}),
  client.request("tools/call", {"name": "refund_order", "arguments": {}})["error"]]
 ```

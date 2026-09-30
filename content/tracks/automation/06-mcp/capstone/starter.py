@@ -19,8 +19,11 @@ from typing import Any, Callable, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+META = "io.modelcontextprotocol/"                                   # the prefix of MCP's _meta keys
 SERVER_INFO = {"name": "kiln-business", "version": "1.0.0"}
-SUPPORTED_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26"]      # newest first
+SUPPORTED_VERSIONS = ["2026-07-28"]                                  # stateless: _meta on every request
+LEGACY_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26"]         # older clients: initialize, newest first
+CACHE_HINTS = {"ttlMs": 300_000, "cacheScope": "public"}             # lists and policies: fresh for 5 minutes
 INSTRUCTIONS = ("Read-only access to Kiln & Co orders and policies. Look orders up by their "
                 "four-digit number; search the policies before answering policy questions.")
 CALLS_PER_MINUTE = 30
@@ -132,7 +135,7 @@ class RateLimiter:
 
 
 class KilnServer:
-    """The JSON-RPC handler for Kiln & Co's business MCP server."""
+    """The JSON-RPC handler for Kiln & Co's business MCP server: one per connection, dual-era."""
 
     def __init__(self, store: OrderStore, docs: dict[str, dict], *, clock: Callable[[], float] = time.monotonic,
                  secrets: list[str | None] | None = None, calls_per_minute: int = CALLS_PER_MINUTE):
@@ -182,8 +185,9 @@ def demo() -> None:
 
     logging.basicConfig(level=logging.INFO, format="%(name)s %(message)s", stream=sys.stdout)
     ticks = iter(range(1000))
-    server = KilnServer(InMemoryOrders(ORDERS), DOCS, clock=lambda: next(ticks) * 0.004)
-    client = McpHarness(server.handle)
+    clock = lambda: next(ticks) * 0.004                                  # 4 ms per reading
+    server = KilnServer(InMemoryOrders(ORDERS), DOCS, clock=clock)
+    client = McpHarness(server.handle, protocol="2026-07-28", client_info={"name": "claude-code", "version": "2.4"})
 
     def show(label: str, value: Any) -> None:
         print(f"{label}: {json.dumps(value)}")
@@ -194,7 +198,8 @@ def demo() -> None:
                  for b in result["content"]]
         return shown + (["isError"] if result["isError"] else [])
 
-    show("server", client.initialize()["serverInfo"])
+    info = client.discover()
+    show("server", {"versions": info["supportedVersions"], "serverInfo": info["_meta"][META + "serverInfo"]})
     show("tools", [tool["name"] for tool in client.list_tools()])
     show("resources", [resource["uri"] for resource in client.list_resources()])
     for name, arguments in [("get_order", {"order_id": "1042"}), ("get_order", {"order_id": "9999"}),
@@ -205,6 +210,13 @@ def demo() -> None:
     show("read policy://shipping", client.read_resource("policy://shipping")["contents"][0]["text"].splitlines()[0])
     show("read policy://../secrets", client.request("resources/read", {"uri": "policy://../secrets"})["error"])
     show("cancel_order", client.request("tools/call", {"name": "cancel_order", "arguments": {"order_id": "1042"}})["error"])
+    show("version 2027-01-01", McpHarness(server.handle, protocol="2027-01-01").request("tools/list")["error"])
+
+    # An older client on its own connection: the initialize handshake, then plain requests
+    old = McpHarness(KilnServer(InMemoryOrders(ORDERS), DOCS, clock=clock).handle,
+                     client_info={"name": "helpdesk-app", "version": "5.2"})
+    show("legacy initialize", old.initialize()["protocolVersion"])
+    show("legacy get_order", json.loads(old.call_tool("get_order", {"order_id": "1042"})["content"][0]["text"])["status"])
 
 
 if __name__ == "__main__":

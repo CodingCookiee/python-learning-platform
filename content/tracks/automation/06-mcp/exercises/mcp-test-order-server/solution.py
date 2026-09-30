@@ -8,14 +8,11 @@ from orders_server import handle
 
 @pytest.fixture
 def client():
-    client = McpHarness(handle)
-    client.initialize()
-    return client
+    return McpHarness(handle, protocol="2026-07-28")
 
 
-def test_the_handshake_completes():
-    client = McpHarness(handle)
-    assert client.initialize()["serverInfo"]["name"] == "kiln-orders"
+def test_discovery_names_the_server(client):
+    assert client.discover()["_meta"]["io.modelcontextprotocol/serverInfo"]["name"] == "kiln-orders"
 
 
 def test_lists_get_order(client):
@@ -30,7 +27,8 @@ def test_a_found_order_is_returned_as_json(client):
 
 def test_a_missing_order_is_a_tool_error(client):
     result = client.call_tool("get_order", {"order_id": "9999"})
-    assert result == {"content": [{"type": "text", "text": "Order 9999 not found"}], "isError": True}
+    assert result["isError"] is True
+    assert result["content"] == [{"type": "text", "text": "Order 9999 not found"}]
 
 
 def test_a_badly_formed_number_is_refused_before_lookup(client):

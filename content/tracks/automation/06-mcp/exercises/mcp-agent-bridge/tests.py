@@ -9,15 +9,15 @@ PAGES = {"returns": "Unused items can be returned within 30 days.", "shipping": 
 
 
 def server(name, tools, call):
-    """A small MCP server: initialize, tools/list, and tools/call through call(tool, arguments)."""
+    """A small MCP server (server/discover, tools/list, tools/call) and a connected client."""
     def handle(message):
         if "id" not in message:
             return None
         reply = {"jsonrpc": "2.0", "id": message["id"]}
         method, params = message["method"], message.get("params") or {}
-        if method == "initialize":
-            reply["result"] = {"protocolVersion": "2025-06-18", "capabilities": {"tools": {}},
-                               "serverInfo": {"name": name, "version": "1.0.0"}}
+        if method == "server/discover":
+            reply["result"] = {"supportedVersions": ["2026-07-28"], "capabilities": {"tools": {}},
+                               "_meta": {"io.modelcontextprotocol/serverInfo": {"name": name, "version": "1.0.0"}}}
         elif method == "tools/list":
             reply["result"] = {"tools": tools}
         elif method == "tools/call" and params.get("name") in {t["name"] for t in tools}:
@@ -26,10 +26,10 @@ def server(name, tools, call):
             reply["error"] = {"code": -32602, "message": f"Unknown tool: {params.get('name')}"}
         else:
             reply["error"] = {"code": -32601, "message": f"Method not found: {method}"}
+        if "result" in reply:
+            reply["result"] = {"resultType": "complete", **reply["result"]}
         return reply
-    client = McpHarness(handle)
-    client.initialize()
-    return client
+    return McpHarness(handle, protocol="2026-07-28")
 
 
 def text(value, is_error=False):

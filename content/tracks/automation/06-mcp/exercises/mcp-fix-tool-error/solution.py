@@ -28,7 +28,7 @@ TOOLS = {"get_order": get_order, "track_parcel": track_parcel}
 
 
 def result(request_id, value):
-    return {"jsonrpc": "2.0", "id": request_id, "result": value}
+    return {"jsonrpc": "2.0", "id": request_id, "result": {"resultType": "complete", **value}}
 
 
 def error(request_id, code, message):
@@ -64,9 +64,9 @@ def handle(message):
     if "id" not in message:
         return None
     method, params = message["method"], message.get("params", {})
-    if method == "initialize":
-        return result(message["id"], {"protocolVersion": "2025-06-18", "capabilities": {"tools": {}},
-                                      "serverInfo": {"name": "kiln-orders", "version": "1.1.0"}})
+    if method == "server/discover":
+        return result(message["id"], {"supportedVersions": ["2026-07-28"], "capabilities": {"tools": {}},
+                                      "_meta": {"io.modelcontextprotocol/serverInfo": {"name": "kiln-orders", "version": "1.1.0"}}})
     if method == "tools/call":
         return call_tool(message["id"], params)
     return error(message["id"], -32601, f"Method not found: {method}")

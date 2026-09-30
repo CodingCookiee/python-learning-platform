@@ -1,0 +1,8 @@
+title: Alerts that fire once and resolve once
+type: function
+difficulty: stretch
+tags: [monitoring, alerting, state-machines, evals]
+hints:
+  - "Keep two pieces of state per rule: a count of consecutive breaching checks, and whether it's firing. A check that doesn't breach resets the count to 0."
+  - "Emit \"firing\" only on the transition: breaching, not already firing, and the streak has reached for_checks. Emit \"resolved\" only when a firing rule stops breaching."
+  - "metrics.get(rule.metric) is None for a missing metric: skip the rule entirely, so its streak and state carry over to the next check. operator.gt and operator.lt keep the comparison in one line."

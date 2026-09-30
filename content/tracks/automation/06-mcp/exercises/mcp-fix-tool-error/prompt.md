@@ -5,7 +5,7 @@ wrong. It also sends the raw exception text, which for the carrier API includes 
 address.
 
 Fix `call_tool` so that a tool that runs and fails returns a **result** with `"isError": true` and
-one text block:
+one text block (the starter's `result` adds the `resultType`):
 
 | The tool call raises | Text |
 |----------------------|------|
@@ -16,8 +16,7 @@ one text block:
 An unknown tool is still a protocol error, `-32602`, and successful calls don't change.
 
 ```python
-client = McpHarness(handle)
-client.initialize()
+client = McpHarness(handle, protocol="2026-07-28")
 client.call_tool("get_order", {"order_id": "9999"})
-# {"content": [{"type": "text", "text": "Order 9999 not found"}], "isError": True}
+# {"resultType": "complete", "content": [{"type": "text", "text": "Order 9999 not found"}], "isError": True}
 ```

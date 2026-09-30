@@ -55,13 +55,15 @@ def handle(message):
         return None
     reply = {"jsonrpc": "2.0", "id": message["id"]}
     method, params = message["method"], message.get("params") or {}
-    if method == "initialize":
-        reply["result"] = {"protocolVersion": "2025-06-18", "capabilities": {"tools": {}},
-                           "serverInfo": {"name": "kiln-shop", "version": "0.9.0"}}
+    if method == "server/discover":
+        reply["result"] = {"supportedVersions": ["2026-07-28"], "capabilities": {"tools": {}},
+                           "_meta": {"io.modelcontextprotocol/serverInfo": {"name": "kiln-shop", "version": "0.9.0"}}}
     elif method == "tools/call" and params.get("name") in TOOLS:
         reply["result"] = call_tool(params)
     elif method == "tools/call":
         reply["error"] = {"code": -32602, "message": f"Unknown tool: {params.get('name')}"}
     else:
         reply["error"] = {"code": -32601, "message": f"Method not found: {method}"}
+    if "result" in reply:
+        reply["result"] = {"resultType": "complete", **reply["result"]}
     return reply

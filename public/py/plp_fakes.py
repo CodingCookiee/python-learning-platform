@@ -110,7 +110,7 @@ class Timeout:
     message: str = "The read operation timed out"
 
 
-class FakeLLMError(Exception):
+class FakeLLMError(RuntimeError):
     """What ScriptedLLM raises for a scripted Fail: carries .status and .retry_after."""
 
     def __init__(self, status: int, message: str = "", retry_after: float | None = None):

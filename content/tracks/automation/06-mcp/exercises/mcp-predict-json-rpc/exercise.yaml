@@ -4,5 +4,5 @@ difficulty: core
 tags: [mcp, json-rpc, notifications, error-codes]
 hints:
   - handle returns None as soon as a message has no "id" key, before it even looks at the method.
-  - 0 is a valid id, and "a1" is printed without quotes. json.dumps({}) is "{}".
+  - 0 is a valid id, and "a1" is printed without quotes. json.dumps turns the result dict back into JSON text, with double quotes.
   - prompts/list isn't in HANDLERS, so the request gets error -32601. The last line is the same method as a notification.

@@ -1,0 +1,20 @@
+slug: harden-and-deploy
+title: Harden and deploy
+summary: Take your best AI project to production with an eval suite and a release gate, tracing, cost caps, a red-team report, and a running deployment.
+hours: 10
+xp: 250
+requirements:
+  - "harden.py runs the sample support bot (or your own A3-A6 project behind the same answer(question, user) function) against the scripted fake in the browser and against your A2 client locally, with the key read only from the environment"
+  - "An eval suite: a JSONL golden set of at least 20 cases with ids and tags (the six in the starter plus your own), deterministic scorers, a runner where an exception fails one case, and a gate on a pass-rate floor, a maximum drop from a committed baseline, and newly failing cases"
+  - "Tracing: a span for every answer and every model call, recording model, prompt_version, tokens, cost_usd, latency and outcome, with no message content, and user ids pseudonymised; any content you choose to log is redacted first"
+  - "Cost caps: a per-user daily and a per-day budget checked before every model call with a worst-case estimate and charged with the actual cost after it; a spent budget returns the fallback answer, never an exception"
+  - "Security: only trusted sources are retrieved, untrusted text is delimited and tag-stripped, every answer passes the output filter (images and links outside kiln.example removed) and the policy check (canary, discount codes), and a red-team suite of at least 8 attacks runs with the model that obeys injections"
+  - "A FastAPI service with GET /healthz, GET /readyz and an authenticated POST /v1/answer, settings validated from the environment, a Dockerfile, and a deployment (a managed platform or a VPS) whose health check points at /healthz"
+  - "An evals.yml GitHub Actions workflow that runs the unit tests and the eval gate, and a REDTEAM.md report listing each attack, whether it was contained, and which defence contained it"
+criteria:
+  - "python harden.py prints a passing gate and every attack contained with the scripted model, and the hidden review runs more golden cases and attacks (a prompt leak through a tool result, a markdown image, a link to a look-alike domain, a poisoned document, a spent budget, a provider outage) through answer() without a leak or a crash"
+  - "The defences are in code, not only in the prompt: removing the system prompt's security sentences must not let any red-team attack through"
+  - "No span, log line or error response contains a key, an email address, a phone number or message text, and no secret is in the repository or the image"
+  - "Budgets can't be exceeded, even by a script sending the same question in a loop, and the cost summary matches the spans"
+  - "The service answers from the deployed URL (or a local docker run, recorded in the README), /healthz never calls the model, /readyz reports each dependency, and a failing pipeline returns 503 with no details"
+  - "The code is typed and tested against the fakes, with at least one test per requirement, and the README explains how to run it offline, with a key, and in Docker"

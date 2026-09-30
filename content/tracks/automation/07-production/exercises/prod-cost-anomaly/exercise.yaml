@@ -1,0 +1,7 @@
+title: Spot a cost anomaly
+type: function
+difficulty: core
+tags: [monitoring, cost, statistics, decimal]
+hints:
+  - "The starter compares each day with an average that includes the spike itself, and with days after it. Each day's baseline must come only from the days before it: daily[max(0, i - window) : i]."
+  - "statistics.median works on Decimals. A median ignores one odd day in the history, which an average doesn't: one $600 day would drag a mean up for a week."

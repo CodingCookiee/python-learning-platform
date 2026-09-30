@@ -2,6 +2,7 @@ import json
 import logging
 import time
 
+META = "io.modelcontextprotocol/"
 SENSITIVE = {"password", "token", "api_key", "card_number", "email"}
 AUDITED_METHODS = {"tools/call", "resources/read"}
 
@@ -18,13 +19,13 @@ def outcome_of(reply) -> str:
 
 def audited(handle, logger: logging.Logger, *, clock=time.monotonic):
     """handle, with one JSON audit record per tools/call and resources/read request."""
-    state = {"client": "unknown"}
+    state = {"legacy_client": "unknown"}          # from an older client's initialize
 
     def audited_handle(message):
         method = message.get("method")
         params = message.get("params") or {}
         if method == "initialize" and "id" in message:
-            state["client"] = params.get("clientInfo", {}).get("name", "unknown")
+            state["legacy_client"] = params.get("clientInfo", {}).get("name", "unknown")
         if "id" not in message or method not in AUDITED_METHODS:
             return handle(message)
 
@@ -32,7 +33,8 @@ def audited(handle, logger: logging.Logger, *, clock=time.monotonic):
             target, arguments = params.get("name"), redacted(params.get("arguments") or {})
         else:
             target, arguments = params.get("uri"), {}
-        entry = {"client": state["client"], "method": method, "target": target, "arguments": arguments}
+        client = ((params.get("_meta") or {}).get(META + "clientInfo") or {}).get("name") or state["legacy_client"]
+        entry = {"client": client, "method": method, "target": target, "arguments": arguments}
 
         start = clock()
         try:

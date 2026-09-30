@@ -7,9 +7,7 @@ from solution import handle
 
 
 def connected():
-    client = McpHarness(handle)
-    client.initialize()
-    return client
+    return McpHarness(handle, protocol="2026-07-28")
 
 
 @test("Lists both tools, and a bad order number is refused with the schema's reason")
@@ -44,7 +42,7 @@ def _():
 @test("A missing order is an isError result with the tool's message")
 def _():
     assert connected().call_tool("get_order", {"order_id": "9999"}) == {
-        "content": [{"type": "text", "text": "Order 9999 not found"}], "isError": True}
+        "resultType": "complete", "content": [{"type": "text", "text": "Order 9999 not found"}], "isError": True}
 
 
 @test("Unknown tools are a -32602 protocol error")

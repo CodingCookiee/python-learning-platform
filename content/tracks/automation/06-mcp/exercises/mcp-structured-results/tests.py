@@ -58,9 +58,7 @@ TOOLS = [
 
 
 def connected():
-    client = McpHarness(ToolServer("leith-physio", "3.0.0", TOOLS).handle)
-    client.initialize()
-    return client
+    return McpHarness(ToolServer("leith-physio", "3.0.0", TOOLS).handle, protocol="2026-07-28")
 
 
 @test("Returns free slots as structured content")
@@ -78,11 +76,11 @@ def _():
         "practitioner": "Patel", "day": "2026-10-01", "time": "09:00"}
 
 
-@test("initialize reports the server's name and the tools capability")
+@test("server/discover reports the server's name and the tools capability")
 def _():
-    info = McpHarness(ToolServer("leith-physio", "3.0.0", TOOLS).handle).initialize()
-    assert info == {"protocolVersion": "2025-06-18", "capabilities": {"tools": {}},
-                    "serverInfo": {"name": "leith-physio", "version": "3.0.0"}}
+    assert connected().discover() == {
+        "resultType": "complete", "supportedVersions": ["2026-07-28"], "capabilities": {"tools": {}},
+        "_meta": {"io.modelcontextprotocol/serverInfo": {"name": "leith-physio", "version": "3.0.0"}}}
 
 
 @test("tools/list has titles, descriptions and both schemas")
@@ -104,14 +102,15 @@ def _():
     assert bad_day["isError"] is True
     assert bad_day["content"][0]["text"].startswith("Invalid arguments: day: Input should be a valid date")
     assert client.call_tool("find_slots", {"practitioner": "Jones", "day": "2026-10-01"}) == {
-        "content": [{"type": "text", "text": "No practitioner called Jones"}], "isError": True}
+        "resultType": "complete", "content": [{"type": "text", "text": "No practitioner called Jones"}], "isError": True}
 
 
 @hidden("Output that doesn't match the schema is the server's bug: logged, and reported without data")
 def _():
     with captured_logs("leith_physio") as logs:
         result = connected().call_tool("next_appointment", {"patient_id": "P-0000"})
-    assert result == {"content": [{"type": "text", "text": "next_appointment returned invalid output"}], "isError": True}
+    assert result == {"resultType": "complete", "isError": True,
+                      "content": [{"type": "text", "text": "next_appointment returned invalid output"}]}
     assert logs.levels == ["ERROR"]
     assert "next_appointment" in logs.messages[0]
 
@@ -122,7 +121,7 @@ def _():
     assert client.request("tools/call", {"name": "book_slot", "arguments": {}})["error"] == {
         "code": -32602, "message": "Unknown tool: book_slot"}
     assert client.request("resources/list")["error"] == {"code": -32601, "message": "Method not found: resources/list"}
-    assert ToolServer("x", "1", TOOLS).handle({"jsonrpc": "2.0", "method": "notifications/initialized"}) is None
+    assert ToolServer("x", "1", TOOLS).handle({"jsonrpc": "2.0", "method": "notifications/cancelled", "params": {"requestId": 1}}) is None
 
 
 @hidden("Every problem is reported, and an empty day list is still valid output")
