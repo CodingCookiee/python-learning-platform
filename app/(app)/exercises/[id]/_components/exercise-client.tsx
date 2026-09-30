@@ -694,7 +694,7 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
                 ? `You scored ${Math.round(finished.score * 100)}%.`
                 : progress
                   ? `${progress.passedCount} of ${progress.total} done.`
-                  : "Saved."}
+                  : "Saving…"}
             </p>
           </div>
           {drill.next && !finished ? (

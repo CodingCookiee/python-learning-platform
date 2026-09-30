@@ -45,7 +45,7 @@ export default async function ReviewPage() {
           <header className="flex flex-col gap-4 border-b border-border pb-8">
             <h1 className="font-condensed text-5xl leading-[0.95] font-extrabold tracking-[-0.02em]">Review</h1>
             <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground">
-              Drills you&rsquo;ve solved come back on a widening schedule ({REVIEW_INTERVALS.join(", ")} days) and you
+              Drills you&rsquo;ve solved come back on a widening schedule ({`${REVIEW_INTERVALS.join(", ")} days`}) and you
               solve them again from a blank starter. It&rsquo;s the difference between having done something once and
               being able to do it.
             </p>

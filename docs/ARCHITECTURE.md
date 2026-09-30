@@ -130,7 +130,6 @@ content/
             starter.py
             solution.py
             tests.py                   # visible + hidden tests (see §5.3)
-        checkpoint.yaml                # module exam: exercise pool + pass mark
         project/                       # capstone: brief.md, rubric.yaml, template/, acceptance/
     ai-automation/
       ...
@@ -271,16 +270,22 @@ gateway, and MCP servers.
 
 1. **Lesson completion requires its core exercises.** Every lesson lists `exercises: [required…]`.
    The "Complete" button only unlocks after they pass.
-2. **Module checkpoint.** 5–8 problems drawn from a pool, no hints, no solutions, 80% to pass. Passing
-   unlocks the next module. Failing shows which concept tags to review.
-3. **Spaced review.** Solved exercises come back at ~1, 3, 7, 21, and 60 days with a **blank editor**
-   (retrieval practice). Anything solved with hints or the solution comes back sooner. A daily
-   "Review (5 min)" queue sits on the dashboard.
-4. **Skill map.** Exercises carry concept tags (`comprehensions`, `decorators`, `asyncio.gather`,
-   `tool-calling`…). Mastery per tag = recent hint-free passes weighted by recency. The dashboard shows
-   strong and weak areas instead of just "% complete".
-5. **Placement test.** Experienced learners (like a JS developer) can test out of a module by passing
-   its checkpoint directly.
+2. **Module checkpoint.** Once every lesson is done, the checkpoint opens: 6 drills (`checkpoint.pick`)
+   drawn across the module's lessons from its core and stretch drills (or an explicit `checkpoint.pool`
+   in `module.yaml`), each from its blank starter, with no hints and no reference solution, 20 minutes
+   per drill, 80% to pass. **Passing the checkpoint is what passes the module** and unlocks the next one
+   (+100 XP). A failed attempt shows what was missed and allows a fresh draw after 30 minutes. A module
+   with nothing to draw from passes on its lessons. See `lib/checkpoint.ts` and `lib/mastery-rules.ts`.
+3. **Spaced review.** A solved core or stretch drill (not warm-ups or predict drills) joins the review
+   deck, due a day later. It comes back on `/review` with a blank starter and no solution, at 1, 3, 7,
+   21, 60 and 120 days. A clean pass moves it up a stage (+5 XP); a pass that needed hints comes back
+   tomorrow at the same stage; a fail starts it over and counts a lapse. Only a due review moves the
+   schedule, and at most 12 are offered a day. See `lib/review.ts`.
+4. **Skill map.** On the dashboard: for each open module and its most common tags, how firmly it's
+   held. A drill counts 0 until solved, 0.4 once solved, and climbs to 1 as it survives reviews.
+   Computed on read (`lib/skill-map.ts`), no stored mastery table.
+5. **Placement test.** The checkpoint can be taken before the lessons are done ("Test out" on the
+   module page). Passing it passes the module; its lessons stay open.
 6. **"Advanced-confident" definition.** Track 1 is complete when all checkpoints pass **and** every
    Advanced tag is ≥80% mastery **and** 3 capstones pass acceptance tests.
 7. **Learning log + weekly check-in** (from roadmap §07). This is an in-app form that pre-fills from
@@ -353,9 +358,11 @@ model ExerciseAttempt  { id; userId→User; exerciseId; code; result Json; passe
                          hintsUsed; solutionViewed; durationMs; createdAt }         // replaces ExerciseSubmission
 model ExerciseProgress { userId+exerciseId @@unique; status (unseen|attempted|passed|mastered);
                          bestAttemptId; firstPassedAt; savedCode Text; hintsRevealed Int }
-model ReviewItem       { userId+exerciseId @@unique; dueAt; intervalDays; ease; lapses }
-model TagMastery       { userId+tag @@unique; score Float; updatedAt }
-model CheckpointAttempt{ id; userId; moduleId; score; passed; items Json; createdAt }
+model ReviewItem       { userId+exerciseId @@unique; stage; dueAt; lapses; reviews; lastReviewedAt }   // built (M2)
+model CheckpointAttempt{ id; userId; moduleId; exerciseIds[]; passedIds[]; placement; score; passed;
+                         startedAt; submittedAt? }                                   // built (M2)
+// ExerciseSubmission gained mode (practice|review|checkpoint) and checkpointAttemptId; tag mastery is
+// computed on read instead of stored
 model LabToken         { id; userId; labSlug; token @unique; verifiedAt?; payload Json? }
 model ProjectSubmission{ + userId→User relation; repoUrl?; blobKeys String[]; aiReview Json?;
                          status (pending|ai_reviewed|approved|changes_requested) }
@@ -419,7 +426,7 @@ Every variable is listed in [`.env.example`](../.env.example). Summary:
 
 Each milestone is shippable and leaves the app better than before.
 
-**Status (2026-09-29).** M0 is done. M1 is largely done:
+**Status (2026-09-30).** M0 is done. M1 is largely done, and M2 is done:
 - **Runtime:** a module Web Worker (`public/workers/python-worker.mjs`) running Pyodide 314. It enforces a real timeout by terminating the worker and gives every run a fresh module.
 - **Harness:** the `plp` harness (`public/py/`):
   - failure messages from rewritten asserts;
@@ -434,7 +441,9 @@ Each milestone is shippable and leaves the app better than before.
 - **App:** the new drill workspace (function, program, predict, fix, refactor and "write the tests" drills), lesson completion gated on required drills, and achievements evaluated from criteria in `content/achievements.yaml`.
 - **Content:** modules are being written; the live set is tracked in the DB (`npm run content:sync -- --dry-run`).
 
-Still open from M1: server-side autosave of drill code (localStorage for now) and the split-view lesson workspace. From M2: checkpoints, spaced review and tag mastery.
+- **Mastery (M2):** module checkpoints that pass the module, placement tests ("test out"), the spaced-review deck and `/review` queue, and the skill map on the dashboard (§6). Drills inside an open checkpoint are served without hints or solution wherever they're opened.
+
+Still open from M1: server-side autosave of drill code (localStorage for now) and the split-view lesson workspace.
 
 | # | Milestone | Contents | Exit criteria |
 |---|-----------|----------|---------------|

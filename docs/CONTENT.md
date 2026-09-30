@@ -69,7 +69,17 @@ hours: 6
 outcomes:            # "By the end you can…", 3–6 items, each a concrete skill
   - Explain the difference between == and is, and when each is right
   - Format numbers and text precisely with f-strings
+checkpoint:          # optional; these are the defaults
+  pick: 6            # drills per attempt, spread across the lessons (20 minutes each)
+  pass_mark: 0.8
+  pool: []           # drill slugs to draw from; empty means every core and stretch drill that isn't predict
 ```
+
+The checkpoint is what passes a module, so its pool should cover the outcomes. The default pool
+usually does. Set `pool` when some core drills are too easy to remember or depend on another drill,
+and list at least `pick` of them. Every drill that isn't a warm-up or a predict drill also feeds
+spaced review once solved, so write their prompts to stand alone (a review shows the drill by itself,
+without its lesson).
 
 ## Lessons: `lessons/NN-slug.md`
 
