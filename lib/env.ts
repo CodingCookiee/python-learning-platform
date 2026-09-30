@@ -25,6 +25,10 @@ const serverSchema = z.object({
   UPSTASH_REDIS_REST_URL: optional,
   UPSTASH_REDIS_REST_TOKEN: optional,
 
+  // Transactional email (verification, password reset). Without both, sign-ups are auto-verified
+  RESEND_API_KEY: optional,
+  EMAIL_FROM: optional,
+
   GRADING_MODE: z.enum(["client", "server"]).default("client"),
   ENCRYPTION_KEY: optional,
   LAB_SIGNING_SECRET: optional,

@@ -6,6 +6,7 @@ import Credentials from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { env, isBootstrapAdmin } from "@/lib/env";
+import { rateLimit } from "@/lib/rate-limit";
 
 /**
  * NextAuth.js v5 configuration
@@ -24,6 +25,9 @@ const providers: Provider[] = [
       if (!credentials?.email || !credentials?.password) {
         return null;
       }
+      // Slow down password guessing against one account
+      const limited = await rateLimit("signIn", String(credentials.email).trim().toLowerCase());
+      if (!limited.ok) return null;
 
       const user = await prisma.user.findUnique({
         where: { email: credentials.email as string },

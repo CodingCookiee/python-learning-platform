@@ -5,8 +5,12 @@ import { parentPort, workerData } from "node:worker_threads";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { loadPyodide } from "pyodide";
+import { createRequire } from "node:module";
 
-const { root } = workerData;
+// Pyodide finds its own files from a stack trace, which source maps (as under Next) rewrite; say where they are
+const INDEX_URL = path.dirname(createRequire(import.meta.url).resolve("pyodide")) + path.sep;
+
+const { root, cacheDir } = workerData;
 const loaded = new Set();
 
 // Dependencies Pyodide's lockfile leaves out
@@ -32,7 +36,8 @@ const implicitPackages = (msg) => {
 
 const ready = (async () => {
   const py = await loadPyodide({
-    packageCacheDir: path.join(root, ".cache", "pyodide"),
+    indexURL: INDEX_URL,
+    packageCacheDir: cacheDir ?? path.join(root, ".cache", "pyodide"),
     stdout: () => {},
     stderr: () => {},
   });

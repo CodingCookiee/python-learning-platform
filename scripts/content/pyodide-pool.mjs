@@ -12,8 +12,11 @@ export class PyodidePool {
   constructor({
     root,
     size = Number(process.env.PLP_POOL_SIZE) || Math.max(1, Math.min(4, os.cpus().length - 1)),
+    // Where downloaded Pyodide packages are cached (a writable dir; /tmp on serverless hosts)
+    cacheDir = undefined,
   }) {
     this.root = root;
+    this.cacheDir = cacheDir;
     this.size = size;
     this.idle = [];
     this.queue = [];
@@ -23,7 +26,7 @@ export class PyodidePool {
   }
 
   spawn() {
-    const worker = new Worker(THREAD, { workerData: { root: this.root } });
+    const worker = new Worker(THREAD, { workerData: { root: this.root, cacheDir: this.cacheDir } });
     const slot = { worker, job: null, timer: null, ready: false };
     this.threads.add(slot);
     worker.on("message", (msg) => {

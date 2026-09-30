@@ -297,20 +297,31 @@ gateway, and MCP servers.
 
 ## 7. AI features (built with Claude; also a live demo of Track 2 concepts)
 
-All calls go through one server module, `lib/ai/gateway.ts`, which handles auth, per-user daily token
-and cost quotas (Upstash), prompt caching, and a `LlmUsage` row per call (model, tokens in/out/cached,
-cost, feature). This is the "always track cost" rule from the roadmap, applied to the platform itself.
+All calls go through one provider-neutral module, `lib/ai/gateway.ts` (Anthropic Messages and OpenAI
+Chat Completions over plain `fetch`), and run on the **learner's own key** via
+`callWithLearnerKey` in `lib/ai/credentials.ts`: it decrypts the key, enforces a per-learner daily
+call limit (150), and writes an `LlmUsage` row per call (feature, provider, model, tokens in/out/cached).
+Learners see their usage in Settings. Cost in dollars isn't estimated, since the learner's provider
+bills them directly and prices change. This is the roadmap's "always track cost" rule, applied to the
+platform itself.
+
+**Built (M3):** 7.1 and 7.2. The tutor is a panel under the drill workspace; "Explain this error"
+sits on every error box. Both are off during checkpoints, and in a review, asking the tutor counts as
+a hint. The model is sent the drill (prompt, tests, the author's hints, starter), the learner's current
+code and latest result as tagged data, and **never the reference solution**. `guardReply` in
+`lib/ai/tutor.ts` removes any code block that defines a function the solution defines, runs over six
+lines, or shares three consecutive lines with the solution.
 
 | Feature | Behaviour | Model (configurable) |
 |---------|-----------|----------------------|
-| **7.1 Socratic tutor** (streaming chat in the editor pane) | Gets the exercise prompt, the learner's code, failing test output, and hints used. It asks guiding questions and points at the line, and **never outputs a full solution** (enforced in the system prompt and by a post-check that compares the reply's similarity to `solution.py`). Exercise context is prompt-cached. | `claude-opus-5` default, set by `AI_TUTOR_MODEL` |
-| **7.2 Explain this error** | One call that explains a traceback in plain English, with a JavaScript comparison where it helps. | `AI_FAST_MODEL`. Using a cheaper model such as `claude-haiku-4-5` here is your call |
-| **7.3 Project reviewer** | Rubric from `rubric.yaml` → structured JSON output (`output_config.format`): score and evidence per criterion, security notes, next steps. Admin can override. The status becomes `ai_reviewed` → `approved`. | `AI_REVIEW_MODEL` (default `claude-opus-5`) |
+| **7.1 Socratic tutor** (chat under the drill workspace) | Gets the exercise prompt, the learner's code and latest result. It asks guiding questions and points at the line, and **never outputs a full solution** (the model never sees it, the system prompt forbids it, and `guardReply` redacts replies that reproduce it). The drill context is prompt-cached on Anthropic. | The learner's choice in Settings (default `claude-opus-5-5` or `gpt-5-mini`) |
+| **7.2 Explain this error** | One call that explains a traceback in plain English, with a JavaScript comparison where it helps, and asks the learner for the fix. | Same model |
+| **7.3 Project reviewer** | Rubric from `rubric.yaml` → structured JSON output: score and evidence per criterion, security notes, next steps. Admin can override. The status becomes `ai_reviewed` → `approved`. | Same model (M4) |
 | **7.4 Learner gateway** | Track 2 exercises and labs call Claude through `/api/ai-gateway/v1/messages` with a per-user token and quota. Optional BYOK later. | whatever the exercise specifies |
 
-Guardrails: per-user daily cost cap, a global monthly cap (`AI_MONTHLY_BUDGET_USD`), logging of every
-request, and prompt-injection-aware handling of learner code (learner code goes inside tagged data
-blocks and is never treated as instructions).
+Guardrails: a per-learner daily call limit, logging of every request, and prompt-injection-aware
+handling of learner code (learner code goes inside tagged data blocks, which it can't close, and is
+never treated as instructions).
 
 ---
 
@@ -406,9 +417,8 @@ Every variable is listed in [`.env.example`](../.env.example). Summary:
 | `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` | GitHub login | Optional | GitHub → Settings → Developer settings → OAuth Apps |
 | `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Google login | Optional | Google Cloud Console → OAuth client |
 | `UPSTASH_REDIS_REST_URL` / `_TOKEN` | Cache, rate limits, LLM quotas | Recommended (app degrades without it) | Upstash console |
-| `ANTHROPIC_API_KEY` | Tutor, error explainer, project review, learner gateway | **Yes for §7 / Track 2** | console.anthropic.com. Set a spend limit there too |
-| `AI_TUTOR_MODEL`, `AI_REVIEW_MODEL`, `AI_FAST_MODEL` | Model choice per feature | No (defaults to `claude-opus-5`) | Your decision |
-| `AI_USER_DAILY_BUDGET_USD`, `AI_MONTHLY_BUDGET_USD` | Cost caps | No (defaults 0.50 / 25) | Your decision |
+| `ENCRYPTION_KEY` | Encrypting learners' AI keys (AES-256-GCM) | **Yes for §7** | `openssl rand -base64 32`. Rotating it makes stored keys unreadable, so learners re-paste them |
+| `ANTHROPIC_API_KEY` | Nothing yet: an optional platform key for a future free trial | No | Learners bring their own keys in Settings |
 | `VOYAGE_API_KEY` (or `OPENAI_API_KEY`) | Embeddings for the RAG module and site search | For Track 2 A4 | Voyage AI / OpenAI dashboard |
 | `E2B_API_KEY` | Tier 2 sandbox | For sandbox exercises | e2b.dev |
 | `CODE_EXECUTION_API_URL` / `_KEY` | Self-hosted sandbox alternative | Only if not using E2B | Your runner deployment |
@@ -426,7 +436,7 @@ Every variable is listed in [`.env.example`](../.env.example). Summary:
 
 Each milestone is shippable and leaves the app better than before.
 
-**Status (2026-09-30).** M0 is done. M1 is largely done, and M2 is done:
+**Status (2026-09-30).** M0 is done. M1 is largely done, and M2 and M3 are done:
 - **Runtime:** a module Web Worker (`public/workers/python-worker.mjs`) running Pyodide 314. It enforces a real timeout by terminating the worker and gives every run a fresh module.
 - **Harness:** the `plp` harness (`public/py/`):
   - failure messages from rewritten asserts;
@@ -442,6 +452,8 @@ Each milestone is shippable and leaves the app better than before.
 - **Content:** modules are being written; the live set is tracked in the DB (`npm run content:sync -- --dry-run`).
 
 - **Mastery (M2):** module checkpoints that pass the module, placement tests ("test out"), the spaced-review deck and `/review` queue, and the skill map on the dashboard (§6). Drills inside an open checkpoint are served without hints or solution wherever they're opened.
+
+- **AI (M3):** learners' own keys (Anthropic or OpenAI) encrypted in `AiCredential`, the Socratic tutor and error explainer on drills, and `LlmUsage` logging with a daily limit (§7).
 
 Still open from M1: server-side autosave of drill code (localStorage for now) and the split-view lesson workspace.
 

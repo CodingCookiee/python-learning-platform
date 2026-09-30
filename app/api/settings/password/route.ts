@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
 import { z } from "zod";
+import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 import bcrypt from "bcryptjs";
 
 const schema = z.object({
@@ -11,6 +12,8 @@ const schema = z.object({
 
 export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
   try {
+    const limited = await rateLimit("passwordChange", context.userId);
+    if (!limited.ok) return tooManyRequests(limited, "Too many password attempts.");
     const body = (await req.json()) as unknown;
     const parsed = schema.safeParse(body);
     if (!parsed.success) {

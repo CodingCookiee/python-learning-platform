@@ -20,11 +20,14 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { signOut } from "next-auth/react";
+import { AiSettings } from "./ai-settings";
+import type { CredentialSummary, UsageSummary } from "@/lib/ai/credentials";
 
 interface SettingsClientProps {
   initialName: string;
   email: string;
   hasPassword: boolean;
+  ai: { credential: CredentialSummary | null; usage: UsageSummary; available: boolean };
 }
 
 type Status = { type: "success" | "error"; message: string } | null;
@@ -52,7 +55,7 @@ function StatusBanner({ status }: { status: Status }) {
   );
 }
 
-export function SettingsClient({ initialName, email, hasPassword }: SettingsClientProps) {
+export function SettingsClient({ initialName, email, hasPassword, ai }: SettingsClientProps) {
   const { theme, setTheme } = useTheme();
   // The theme is only known in the browser; render no selection on the server
   const mounted = React.useSyncExternalStore(
@@ -235,6 +238,13 @@ export function SettingsClient({ initialName, email, hasPassword }: SettingsClie
             );
           })}
         </div>
+      </SettingsRow>
+
+      <SettingsRow
+        title="AI tutor"
+        description="The drill tutor and error explainer run on your own Anthropic or OpenAI key, so you pay your provider directly. Everything else works without one."
+      >
+        <AiSettings initialCredential={ai.credential} usage={ai.usage} available={ai.available} />
       </SettingsRow>
 
       {hasPassword && (

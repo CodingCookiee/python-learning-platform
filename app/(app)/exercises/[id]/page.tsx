@@ -19,7 +19,10 @@ export default async function ExercisePage({ params, searchParams }: PageProps) 
   const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { id: true } });
   if (!user) redirect("/auth/signin");
 
-  const drill = await getDrillForUser(id, user.id, query.review ? "review" : "practice");
+  const [drill, aiKeys] = await Promise.all([
+    getDrillForUser(id, user.id, query.review ? "review" : "practice"),
+    prisma.aiCredential.count({ where: { userId: user.id } }),
+  ]);
   if (!drill) notFound();
 
   const trail =
@@ -45,7 +48,7 @@ export default async function ExercisePage({ params, searchParams }: PageProps) 
         </FadeIn>
 
         <FadeIn delay={0.05}>
-          <ExerciseClient key={`${drill.id}-${drill.mode.kind}`} drill={drill} />
+          <ExerciseClient key={`${drill.id}-${drill.mode.kind}`} drill={drill} aiReady={aiKeys > 0} />
         </FadeIn>
       </div>
     </div>

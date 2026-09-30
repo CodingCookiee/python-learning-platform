@@ -42,6 +42,8 @@ model User {
   projectSubmissions  ProjectSubmission[]
   checkpointAttempts  CheckpointAttempt[]
   reviewItems         ReviewItem[]
+  aiCredential        AiCredential?
+  llmUsage            LlmUsage[]
 
   @@map("users")
 }
@@ -363,4 +365,43 @@ model Streak {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("streaks")
+}
+
+/// The learner's own AI provider key (BYOK). The key is AES-256-GCM encrypted with
+/// ENCRYPTION_KEY, bound to the user id, and never sent back to the browser.
+model AiCredential {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  /// anthropic | openai
+  provider     String
+  model        String
+  encryptedKey String   @db.Text
+  /// Last four characters, to recognise the key in Settings
+  keyHint      String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("ai_credentials")
+}
+
+/// One AI call: who, what for, which model, and the tokens it took
+model LlmUsage {
+  id           String   @id @default(cuid())
+  userId       String
+  /// tutor | explain | test | review
+  feature      String
+  provider     String
+  model        String
+  inputTokens  Int      @default(0)
+  outputTokens Int      @default(0)
+  cachedTokens Int      @default(0)
+  exerciseId   String?
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("llm_usage")
 }

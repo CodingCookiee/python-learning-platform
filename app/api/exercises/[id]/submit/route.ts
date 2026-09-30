@@ -12,7 +12,9 @@ import { SOLUTION_AFTER_ATTEMPTS } from "@/lib/drills";
 import { openAttemptForDrill, recordCheckpointRun } from "@/lib/checkpoint";
 import { addToReview, recordReview, type ReviewOutcome } from "@/lib/review";
 import { REVIEW_XP } from "@/lib/mastery-rules";
+import { gradeOnServer, isServerGrading } from "@/lib/grading/server";
 import { z } from "zod";
+import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 
 const submitSchema = z.object({
   code: z.string().max(100_000),
@@ -34,16 +36,35 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
   try {
     const { id: exerciseId } = await context.params;
     const { userId } = context;
+    const limited = await rateLimit("submit", userId);
+    if (!limited.ok) return tooManyRequests(limited, "That's a lot of submissions in a minute.");
 
     const validation = submitSchema.safeParse(await req.json());
     if (!validation.success) {
       return NextResponse.json({ error: "Invalid request", details: validation.error.issues }, { status: 400 });
     }
-    const { code, passed, testResults, hintsUsed } = validation.data;
+    const { code, hintsUsed } = validation.data;
+    let { passed, testResults } = validation.data;
+    const clientPassed = passed;
 
     const exercise = await prisma.exercise.findFirst({ where: { id: exerciseId, archivedAt: null } });
     if (!exercise) {
       return NextResponse.json({ error: "Exercise not found" }, { status: 404 });
+    }
+
+    // In server mode the browser's verdict is only a preview: re-run the tests here
+    const serverGraded = isServerGrading();
+    if (serverGraded) {
+      const verdict = await gradeOnServer(exercise, code);
+      if (!verdict.graded) {
+        console.error("Server grading failed:", verdict.reason);
+        return NextResponse.json(
+          { error: "Grading is unavailable right now, so this attempt wasn't recorded. Try again in a minute." },
+          { status: 503 }
+        );
+      }
+      passed = verdict.passed;
+      testResults = JSON.stringify(verdict.summary);
     }
 
     const attempt = await openAttemptForDrill(userId, exerciseId);
@@ -114,6 +135,9 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
     return NextResponse.json({
       success: true,
       mode,
+      grading: serverGraded ? "server" : "client",
+      // The server's run disagreed with the browser's (rare: an environment difference)
+      gradingDisagreed: serverGraded && passed !== clientPassed,
       submission: {
         id: submission.id,
         passed: submission.passed,

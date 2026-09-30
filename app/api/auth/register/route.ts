@@ -3,9 +3,12 @@ import { hash } from "bcryptjs";
 import { ZodError } from "zod";
 import { prisma } from "@/lib/prisma";
 import { signUpSchema } from "@/lib/validations/auth";
+import { clientIp, rateLimit, tooManyRequests } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
   try {
+    const limited = await rateLimit("register", clientIp(req));
+    if (!limited.ok) return tooManyRequests(limited, "Too many sign-ups from here.");
     const body = await req.json();
     const validatedData = signUpSchema.parse(body);
 

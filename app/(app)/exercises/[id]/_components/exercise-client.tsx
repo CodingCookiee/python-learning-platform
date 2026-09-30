@@ -35,6 +35,7 @@ import {
 import type { UnlockedAchievement } from "@/lib/achievements";
 import type { DrillData, DrillMode, DrillType } from "@/lib/drills";
 import { cn } from "@/lib/utils";
+import { TutorPanel, type TutorHandle } from "@/components/tutor/tutor-panel";
 
 // Copy per drill type
 
@@ -73,7 +74,16 @@ type CheckState =
 
 // Error box: a traceback trimmed to the learner's own code
 
-function ErrorBox({ error, title }: { error: PyError; title?: string }) {
+/** Explain a traceback with the tutor; absent when the tutor isn't available */
+type Explain = ((error: PyError) => void) | null;
+
+function errorText(error: PyError): string {
+  return [`${error.type}: ${error.message}`, error.line ? `(line ${error.line})` : "", error.traceback ?? ""]
+    .filter(Boolean)
+    .join("\n");
+}
+
+function ErrorBox({ error, title, onExplain }: { error: PyError; title?: string; onExplain?: Explain }) {
   const heading =
     title ??
     (error.type === "Timeout"
@@ -89,6 +99,11 @@ function ErrorBox({ error, title }: { error: PyError; title?: string }) {
         <pre className="mt-3 overflow-x-auto font-mono text-xs leading-5 whitespace-pre-wrap text-muted-foreground">
           {error.traceback}
         </pre>
+      )}
+      {onExplain && error.type !== "Timeout" && (
+        <Button variant="outline" size="sm" className="mt-3" onClick={() => onExplain(error)}>
+          Explain this error
+        </Button>
       )}
     </div>
   );
@@ -282,7 +297,7 @@ function PromptPanel({
 
 // Results
 
-function TestResults({ result }: { result: TestRunResult }) {
+function TestResults({ result, onExplain }: { result: TestRunResult; onExplain?: Explain }) {
   const [open, setOpen] = React.useState<number | null>(null);
   if (result.status === "timeout" || (result.status === "error" && result.error)) {
     const title =
@@ -293,7 +308,7 @@ function TestResults({ result }: { result: TestRunResult }) {
           : undefined;
     return (
       <div className="flex flex-col gap-3">
-        <ErrorBox error={result.error!} title={title} />
+        <ErrorBox error={result.error!} title={title} onExplain={result.phase === "tests" ? null : onExplain} />
         {result.stdout && <PrintedOutput text={result.stdout} />}
       </div>
     );
@@ -369,12 +384,12 @@ function PrintedOutput({ text, label = "Printed" }: { text: string; label?: stri
   );
 }
 
-function RunOutput({ result }: { result: RunResult }) {
+function RunOutput({ result, onExplain }: { result: RunResult; onExplain?: Explain }) {
   return (
     <div className="flex flex-col gap-3">
       {(result.stdout || !result.error) && <PrintedOutput text={result.stdout} label="Output" />}
       {result.stderr && <PrintedOutput text={result.stderr} label="Warnings" />}
-      {result.error && <ErrorBox error={result.error} />}
+      {result.error && <ErrorBox error={result.error} onExplain={onExplain} />}
     </div>
   );
 }
@@ -383,6 +398,8 @@ function RunOutput({ result }: { result: RunResult }) {
 
 interface SubmitResponse {
   mode: DrillMode["kind"];
+  grading: "client" | "server";
+  gradingDisagreed: boolean;
   submission: { attempts: number; passed: boolean };
   xpGained: number;
   newlySolved: boolean;
@@ -408,7 +425,29 @@ function daysUntil(iso: string): number {
   return Math.max(1, Math.round((new Date(iso).getTime() - Date.now()) / 86_400_000));
 }
 
-export function ExerciseClient({ drill }: { drill: DrillData }) {
+/** A plain-text account of the latest run, for the tutor */
+function describeCheck(check: CheckState, run: RunResult | null, answer: string): string | undefined {
+  const parts: string[] = [];
+  if (check.kind === "tests") {
+    const r = check.result;
+    if (r.status === "timeout") parts.push("The test run timed out.");
+    else if (r.status === "error" && r.error) parts.push(`The tests couldn't run: ${errorText(r.error)}`);
+    else {
+      const passed = r.tests.filter((t) => t.passed).length;
+      parts.push(`${passed} of ${r.tests.length} tests passed.`);
+      for (const t of r.tests.filter((t) => !t.passed)) parts.push(`FAILED ${t.name}${t.message ? `: ${t.message}` : ""}`);
+    }
+  } else if (check.kind === "predict") {
+    parts.push(`My predicted output:\n${answer}\n\nThat was ${check.correct ? "correct" : "not correct"}.`);
+  }
+  if (run) {
+    parts.push(`Output of my last Run:\n${run.stdout || "(nothing printed)"}`);
+    if (run.error) parts.push(errorText(run.error));
+  }
+  return parts.length ? parts.join("\n") : undefined;
+}
+
+export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: boolean }) {
   const { status: runtimeStatus, text: runtimeText } = useRuntimeStatus();
   const isPredict = drill.type === "predict";
   const mode = drill.mode;
@@ -441,6 +480,11 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
   const [finished, setFinished] = React.useState<{ score: number; passed: boolean } | null>(null);
   const [saveError, setSaveError] = React.useState<string | null>(null);
   const busyRef = React.useRef(false);
+  const tutorRef = React.useRef<TutorHandle>(null);
+  // Asking the tutor in a review counts as help, like a hint
+  const tutorUsedRef = React.useRef(false);
+  const tutorOn = mode.kind !== "checkpoint";
+  const explain: Explain = tutorOn && aiReady ? (error) => tutorRef.current?.explain(errorText(error)) : null;
 
   React.useEffect(() => {
     getPythonRuntime().preload();
@@ -452,7 +496,13 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
     const res = await fetch(`/api/exercises/${drill.id}/submit`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code: submitted, passed, testResults: JSON.stringify(summary), hintsUsed, mode: mode.kind }),
+      body: JSON.stringify({
+        code: submitted,
+        passed,
+        testResults: JSON.stringify(summary),
+        hintsUsed: hintsUsed + (tutorUsedRef.current ? 1 : 0),
+        mode: mode.kind,
+      }),
     });
     if (!res.ok) {
       const body = (await res.json().catch(() => null)) as { error?: string } | null;
@@ -461,6 +511,13 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
     }
     setSaveError(null);
     const data = (await res.json()) as SubmitResponse;
+    if (data.gradingDisagreed) {
+      setSaveError(
+        data.submission.passed
+          ? "The server re-ran the tests and they passed there, so this counts as a pass."
+          : "The server re-ran the tests and not all of them passed there, so this attempt counts as failed. Check for code that depends on timing or randomness."
+      );
+    }
     if (data.review?.counted) setReviewOutcome(data.review);
     if (data.checkpoint && "error" in data.checkpoint) setSaveError(data.checkpoint.error);
     else if (data.checkpoint) {
@@ -662,7 +719,7 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
       </div>
 
       <div aria-live="polite" className={cn("flex flex-col gap-4 transition-opacity", busy && "opacity-60")}>
-        {check.kind === "tests" && <TestResults result={check.result} />}
+        {check.kind === "tests" && <TestResults result={check.result} onExplain={explain} />}
         {check.kind === "predict" &&
           (check.correct ? (
             <div className="rounded-md border border-success/35 bg-success/6 p-4">
@@ -678,7 +735,7 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
               </p>
             </div>
           ))}
-        {runResult && <RunOutput result={runResult} />}
+        {runResult && <RunOutput result={runResult} onExplain={explain} />}
         {saveError && <p className="text-sm text-destructive">{saveError}</p>}
       </div>
 
@@ -758,6 +815,21 @@ export function ExerciseClient({ drill }: { drill: DrillData }) {
           )}
           {xpGained ? <Seal label="Passed" detail="Drill" animate className="hidden shrink-0 sm:inline-flex" /> : null}
         </div>
+      )}
+
+      {tutorOn && (
+        <TutorPanel
+          ref={tutorRef}
+          exerciseId={drill.id}
+          aiReady={aiReady}
+          getContext={() => ({
+            code: isPredict ? drill.starterCode : codeRef.current,
+            result: describeCheck(check, runResult, answer),
+          })}
+          onUsed={() => {
+            tutorUsedRef.current = true;
+          }}
+        />
       )}
 
       {solution !== null && !isPredict && (
