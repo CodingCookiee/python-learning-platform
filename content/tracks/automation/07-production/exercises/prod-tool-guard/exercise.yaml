@@ -1,0 +1,8 @@
+title: Guard the agent's tools
+type: function
+difficulty: core
+tags: [security, prompt-injection, tools, least-privilege]
+hints:
+  - "Check in this order: not allowed (or not a tool at all) -> blocked; a side effect while self.tainted -> ask self.confirm(name, arguments); then run the tool inside try/except."
+  - "Set self.tainted = True only after an untrusted tool has run successfully, so its own call isn't affected, but every side effect after it is."
+  - "Log exactly one (name, outcome) per call: blocked, declined, failed, approved or ran."

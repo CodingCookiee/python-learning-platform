@@ -711,41 +711,86 @@ class McpHarness:
     """Drive an MCP server's message handler the way a client would.
 
     The server under test is a function handle(message: dict) -> dict | None that takes
-    one JSON-RPC 2.0 message and returns the response (None for notifications):
+    one JSON-RPC 2.0 message and returns the response (None for notifications).
 
-        client = McpHarness(handle)
-        client.initialize()
-        assert [t["name"] for t in client.list_tools()] == ["get_order"]
-        result = client.call_tool("get_order", {"order_id": "1042"})
+    Two protocol generations:
 
-    .log keeps every (request, response) pair.
+    - **Stateless (2026-07-28 and later):** no handshake. Every request carries the
+      protocol version, client capabilities and client info in params._meta, the
+      server implements server/discover, and every result carries a resultType.
+
+          client = McpHarness(handle, protocol="2026-07-28")
+          info = client.discover()
+          tools = client.list_tools()
+
+    - **Handshake (2025-11-25 and earlier), the default:** initialize, then the
+      notifications/initialized notification, then ordinary requests.
+
+          client = McpHarness(handle)
+          client.initialize()
+          tools = client.list_tools()
+
+    .log keeps every (request, response) pair. .request(..., id=...) sends a custom id
+    (a string, or 0), and .send(message) passes any raw message through unchecked.
     """
 
-    def __init__(self, handle: Callable[[dict], dict | None]):
+    STATELESS_FROM = "2026-07-28"
+    META = "io.modelcontextprotocol/"
+
+    def __init__(
+        self,
+        handle: Callable[[dict], dict | None],
+        *,
+        protocol: str = "2025-06-18",
+        capabilities: dict | None = None,
+        client_info: dict | None = None,
+    ):
         self._handle = handle
         self._next = 0
+        self.protocol = protocol
+        self.capabilities = capabilities or {}
+        self.client_info = client_info or {"name": "pylearn-test", "version": "1.0"}
         self.log: list[tuple[dict, dict | None]] = []
         self.server_info: dict | None = None
 
-    def request(self, method: str, params: dict | None = None) -> dict:
-        self._next += 1
-        message = {"jsonrpc": "2.0", "id": self._next, "method": method}
-        if params is not None:
-            message["params"] = params
+    @property
+    def stateless(self) -> bool:
+        return self.protocol >= self.STATELESS_FROM
+
+    def _meta(self) -> dict:
+        return {
+            f"{self.META}protocolVersion": self.protocol,
+            f"{self.META}clientCapabilities": self.capabilities,
+            f"{self.META}clientInfo": self.client_info,
+        }
+
+    def send(self, message: Any) -> dict | None:
+        """Pass a raw message (even a malformed one) to the handler and return its reply."""
         response = self._handle(json.loads(json.dumps(message)))
         self.log.append((message, response))
+        return response
+
+    def request(self, method: str, params: dict | None = None, *, id: Any = None) -> dict:
+        if id is None:
+            self._next += 1
+            id = self._next
+        message: dict[str, Any] = {"jsonrpc": "2.0", "id": id, "method": method}
+        if params is not None or self.stateless:
+            message["params"] = dict(params or {})
+        if self.stateless:
+            message["params"]["_meta"] = {**self._meta(), **message["params"].get("_meta", {})}
+        response = self.send(message)
         if not isinstance(response, dict):
             raise AssertionError(f"{method} should get a JSON-RPC response, got {response!r}")
-        if response.get("jsonrpc") != "2.0" or response.get("id") != self._next:
-            raise AssertionError(f"{method}: the response must echo jsonrpc '2.0' and id {self._next}, got {response!r}")
+        if response.get("jsonrpc") != "2.0" or response.get("id") != id:
+            raise AssertionError(f"{method}: the response must echo jsonrpc '2.0' and id {id!r}, got {response!r}")
         return response
 
     def notify(self, method: str, params: dict | None = None) -> None:
-        message = {"jsonrpc": "2.0", "method": method}
+        message: dict[str, Any] = {"jsonrpc": "2.0", "method": method}
         if params is not None:
             message["params"] = params
-        response = self._handle(message)
-        self.log.append((message, response))
+        response = self.send(message)
         if response is not None:
             raise AssertionError(f"Notifications ({method}) must not get a response, got {response!r}")
 
@@ -753,16 +798,38 @@ class McpHarness:
         response = self.request(method, params)
         if "error" in response:
             raise AssertionError(f"{method} returned an error: {response['error']}")
-        return response.get("result")
+        result = response.get("result")
+        if self.stateless and isinstance(result, dict) and result.get("resultType") not in ("complete", "input_required"):
+            raise AssertionError(
+                f'{method}: from protocol {self.STATELESS_FROM} every result needs resultType "complete" '
+                f'(or "input_required"), got {result.get("resultType")!r}'
+            )
+        return result
 
-    def initialize(self, protocol_version: str = "2025-06-18") -> dict:
+    # Session setup
+
+    def initialize(self, protocol_version: str | None = None) -> dict:
+        """The handshake (protocols before 2026-07-28): initialize + notifications/initialized."""
+        if self.stateless:
+            raise AssertionError(
+                f"Protocol {self.protocol} has no initialize handshake; call discover() instead "
+                "(or create the harness with an older protocol)"
+            )
         result = self._result(
             "initialize",
-            {"protocolVersion": protocol_version, "capabilities": {}, "clientInfo": {"name": "pylearn-test", "version": "1.0"}},
+            {"protocolVersion": protocol_version or self.protocol, "capabilities": self.capabilities, "clientInfo": self.client_info},
         )
         self.server_info = result
         self.notify("notifications/initialized")
         return result
+
+    def discover(self) -> dict:
+        """server/discover (2026-07-28 and later): versions, capabilities and identity."""
+        result = self._result("server/discover", {})
+        self.server_info = result
+        return result
+
+    # Features
 
     def list_tools(self) -> list[dict]:
         return self._result("tools/list", {}).get("tools", [])
@@ -773,5 +840,14 @@ class McpHarness:
     def list_resources(self) -> list[dict]:
         return self._result("resources/list", {}).get("resources", [])
 
+    def list_resource_templates(self) -> list[dict]:
+        return self._result("resources/templates/list", {}).get("resourceTemplates", [])
+
     def read_resource(self, uri: str) -> dict:
         return self._result("resources/read", {"uri": uri})
+
+    def list_prompts(self) -> list[dict]:
+        return self._result("prompts/list", {}).get("prompts", [])
+
+    def get_prompt(self, name: str, arguments: dict | None = None) -> dict:
+        return self._result("prompts/get", {"name": name, "arguments": arguments or {}})

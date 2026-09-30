@@ -1,0 +1,8 @@
+title: A sliding-window error rate
+type: function
+difficulty: core
+tags: [monitoring, alerting, deque, performance]
+hints:
+  - "Keep (time, ok) pairs in a collections.deque, oldest first, and a running count of errors. Expiring old events is then popleft() from the front, adjusting the count, until the oldest is inside the window."
+  - "An event at time t is inside the window at `now` when t > now - window_seconds. Expire in requests() and error_rate() too, not only in record(): time passes between requests."
+  - "should_alert is requests(now) >= min_requests and error_rate(now) > threshold. With no events, the rate is 0.0."

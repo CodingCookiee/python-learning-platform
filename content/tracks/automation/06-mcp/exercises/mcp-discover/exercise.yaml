@@ -1,0 +1,8 @@
+title: server/discover and a version check on every request
+type: function
+difficulty: core
+tags: [mcp, server-discover, protocol-version, stateless, error-codes]
+hints:
+  - 'Split notifications off first. Then read meta = (message.get("params") or {}).get("_meta") or {} and check it before looking at the method, so every request is checked.'
+  - 'The version is meta.get(META + "protocolVersion"): it must be a str, and meta.get(META + "clientCapabilities") must be a dict, or it''s -32602. A str that isn''t in SUPPORTED_VERSIONS is -32022 with data {"supported": SUPPORTED_VERSIONS, "requested": version}.'
+  - 'One result(message, value) helper can return {"jsonrpc": "2.0", "id": message["id"], "result": {"resultType": "complete", **value, "_meta": {META + "serverInfo": SERVER_INFO}}}, so no method forgets either field.'

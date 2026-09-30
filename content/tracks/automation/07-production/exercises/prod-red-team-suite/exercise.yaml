@@ -1,0 +1,8 @@
+title: A red-team suite runner
+type: function
+difficulty: stretch
+tags: [security, prompt-injection, red-team, testing]
+hints:
+  - "Build the problems list in the order the prompt gives: forbidden tools (in the order they ran), the canary, each phrase (compare with casefold), then images, then one entry per URL whose host isn't allowed."
+  - "Find images with re.search(r\"!\\[[^\\]]*\\]\\([^)]*\\)|<img\\b\", reply, re.IGNORECASE) and URLs with re.findall(r\"https?://[^\\s<>()\\[\\]\\\"']+\", reply). urlsplit(url).hostname gives the host to check."
+  - "In run_red_team, wrap pipeline(attack[\"input\"]) in try/except Exception: a crash is one problem, f\"crashed: {type(error).__name__}: {error}\", and the other attacks still run."

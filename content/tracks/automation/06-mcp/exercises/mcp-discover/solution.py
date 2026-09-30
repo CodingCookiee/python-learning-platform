@@ -1,6 +1,5 @@
 META = "io.modelcontextprotocol/"
-SUPPORTED_VERSIONS = ["2026-07-28"]                                  # modern, per-request _meta
-LEGACY_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26"]         # the initialize handshake, newest first
+SUPPORTED_VERSIONS = ["2026-07-28"]
 SERVER_INFO = {"name": "leith-physio-appointments", "version": "2.1.0"}
 CAPABILITIES = {"tools": {}}
 INSTRUCTIONS = "Find and describe appointment slots. Booking is done by reception, not by this server."
@@ -22,7 +21,7 @@ def error(message, code, text, data=None):
 
 
 def version_error(message):
-    """The error for a modern request whose _meta is missing or unsupported, or None if it's fine."""
+    """The error for a request whose _meta is missing or unsupported, or None if it's fine."""
     meta = (message.get("params") or {}).get("_meta") or {}
     version = meta.get(META + "protocolVersion")
     if not isinstance(version, str) or not isinstance(meta.get(META + "clientCapabilities"), dict):
@@ -33,25 +32,17 @@ def version_error(message):
     return None
 
 
-class AppointmentServer:
-    """One connection's server. Modern requests are stateless; initialize switches on the older mode."""
-
-    def __init__(self):
-        self.legacy_version = None       # set by initialize, for older clients on this connection
-
-    def handle(self, message: dict) -> dict | None:
-        if "id" not in message:
-            return None
-        problem = version_error(message)
-        if problem is not None:
-            return problem
-        return self.dispatch(message)
-
-    def dispatch(self, message):
-        method = message.get("method")
-        if method == "server/discover":
-            return result(message, {"supportedVersions": SUPPORTED_VERSIONS, "capabilities": CAPABILITIES,
-                                    "instructions": INSTRUCTIONS})
-        if method == "tools/list":
-            return result(message, {"tools": TOOLS})
-        return error(message, -32601, f"Method not found: {method}")
+def handle(message: dict) -> dict | None:
+    """Check every request's _meta, then answer server/discover and tools/list."""
+    if "id" not in message:
+        return None
+    problem = version_error(message)
+    if problem is not None:
+        return problem
+    method = message.get("method")
+    if method == "server/discover":
+        return result(message, {"supportedVersions": SUPPORTED_VERSIONS, "capabilities": CAPABILITIES,
+                                "instructions": INSTRUCTIONS})
+    if method == "tools/list":
+        return result(message, {"tools": TOOLS})
+    return error(message, -32601, f"Method not found: {method}")

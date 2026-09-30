@@ -1,0 +1,7 @@
+title: "Predict: which alerts fire"
+type: predict
+difficulty: warm-up
+tags: [monitoring, alerting, thresholds]
+hints:
+  - "Work out each error rate: 6/400 is 1.5%, 41/380 is about 10.8%. The 14:10 window has a 25% error rate, but only 12 requests, fewer than min_requests."
+  - "The cost threshold is 3 × 0.42 = 1.26. An empty list is falsy, so `alerts(metrics) or \"quiet\"` prints quiet; a non-empty one prints as a list."

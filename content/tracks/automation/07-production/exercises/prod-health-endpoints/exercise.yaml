@@ -1,0 +1,9 @@
+title: A service with health and readiness checks
+type: function
+difficulty: core
+tags: [deployment, fastapi, health-checks, auth]
+packages: [fastapi, httpx]
+hints:
+  - "/healthz does nothing but return {\"status\": \"ok\"}: no checks, no model call. /readyz runs each check in try/except and returns a JSONResponse with status_code 200 or 503."
+  - "Authenticate with a dependency: def authenticated(x_api_key: str = Header(default=\"\")) that raises HTTPException(401) unless hmac.compare_digest(x_api_key.encode(), settings.service_api_key.encode()). Attach it with dependencies=[Depends(authenticated)]."
+  - "Wrap answer(body.question) in try/except Exception, log it with log.exception, and raise HTTPException(503, \"The assistant is unavailable, try again shortly\") so no error details reach the caller."

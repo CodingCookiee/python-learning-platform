@@ -362,7 +362,7 @@ class LLM(Protocol):
 | `fake_api({"GET /v1/deals/{id}": …})` | Slack, CRMs, sheets, any JSON API | A handler (`lambda req, id: {...}`) or a plain value; return `(status, json)` or `(status, json, headers)` for errors; `.requests` and `.calls("POST /path")` record traffic; `.async_transport` for `AsyncClient` |
 | `embeddings_api("openai" | "voyage")` | A4: a learner's real embedding adapter | HTTP fake of `POST /v1/embeddings` returning `fake_embed` vectors in the provider's response shape; checks the bearer header |
 | `fake_embed(texts, dim=64)`, `cosine(a, b)` | A4: RAG | Deterministic embeddings where shared (stemmed) words mean similarity, so retrieval, ranking and recall@k are testable without a model |
-| `McpHarness(handle)` | A6: MCP | Drives a JSON-RPC handler like a client: `.initialize()`, `.list_tools()`, `.call_tool(name, args)`, `.list_resources()`, `.read_resource(uri)`; checks ids and `jsonrpc: "2.0"` |
+| `McpHarness(handle, protocol="2026-07-28")` | A6: MCP | Drives a JSON-RPC handler like a client. **Stateless (2026-07-28+):** no handshake; every request carries `_meta` (`io.modelcontextprotocol/protocolVersion`, `clientCapabilities`, `clientInfo`); `.discover()` calls `server/discover`; results must carry `resultType`. **Handshake (older protocols, the default `2025-06-18`):** `.initialize()`. Both: `.list_tools()`, `.call_tool(name, args)`, `.list_resources()`, `.list_resource_templates()`, `.read_resource(uri)`, `.list_prompts()`, `.get_prompt(name, args)`, `.request(method, params, id=…)` for custom ids, `.send(raw)` for malformed messages |
 
 A reply in a script is `"text"`, `tool_call("tool_name", **arguments)` (or a list of them; use
 `tool_call("lookup", arguments={"name": …})` for argument names that clash),

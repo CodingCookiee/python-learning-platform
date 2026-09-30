@@ -1,9 +1,10 @@
+META = "io.modelcontextprotocol/"
 SERVER_INFO = {"name": "kiln-orders", "version": "1.0.0"}
 
 
 def result(message, value):
     """The success response to a request."""
-    return {"jsonrpc": "2.0", "id": message["id"], "result": value}
+    return {"jsonrpc": "2.0", "id": message["id"], "result": {"resultType": "complete", **value}}
 
 
 def error(message, code, text):
@@ -15,12 +16,12 @@ def handle(message):
     if "id" not in message:
         return None
     method = message["method"]
-    if method == "initialize":
+    if method == "server/discover":
         return result(message, {
-            "protocolVersion": "2025-06-18",
-            "capabilities": {},
-            "serverInfo": SERVER_INFO,
+            "supportedVersions": ["2026-07-28"],
+            "capabilities": {"tools": {}},
+            "_meta": {META + "serverInfo": SERVER_INFO},
         })
-    if method == "ping":
-        return result(message, {})
+    if method == "tools/list":
+        return result(message, {"tools": []})
     return error(message, -32601, f"Method not found: {method}")
