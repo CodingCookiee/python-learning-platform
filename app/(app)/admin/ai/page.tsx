@@ -62,7 +62,7 @@ function UsageTable<T extends UsageTotals>({
         ) : (
           rows.map((r, i) => (
             <tr key={i} className="border-b border-border">
-              <td className="py-2 pr-3 font-sans">{name(r)}</td>
+              <td className="py-2 pr-3 font-sans [font-variation-settings:normal]">{name(r)}</td>
               <td className="py-2 text-right">{fmt(r.calls)}</td>
               <td className="py-2 text-right">{fmt(r.input)}</td>
               <td className="py-2 text-right">{fmt(r.output)}</td>

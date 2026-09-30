@@ -216,6 +216,32 @@ hints:               # revealed one at a time; the last hint is the closest to t
 - **`predict`** drills need only `starter.py` (the code) and no tests. The expected answer is the real
   stdout of running it.
 
+### Multi-file drills
+
+When a drill is about how code is split across files (modules, packages, a script reading a data
+file), give it other files. They appear as tabs next to the main file:
+
+```yaml
+main_file: main.py           # the tab name for starter.py / solution.py (default main.py)
+files:
+  - path: pricing.py         # starter: files/pricing.py; solution: solution-files/pricing.py
+  - path: inventory/__init__.py
+  - path: inventory/stock.py
+    editable: false          # given and locked: the learner reads it but can't change it
+  - path: orders.csv
+    editable: false
+```
+
+- Starter content goes in `files/<path>`. An editable file's solution version goes in
+  `solution-files/<path>`; leave it out when the solution doesn't change the file.
+- `.py` files are importable by their module path (`import pricing`, `from inventory.stock import
+  reorder`), and other files are readable from the working directory (`open("orders.csv")`).
+- The main file is still imported as `solution`, so tests use `from solution import ...` as usual and
+  can import the other modules directly (`import pricing`). `defined_names` and `source_uses` look at
+  the main file only.
+- The validator runs the solution with the solution files and the starter with the starter files.
+  See `python/03-functions-and-modules/exercises/imports-split-pricing` for a worked example.
+
 ### `tests.py`
 
 The learner's code is importable as `solution`. Tests are plain functions registered with

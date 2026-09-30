@@ -321,10 +321,129 @@ if (process.env.FLOW) {
   chrome.kill();
   process.exit(0);
 }
+if (process.env.LOGDEBUG) {
+  await send("Network.clearBrowserCookies");
+  await go("/auth/signin", 4000);
+  await ev(`(() => { const set = (el, v) => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(el, v); el.dispatchEvent(new Event('input',{bubbles:true})); }; set(document.querySelector('#email'), 'five-probe@example.invalid'); set(document.querySelector('#password'), 'FiveProbe!2026'); })()`);
+  await sleep(300);
+  await ev(`document.querySelector('form button[type=submit]').click()`);
+  for (let i = 0; i < 60 && (await ev("location.pathname")) !== "/dashboard"; i++) await sleep(500);
+  await go(`/log`, 8000);
+  console.log("buttons:", await ev(`[...document.querySelectorAll('form button')].map(b => b.type + ':' + b.textContent.trim() + (b.disabled ? '(disabled)' : '')).join(' | ')`));
+  const r = await ev(`fetch('/api/log', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hours: 9, built: 'x', learned: 'direct', stuck: '', nextGoal: 'y', question: '' }) }).then(async r => r.status + ' ' + (await r.text()).slice(0, 200))`);
+  console.log("direct PUT:", r);
+  await ev(`(() => { const t = document.querySelector('#log-learned'); Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(t, 'via the button'); t.dispatchEvent(new Event('input',{bubbles:true})); })()`);
+  await sleep(500);
+  console.log("before click:", await ev(`[...document.querySelectorAll('form button')][0].textContent`));
+  await ev(`[...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Save this week')?.click()`);
+  await sleep(3000);
+  console.log("after click:", await ev(`[...document.querySelectorAll('form button')][0].textContent + ' / ' + (document.querySelector('[role=status]')?.innerText ?? 'no status')`));
+  console.log("LOGDEBUG console:", issues.length ? [...new Set(issues)].map((x) => x.slice(0, 400)) : "none");
+  ws.close();
+  chrome.kill();
+  process.exit(0);
+}
+if (process.env.FIVE) {
+  // Learning log, multi-file drills, admin AI usage, black-belt rule, checkpoint topics (as the five-probe learner)
+  const five = JSON.parse((await import("node:fs")).readFileSync(process.env.TEMP + "/five-ids.json", "utf8"));
+  const fsx = await import("node:fs");
+  const waitFor = async (expr, tries = 60) => {
+    for (let i = 0; i < tries; i++) {
+      if (await ev(expr)) return true;
+      await sleep(500);
+    }
+    return false;
+  };
+  const view = async (name) => fsx.writeFileSync(new URL(name, OUT), Buffer.from((await send("Page.captureScreenshot", { format: "png" })).result.data, "base64"));
+  await send("Network.clearBrowserCookies");
+  await go("/auth/signin", 4000);
+  await ev(`(() => { const set = (el, v) => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(el, v); el.dispatchEvent(new Event('input',{bubbles:true})); }; set(document.querySelector('#email'), 'five-probe@example.invalid'); set(document.querySelector('#password'), 'FiveProbe!2026'); })()`);
+  await sleep(300);
+  await ev(`document.querySelector('form button[type=submit]').click()`);
+  await waitFor(`location.pathname === '/dashboard'`, 60);
+  await sleep(3000);
+  console.log("rank card:", await ev(`document.querySelector('section[aria-label^="Your rank"]')?.innerText.replace(/\\n+/g, ' | ').slice(0, 420)`));
+  await shot("five-dashboard.png");
+
+  await go(`/checkpoints/${five.failedCheckpoint}`, 6000);
+  console.log("checkpoint topics:", await ev(`document.querySelector('#study-heading')?.closest('section')?.innerText.replace(/\\n+/g, ' | ').slice(0, 400)`));
+  await ev(`document.querySelector('#study-heading')?.scrollIntoView({block:'center'})`);
+  await sleep(400);
+  await view("five-checkpoint-topics.png");
+
+  for (const scheme of ["light", "dark"]) {
+    await setup(1440, 900, scheme);
+    await go(`/admin/ai`, 7000);
+    if (scheme === "light") {
+      console.log("admin ai:", await ev(`document.querySelector('dl')?.innerText.replace(/\\n+/g, ' | ').slice(0, 300)`));
+      await ev(`document.querySelector('ol[aria-label="Tokens per day"] li:last-child')?.focus()`);
+      await sleep(300);
+      console.log("bar tooltip:", await ev(`document.querySelector('ol[aria-label="Tokens per day"] li:last-child [role=tooltip]')?.innerText.replace(/\\n/g, ' ')`));
+    }
+    await shot(`five-admin-ai-${scheme}.png`);
+  }
+  await setup(1440, 900, "light");
+
+  await go(`/log`, 6000);
+  console.log("log draft built:", await ev(`document.querySelector('#log-built')?.value.split('\\n')[0]`));
+  await ev(`(() => { const t = document.querySelector('#log-learned'); Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(t, 'Closures keep the variables of the scope they were made in.'); t.dispatchEvent(new Event('input',{bubbles:true})); })()`);
+  await sleep(400);
+  await ev(`[...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Save this week')?.click()`);
+  await waitFor(`/Saved to your log/.test(document.body.innerText)`, 20);
+  console.log("check-in preview:", await ev(`document.querySelector('aside pre')?.innerText.split('\\n').slice(0, 5).join(' / ')`));
+  await go(`/log`, 5000);
+  console.log("after reload learned:", await ev(`document.querySelector('#log-learned')?.value`));
+  await shot("five-log.png");
+
+  // Multi-file drill: solve both files through the tabs
+  await go(`/exercises/${five.split}`, 7000);
+  await waitFor(`!!window.monaco?.editor?.getModels?.().length`);
+  console.log("tabs:", await ev(`[...document.querySelectorAll('[role=tab]')].map(t => t.textContent.trim()).join(', ')`));
+  const setActive = (code) => ev(`(() => { const ms = window.monaco.editor.getModels(); ms[ms.length - 1].setValue(${JSON.stringify(code)}); return ms.length; })()`);
+  await setActive("from pricing import bulk_discount, with_vat\n\n\ndef basket_total(items):\n    net = 0\n    for _name, unit_price, quantity in items:\n        net += bulk_discount(unit_price * quantity, quantity)\n    return with_vat(net)\n");
+  await ev(`[...document.querySelectorAll('[role=tab]')].find(t => t.textContent.includes('pricing.py'))?.click()`);
+  await sleep(1500);
+  await setActive("VAT_RATE = 0.2\n\n\ndef with_vat(net):\n    return round(net * (1 + VAT_RATE), 2)\n\n\ndef bulk_discount(net, quantity):\n    return round(net * 0.9, 2) if quantity >= 10 else net\n");
+  await sleep(300);
+  await view("five-multifile-pricing-tab.png");
+  await waitFor(`!/Loading Python/.test(document.body.innerText)`, 120);
+  await ev(`[...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Run tests')?.click()`);
+  await waitFor(`/tests passed/.test(document.body.innerText)`, 90);
+  await sleep(1500);
+  console.log("multi-file result:", await ev(`(document.body.innerText.match(/\\d+ of \\d+ tests passed/) ?? [''])[0]`), "|", await ev(`/Drill passed/.test(document.body.innerText)`));
+  await shot("five-multifile.png");
+  await sleep(3500);
+  // A fresh browser: the draft comes back from the server with both files
+  await ev(`localStorage.clear()`);
+  await go(`/exercises/${five.split}`, 7000);
+  await waitFor(`!!window.monaco?.editor?.getModels?.().length`);
+  await ev(`[...document.querySelectorAll('[role=tab]')].find(t => t.textContent.includes('pricing.py'))?.click()`);
+  await sleep(1500);
+  console.log("pricing.py draft restored:", await ev(`(() => { const ms = window.monaco.editor.getModels(); return ms[ms.length - 1].getValue().includes('round(net * 0.9, 2)'); })()`));
+
+  await go(`/exercises/${five.pkg}`, 7000);
+  await waitFor(`!!document.querySelector('[role=tab]')`, 30);
+  console.log("package tabs:", await ev(`[...document.querySelectorAll('[role=tab]')].map(t => (t.querySelector('[aria-label="Read-only"]') ? '🔒' : '') + t.textContent.trim()).join(', ')`));
+  await ev(`[...document.querySelectorAll('[role=tab]')].find(t => t.textContent.includes('stock.py'))?.click()`);
+  await sleep(1200);
+  await view("five-package-readonly.png");
+  console.log("FIVE console:", issues.length ? [...new Set(issues)].map((x) => x.slice(0, 300)) : "none");
+  ws.close();
+  chrome.kill();
+  process.exit(0);
+}
 if (process.env.AXE) {
   // Accessibility scan (WCAG 2.2 A/AA rules) of the main signed-in pages, light and dark
+  if (process.env.AXE_FIVE) {
+    await send("Network.clearBrowserCookies");
+    await go("/auth/signin", 4000);
+    await ev(`(() => { const set = (el, v) => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(el, v); el.dispatchEvent(new Event('input',{bubbles:true})); }; set(document.querySelector('#email'), 'five-probe@example.invalid'); set(document.querySelector('#password'), 'FiveProbe!2026'); })()`);
+    await sleep(300);
+    await ev(`document.querySelector('form button[type=submit]').click()`);
+    for (let i = 0; i < 60 && (await ev("location.pathname")) !== "/dashboard"; i++) await sleep(500);
+  }
   const axe = (await import("node:fs")).readFileSync(new URL("../node_modules/axe-core/axe.min.js", import.meta.url), "utf8");
-  const pages = [
+  const pages = process.env.AXE_PAGES ? process.env.AXE_PAGES.split(";").map((p) => p.split("|")) : [
     ["/dashboard", "dashboard"],
     ["/modules", "syllabus"],
     [`/modules/${ids.module}`, "module"],

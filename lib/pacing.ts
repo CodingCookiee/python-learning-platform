@@ -1,3 +1,4 @@
+import { blackBeltIfDue } from "@/lib/black-belt";
 import { prisma } from "@/lib/prisma";
 import { AUTOMATION_TRACK, getCurriculumState, PYTHON_TRACK, type TrackProgress } from "@/lib/curriculum-state";
 
@@ -21,6 +22,8 @@ export interface Pace {
   /** When the goal lands at the weekly target; null once it's reached */
   projectedFinish: string | null;
   goalLabel: string;
+  /** Every Python module is passed but the black belt's grading requirements aren't met yet */
+  blackBeltPending: boolean;
 }
 
 export function startOfWeek(now = new Date()): Date {
@@ -77,6 +80,7 @@ export async function getPace(userId: string): Promise<Pace> {
   const automation = tracks.find((t) => t.slug === AUTOMATION_TRACK);
   const hoursLeft = Math.round(hoursLeftIn(python) + (goal === "automation" ? hoursLeftIn(automation) : 0));
   const weeklyHours = Math.max(1, user?.weeklyHours ?? 10);
+  const blackBeltPending = goal === "python" && hoursLeft === 0 && !((await blackBeltIfDue(userId, tracks))?.met ?? true);
   const projectedFinish =
     hoursLeft > 0 ? new Date(Date.now() + (hoursLeft / weeklyHours) * 7 * 86_400_000).toISOString() : null;
 
@@ -87,5 +91,6 @@ export async function getPace(userId: string): Promise<Pace> {
     hoursLeft,
     projectedFinish,
     goalLabel: goal === "automation" ? "the AI automation dan grades" : "your black belt",
+    blackBeltPending,
   };
 }

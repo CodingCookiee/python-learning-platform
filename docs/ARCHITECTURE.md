@@ -464,8 +464,13 @@ Each milestone is shippable and leaves the app better than before.
 - **Onboarding and pacing (M7):** new learners answer three questions (experience, goal, hours a week) at `/onboarding`. The dashboard shows this week's estimated training against the target, the projected date for the goal, and a nudge to test out of the current module for learners who already code.
 - **Accessibility (M7):** axe (WCAG 2.2 A/AA) is clean on the dashboard, syllabus, module, lesson, drill, review, checkpoint, capstone, settings, onboarding and achievements pages, in light and dark.
 
+- **Learning log (§6.7):** `/log` drafts each week's check-in from activity (estimated hours, lessons, checkpoints, capstones, labs, drills passed and topics practised, drills still failing, the next lesson) and exports it in the roadmap's check-in template. Entries are kept per week (`LearningLogEntry`).
+- **Black belt (§6.6):** passing module 16 leaves the learner at 1 kyu with a full brown belt. The black belt needs every Python checkpoint, every topic taught in modules 8–13 (with 4+ drills) at 80% skill-map strength, and three approved Python capstones (`lib/black-belt.ts`); the rank card lists what's left. The "Python Master" achievement uses the same rule (`kind: black-belt`). Capstones count on the examiner's approval until acceptance tests run in a sandbox.
+- **Checkpoint feedback:** a closed attempt with misses lists the topics of the missed drills, the lessons to reread and the drills to redo.
+- **Multi-file drills:** an exercise can have other files (`files:` in exercise.yaml, docs/CONTENT.md), shown as editor tabs; read-only ones are locked. The runner serves the learner's modules to Python's import system from memory under their own names (so tracebacks and time limits cover them) and writes data files to the working directory. Validation, server grading, drafts and the tutor all carry every file. Two drills use it so far, in module 3's "Modules and imports".
+- **Admin AI usage:** `/admin/ai` shows calls and tokens per day, by feature, by model and by learner, the prompt-cache hit rate and how many learners have a key, over 7, 30 or 90 days.
+
 Still open:
-- The weekly learning log and check-in (§6.7).
 - Running capstone acceptance tests in a sandbox (E2B or GitHub Actions): the AI review reads the code but doesn't run it.
 - For a public launch: moving email from Gmail to Resend on your own domain (Gmail allows about 500 a day and may land in spam), and switching `GRADING_MODE` to `server` before a public launch.
 

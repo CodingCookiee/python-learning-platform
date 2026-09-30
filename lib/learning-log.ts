@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { AUTOMATION_TRACK, getCurriculumState, PYTHON_TRACK } from "@/lib/curriculum-state";
 import { estimateTrainingHours, startOfWeek } from "@/lib/pacing";
 import { ordinal } from "@/lib/ranks";
+import { BLACK_BELT, blackBeltIfDue } from "@/lib/black-belt";
 
 /**
  * The learning log: one entry a week, in the shape of the roadmap's weekly
@@ -39,6 +40,18 @@ async function currentPhase(userId: string): Promise<{ phase: string; nextGoal: 
   const automation = tracks.find((t) => t.slug === AUTOMATION_TRACK);
   const inPython = python?.modules.find((m) => m.unlocked && !m.passed);
   const inAutomation = automation?.unlocked ? automation.modules.find((m) => m.unlocked && !m.passed) : undefined;
+  // Every Python module passed, black belt not yet earned: that grading is the phase
+  if (!inPython && python) {
+    const bb = await blackBeltIfDue(userId, tracks);
+    if (bb && !bb.met) {
+      const weak = bb.topics.filter((t) => t.strength < BLACK_BELT.masteryTarget).slice(0, 2).map((t) => t.tag);
+      const nextGoal =
+        bb.capstones.approved < bb.capstones.needed
+          ? `Get capstone ${bb.capstones.approved + 1} of ${bb.capstones.needed} approved${weak.length ? `, and keep reviewing ${weak.join(" and ")}` : ""}`
+          : `Raise ${weak.join(" and ")} to 80% through reviews`;
+      return { phase: "Python black belt grading", nextGoal };
+    }
+  }
   const current = inPython ?? inAutomation;
   if (!current) return { phase: "Finished the course", nextGoal: "Build a portfolio project with what you've learned" };
 

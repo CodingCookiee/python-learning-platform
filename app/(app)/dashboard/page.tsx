@@ -361,7 +361,14 @@ export default async function DashboardPage() {
                   .
                 </>
               ) : (
-                <>You&apos;ve reached {pace.goalLabel}. Keep your reviews going so it stays sharp.</>
+                pace.blackBeltPending ? (
+                  <>
+                    Every module is passed. What&apos;s left is the black belt grading on the card above: advanced topics
+                    held through reviews, and three approved capstones.
+                  </>
+                ) : (
+                  <>You&apos;ve reached {pace.goalLabel}. Keep your reviews going so it stays sharp.</>
+                )
               )}
               {suggestPlacement && current && (
                 <>
