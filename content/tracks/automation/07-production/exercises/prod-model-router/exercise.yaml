@@ -1,0 +1,8 @@
+title: Cheap model first, escalate when unsure
+type: function
+difficulty: core
+tags: [cost, model-routing, json, validation]
+hints:
+  - "parse_reply: catch ValueError from json.loads, then check the types. isinstance(True, int) is True, so rule out bool before checking for int or float, then check 0 <= confidence <= 1."
+  - "In route, loop with enumerate(models). A usable, confident reply returns at once with escalated=index > 0. An unsure one is remembered as a needs_review Routed, and the loop moves on."
+  - "After the loop, return the last remembered answer, or raise RoutingFailed if there isn't one."

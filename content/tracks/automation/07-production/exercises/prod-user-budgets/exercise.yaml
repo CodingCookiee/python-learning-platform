@@ -1,0 +1,8 @@
+title: Budgets per user and per day
+type: function
+difficulty: core
+tags: [cost, budgets, datetime, decimal]
+hints:
+  - "Key every total by the day as well as the user: self.clock().astimezone(timezone.utc).date() is today's UTC date, whatever time zone the clock uses."
+  - "A defaultdict(Decimal) for (day, user) and another for day means yesterday's totals simply stop being looked at at midnight."
+  - "check compares the estimate with what's left: user_left = per_user_daily - spent(user); raise BudgetExceeded(\"user\", user_left) if estimate > user_left, then the same for the whole day."

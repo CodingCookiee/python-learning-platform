@@ -44,6 +44,7 @@ __all__ = [
     "FakeLLMError",
     "tool_call",
     "ScriptedLLM",
+    "AsyncScriptedLLM",
     "anthropic_api",
     "openai_api",
     "FakeProvider",
@@ -127,9 +128,11 @@ def _next_id(prefix: str) -> str:
     return f"{prefix}_{_ids['n']:04d}"
 
 
-def tool_call(name: str, **arguments: Any) -> ToolCall:
-    """A tool call the fake model makes: tool_call("get_order", order_id="1042")."""
-    return ToolCall(id=_next_id("call"), name=name, arguments=arguments)
+def tool_call(tool_name: str, /, arguments: dict | None = None, **kwargs: Any) -> ToolCall:
+    """A tool call the fake model makes: tool_call("get_order", order_id="1042").
+    Arguments that clash with Python keywords or this function's own parameter go in
+    arguments=: tool_call("lookup", arguments={"name": "Ada", "class": "vip"})."""
+    return ToolCall(id=_next_id("call"), name=tool_name, arguments={**(arguments or {}), **kwargs})
 
 
 def estimate_tokens(text: str) -> int:
@@ -265,6 +268,34 @@ class ScriptedLLM:
     @property
     def remaining(self) -> int:
         return len(self._script._items) - self._script.used
+
+
+class AsyncScriptedLLM(ScriptedLLM):
+    """ScriptedLLM for async code: `await llm.complete(...)`. Each call takes `delay`
+    seconds (asyncio.sleep, so calls overlap), and .max_in_flight records the most
+    calls that were running at once, so tests can check concurrency limits:
+
+        llm = AsyncScriptedLLM(["a", "b", "c"], delay=0.01)
+        await run_parallel(llm, prompts, limit=2)
+        assert llm.max_in_flight == 2
+    """
+
+    def __init__(self, replies: Iterable[Any], *, delay: float = 0.0, **kwargs: Any):
+        super().__init__(replies, **kwargs)
+        self.delay = delay
+        self.in_flight = 0
+        self.max_in_flight = 0
+
+    async def complete(self, messages: list[dict], **kwargs: Any) -> LLMResponse:  # type: ignore[override]
+        import asyncio
+
+        self.in_flight += 1
+        self.max_in_flight = max(self.max_in_flight, self.in_flight)
+        try:
+            await asyncio.sleep(self.delay)
+            return ScriptedLLM.complete(self, messages, **kwargs)
+        finally:
+            self.in_flight -= 1
 
 
 # HTTP-level fakes of the real APIs

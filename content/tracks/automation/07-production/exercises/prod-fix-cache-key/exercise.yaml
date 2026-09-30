@@ -1,0 +1,7 @@
+title: The cache key that ignores the model
+type: fix
+difficulty: warm-up
+tags: [cost, caching, hashlib, json]
+hints:
+  - "Only messages go into the hash. Put every parameter in one dict ({\"model\": model, \"system\": system, \"messages\": messages, ...}) and hash that instead."
+  - "json.dumps(request, sort_keys=True, separators=(\",\", \":\"), default=str) gives the same text whatever order the keys are in, and copes with values JSON can't represent."

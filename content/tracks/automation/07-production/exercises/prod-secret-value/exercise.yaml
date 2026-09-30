@@ -1,0 +1,7 @@
+title: A secret that won't print
+type: function
+difficulty: warm-up
+tags: [security, secrets, dunder-methods]
+hints:
+  - "f-strings, print() and logging use __str__; containers, debuggers and tracebacks use __repr__. Define both to return the mask, and keep the value in an attribute with a leading underscore."
+  - "hmac.compare_digest(a.encode(), b.encode()) compares in constant time. In secret_from_env, raise RuntimeError(f\"{name} is not set\") when env.get(name, \"\").strip() is empty, naming the variable and never the value."

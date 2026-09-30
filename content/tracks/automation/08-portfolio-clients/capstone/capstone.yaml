@@ -1,0 +1,21 @@
+slug: case-studies-and-offer
+title: Three case studies and an offer
+summary: Publish three outcome-first case studies from your A1 to A7 projects, a productised offer on one page, and an outreach list and message, ready to send.
+hours: 6
+xp: 250
+requirements:
+  - "Three case studies, each from a different A1 to A7 project, published as pages on your site or as READMEs in public repositories, each leading with an outcome headline and a Result section before the problem and the approach"
+  - "Every case study has at least two before-and-after metrics, each with its source and the period or test set it was measured on, and a Limits section that says what the system doesn't do"
+  - "Every case study is anonymised (no client, staff or customer names, emails, phone numbers or exact private figures), and any real client has agreed to it in writing"
+  - "Each project's README starts with who it's for, the problem and the measured result, then links a demo video of two to three minutes recorded on fake data, then explains how to run it"
+  - "One productised offer on a single page: who it's for, the problem, the result to expect, what's included (specific and countable), what isn't, the timeline, a fixed build price, an optional monthly retainer, how AI usage is billed and capped, the assumptions, and the next step"
+  - "An outreach file with a first message under 120 words, one follow-up, and a list of at least 10 businesses to contact, each with its source and why you chose it, and no personal contact details in the repository"
+  - "A one-page site, or a profile README, that links the offer and the three case studies, and says how to get in touch"
+  - "Either generated with the provided portfolio.py from your own data, with python portfolio.py --check passing, or written by hand to the same structure"
+criteria:
+  - "Each headline names a measured result and a kind of business, and a stranger could say in 30 seconds what was built and what changed"
+  - "Every number is traceable to its stated source; nothing is invented, and a test-set result is never presented as live results"
+  - "Nothing identifies a client, a person or their data: names, emails (including inside links), phone numbers, screenshots and exact figures have all been checked"
+  - "The offer is specific enough to buy: its scope has numbers, the out-of-scope list is real, the price and timeline are fixed, and the AI costs have a cap"
+  - "The outreach is personal, short, about the reader's problem, easy to refuse, and follows at most twice; the list is businesses chosen for a reason, not a scraped list"
+  - "The three case studies and the offer point at the same kind of client, so the portfolio reads as one focused business rather than three unrelated projects"

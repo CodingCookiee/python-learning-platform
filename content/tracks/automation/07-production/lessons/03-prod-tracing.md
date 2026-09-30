@@ -188,11 +188,12 @@ The wrong way first, and it's in almost every first version:
 
 ```python
 import logging
+import os
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s", force=True)
 log = logging.getLogger("support-bot")
 
-headers = {"x-api-key": "sk-ant-live-8f2Kq0tRz9", "anthropic-version": "2023-06-01"}
+headers = {"x-api-key": os.environ.get("ANTHROPIC_API_KEY", "<your real key>"), "anthropic-version": "2023-06-01"}
 email = "Hi, it's Ada Byrne (ada.byrne@example.com, +44 7700 900123). Where's order 1042?"
 log.info("Calling model with %s: %s", headers, email)
 ```

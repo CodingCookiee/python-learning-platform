@@ -1,0 +1,8 @@
+title: A response cache with a TTL
+type: function
+difficulty: core
+tags: [cost, caching, wrappers, llm]
+hints:
+  - "Check temperature first: if temperature != 0, add 1 to bypassed and pass the call straight through. None isn't 0, so a call that doesn't set it is never cached."
+  - "Build the key with the model actually used (model or self._llm.model). An entry is fresh when self.clock() - stored_at < self.ttl."
+  - "Only store a complete answer: response.stop_reason == \"end_turn\" and no response.tool_calls. Store (self.clock(), response)."

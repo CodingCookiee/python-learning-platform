@@ -385,6 +385,29 @@ class _AssertRewriter(ast.NodeTransformer):
 
 DEFAULT_TEST_TIMEOUT = 2.0
 IMPORT_TIMEOUT = 3.0
+# Frameworks that do heavy lazy setup the first time a learner's module uses them
+# (FastAPI builds route models, pandas and SQLAlchemy compile internals). Files that
+# import one get more time to load; an infinite loop at import time still fails.
+HEAVY_IMPORTS = {"fastapi", "starlette", "pandas", "sqlalchemy", "numpy", "pydantic", "scipy", "sklearn", "matplotlib"}
+HEAVY_IMPORT_TIMEOUT = 10.0
+
+
+def _import_budget(source: str) -> float:
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return IMPORT_TIMEOUT
+    for node in tree.body:
+        names = (
+            [a.name for a in node.names]
+            if isinstance(node, ast.Import)
+            else [node.module]
+            if isinstance(node, ast.ImportFrom) and node.module
+            else []
+        )
+        if any(n.split(".")[0] in HEAVY_IMPORTS for n in names):
+            return HEAVY_IMPORT_TIMEOUT
+    return IMPORT_TIMEOUT
 
 
 class _Deadline:
@@ -525,7 +548,7 @@ async def run_tests(solution: str, tests: str, import_solution: bool = True) -> 
             sys.modules["solution"] = module
             _preimport(solution)
             with contextlib.redirect_stdout(load_out), _patched_input(_NoInput()):
-                _deadline.start(IMPORT_TIMEOUT)
+                _deadline.start(_import_budget(solution))
                 try:
                     exec(code_obj, module.__dict__)
                 finally:

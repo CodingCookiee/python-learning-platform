@@ -179,7 +179,7 @@ def render_outreach(offer: Offer, studies: list[CaseStudy], prospects: list[Pros
         ["# Outreach"],
         ["## First message", "```text", message, "```"],
         ["## Follow-up (at most one more after this, a week or more later)", "```text", follow_up, "```"],
-        ["## Prospects", "Contact details live in my own CRM, not in this repository."] + rows,
+        ["## Prospects", "Contact details live in my own CRM, not in this repository.", ""] + rows,
     ]
     return "\n\n".join("\n".join(lines) for lines in sections) + "\n"
 
@@ -261,7 +261,7 @@ STUDIES = [
         client="Harbour Bikes",
         placeholder="an online bike shop",
         who_for="Online shops whose support inbox takes someone's whole morning",
-        problem=("Harbour Bikes' support inbox mixed refunds, delivery questions and damaged parcels, "
+        problem=("The support inbox at Harbour Bikes mixed refunds, delivery questions and damaged parcels, "
                  "and one person sorted every email by hand before anyone could answer it."),
         approach=[
             "Collected 200 real-looking tickets and the queue each one belongs in, to test against",

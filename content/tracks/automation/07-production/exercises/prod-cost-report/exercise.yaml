@@ -1,0 +1,10 @@
+title: A cost report from usage logs
+type: function
+difficulty: stretch
+tags: [cost, pandas, reporting, datetime]
+packages: [pandas]
+timeout: 20
+hints:
+  - "Check prices first: sorted(set(frame[\"model\"]) - set(prices)) lists every model with no price. The UTC day is pd.to_datetime(frame[\"ts\"], utc=True).dt.strftime(\"%Y-%m-%d\")."
+  - "frame[\"model\"].map(lambda m: prices[m][\"input\"]) gives each row's input price. Cost is (input_tokens * input price + output_tokens * output price) / 1_000_000."
+  - "groupby([\"day\", \"feature\"], as_index=False).agg(calls=(\"model\", \"size\"), input_tokens=(\"input_tokens\", \"sum\"), ...), then sort_values([\"day\", \"cost\"], ascending=[True, False]) and reset_index(drop=True)."

@@ -258,7 +258,8 @@ def _():
 - **`defined_names("function" | "class" | "any")`** lists what the learner's file defines at the top
   level (methods as `Class.method`).
 - **Time limits.** Each test may spend 2 seconds in the learner's code before it fails with "Took
-  longer than 2s…" and the line it was on; the other tests still run and report. Use
+  longer than 2s…" and the line it was on (loading the learner's file gets 3 s, or 10 s when it imports a
+  heavy framework such as FastAPI, pandas, SQLAlchemy or numpy); the other tests still run and report. Use
   `@test("…", timeout=10)` for a slower check, or `timeout=None` for timing measurements (the
   limit's tracer slows learner code slightly). This makes "make it faster" drills possible: a
   large input simply times out on the slow version. The limit covers code in the learner's file and inside test
@@ -295,8 +296,8 @@ Keep drills deterministic:
   from the test.
 - **Time:** have functions take `now` or a clock as a parameter. `zoneinfo` works in drills and
   lesson examples (its tzdata package loads automatically).
-- **FastAPI:** test apps with `httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test")`
-  inside an `async def` test (`packages: [fastapi, httpx]`). Sync and async endpoints and
+- **FastAPI:** test apps with `async with asgi_client(app) as client:` (from `plp`; the same as
+  `httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test")`) inside an `async def` test (`packages: [fastapi, httpx]`). Sync and async endpoints and
   dependencies both work: the runner makes anyio run thread-pool work inline in the browser.
   `fastapi.testclient.TestClient` does **not** work (it needs a real thread); don't use it in drills.
 - **Databases:** `sqlite3` and SQLAlchemy 2.0 (`packages: [sqlalchemy]`) work against in-memory
@@ -357,12 +358,14 @@ class LLM(Protocol):
 |------|-----|-----|
 | `anthropic_api(replies)` / `openai_api(replies)` | A2: the learner's own HTTP adapters | `httpx.Client(transport=api.transport, base_url="https://api.anthropic.com")`. It answers like the real endpoint (`POST /v1/messages` or `/v1/chat/completions`), checks auth headers (401), `max_tokens` for Anthropic (400), rejects `role: "system"` in Anthropic `messages` (400), supports `"stream": true` with real SSE events (text and tool calls, `ping`, OpenAI `stream_options.include_usage`), and records `.requests` / `.last` (method, path, headers, parsed `json`) |
 | `ScriptedLLM(replies, supports_schema=True, repeat_last=False)` | A3–A8: anything that takes an `llm` | Returns `LLMResponse`s in order; `.calls` holds every `complete()` call's arguments (messages copied), so tests assert on prompts, tools offered and history; a scripted `Fail` raises `FakeLLMError` (`.status`, `.retry_after`); `supports_schema=False` makes `schema=` raise `NotImplementedError`; raises a clear error if the code calls more times than scripted |
+| `AsyncScriptedLLM(replies, delay=0.01)` | Async agents and parallel workflows | `await llm.complete(...)`; calls overlap for `delay` seconds and `.max_in_flight` records peak concurrency |
 | `fake_api({"GET /v1/deals/{id}": …})` | Slack, CRMs, sheets, any JSON API | A handler (`lambda req, id: {...}`) or a plain value; return `(status, json)` or `(status, json, headers)` for errors; `.requests` and `.calls("POST /path")` record traffic; `.async_transport` for `AsyncClient` |
 | `embeddings_api("openai" | "voyage")` | A4: a learner's real embedding adapter | HTTP fake of `POST /v1/embeddings` returning `fake_embed` vectors in the provider's response shape; checks the bearer header |
 | `fake_embed(texts, dim=64)`, `cosine(a, b)` | A4: RAG | Deterministic embeddings where shared (stemmed) words mean similarity, so retrieval, ranking and recall@k are testable without a model |
 | `McpHarness(handle)` | A6: MCP | Drives a JSON-RPC handler like a client: `.initialize()`, `.list_tools()`, `.call_tool(name, args)`, `.list_resources()`, `.read_resource(uri)`; checks ids and `jsonrpc: "2.0"` |
 
-A reply in a script is `"text"`, `tool_call("name", **arguments)` (or a list of them),
+A reply in a script is `"text"`, `tool_call("tool_name", **arguments)` (or a list of them; use
+`tool_call("lookup", arguments={"name": …})` for argument names that clash),
 `Reply(text=, tool_calls=, stop_reason=, usage=)`, `Fail(429, retry_after=2)` / `Fail(500)`,
 `Timeout()` (HTTP fakes raise `httpx.ReadTimeout`; `ScriptedLLM` raises `TimeoutError`), or a
 function of the request that returns one of these (for replies that depend on the prompt).

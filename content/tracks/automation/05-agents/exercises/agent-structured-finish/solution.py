@@ -14,7 +14,21 @@ class Diagnosis(BaseModel):
     evidence: list[str] = Field(min_length=1, description="Facts from tool results, e.g. deploy ids")
 
 
-FINISH = {"name": "finish", "description": Diagnosis.__doc__, "parameters": Diagnosis.model_json_schema()}
+FINISH = {
+    "name": "finish",
+    "description": "What you found. Call finish with these fields once you're confident, or when you're stuck.",
+    "parameters": {
+        "type": "object",
+        "required": ["summary", "likely_cause", "suggested_action", "evidence"],
+        "properties": {
+            "summary": {"type": "string"},
+            "likely_cause": {"type": "string", "enum": ["deploy", "dependency", "capacity", "unknown"]},
+            "suggested_action": {"type": "string"},
+            "evidence": {"type": "array", "items": {"type": "string"}, "minItems": 1,
+                         "description": "Facts from tool results, e.g. deploy ids"},
+        },
+    },
+}
 NUDGE = "Please reply by calling the finish tool with every field filled in."
 NOT_RUN = json.dumps({"error": "Not run, because this turn called finish."})
 

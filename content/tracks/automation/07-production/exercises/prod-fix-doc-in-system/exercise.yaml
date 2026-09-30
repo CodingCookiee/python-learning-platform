@@ -1,0 +1,7 @@
+title: Documents in the system prompt
+type: fix
+difficulty: core
+tags: [security, prompt-injection, rag, delimiters]
+hints:
+  - "The system prompt must be ANSWER_SYSTEM and nothing else. Build the user message instead: one <document source=\"...\"> block per chunk, then a <question> block."
+  - "Strip our tags out of every untrusted string before wrapping it: re.compile(r\"</?\\s*(?:document|question)\\b[^>]*>\", re.IGNORECASE).sub(\"\", text). The question comes from a user, so it's untrusted too."

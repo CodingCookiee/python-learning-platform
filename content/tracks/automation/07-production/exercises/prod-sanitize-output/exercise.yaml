@@ -1,0 +1,8 @@
+title: Stop exfiltration through links and images
+type: function
+difficulty: core
+tags: [security, exfiltration, regex, urllib]
+hints:
+  - "is_allowed: urlsplit(url).hostname gives the lower-cased host without port or credentials. Allow it when host == domain or host.endswith(\".\" + domain), and only for http and https."
+  - "Match all four shapes in one pattern with named groups (image | link | html img | bare URL) and pass a function to re.sub. One pass means a kept markdown link's URL is never matched again as a bare URL."
+  - 'For a bare URL, split off trailing punctuation first: stripped = url.rstrip(".,;:!?"), then put url[len(stripped):] back after the replacement.'

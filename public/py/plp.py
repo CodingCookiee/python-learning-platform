@@ -38,6 +38,7 @@ __all__ = [
     "source_avoids",
     "defined_names",
     "modules",
+    "asgi_client",
     "pytest_run",
     "PytestResult",
     "typecheck",
@@ -528,6 +529,20 @@ def modules(files: dict[str, str]):
         if folder in sys.path:
             sys.path.remove(folder)
         drop()
+
+
+def asgi_client(app, *, base_url: str = "http://test", raise_app_exceptions: bool = True, **kwargs):
+    """An httpx.AsyncClient that talks to an ASGI app (FastAPI, Starlette) in-process:
+
+        async with asgi_client(app) as client:
+            response = await client.post("/bookings", json={...})
+
+    raise_app_exceptions=True lets an unhandled error in the app surface as the
+    learner's exception instead of a bare 500. Needs packages: [httpx]."""
+    import httpx
+
+    transport = httpx.ASGITransport(app=app, raise_app_exceptions=raise_app_exceptions)
+    return httpx.AsyncClient(transport=transport, base_url=base_url, **kwargs)
 
 
 def solution_source() -> str:

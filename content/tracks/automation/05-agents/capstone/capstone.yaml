@@ -1,0 +1,20 @@
+slug: research-agent
+title: Research agent
+summary: An agent that searches, reads, takes notes and writes a cited summary for a sales call, under a hard cost cap and a step cap, with a trace of every step.
+hours: 6
+xp: 200
+requirements:
+  - "research.py takes an llm with the course's neutral complete() interface, and runs the same code against ScriptedLLM and the fake search service in the browser, and against your real A2 client locally"
+  - "SearchClient wraps an injected httpx.Client for GET /search and GET /docs/{id}, with a timeout, and turns timeouts, 404s and server errors into ToolError messages that tell the model what to do next"
+  - "The agent loop offers search, read, take_note and finish, appends the assistant message before one result per tool call, and returns every tool failure to the model as an error observation"
+  - "take_note only accepts facts from documents the run has read, and the notes are shown in the system prompt on every call"
+  - "finish is validated in code: a non-empty summary with [n] markers, and citations that are ids of documents the run has read; an invalid finish goes back to the model as an error, and a plain reply gets one nudge"
+  - "A Budget checks each call's worst case before it's made and charges the actual cost from usage after, so spending never passes MAX_COST; the run also stops at MAX_STEPS model calls and when the same call is repeated a third time"
+  - "research_question returns a Report with the summary, the cited sources, the notes, the stop reason, the steps, the cost and a trace entry per action, and trace_jsonl writes the trace as JSON lines"
+criteria:
+  - "The demo run in the starter prints the brief's sample output, and the review scenarios (a looping model, a citation of an unread source, a missing document, a note from an unread document, a budget-draining model, a prompt injection inside a document) all end with a Report, never an exception"
+  - "No path makes a model call whose worst case could take spending over the cap, or makes more than MAX_STEPS calls"
+  - "Citations can only point at documents the agent actually read, so text inside a document can't add a source"
+  - "The conversation history is always valid for both providers, including when finish is rejected alongside other calls"
+  - "Limits and rules (caps, citation checks, note rules) live in plain, tested Python, not only in the prompt"
+  - "The code is typed, tested with ScriptedLLM and fake_api (at least one test per requirement), and runs locally against a real provider with the key read from the environment"
