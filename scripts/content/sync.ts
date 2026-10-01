@@ -235,6 +235,7 @@ async function main() {
             description: c.brief,
             requirements: JSON.stringify(c.requirements),
             successCriteria: JSON.stringify(c.criteria),
+            acceptance: c.suite ? { files: c.suite, requirements: c.acceptance.requirements } : Prisma.DbNull,
             starterTemplate: c.starter,
             estimatedTime: Math.round(c.hours * 60), // minutes, as the project pages expect
             xpReward: c.xp,

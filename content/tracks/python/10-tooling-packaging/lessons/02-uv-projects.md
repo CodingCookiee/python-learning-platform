@@ -11,17 +11,11 @@ exercises:
   - tooling-best-match
 lab:
   title: The invoicer project
-  kind: output
+  kind: github
   instructions: >-
-    In the invoicer folder, after adding httpx and the dev tools, run the command below and paste
-    its output. It should show invoicer with httpx as a dependency and pytest and ruff in the dev
-    group.
-  command: uv tree
-  patterns:
-    - '^invoicer v\d+\.\d+\.\d+'
-    - 'httpx v\d+\.\d+'
-    - 'pytest v[\d.]+ \(group: dev\)'
-    - 'ruff v[\d.]+ \(group: dev\)'
+    Push the invoicer project to a public GitHub repository with pyproject.toml, uv.lock and
+    .python-version committed. The checks confirm httpx is a dependency, pytest and ruff are in the
+    dev group, and the lockfile pins httpx.
 ---
 
 The last lesson built a venv by hand. Now multiply that by every project, add "which version of
@@ -352,7 +346,8 @@ sys.version_info[:2], sys.version_info >= (3, 14)
    it in lesson 3.
 8. Commit `pyproject.toml`, `uv.lock` and `.python-version`, and check that `git status` doesn't
    list `.venv`.
-9. **Check it:** run `uv tree` in `invoicer` and paste the output into the lab box below.
+9. **Check it:** push `invoicer` to a public GitHub repository, connect it in the lab box below and
+   add the workflow file it gives you. The checks run on GitHub on every push.
 
 ## Where this leaves you
 

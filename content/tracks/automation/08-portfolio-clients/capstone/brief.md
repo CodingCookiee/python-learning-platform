@@ -204,15 +204,49 @@ Before you submit, check each of these:
 - **A role-play rehearsal.** Run lesson 2's `rehearse()` with three personas from your niche, one
   of them difficult, and write down the three questions you'll now always ask.
 
+## How it's tested
+
+Automated tests run against the repository you connect. They need `portfolio.py` at its top level,
+holding your own `STUDIES`, `OFFER` and `PROSPECTS`, so keep your data there even if you also
+wrote the pages by hand. Change the templates as you like, but keep the starter's names: the
+`Metric`, `CaseStudy`, `Offer` and `Prospect` dataclasses with their fields (add new fields only
+with defaults), and the functions `anonymise(text, names)`, `headline(study)`,
+`render_case_study(study)`, `render_offer(offer)`, `render_outreach(offer, studies, prospects)`
+and `check(studies, offer, prospects)`, which returns a list of problems (empty when all is well).
+Importing `portfolio.py` must not run anything. The tests:
+
+- run `python portfolio.py --check` and expect it to exit with 0;
+- check your data: at least three case studies with their own slugs, a `demo_url` and a
+  `repo_url` each (a different repository each), at least two metrics each with a `source`, a
+  headline metric with a `before`, a `period` and `limits`; an offer whose included items each
+  have a number, with an out-of-scope list, a build price and a care plan price above 0, a
+  `currency`, `ai_terms` that mention a cap, assumptions and a next step; and at least 10
+  prospects, each a different business with a role, a source of `referral`, `community` or `cold`,
+  a reason, and no email address or phone number;
+- run `python portfolio.py --out <folder>` and read `<folder>/case-studies/<slug>.md`,
+  `<folder>/offer.md` and `<folder>/outreach.md`. Each case study page starts with a `# ` headline
+  that has a number and your `placeholder`, has `## Result`, `## Problem`, `## Approach` and
+  `## Limits` sections with the Result before the Problem and the Approach, and its Result section
+  shows every metric's label, before, after and source. No page may contain a real name you
+  listed, an email address or a phone number. `offer.md` shows every item, the currency, the build
+  price, the AI terms and the next step. `outreach.md` has `## First message` (120 words or fewer),
+  `## Follow-up` and `## Prospects` sections, and the list names every prospect;
+- call `anonymise`, `headline` and `check` on made-up data, to confirm the checks still catch
+  each problem listed under "Its checks fail when" above.
+
+The tests can't judge your writing, whether your numbers are real, or your READMEs, demos and
+site: the review does that.
+
 ## How to submit
 
-Submit one link on this capstone's page: your site, or a GitHub repository or profile README that
-links everything. The review follows the links to the three case studies, the three project
-READMEs and their demos, the offer and the outreach file, and reads them against the criteria. It
-checks that every number has a source, that nothing identifies a client or a person, that the
-offer can be bought as written, and that the outreach is something you'd be happy to receive. If
-you used `portfolio.py`, include it and your data, so the review can run `python portfolio.py
---check`.
+Connect the repository that holds `portfolio.py` on this capstone's page and add the workflow file
+pylearn gives you (`.github/workflows/pylearn.yml`): the tests run on every push, and the capstone
+page shows the results. Then submit one link on this capstone's page: your site, or a GitHub
+repository or profile README that links everything. The review follows the links to the three
+case studies, the three project READMEs and their demos, the offer and the outreach file, and
+reads them against the criteria. It checks that every number has a source, that nothing
+identifies a client or a person, that the offer can be bought as written, and that the outreach
+is something you'd be happy to receive.
 
 Then send the first message. The capstone is graded on the link; the business starts with the
 reply.

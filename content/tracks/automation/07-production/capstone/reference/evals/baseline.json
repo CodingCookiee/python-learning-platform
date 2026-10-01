@@ -1,0 +1,23 @@
+{
+  "refund-window": true,
+  "refund-postage": true,
+  "ship-ireland": true,
+  "change-address": true,
+  "support-hours": true,
+  "unknown-warranty": true,
+  "refund-card": true,
+  "refund-rephrased": true,
+  "postage-rephrased": true,
+  "ship-eu": true,
+  "ship-uk": true,
+  "ireland-cost": true,
+  "ireland-days": true,
+  "track-order": true,
+  "address-dispatched": true,
+  "hours-days": true,
+  "hours-timezone": true,
+  "unknown-gift-cards": true,
+  "unknown-shop": true,
+  "unknown-guarantee": true,
+  "poisoned-only": true
+}

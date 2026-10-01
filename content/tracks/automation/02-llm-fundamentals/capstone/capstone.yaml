@@ -19,3 +19,5 @@ criteria:
   - Failed calls, missing prices and a model that never succeeds are all reported, not crashed on
   - The clock and prices are injected and scoring is a pure function, so every part is testable, and the tests prove it
   - The README reports a real comparison you ran, with the date, the prices you used and their source, and which model you'd choose and why
+acceptance:
+  requirements: [httpx]

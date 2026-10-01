@@ -224,13 +224,62 @@ Check each with the scripted model before you submit:
 - **A judged sample.** Every night, have a judge grade 20 random redacted answers from the day's
   traces, and chart the pass rate next to the golden set's.
 
+## How it's tested
+
+Automated tests run in GitHub Actions on every push, with no API key and no network. They import
+`harden` (so `harden.py` sits at the top of the repository) with no key in the environment:
+importing it must not create a client, read a key or start a server. They use these seams:
+
+- **`python harden.py`**, run once with no key set: it must exit 0 and print an `eval:` line
+  without `FAIL`, `red team: N/N contained` with N of at least 8, and the `cost:` line. Commit
+  `plp_fakes.py` next to it, since `demo_llm()` imports it.
+- **Fake models.** Everywhere else the tests pass their own scripted fake as `llm`: an object with
+  `.model` and `complete(messages, *, system=None, tools=None, model=None, max_tokens=1024,
+  temperature=None)` returning `.text`, `.tool_calls`, `.stop_reason`, `.usage` (`input_tokens`,
+  `output_tokens`) and `.model`. A failing fake raises an error with `.status` (529) or a
+  `TimeoutError`. Its model name is the cheapest one in `PRICES`, so keep `PRICES` as
+  `{model: {"input": ..., "output": ...}}` in dollars per million tokens.
+- **The pipeline.** `harden(llm, Tracer(), BudgetLedger(per_user_daily=Decimal(...),
+  per_day=Decimal(...), clock=...))` returns `answer(question, user)`. The clock returns a
+  timezone-aware `datetime`, not always in UTC. The tests ask "How long do refunds take?" (or, if
+  your pipeline doesn't call the model for that, the first input in your golden set that does) and
+  check `FALLBACK_ANSWER` for spent budgets, model failures and policy violations.
+- **Spans.** `tracer.spans` lists `Span`s with `.name`, `.span_id`, `.parent_id`, `.end`, `.status`
+  and `.attributes`: one `answer` span per question with `user_ref`, `prompt_version` and `outcome`,
+  and an `llm.complete` span inside it per model call with `model`, `prompt_version`,
+  `input_tokens`, `output_tokens` and `cost_usd`.
+- **Ledger.** `check(user, estimate)` raises `BudgetExceeded`; `charge(user, cost)` records it.
+- **Evals.** `load_cases(text)` raises `ValueError` naming the line number for a bad line, and for a
+  duplicate id. `run_eval(system, cases)` returns a report with `.pass_rate` and `.results` (each
+  with `.id` and `.passed`). `gate(report, baseline)` returns a list of reasons, empty when the
+  release may ship, naming newly failing case ids.
+- **Security.** `redact(text)`, `sanitize(text)`, `violates_policy(text)`, `CANARY`, `ATTACKS` and
+  `run_red_team(pipeline, attacks)`, which returns a list of `{"id", "passed", "problems"}` dicts.
+- **The service.** `create_app(answer, service_api_key="...", checks={"name": check})`, where each
+  check takes no arguments and returns a bool, is called through FastAPI's `TestClient`.
+  `POST /v1/answer` takes `{"question": "..."}` and returns `{"answer": "..."}`, with 401 for a
+  missing or wrong `X-API-Key`, 422 for a body with no question, and 503 with no details when
+  `answer` raises; it calls `answer(question, user)`. A FastAPI trap: with
+  `from __future__ import annotations` at the top of `harden.py` (the starter has it), a request
+  model defined inside `create_app` can't be resolved and every request gets a 422, so define the
+  model at module level or remove that import.
+- **Files.** `evals/golden.jsonl` (20 or more cases, each with `id`, `input`, `expected`, `scorer`
+  and `tags`), `evals/baseline.json` (case ids mapped to `true` or `false`), a `Dockerfile` with a
+  `HEALTHCHECK` on `/healthz` and a non-root `USER`, `REDTEAM.md` naming every attack id in
+  `ATTACKS`, and `README.md`.
+
+The deployment, your `evals.yml` workflow, a run against a real model and the hidden cases and
+attacks aren't part of these tests; the review covers them.
+
 ## How to submit
 
 Push a GitHub repository containing `harden.py` (or your own project with the same harness), its
 tests, `evals/golden.jsonl` and `evals/baseline.json`, `.github/workflows/evals.yml`, the
 `Dockerfile`, `REDTEAM.md` (each attack, its result, and the defence that contained it) and a
 `README.md` (what it does, how to run it offline, with a key, and in Docker, and the deployed URL
-or the recorded local run). Submit the repository's link on this capstone's page.
+or the recorded local run). Connect the repository on this capstone's page and add the workflow
+file pylearn gives you as `.github/workflows/pylearn.yml`: the tests above run on every push, and
+the capstone page shows the results. Then submit the repository's link there.
 
 The review runs `python harden.py` with the scripted model, then runs hidden golden cases and hidden
 attacks through your `answer()` (a prompt leak through a tool result, a markdown image, a

@@ -18,3 +18,5 @@ criteria:
   - "iter_contacts and iter_deals are generators that fetch one page at a time, follow the cursor and the Link header exactly, and never drop the last page"
   - "Public methods are thin and typed: each builds a path and a body, calls _request, and returns a model; money stays Decimal on the way in and out"
   - "The API key appears only in the Authorization header: not in URLs, reprs, exception messages or logs"
+acceptance:
+  requirements: [httpx, pydantic]

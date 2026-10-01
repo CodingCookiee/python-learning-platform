@@ -18,3 +18,5 @@ criteria:
   - "The conversation history is always valid for both providers: the assistant tool-call message is appended before its results, one result per call, in order"
   - "Business rules (urgency, routing thresholds, refund limits) live in plain, tested Python, not in the prompt"
   - "The code is typed, tested with ScriptedLLM (at least one test per requirement), and runs locally against a real provider with the key read from the environment"
+acceptance:
+  requirements: [pydantic]

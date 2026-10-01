@@ -66,6 +66,10 @@ $ uv run python orders_api.py
   "error": "invalid_request",
   "details": [
     {
+      "field": "giftWrap",
+      "message": "Extra inputs are not permitted"
+    },
+    {
       "field": "customerEmail",
       "message": "Value error, not an email address"
     },
@@ -88,10 +92,6 @@ $ uv run python orders_api.py
     {
       "field": "shippingAddress.country",
       "message": "String should match pattern '^[A-Z]{2}$'"
-    },
-    {
-      "field": "giftWrap",
-      "message": "Extra inputs are not permitted"
     }
   ]
 }
@@ -296,11 +296,26 @@ Pick any you like once the requirements work:
 - **Tests.** Write `test_orders_api.py` with pytest: one test per rule, parametrised over good and
   bad payloads, plus a test that runs mypy through `mypy.api.run` and asserts it passes.
 
+## How it's tested
+
+Automated tests run on every push to your repository. They rely on this:
+
+- `orders_api.py` is at the top of the repository, and `pydantic` is a dependency in your
+  `pyproject.toml`. The tests install mypy themselves.
+- They import the names in the design table, plus `CATALOGUE` and `CatalogueItem` from the starter,
+  and call the functions with the signatures above. Importing the file prints nothing.
+- `python orders_api.py` prints the three blocks of the sample run, separated by blank lines. The
+  JSON is compared as data, so spacing doesn't matter, and the error details may come in any order
+  (Pydantic decides it).
+- `mypy --strict orders_api.py` passes, and the file contains no `# type: ignore`.
+
 ## How to submit
 
 Push `orders_api.py`, `pyproject.toml` and a short `README.md` (what it is, and the two commands to
-run it and type-check it) to a GitHub repository, and submit its link on this capstone's page. The
-review runs `mypy --strict orders_api.py`, runs `python orders_api.py` and compares it with the
-sample, runs hidden tests against your models and functions with payloads you haven't seen, and
-then reads your code against the criteria: shared types doing the constraining, precise errors,
-consistent money, and business rules kept out of the models.
+run it and type-check it) to a GitHub repository. Connect the repository on this capstone's page
+and add the workflow file it gives you (`.github/workflows/pylearn.yml`): the tests then run on
+every push, and the page shows the results. The review runs `mypy --strict orders_api.py`, runs
+`python orders_api.py` and compares it with the sample, runs hidden tests against your models and
+functions with payloads you haven't seen, and then reads your code against the criteria: shared
+types doing the constraining, precise errors, consistent money, and business rules kept out of the
+models.

@@ -18,3 +18,5 @@ criteria:
   - "The conversation history is always valid for both providers, including when finish is rejected alongside other calls"
   - "Limits and rules (caps, citation checks, note rules) live in plain, tested Python, not only in the prompt"
   - "The code is typed, tested with ScriptedLLM and fake_api (at least one test per requirement), and runs locally against a real provider with the key read from the environment"
+acceptance:
+  requirements: [httpx]

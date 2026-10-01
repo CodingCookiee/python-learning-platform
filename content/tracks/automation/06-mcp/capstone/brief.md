@@ -359,12 +359,36 @@ Before you submit, check each of these with `McpHarness`:
 - **An audit report.** A script that reads a day's audit lines and prints calls per client, the
   most looked-up orders, and every `protocol_error`.
 
+## How it's tested
+
+Every push runs automated tests from the top of your repository, with no network and no keys:
+
+- They import `kiln_mcp` and build `KilnServer(store, docs, clock=..., secrets=..., calls_per_minute=...)`
+  themselves, with their own copy of `ORDERS` and `DOCS`. The store is a fake: any object whose
+  `get(order_id)` returns an order dict or `None` (one raises, one moves the clock). The clock is
+  a function returning seconds that the tests move by hand.
+- They drive `handle(message)` with their own copy of `McpHarness`, as a current client and as an
+  older one on a fresh `KilnServer`, and compare replies, error codes and messages with this brief,
+  word for word where the brief gives the text. They also use `GetOrder`, `SearchDocs`,
+  `INSTRUCTIONS` and `RateLimiter(limit, clock)` from `kiln_mcp`.
+- They attach their own handlers to the `kiln_mcp` and `kiln_mcp.audit` loggers (set to `INFO`), and
+  check that nothing is written to stdout. So don't configure logging, print, open a connection or
+  read a key at import time: that all belongs under `if __name__ == "__main__":`.
+- They run `python kiln_mcp.py --demo` with their own `plp_fakes.py` first on the path, and compare
+  what it prints with the sample run, line by line.
+- They start `python sdk_server.py`, connect over stdio as an older client (`initialize` with
+  `2025-06-18`, which mcp 1.x and 2.x both answer), call both tools, list the resources and read
+  `policy://shipping`. List `mcp` and `pydantic` in your `pyproject.toml` dependencies (`uv add`
+  does this) or in a `requirements.txt`, so the tests can install them.
+
 ## How to submit
 
-Push `kiln_mcp.py`, `sdk_server.py`, your tests and a `README.md` to a GitHub repository, and submit
-its link on this capstone's page. The README says what the server exposes and what it deliberately
+Push `kiln_mcp.py`, `sdk_server.py`, your tests and a `README.md` to a GitHub repository, submit
+its link on this capstone's page, connect the repository there, and add the workflow file pylearn
+gives you (`.github/workflows/pylearn.yml`). The tests above run on every push, and the capstone
+page shows the results. The README says what the server exposes and what it deliberately
 doesn't, shows the client config you used, and includes a transcript or screenshot of a real client
-using both tools and a policy resource. The review runs the demo against the sample, drives
-`KilnServer` through a hidden `McpHarness` session (odd ids, notifications, a missing `_meta`, a future version, an older client,
+using both tools and a policy resource. The review also drives `KilnServer` through its own
+`McpHarness` session (odd ids, notifications, a missing `_meta`, a future version, an older client,
 traversal URIs, extra and oversized arguments, a burst of 40 calls, a planted secret), and reads
 your code against the criteria: read-only, validated, never leaking, and on record.

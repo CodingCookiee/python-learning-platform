@@ -437,6 +437,11 @@ completion.
 - **output**: the learner pastes a command's output (`command`), and every regular expression in
   `patterns` must match (multiline). Write them in single quotes and keep them robust to versions
   and timings (`\d+ passed`). This is honour-system checking; it confirms the steps were followed.
+- **github**: the learner pushes their project to a public GitHub repository and the checks run there
+  (see "Tests that run in GitHub Actions" below). The checks are pytest files in
+  `labs/<lesson-slug>/tests/` inside the module folder, with a `reference/` project beside them;
+  `requirements` lists packages the checks need (`[ruff, mypy]`). Prefer this kind whenever the lab
+  produces a project: it's the only one that can't be faked by pasting text. Module 10's labs use it.
 
 End the lab section with a one-line **Check it:** step telling the learner what to send or paste.
 
@@ -459,6 +464,44 @@ criteria:              # how it's graded (the reviewer's checklist)
 `brief.md` is the full project brief: the scenario, the requirements in detail, a sample run, stretch
 goals, and how to submit. `starter.py` is optional.
 
+`acceptance/` holds the capstone's acceptance tests (`test_*.py`) and `reference/` a reference
+solution for checking them. Packages the tests need beyond the learner's project go in
+`capstone.yaml`:
+
+```yaml
+acceptance:
+  requirements: [httpx]
+```
+
+### Tests that run in GitHub Actions
+
+Capstone acceptance tests and `github` labs run in the learner's own public repository, on every
+push, through a workflow file pylearn generates for them (`.github/workflows/pylearn.yml`). The
+workflow installs their project (`pyproject.toml` and/or `requirements.txt`), downloads the tests
+into `.pylearn/`, installs pytest plus the suite's `requirements`, and runs:
+
+```text
+python -m pytest .pylearn -c .pylearn/pytest.ini --rootdir . --noconftest -p no:cacheprovider
+```
+
+The repository root is the working directory and is importable. `--noconftest` means the learner's
+conftest.py can't interfere, and neither can yours: keep fixtures and helpers inside the test files.
+The app only counts a run after GitHub's API confirms it ran the unmodified workflow in the connected
+repo and succeeded.
+
+Writing the tests:
+
+- Test what the brief states precisely (file names, functions, commands, exact messages), black-box
+  where you can: run the program with `subprocess.run([sys.executable, "app.py", ...], input=...)`,
+  import the functions the brief names, use `tmp_path`. Leave style and design to the examiner.
+- No network and no API keys. Inject fakes through the seams the brief specifies (the automation
+  track's `complete()` interface, `httpx.MockTransport`, FastAPI's `TestClient`).
+- Write assertion messages for the learner: they read them on the capstone page.
+- If the brief doesn't pin down what the tests need, add a short "How it's tested" section to it.
+- Every suite has a `reference/` solution, laid out like a learner's repo, that is never published.
+  `npm run content:acceptance` runs the suite against it (all must pass) and against an empty
+  project (none may pass), with Python on your machine.
+
 ---
 
 ## Commands
@@ -469,6 +512,8 @@ goals, and how to submit. `starter.py` is optional.
 | `npm run content:validate -- --only <slug>` | The same for one module, lesson or drill |
 | `npm run content:validate -- --quick` | Structure only, no Python |
 | `npm run content:try -- <exercise dir> [--solution]` | Shows exactly what a learner sees when running the starter (or solution) |
+| `npm run content:acceptance` | Runs every capstone and github-lab suite against its reference/ solution and an empty project, with local Python |
+| `npm run content:acceptance -- --only <slug>` | The same for one capstone or lab |
 | `npm run content:sync` | Copies content into the database (archives removed items, keeps progress) |
 
 ## Checklist before you open a PR

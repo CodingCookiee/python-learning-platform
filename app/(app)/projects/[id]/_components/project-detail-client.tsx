@@ -9,6 +9,8 @@ import { ArrowRight, Clock, Download } from "lucide-react";
 import { TapeMark } from "@/components/brand/marks";
 import { Seal } from "@/components/brand/seal";
 import { AiReviewPanel } from "@/components/projects/ai-review-panel";
+import { CiPanel } from "@/components/ci/ci-panel";
+import type { CiLinkView } from "@/lib/ci/links";
 import type { AiReview } from "@/lib/ai/reviewer";
 
 export interface ProjectSubmission {
@@ -39,6 +41,9 @@ export interface ProjectDetailData {
   submission: ProjectSubmission | null;
   /** The learner has an AI key saved (for the AI review) */
   aiReady: boolean;
+  /** The capstone has acceptance tests that run in GitHub Actions */
+  hasAcceptance: boolean;
+  ci: CiLinkView | null;
 }
 
 interface ProjectDetailClientProps {
@@ -127,6 +132,16 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
             </h2>
             <p className="leading-relaxed whitespace-pre-line">{project.submission.feedback}</p>
           </section>
+        )}
+
+        {project.hasAcceptance && (
+          <CiPanel
+            kind="capstone"
+            targetId={project.id}
+            initial={project.ci}
+            title="Acceptance tests"
+            intro="The automated checks for this brief run on GitHub Actions in your own repo, on every push, for free. Passing them counts toward your black belt; the examiner still reviews the code."
+          />
         )}
 
         {project.submission && !isCompleted && (

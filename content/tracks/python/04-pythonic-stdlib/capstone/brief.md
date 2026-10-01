@@ -229,10 +229,27 @@ Pick any you like once the requirements work:
 - **Tests.** Write pytest tests for `parse_line` and `summarise` using small lists of lines. Module 7
   shows how, but plain `assert` statements in a `test_log_analyzer.py` work with pytest already.
 
+## How it's tested
+
+Automated tests run on every push to your repository. They rely on this:
+
+- `log_analyzer.py` is at the top of the repository.
+- The tests import `parse_line` and `summarise` and check the dicts they return against the tables
+  above. `top_paths`, `errors` and `busiest_hours` may hold tuples or lists.
+- They run `python log_analyzer.py access.log [zone]` in a folder holding the sample log. The report
+  is compared line by line with the sample run, with blank lines dropped and runs of spaces treated
+  as one space, so the words and figures must match but your column widths are your own. The status
+  code rows must still line up with each other.
+- The two error messages in "Bad input" can go to stdout or stderr. An empty file, or one with only
+  malformed lines, must print `Requests 0` (spacing aside) and `No requests to report.`, and exit
+  with status 0.
+
 ## How to submit
 
 Push `log_analyzer.py`, the sample `access.log` and a short `README.md` (what the tool does and the
-command to run it) to a GitHub repository, and submit its link on this capstone's page. The review
+command to run it) to a GitHub repository, and submit its link on this capstone's page. Connect the
+repository there too, and add the workflow file it gives you (`.github/workflows/pylearn.yml`): the
+tests above then run on every push, and the page shows the results. The review
 runs hidden tests against `parse_line` and `summarise`, runs the program on the sample log and on bad
 input, then reads your code against the criteria: correct figures, `Counter` for counting, aware
 datetimes throughout, no crashes, a compiled regex and small pure functions.

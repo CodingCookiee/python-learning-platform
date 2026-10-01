@@ -47,7 +47,7 @@ export const moduleSchema = z.object({
 export const labSpecSchema = z
   .object({
     title: text,
-    kind: z.enum(["webhook", "url", "output"]),
+    kind: z.enum(["webhook", "url", "output", "github"]),
     /** One or two sentences: what to send, deploy or run for the check */
     instructions: text,
     expect: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).default({}),
@@ -59,6 +59,10 @@ export const labSpecSchema = z
     patterns: z.array(z.string()).default([]),
     /** output: the command to run, shown to the learner */
     command: z.string().optional(),
+    /** github: packages the checks need besides the learner's own project (pytest is always installed) */
+    requirements: z.array(z.string()).default([]),
+    /** github: filled in by the loader from labs/<lesson-slug>/tests/ (not written in frontmatter) */
+    suite: z.record(z.string(), z.string()).optional(),
   })
   .superRefine((lab, ctx) => {
     if (lab.kind === "output" && lab.patterns.length === 0) ctx.addIssue({ code: "custom", message: "output labs need patterns" });
@@ -139,6 +143,11 @@ export const capstoneSchema = z.object({
   xp: z.number().int().positive().default(150),
   requirements: z.array(text).min(1),
   criteria: z.array(text).min(1),
+  /**
+   * Acceptance tests (capstone/acceptance/) that GitHub Actions runs in the learner's repo.
+   * requirements: packages the tests need besides the learner's project (pytest is always there).
+   */
+  acceptance: z.object({ requirements: z.array(z.string()).default([]) }).default({ requirements: [] }),
 });
 
 export const quizSchema = z
@@ -213,6 +222,10 @@ export interface ContentCapstone extends CapstoneMeta {
   path: string;
   brief: string;
   starter: string | null;
+  /** acceptance/: the tests, path -> source (null when the capstone has none yet) */
+  suite: Record<string, string> | null;
+  /** reference/: a reference solution, only used locally to check the tests (never published) */
+  reference: Record<string, string> | null;
 }
 
 export interface ContentModule extends ModuleMeta {

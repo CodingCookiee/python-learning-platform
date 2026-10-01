@@ -199,6 +199,45 @@ export function EvaluateClient({ submission }: EvaluateClientProps) {
           )}
         </section>
 
+        {submission.ci && (
+          <section aria-labelledby="ci-heading" className="flex flex-col gap-1.5 border-b border-border p-6 text-sm">
+            <h2 id="ci-heading" className="font-semibold">
+              Acceptance tests
+            </h2>
+            <p>
+              <span
+                className={
+                  submission.ci.status === "passed"
+                    ? "font-semibold text-success"
+                    : submission.ci.status === "failed" || submission.ci.status === "invalid"
+                      ? "font-semibold text-destructive"
+                      : "font-semibold"
+                }
+              >
+                {submission.ci.status === "passed"
+                  ? "Passed (confirmed with GitHub)"
+                  : submission.ci.status === "failed"
+                    ? "Failing"
+                    : submission.ci.status === "invalid"
+                      ? "Last run didn't count"
+                      : "No confirmed run yet"}
+              </span>
+              {submission.ci.total > 0 && (
+                <span className="font-condensed tabular text-muted-foreground">
+                  {" "}
+                  · {submission.ci.passed} of {submission.ci.total} tests
+                </span>
+              )}
+              <span className="text-muted-foreground"> · {submission.ci.repo}</span>
+            </p>
+            {submission.ci.runUrl && (
+              <a href={submission.ci.runUrl} target="_blank" rel="noreferrer" className="w-fit text-primary underline">
+                Open the run on GitHub
+              </a>
+            )}
+          </section>
+        )}
+
         {submission.aiReview && (
           <section aria-labelledby="ai-heading" className="flex flex-col gap-3 border-b border-border p-6">
             <h2 id="ai-heading" className="font-semibold">

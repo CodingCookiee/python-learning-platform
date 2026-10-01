@@ -321,6 +321,61 @@ if (process.env.FLOW) {
   chrome.kill();
   process.exit(0);
 }
+if (process.env.TABS) {
+  // Switch a multi-file drill's tabs back and forth and watch the console
+  const five = JSON.parse((await import("node:fs")).readFileSync(process.env.TEMP + "/five-ids.json", "utf8"));
+  await send("Network.clearBrowserCookies");
+  await go("/auth/signin", 4000);
+  await ev(`(() => { const set = (el, v) => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(el, v); el.dispatchEvent(new Event('input',{bubbles:true})); }; set(document.querySelector('#email'), 'five-probe@example.invalid'); set(document.querySelector('#password'), 'FiveProbe!2026'); })()`);
+  await sleep(300);
+  await ev(`document.querySelector('form button[type=submit]').click()`);
+  for (let i = 0; i < 60 && (await ev("location.pathname")) !== "/dashboard"; i++) await sleep(500);
+  await go(`/exercises/${five.pkg}`, 9000);
+  issues.length = 0;
+  const tabs = ["inventory/__init__.py", "inventory/stock.py", "main.py", "inventory/stock.py", "inventory/__init__.py", "main.py"];
+  for (const t of tabs) {
+    await ev(`[...document.querySelectorAll('[role=tab]')].find(b => b.textContent.trim().endsWith(${JSON.stringify(t)}))?.click()`);
+    await sleep(700);
+  }
+  await ev(`[...document.querySelectorAll('[role=tab]')].find(b => b.textContent.trim().endsWith('inventory/stock.py'))?.click()`);
+  await sleep(800);
+  console.log("visible editor shows stock.py:", await ev(`[...document.querySelectorAll('.monaco-editor')].filter(e => e.offsetParent !== null).map(e => e.innerText.includes('LOW_STOCK')).join(',')`));
+  console.log("editors mounted:", await ev(`document.querySelectorAll('.monaco-editor').length`));
+  console.log("TABS console:", issues.length ? [...new Set(issues)].map((x) => x.slice(0, 200)) : "none");
+  ws.close();
+  chrome.kill();
+  process.exit(0);
+}
+if (process.env.CIFLOW) {
+  // The acceptance-tests panel on the receipt printer capstone, connected to a public example repo
+  const waitFor = async (expr, tries = 40) => {
+    for (let i = 0; i < tries; i++) {
+      if (await ev(expr)) return true;
+      await sleep(500);
+    }
+    return false;
+  };
+  await go(`/projects/${ids.project}`, 8000);
+  await shot("ci-capstone-empty.png");
+  await ev(`(() => { const i = document.querySelector('input[id^="repo-"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(i, 'https://github.com/octocat/Hello-World'); i.dispatchEvent(new Event('input',{bubbles:true})); })()`);
+  await sleep(400);
+  await ev(`[...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Connect')?.click()`);
+  await waitFor(`/Add this file/.test(document.body.innerText) || !!document.querySelector('section p.text-destructive')`, 30);
+  console.log("connected:", await ev(`document.querySelector('[id^="ci-"]')?.closest('section')?.innerText.replace(/\\n+/g, ' | ').slice(0, 420)`));
+  await ev(`[...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Check now')?.click()`);
+  await sleep(4000);
+  console.log("after check:", await ev(`[...document.querySelectorAll('[id^="ci-"]')][0]?.closest('section')?.querySelector('p.text-muted-foreground:last-of-type')?.innerText ?? ''`), "|", await ev(`document.body.innerText.match(/No pylearn run yet[^\\n]*/)?.[0] ?? ''`));
+  await ev(`document.querySelector('[id^="ci-"]')?.scrollIntoView({block:'start'})`);
+  await sleep(400);
+  (await import("node:fs")).writeFileSync(new URL("ci-capstone-connected.png", OUT), Buffer.from((await send("Page.captureScreenshot", { format: "png" })).result.data, "base64"));
+  // Clean up: disconnect
+  const linkId = await ev(`fetch('/api/projects/${ids.project}').then(r => r.json()).then(p => p.ci?.id ?? null)`);
+  if (linkId) console.log("disconnect:", await ev(`fetch('/api/ci/links/${linkId}', { method: 'DELETE' }).then(r => r.status)`));
+  console.log("CIFLOW console:", issues.length ? [...new Set(issues)].map((x) => x.slice(0, 300)) : "none");
+  ws.close();
+  chrome.kill();
+  process.exit(0);
+}
 if (process.env.LOGDEBUG) {
   await send("Network.clearBrowserCookies");
   await go("/auth/signin", 4000);

@@ -110,6 +110,8 @@ def money(amount: Decimal, currency: str) -> str:
 
 def headline(study: CaseStudy) -> str:
     first = study.metrics[0]
+    if first.before == 0:            # no "before" to compare with: check() flags it, but the page still renders
+        return f"# {before_after(first)} for {study.placeholder}"
     moved = change(first.before, first.after, first.unit).lstrip("+-")
     direction = "down" if first.after < first.before else "up"
     return f"# {first.label} {direction} {moved} for {study.placeholder}"

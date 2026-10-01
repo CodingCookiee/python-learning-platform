@@ -18,3 +18,5 @@ criteria:
   - "Budgets can't be exceeded, even by a script sending the same question in a loop, and the cost summary matches the spans"
   - "The service answers from the deployed URL (or a local docker run, recorded in the README), /healthz never calls the model, /readyz reports each dependency, and a failing pipeline returns 503 with no details"
   - "The code is typed and tested against the fakes, with at least one test per requirement, and the README explains how to run it offline, with a key, and in Docker"
+acceptance:
+  requirements: [fastapi, httpx]

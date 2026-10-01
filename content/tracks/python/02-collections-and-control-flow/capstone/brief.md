@@ -157,9 +157,21 @@ Once the required report matches the sample exactly, try any of these:
 - **Decimal scores.** Accept scores like `87.5`, still rejecting anything outside 0 to 100, and show
   them to one decimal place.
 
+## How it's tested
+
+If you submit a GitHub repository, automated tests run on every push. They rely on this:
+
+- `gradebook.py` is at the top of the repository and runs with `python gradebook.py`.
+- It reads lines with `input()` until a blank line. The tests type the lines, then a blank line.
+- The report starts with the `Gradebook:` summary line. Anything printed before it (a prompt, for
+  example) is ignored, and so are spaces at the ends of lines. Everything from the summary on is
+  compared with the formats above, so the headers, widths and reasons must match exactly.
+
 ## Submitting
 
 Submit `gradebook.py`, plus the input file you tested with, from this capstone's page: upload the
-files, or link a GitHub repository that contains them. The reviewer runs your program on the sample
+files, or link a GitHub repository that contains them. If you use a repository, connect it on this
+capstone's page and add the workflow file it gives you (`.github/workflows/pylearn.yml`): the tests
+then run on every push, and the page shows the results. The reviewer runs your program on the sample
 input above and on a second, messier input, then reads your code against the checklist below. Add a
 note if you did any of the stretch goals.

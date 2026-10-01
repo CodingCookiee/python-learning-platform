@@ -224,11 +224,28 @@ Pick any you like once the requirements work:
 - **Resume.** Save the report as JSON when the crawl is cancelled with Ctrl+C, and add a `--resume`
   option that skips pages already fetched.
 
+## How it's tested
+
+Automated tests run on every push to your repository. They rely on this:
+
+- `fetcher.py` is at the top of the repository, with `Page`, `CrawlReport`, `Throttle`,
+  `FetchFailed`, `fetch_page`, `crawl` and `format_report` named and called as in the design and
+  requirements above. Importing it prints nothing.
+- The tests run your crawler against their own copy of the original `MockCatalogueAPI`, sometimes
+  with tighter limits, and always pass `rng=random.Random(7)`. Each crawl must finish within a
+  minute.
+- `fetch_page` is also tested with small fake clients that answer `503`, `404`, `429` or hang, and
+  with an `rng` whose `uniform(a, b)` always returns `b`, so the backoff sleeps can be timed.
+- While a crawl runs, there are no more tasks than the workers and the task that called `crawl`.
+- `python fetcher.py` prints the sample run. Only the elapsed time may differ.
+
 ## How to submit
 
 Push `fetcher.py` and a short `README.md` (what it does, how to run it, and one paragraph on why it
-can't overload the API) to a GitHub repository, and submit its link on this capstone's page. The
-review runs `python fetcher.py` and compares the counts with the sample, runs hidden checks against
-fresh mocks with different limits, including cancelling a crawl halfway, then reads your code
-against the criteria: one place for each limit, the retry rules exactly as written, no blocking
-calls or forgotten awaits, and nothing left running when `crawl` returns.
+can't overload the API) to a GitHub repository. Connect the repository on this capstone's page and
+add the workflow file it gives you (`.github/workflows/pylearn.yml`): the tests then run on every
+push, and the page shows the results. The review runs `python fetcher.py` and compares the counts
+with the sample, runs hidden checks against fresh mocks with different limits, including
+cancelling a crawl halfway, then reads your code against the criteria: one place for each limit,
+the retry rules exactly as written, no blocking calls or forgotten awaits, and nothing left running
+when `crawl` returns.

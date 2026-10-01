@@ -176,10 +176,32 @@ Every lesson in this module has a job here:
 - **Mutation testing.** Run `mutmut` against `pricing.py`. It plants bugs automatically, as the drills
   in this module did, and reports the ones your suite didn't notice.
 
+## How it's tested
+
+Automated tests run on every push to your repository. They rely on this:
+
+- `pricing.py`, `test_pricing.py` and `BUGS.md` are at the top of the repository.
+- The tests copy your test files (`test_*.py`, `*_test.py`, `conftest.py` and a `tests/` folder,
+  if you have one) into an empty folder and run them with pytest against several versions of
+  `pricing.py`: your fixed one, a correctly fixed one, the original starter, the fixed one with each
+  original bug put back on its own, and the fixed one with other bugs planted in it. Your own
+  pytest settings aren't used, and tests marked `xfail` run as ordinary tests.
+- During those runs, `fetch_rate` can't reach the network and `quote()` fails if it isn't given
+  `today`, so a test that relies on either fails.
+- `BUGS.md` must contain the name of each test that fails against the original (for a parametrized
+  test, its function name is enough).
+- Your `pricing.py` is also checked against the business rules by tests of our own, which say how
+  many checks fail but not which, so they don't give the bugs away.
+- Your test files are read to check you used fixtures, `parametrize` with ids, `pytest.raises` with
+  `match`, `tmp_path`, `capsys`, and `monkeypatch` or `patch`.
+
 ## How to submit
 
 Push `pricing.py`, `test_pricing.py`, `BUGS.md` and a short `README.md` (what the project is and the
 command that runs the tests) to a GitHub repository, and submit its link on this capstone's page.
+Connect the repository there too, and add the workflow file it gives you
+(`.github/workflows/pylearn.yml`): the tests above then run on every push, and the page shows the
+results.
 
 The review runs your suite three ways: against the original starter, where it must fail exactly the
 tests `BUGS.md` names; against your fixed `pricing.py`, where it must pass; and against a set of

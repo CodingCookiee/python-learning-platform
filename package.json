@@ -15,7 +15,12 @@
     "db:studio": "prisma studio",
     "content:validate": "tsx scripts/content/validate.ts",
     "content:sync": "tsx scripts/content/sync.ts",
-    "content:try": "node scripts/content/try-drill.mjs"
+    "content:try": "node scripts/content/try-drill.mjs",
+    "content:acceptance": "tsx scripts/content/acceptance.ts",
+    "test": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
+    "test:python": "vitest run --project python",
+    "test:all": "vitest run"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.2",
@@ -68,6 +73,7 @@
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
     "typescript": "^5",
+    "vitest": "^4.1.11",
     "yaml": "^2.9.0"
   },
   "lint-staged": {

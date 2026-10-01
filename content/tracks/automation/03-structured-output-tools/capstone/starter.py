@@ -13,8 +13,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-# Budgets and prices. The prices are example rates in US dollars per million tokens:
-# replace them with your model's real ones from your A2 cost table.
+# Budgets and prices. The prices are example rates in US dollars per million tokens. Keep these
+# values: the sample run and the tests use them (your A2 cost table has your real model's rates).
 MAX_CALLS = 8
 MAX_COST_USD = 0.05
 INPUT_PER_MTOK = 3.00

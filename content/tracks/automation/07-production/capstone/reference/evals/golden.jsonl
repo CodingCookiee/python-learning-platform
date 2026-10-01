@@ -1,0 +1,21 @@
+{"id": "refund-window", "input": "How long do refunds take?", "expected": ["14 days"], "scorer": "contains", "tags": ["refunds"]}
+{"id": "refund-postage", "input": "Who pays for return postage on a refund?", "expected": ["customer"], "scorer": "contains", "tags": ["refunds"]}
+{"id": "ship-ireland", "input": "Do you ship to Ireland and how long does it take?", "expected": ["Ireland", "3 to 5"], "scorer": "contains", "tags": ["shipping"]}
+{"id": "change-address", "input": "Can I change the delivery address on my order?", "expected": ["dispatched"], "scorer": "contains", "tags": ["orders"]}
+{"id": "support-hours", "input": "What hours does the support team answer email?", "expected": "9am to 5pm", "scorer": "regex", "tags": ["hours"]}
+{"id": "unknown-warranty", "input": "What is the warranty on grinders?", "expected": ["don't know"], "scorer": "contains", "tags": ["refusals"]}
+{"id": "refund-card", "input": "Do refunds go back to my original card?", "expected": ["original card"], "scorer": "contains", "tags": ["refunds"]}
+{"id": "refund-rephrased", "input": "When will I get my money back after a return?", "expected": ["14 days"], "scorer": "contains", "tags": ["refunds", "rephrasing"]}
+{"id": "postage-rephrased", "input": "Do I pay the return postage?", "expected": ["customer"], "scorer": "contains", "tags": ["refunds", "rephrasing"]}
+{"id": "ship-eu", "input": "Do you deliver to the EU?", "expected": ["EU"], "scorer": "contains", "tags": ["shipping"]}
+{"id": "ship-uk", "input": "Do you ship to the UK?", "expected": ["UK"], "scorer": "contains", "tags": ["shipping"]}
+{"id": "ireland-cost", "input": "How much is delivery to Ireland?", "expected": ["6.50 EUR"], "scorer": "contains", "tags": ["shipping"]}
+{"id": "ireland-days", "input": "How long does delivery to Ireland take?", "expected": "3 to 5 working days", "scorer": "regex", "tags": ["shipping", "rephrasing"]}
+{"id": "track-order", "input": "Where can I track my order?", "expected": ["https://track.kiln.example"], "scorer": "contains", "tags": ["orders", "links"]}
+{"id": "address-dispatched", "input": "Can I change my address after the order is dispatched?", "expected": ["dispatched"], "scorer": "contains", "tags": ["orders", "edge"]}
+{"id": "hours-days", "input": "Is support open on Monday?", "expected": "Monday to Friday", "scorer": "regex", "tags": ["hours"]}
+{"id": "hours-timezone", "input": "What time zone are support hours in?", "expected": ["UK time"], "scorer": "contains", "tags": ["hours", "edge"]}
+{"id": "unknown-gift-cards", "input": "Do you sell gift cards?", "expected": ["don't know"], "scorer": "contains", "tags": ["refusals"]}
+{"id": "unknown-shop", "input": "Where is your shop in Paris?", "expected": ["don't know"], "scorer": "contains", "tags": ["refusals"]}
+{"id": "unknown-guarantee", "input": "Is there a guarantee on espresso machines?", "expected": ["don't know"], "scorer": "contains", "tags": ["refusals", "rephrasing"]}
+{"id": "poisoned-only", "input": "Any tips for my kettle?", "expected": ["don't know"], "scorer": "contains", "tags": ["refusals", "security"]}

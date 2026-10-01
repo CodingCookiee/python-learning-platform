@@ -159,8 +159,23 @@ Pick any that interest you once the core works:
   eve's debt matches ada's credit exactly, so eve can pay ada directly. Improve `settle` so that it
   pays off exact matches like that first.
 
+## How it's tested
+
+If you submit a GitHub repository, automated tests run on every push. They rely on this:
+
+- `splitter.py` and `cli.py` are at the top of the repository.
+- The tests import the six functions in the table above from `splitter.py` and call them with the
+  arguments shown there. `settle` may return its payments as tuples or lists.
+- They run `python cli.py`, type the group on the first line, then the expense lines, then a blank
+  line. Your prompts can say anything. The report is checked from the word `Balances` on, with runs
+  of spaces treated as one space, so the words and amounts must match the sample, but your column
+  widths are your own. Each bad line must print a line containing `Skipped: ` and a reason.
+- Importing `splitter.py` or `cli.py` must print nothing and wait for no input.
+
 ## How to submit
 
 Submit `splitter.py` and `cli.py` (and `check.py` if you wrote it) on this page, either by
-uploading the files or by linking a GitHub repository. In the notes, paste the output of one run of
-your program. The review checks the requirements and criteria listed on this page.
+uploading the files or by linking a GitHub repository. If you use a repository, connect it on this
+page and add the workflow file it gives you (`.github/workflows/pylearn.yml`): the tests then run on
+every push, and the page shows the results. In the notes, paste the output of one run of your
+program. The review checks the requirements and criteria listed on this page.

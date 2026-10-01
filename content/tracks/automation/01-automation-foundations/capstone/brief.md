@@ -321,13 +321,37 @@ Before you submit, check each of these with a test:
 - **Ship it.** A `Dockerfile` for the service and a `compose.yaml` that runs it next to n8n, with
   secrets from an `.env` file.
 
+## How it's tested
+
+The automated tests import `lead_pipeline.py` from the top of your repository, so keep that name
+and keep these names in it: `Settings`, `Lead`, `Company`, `InvalidWebhook`, `verify_webhook`,
+`score_lead`, `LeadPipeline` and `create_app`, with the signatures the starter gives them. They:
+
+- call `verify_webhook(secret, header, body, now)` and `score_lead(lead, company)` directly, and
+  build `Lead(...)` objects to check the validators;
+- build `LeadPipeline(Settings(webhook_secret=...), enrich=..., crm=..., slack=..., sleep=...)` with
+  three `httpx.Client`s whose transports are fresh copies of the starter's fakes (with their own
+  tokens and secret), plus fakes that fail: a `500`, a timeout, or `429` with `Retry-After`. `sleep`
+  is a function that records how long you asked to wait, so use `self.sleep`, never `time.sleep`;
+- call `create_app(settings, pipeline, clock=...)` and send requests to it with FastAPI's
+  `TestClient`, which runs the background task before it returns, then check `GET /leads/{id}`,
+  `app.state.leads` and what each fake recorded;
+- capture every log record at `DEBUG` and check that no secret or token appears in them;
+- run `python lead_pipeline.py` and compare its output with the sample run, line by line.
+
+So importing `lead_pipeline.py` must not read an environment variable or create a real client: that
+belongs in `main.py`, which the tests don't import. Your `requirements.txt` (or `pyproject.toml`)
+must list `fastapi`, `httpx` and `pydantic`. The n8n build and the README are checked by the review,
+not by these tests.
+
 ## How to submit
 
 Push `lead_pipeline.py`, `main.py`, your tests, `lab_services.py`, `lead-intake.n8n.json` and a
-`README.md` to a GitHub repository, and submit its link on this capstone's page. The README says
+`README.md` to a GitHub repository. Connect the repository on this capstone's page and add the
+workflow file it gives you as `.github/workflows/pylearn.yml`: the tests above then run on every
+push, and the page shows the results. Submit the repository's link on the same page. The README says
 how to run the demo, the tests and the n8n lab, and ends with your recommendation to Brightside:
 which build they should run, what each costs to run and to change, who can maintain it, and what
 the n8n build gives up (signature checks, tests, typed validation) or gains (visibility, easy
-edits by the ops team). The review runs `python lead_pipeline.py` and compares it with the sample
-run, runs hidden tests against fresh fakes (including failures the demo doesn't produce), imports
-your workflow into n8n, and reads your code against the criteria.
+edits by the ops team). Beyond those tests, the review imports your workflow into n8n and reads your
+code and README against the criteria.

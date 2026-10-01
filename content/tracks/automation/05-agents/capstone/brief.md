@@ -188,10 +188,44 @@ Before you submit, check each of these with a `ScriptedLLM` of your own against
 - **An endpoint.** `POST /research` in FastAPI that runs `research_question` and returns the report
   and the trace as JSON, with the llm provided by a dependency.
 
+## How it's tested
+
+Automated tests run on every push to your repository. They import `research.py` from the top of the
+repository and use no API key and no network. They rely on this:
+
+- **Importing is safe.** Importing `research` mustn't create a model client, read a key or start a
+  run: keep `main()` under `if __name__ == "__main__":`. The tests don't call `demo_llm`,
+  `demo_search_client` or `real_llm`, so `plp_fakes.py` and `llm.py` don't need to be in the
+  repository.
+- **The names in the design table, with the starter's signatures.** `SearchClient(http)`,
+  `ToolError`, `Research()`, `run_tool(name, arguments, research, client)`,
+  `finish_problems(arguments, research)`, `Budget(limit=MAX_COST, price=PRICE)` with `.limit`,
+  `.spent`, `worst_case(messages, system, tools, max_tokens)`, `allows(worst)` and `charge(usage)`,
+  `research_question(llm, question, client, *, max_steps=MAX_STEPS, budget=None)`, `trace_jsonl`
+  and `format_report`, plus the constants `TOOLS`, `NUDGE`, `MAX_COST`, `MAX_TOKENS` and
+  `OBSERVATION_CHARS`. Keep the starter's limits and example `PRICE`: the tests check the sample's
+  costs at those rates.
+- **The search service is a fake.** The tests give `SearchClient` an `httpx.Client` with a
+  `base_url` and an `httpx.MockTransport`, so send relative paths (`/search`, `/docs/{doc_id}`) and
+  pass `timeout=10` on each request. Its search results carry extra fields that the `search` tool
+  must drop. Its 404 and 500 bodies, and its connection errors, mention its hostname, which must not
+  reach the model.
+- **The model is a scripted fake** with the neutral interface: the loop calls
+  `llm.complete(messages, system=..., tools=TOOLS, max_tokens=MAX_TOKENS)` and reads `.text`,
+  `.tool_calls` (each with `.id`, `.name`, `.arguments`) and `.usage` (`.input_tokens`,
+  `.output_tokens`). The tests read the messages it was sent: each tool result is
+  `{"role": "tool", "tool_call_id": ..., "content": ...}` with the error's message in `content`
+  when a tool fails, and the nudge is `{"role": "user", "content": NUDGE}`.
+- **The sample run is rebuilt in the tests** with the same script and documents as the starter, and
+  `format_report(report)` and `trace_jsonl(report)` are compared with the sample above. A plain
+  reply's trace entry has `tool` set to `"(reply)"`.
+
 ## How to submit
 
 Push `research.py`, your tests and a short `README.md` (what it does, how to run it offline and with
-a key, and a sample trace) to a GitHub repository, and submit its link on this capstone's page. The
-review runs `python research.py` against the sample, runs the scenarios above and a few hidden ones
-through `research_question` with `ScriptedLLM`, and reads your code against the criteria: nothing
-over the cap, nothing past the step cap, no citation that wasn't read, and every stop a `Report`.
+a key, and a sample trace) to a GitHub repository, and submit its link on this capstone's page. Also
+connect the repository on this capstone's page and add the workflow file it gives you
+(`.github/workflows/pylearn.yml`): the tests above then run on every push, and the page shows the
+results. The review runs `python research.py` against the sample, and reads your code against the
+criteria: nothing over the cap, nothing past the step cap, no citation that wasn't read, and every
+stop a `Report`.

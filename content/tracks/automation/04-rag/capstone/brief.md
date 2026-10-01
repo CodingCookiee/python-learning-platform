@@ -203,8 +203,49 @@ per requirement, including a chunk with a planted `</source>` tag and a model th
   run with the last one using lesson 6's gate, failing on any regression of a question you mark
   critical.
 
-## Submitting
+## How it's tested
+
+Automated tests run in your repository with Python 3.13, no keys and no network. They import
+`chatbot.py` from the top of your repository and drive it with their own copies of `fake_embed`
+(the same vectors as `plp_fakes.fake_embed`) and `ScriptedLLM` (the course's neutral `complete()`
+interface). What they rely on:
+
+- **The starter's names and signatures.** `Chunk` (with its five fields), `chunk_docs(docs,
+  max_chars=600)`, `Retriever(chunks, embed, store=None)`, `Retriever.search(question, k)`,
+  `build_prompt(question, chunks)`, `answer(question, retriever, llm)`,
+  `evaluate_retrieval(questions, retriever, k=K)`, `evaluate_answers(questions, retriever, llm)`,
+  `DOCS`, `EVAL_QUESTIONS`, `SYSTEM`, `REFUSAL`, `offline_reply` and `main` keep their names. Keep
+  the constants at the starter's values.
+- **`embed` is any function from a list of strings to a list of vectors.** Besides `fake_embed`,
+  the tests pass hand-made ones: one that records every batch it's sent (to check batches of at most
+  100, each text sent once, and nothing re-embedded by a `Retriever` rebuilt with the same `store`
+  dict), and one that returns vectors that aren't unit length, or all zeros, for chosen texts (to
+  check that `search` fuses the vector and BM25 rankings and reports cosine similarity on
+  normalised vectors).
+- **`answer()` and the evals only call `retriever.search(question, k)`.** Some tests pass a stand-in
+  retriever that returns scripted `(Chunk, similarity)` pairs, so don't reach into the Retriever's
+  internals from `answer()`, `evaluate_retrieval()` or `evaluate_answers()`. Use `K`,
+  `MIN_SIMILARITY` and `MAX_CONTEXT_TOKENS` as given: the tests' chunks are sized for a budget of
+  1200 tokens.
+- **One `llm.complete(messages, system=SYSTEM, temperature=0)` call per answer.** The tests read
+  the fake's `.calls` to check the system prompt is exactly `SYSTEM`, the single user message is
+  exactly `build_prompt(question, packed chunks)`'s, and that weak retrieval makes no call at all.
+- **The sample run.** They run `python chatbot.py` and `python chatbot.py --eval` with no keys set
+  and compare the output with the brief line by line (trailing spaces ignored), and expect exit code
+  0. If your repository has no `plp_fakes.py`, the tests' fakes stand in for it, so you don't need to
+  commit it.
+- **Nothing at import time.** `import chatbot` must print nothing, read no key and create no client:
+  `live_components()` and `main()` do that, and only when called.
+
+List `numpy` and `httpx` in a `requirements.txt` or in your `pyproject.toml` dependencies, so the
+workflow can install them. The live run, your `MIN_SIMILARITY` choice and your own tests are checked
+by the review, not by these tests.
+
+## How to submit
 
 Submit `chatbot.py` and your tests, the output of `python chatbot.py --eval` offline, and the output
 of `python chatbot.py --live --eval` with the `MIN_SIMILARITY` you chose and one sentence on why.
-Include one question the live bot got wrong and what you'd change to fix it.
+Include one question the live bot got wrong and what you'd change to fix it. Push it all to a GitHub
+repository, connect the repository on this capstone's page and add the workflow file pylearn gives
+you (`.github/workflows/pylearn.yml`): the tests above then run on every push, and the capstone page
+shows the results.

@@ -175,13 +175,49 @@ least:
   set amount, and report which models were cut short.
 - **CSV out.** `--csv results.csv` writes one row per case per model, for the client's spreadsheet.
 
+## How it's tested
+
+Automated tests run in your repository with Python 3.13, no keys and no network. They install
+`httpx` themselves (list it in a `requirements.txt` or `pyproject.toml` too), then:
+
+- **Import `llm` and `compare`** from the top of the repository. Importing either must not need a
+  key, build a client or send anything: keep that inside functions and `main`.
+- **Run `python compare.py --offline`**, with and without `--min-quality 0.95 --max-latency-ms 1000`,
+  and compare what it prints with the sample run line by line (trailing spaces ignored).
+- **Call your `compare.py` functions directly**, with the starter's names and keyword arguments:
+  `build_messages(case)`, `score(text, case)`, `evaluate(target, cases, *, clock)`,
+  `price(result, prices)`, `run_comparison(targets, cases, *, prices, clock)`,
+  `recommend(results, *, min_quality, max_latency_ms)` and
+  `format_report(results, *, cases, min_quality, max_latency_ms)`. They build `Target`s and
+  `ModelResult(label, model, scores=..., latencies_ms=..., errors=..., cost=...)` themselves, so keep
+  the starter's fields. In `evaluate` the model is a scripted fake with `complete()` that raises a
+  `RuntimeError` for a scripted failure, and the clock is a fake that only moves while the model
+  answers, so time the whole `complete()` call.
+- **Build your adapters over fake APIs**: `AnthropicClient(http, *, api_key, model, sleep=time.sleep)`
+  and `OpenAIClient` with the same arguments, where `http` is an `httpx.Client` whose
+  `base_url` is `https://api.anthropic.com` or `https://api.openai.com` and whose transport is an
+  `httpx.MockTransport` fake of `POST /v1/messages` or `POST /v1/chat/completions`, and `sleep` is a
+  list's `append`. They check the requests (headers, `system`, `temperature`, `max_tokens`, tools and
+  tool history), the `LLMResponse` you return, and your retries: a 401 or 400 raises an `LLMError`
+  (a `RuntimeError` with `.status`) at once, a 429 waits its `retry-after` before trying again, and
+  a 529 or a timeout is retried and, if it never recovers, ends in an `LLMError`.
+- **Call `make_llm(env, *, http=...)`** with a plain dict for `env` (`LLM_PROVIDER`,
+  `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `OPENAI_API_KEY`, `OPENAI_MODEL`); a missing key's error
+  names the variable.
+- **Call `real_targets(env)`** with a plain dict, never `os.environ`. It must not send anything. With
+  no keys it stops (raising `SystemExit` is fine) with a message containing `--offline`; with
+  `OPENAI_API_KEY` but no `OPENAI_MODELS` the message names `OPENAI_MODELS` and never the key.
+- **Run your own tests** with `python -m pytest test_compare.py`, which must pass, so commit
+  `plp_fakes.py` next to it.
+
 ## How to submit
 
-Push `llm.py`, `compare.py`, `test_compare.py`, an example `prices.json` (with its note and date) and
-a `README.md` to a GitHub repository, and submit its link on this capstone's page. The README says
-how to run it offline and for real, and reports one real comparison you ran: the date, the models,
-the prices you used and where they came from, the table, and which model you'd recommend to Harbour
-Bikes and why. The review runs `python compare.py --offline` and compares it with the sample, runs
-your tests, runs hidden tests against your adapters and harness with the course's fakes, and reads
-the code against the criteria: nothing provider-specific outside the adapters, keys only from the
-environment, failures reported rather than crashed on, and every dependency injected.
+Push `llm.py`, `compare.py`, `test_compare.py`, `plp_fakes.py`, an example `prices.json` (with its
+note and date) and a `README.md` to a public GitHub repository, and submit its link on this
+capstone's page. Then connect the repository on the capstone page and add the workflow file pylearn
+gives you (`.github/workflows/pylearn.yml`): the tests above run on every push, and the capstone page
+shows the results. The README says how to run it offline and for real, and reports one real
+comparison you ran: the date, the models, the prices you used and where they came from, the table,
+and which model you'd recommend to Harbour Bikes and why. The review also reads the code against the
+criteria: nothing provider-specific outside the adapters, keys only from the environment, failures
+reported rather than crashed on, and every dependency injected.

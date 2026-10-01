@@ -35,6 +35,7 @@ export interface SubmissionDetail {
   };
   aiReview: (AiReview & { model?: string; files?: number }) | null;
   aiReviewedAt: string | null;
+  ci: { repo: string; status: string; runUrl: string | null; passed: number; total: number } | null;
 }
 
 async function getSubmissionDetail(submissionId: string): Promise<SubmissionDetail | null> {
@@ -60,6 +61,9 @@ async function getSubmissionDetail(submissionId: string): Promise<SubmissionDeta
   });
 
   if (!submission) return null;
+  const ci = await prisma.ciLink.findUnique({
+    where: { userId_kind_targetId: { userId: submission.userId, kind: "capstone", targetId: submission.project.id } },
+  });
 
   const user = await prisma.user.findUnique({
     where: { id: submission.userId },
@@ -83,6 +87,15 @@ async function getSubmissionDetail(submissionId: string): Promise<SubmissionDeta
       ? (submission.aiReview as SubmissionDetail["aiReview"])
       : null,
     aiReviewedAt: submission.aiReviewedAt?.toISOString() ?? null,
+    ci: ci
+      ? {
+          repo: ci.repo,
+          status: ci.status,
+          runUrl: ci.runUrl,
+          passed: (ci.report as { passed?: number } | null)?.passed ?? 0,
+          total: (ci.report as { tests?: unknown[] } | null)?.tests?.length ?? 0,
+        }
+      : null,
     filesPayload,
     project: {
       id: submission.project.id,

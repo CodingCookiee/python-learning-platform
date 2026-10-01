@@ -243,11 +243,30 @@ Pick any you like once the requirements work:
   `clean_row`. Module 7 shows how to run them with pytest, and how to test `clean_file` with
   temporary folders.
 
+## How it's tested
+
+Automated tests run on every push to your repository. They rely on this:
+
+- `cleaner.py` is at the top of the repository. The tests write their own exports (the sample and
+  messier ones) into a temporary folder and run `python cleaner.py <file>` there.
+- The summary goes to stdout and must match the sample's wording exactly. The warning, `error:` and
+  `usage:` messages go to stderr.
+- The two output files are read as CSV, so quoting and line endings are up to `csv.DictWriter`, but
+  every value must match the samples above.
+- The tests import `clean_row`, `clean_file`, `REQUIRED`, `CleanerError`, `InputFileError` and
+  `FieldError`. A clean row's values can be strings or the matching types (a `date`, an `int`,
+  `Decimal`s), as long as they read the same as in the clean file. `clean_file` returns the
+  starter's `Summary`.
+- To check the per-row `except Exception`, one test replaces `cleaner.clean_row` with a version that
+  fails on some rows, so `clean_file` must call `clean_row` for every row it cleans.
+
 ## How to submit
 
 Push `cleaner.py`, the sample export, and a short `README.md` (what the tool does, the command to
 run it, and what the exit codes mean) to a GitHub repository, and submit its link on this
-capstone's page. The review runs hidden tests against `clean_row`, `clean_file` and `main`, including
+capstone's page. Connect the repository there too, and add the workflow file it gives you
+(`.github/workflows/pylearn.yml`): the tests above then run on every push, and the page shows the
+results. The review runs hidden tests against `clean_row`, `clean_file` and `main`, including
 exports that are messier than the sample, then reads your code against the criteria: a small
 exception hierarchy, every problem in a row reported, no silent `except`, files opened safely with
 explicit encodings, exact money, and a module that does nothing until `main()` runs.

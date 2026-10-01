@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getLink, viewOf } from "@/lib/ci/links";
 import { withAuth, AuthContext } from "@/lib/api-auth";
 import { CacheKeys, getCached } from "@/lib/cache";
 import { formatProjectEstimatedTime } from "@/lib/project-time";
@@ -79,7 +80,15 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: 
     }
     // Not cached: whether the learner has an AI key can change at any time
     const aiReady = (await prisma.aiCredential.count({ where: { userId: context.userId } })) > 0;
-    return NextResponse.json({ ...response, aiReady });
+    const acceptance = await prisma.project.findUnique({ where: { id }, select: { acceptance: true } });
+    const hasAcceptance = Boolean(acceptance?.acceptance);
+    const link = hasAcceptance ? await getLink(context.userId, "capstone", id) : null;
+    return NextResponse.json({
+      ...response,
+      aiReady,
+      hasAcceptance,
+      ci: link ? viewOf(link, (response as { title: string }).title) : null,
+    });
   } catch (error) {
     console.error("Error fetching project:", error);
     return NextResponse.json({ error: "Failed to fetch project" }, { status: 500 });

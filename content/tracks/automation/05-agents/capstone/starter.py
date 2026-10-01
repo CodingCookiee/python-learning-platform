@@ -17,8 +17,8 @@ from decimal import Decimal
 
 import httpx
 
-# Limits and prices. The prices are EXAMPLE rates in US dollars per million tokens:
-# replace them with your model's real ones from your A2 cost table.
+# Limits and prices. The prices are example rates in US dollars per million tokens. Keep these
+# values: the sample run and the tests use them (your A2 cost table has your real model's rates).
 MAX_STEPS = 10
 MAX_COST = Decimal("0.05")
 MAX_TOKENS = 600

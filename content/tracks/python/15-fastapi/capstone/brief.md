@@ -300,11 +300,29 @@ http://127.0.0.1:8000` gives it a public address for testing. A1 covers deployin
 - **Typed all the way.** Make `uv run mypy --strict service.py` pass.
 - **Coverage.** Add `pytest-cov` and get the suite to 95% line coverage of `service.py`.
 
+## How it's tested
+
+Automated tests run on every push to your repository. They rely on this:
+
+- `service.py` and `test_service.py` are at the top of the repository, and `fastapi` and `httpx`
+  are dependencies in your `pyproject.toml` (as `uv add` puts them).
+- The tests import `Settings`, `create_app`, `get_now` and `sign_webhook` from `service.py`. Every
+  test builds its own app with `create_app`, with two API keys and its own webhook secret, pins
+  the clock with `app.dependency_overrides[get_now]`, and sends requests in-process over
+  `httpx.ASGITransport`.
+- Error responses are checked for their code and, where the brief gives one, their exact message.
+- `python service.py` prints the sample run exactly.
+- Your own `test_service.py` runs with pytest from the top of the repository, and must have at
+  least 15 tests, all passing. Async tests can use the anyio marker, as in the fixtures above, or
+  `pytest-asyncio`.
+
 ## How to submit
 
 Push `service.py`, `test_service.py`, `send_webhook.py` and a short `README.md` (what it does, how
-to run the tests and the server, and the environment variables) to a GitHub repository, and submit
-its link on this capstone's page. The review runs your tests, then its own hidden tests against
-`create_app` (including forged, tampered, stale and repeated webhooks), plants bugs in a copy of
-your service to see whether your suite catches them, and reads the code against the criteria.
-Never commit a real secret: the README should name the variables, not their values.
+to run the tests and the server, and the environment variables) to a GitHub repository. Connect
+the repository on this capstone's page and add the workflow file it gives you
+(`.github/workflows/pylearn.yml`): the tests then run on every push, and the page shows the
+results. The review runs your tests, then its own hidden tests against `create_app` (including
+forged, tampered, stale and repeated webhooks), plants bugs in a copy of your service to see
+whether your suite catches them, and reads the code against the criteria. Never commit a real
+secret: the README should name the variables, not their values.

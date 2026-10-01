@@ -1,0 +1,10 @@
+[project]
+name = "tidewater-bookings"
+version = "0.1.0"
+description = "Tidewater Tours booking service with a signed Paygate webhook"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = ["fastapi[standard]>=0.115", "httpx>=0.28"]
+
+[dependency-groups]
+dev = ["pytest>=8"]

@@ -198,10 +198,28 @@ Pick any you like once the requirements work:
 - **Tests.** Write `test_inventory.py` with plain `assert` statements covering each refusal.
   Module 7 shows how to run them with pytest.
 
+## How it's tested
+
+Automated tests run on every push to your repository. They rely on this:
+
+- `inventory.py` is at the top of the repository, and `python inventory.py` prints exactly the
+  sample run (spaces at the ends of lines aside). Keep the starter's `main()` as it is.
+- The tests import `Product`, `Movement`, `MovementKind`, `Inventory` and
+  `format_low_stock_report`, build the sample data themselves, and use the constructors and methods
+  with the names and parameters in the tables above.
+- `low_stock()` returns objects with `sku`, `name`, `stock`, `reorder_level` and `suggested_order`
+  attributes.
+- Every refusal is a `ValueError` whose message starts with the SKU. The three in the sample run must
+  match it word for word; the others in the table are examples.
+- The report is compared character for character, so the widths, the `...`, the `OUT` and the
+  stock value line must match the rules above exactly.
+
 ## How to submit
 
 Push `inventory.py` and a short `README.md` (what it does and the command to run it) to a GitHub
-repository, and submit its link on this capstone's page. The review runs hidden tests against
+repository, and submit its link on this capstone's page. Connect the repository there too, and add
+the workflow file it gives you (`.github/workflows/pylearn.yml`): the tests above then run on every
+push, and the page shows the results. The review runs hidden tests against
 `Product`, `Movement` and `Inventory`, runs `python inventory.py` and compares it with the sample,
 then reads your code against the criteria: dataclasses doing the boilerplate, stock derived from
 the log, refusals that change nothing, composition over inheritance, exact money and a report

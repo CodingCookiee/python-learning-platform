@@ -470,8 +470,9 @@ Each milestone is shippable and leaves the app better than before.
 - **Multi-file drills:** an exercise can have other files (`files:` in exercise.yaml, docs/CONTENT.md), shown as editor tabs; read-only ones are locked. The runner serves the learner's modules to Python's import system from memory under their own names (so tracebacks and time limits cover them) and writes data files to the working directory. Validation, server grading, drafts and the tutor all carry every file. Two drills use it so far, in module 3's "Modules and imports".
 - **Admin AI usage:** `/admin/ai` shows calls and tokens per day, by feature, by model and by learner, the prompt-cache hit rate and how many learners have a key, over 7, 30 or 90 days.
 
+- **Acceptance tests in GitHub Actions:** capstones (`capstone/acceptance/`) and `github` labs run their tests in the learner's own public repo through a workflow file generated per connection (`lib/ci/workflow.ts`). The workflow fetches the suite from `/api/ci/suite/{token}` and posts results to `/api/ci/report/{token}`; a run only counts after GitHub's API confirms it belongs to the connected repo, used the unmodified workflow file, and succeeded (`lib/ci/links.ts`). Costs nothing: GitHub Actions is free on public repos. A capstone that passes its acceptance tests counts toward the black belt like an approved one; a passed github lab is a verified lab. `npm run content:acceptance` checks each suite against a reference solution locally.
+
 Still open:
-- Running capstone acceptance tests in a sandbox (E2B or GitHub Actions): the AI review reads the code but doesn't run it.
 - For a public launch: moving email from Gmail to Resend on your own domain (Gmail allows about 500 a day and may land in spam), and switching `GRADING_MODE` to `server` before a public launch.
 
 | # | Milestone | Contents | Exit criteria |

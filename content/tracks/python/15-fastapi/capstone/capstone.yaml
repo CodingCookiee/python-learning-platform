@@ -19,3 +19,5 @@ criteria:
   - Two apps built by create_app share nothing, and the tests never touch the real clock or a shared module-level store
   - Every test checks one behaviour, is named after it, and follows arrange, act, assert; the suite catches most of the bugs the reviewer plants in a copy of the service
   - The service runs locally under uvicorn, and send_webhook.py delivers a signed event that the running service accepts
+acceptance:
+  requirements: [fastapi, httpx, pytest-asyncio]

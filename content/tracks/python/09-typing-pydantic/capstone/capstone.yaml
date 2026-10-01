@@ -19,3 +19,5 @@ criteria:
   - "Invalid input always surfaces as a ValidationError with a precise location; nothing is silently coerced that the brief says to refuse"
   - "Money is Decimal from end to end, rounded half up to the cent only where the brief says, and every total in a response is consistent"
   - "Models are small and named for the API's vocabulary, the business rules live in price_order rather than in the models, and importing the file prints nothing"
+acceptance:
+  requirements: [pydantic, mypy]

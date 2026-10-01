@@ -18,3 +18,5 @@ criteria:
   - No input file crashes the program, including an empty file, one with only malformed lines and one with a bad time zone name
   - The regular expression is a raw string, compiled once at module level, with named groups
   - Functions are small and pure apart from main(), and importing log_analyzer.py prints nothing
+acceptance:
+  requirements: [tzdata]

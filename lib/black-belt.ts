@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getCurriculumState, PYTHON_TRACK, type TrackProgress } from "@/lib/curriculum-state";
 import { drillStrength, reviewEligible } from "@/lib/mastery-rules";
+import { ciPassedProjectIds } from "@/lib/ci/passed";
 
 /**
  * The black belt (1st dan) is "advanced-confident" Python, not just the last
@@ -38,7 +39,7 @@ export async function getBlackBeltStatus(userId: string, tracks?: TrackProgress[
     .filter((m) => m.order >= BLACK_BELT.advancedModules.from && m.order <= BLACK_BELT.advancedModules.to)
     .map((m) => m.id);
 
-  const [drills, solved, stages, capstones] = await Promise.all([
+  const [drills, solved, stages, capstones, ciPassed] = await Promise.all([
     prisma.exercise.findMany({
       where: { archivedAt: null, lesson: { archivedAt: null, moduleId: { in: advancedIds } } },
       select: { id: true, tags: true, difficulty: true, type: true },
@@ -54,6 +55,7 @@ export async function getBlackBeltStatus(userId: string, tracks?: TrackProgress[
       distinct: ["projectId"],
       select: { projectId: true },
     }),
+    ciPassedProjectIds(userId),
   ]);
 
   const solvedIds = new Set(solved.map((s) => s.exerciseId));
@@ -71,7 +73,16 @@ export async function getBlackBeltStatus(userId: string, tracks?: TrackProgress[
   const topicsMet = topics.filter((t) => t.strength + 1e-9 >= BLACK_BELT.masteryTarget).length;
 
   const checkpoints = { passed: modules.filter((m) => m.passed).length, total: modules.length };
-  const capstonesApproved = capstones.length;
+  // A capstone counts when the examiner approves it or its acceptance tests pass in GitHub Actions
+  const pythonProjects = new Set(
+    (
+      await prisma.project.findMany({
+        where: { id: { in: ciPassed }, archivedAt: null, module: { track: { slug: PYTHON_TRACK } } },
+        select: { id: true },
+      })
+    ).map((p) => p.id)
+  );
+  const capstonesApproved = new Set([...capstones.map((c) => c.projectId), ...pythonProjects]).size;
   return {
     met:
       checkpoints.total > 0 &&

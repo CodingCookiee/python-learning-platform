@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurriculumState } from "@/lib/curriculum-state";
 import { achievementCriteriaSchema, type AchievementCriteria } from "@/lib/content/schema";
 import { blackBeltIfDue } from "@/lib/black-belt";
+import { ciPassedProjectIds } from "@/lib/ci/passed";
 
 /**
  * Achievements (patches) are defined in content/achievements.yaml and synced into
@@ -123,11 +124,18 @@ async function learnerStats(userId: string): Promise<LearnerStats> {
   const passedModules = new Set<string>();
   for (const t of tracks) for (const m of t.modules) if (m.passed && m.slug) passedModules.add(m.slug);
   const blackBelt = (await blackBeltIfDue(userId, tracks))?.met ?? false;
+  // Capstones whose acceptance tests passed in GitHub Actions count like approved ones
+  const ciProjects = await prisma.project.findMany({
+    where: { id: { in: await ciPassedProjectIds(userId) }, archivedAt: null },
+    select: { module: { select: { slug: true } } },
+  });
   return {
     lessons,
     drills: drills.length,
     passedModules,
-    capstoneModules: new Set(capstones.map((c) => c.project.module.slug).filter((s): s is string => Boolean(s))),
+    capstoneModules: new Set(
+      [...capstones.map((c) => c.project.module.slug), ...ciProjects.map((p) => p.module.slug)].filter((s): s is string => Boolean(s))
+    ),
     // A streak patch is earned once the streak has ever reached that length
     streak: Math.max(streak?.currentStreak ?? 0, streak?.longestStreak ?? 0),
     xp: user?.xp ?? 0,

@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import type { LabView } from "@/lib/labs";
+import type { CiLinkView } from "@/lib/ci/links";
+import { CiPanel } from "@/components/ci/ci-panel";
 
 /**
  * A lesson's local lab: what to do on your own machine, and the check that
@@ -48,7 +50,22 @@ function sampleBody(expect: Record<string, string | number | boolean>): string {
   return JSON.stringify(root);
 }
 
-export function LabPanel({ initial }: { initial: LabView }) {
+export function LabPanel({ initial, ci = null }: { initial: LabView; ci?: CiLinkView | null }) {
+  if (initial.spec.kind === "github") {
+    return (
+      <CiPanel
+        kind="lab"
+        targetId={initial.lessonId}
+        initial={ci}
+        title={`Lab: ${initial.spec.title}`}
+        intro={`${initial.spec.instructions} The checks run on GitHub Actions in your repo on every push, and passing them verifies the lab (15 XP).`}
+      />
+    );
+  }
+  return <LabPanelInner initial={initial} />;
+}
+
+function LabPanelInner({ initial }: { initial: LabView }) {
   const [lab, setLab] = React.useState(initial);
   const [input, setInput] = React.useState("");
   const [busy, setBusy] = React.useState<"check" | "refresh" | null>(null);

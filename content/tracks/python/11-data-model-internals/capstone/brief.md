@@ -203,12 +203,27 @@ Pick any you like once the requirements work:
 - **Tests.** Write `test_tinyorm.py` with pytest, using a fixture that clears every table between
   tests, and cover every refusal in the sample run.
 
+## How it's tested
+
+Automated tests run on every push to your repository. They rely on this:
+
+- `tinyorm.py` is at the top of the repository, with the starter's models, `load_sample()` and
+  `main()` unchanged. `python tinyorm.py` prints the sample run exactly (spaces at the ends of lines
+  aside), and importing it prints nothing.
+- Each test loads a fresh copy of `tinyorm.py`, so the tables and `Model.registry` start empty. The
+  tests also define small classes and models of their own, such as a `Thing` class with one field,
+  and compare the refusal messages word for word with the tables above.
+- A model with two primary key fields is refused like one with none:
+  `Van needs exactly one primary key field, found 2`.
+
 ## How to submit
 
 Push `tinyorm.py` and a short `README.md` (what it does, how to run it, and one paragraph on how a
-field's value gets from `tool.stock = 3` into storage) to a GitHub repository, and submit its link
-on this capstone's page. The review runs hidden tests against the fields, models and tables, runs
-`python tinyorm.py` and compares it with the sample, then reads your code against the criteria:
-validation in the fields only, values in each instance's `__dict__`, registration in
-`__init_subclass__` with no metaclass, tables that store copies and speak the container protocol,
-and equality and hashing done by the rules.
+field's value gets from `tool.stock = 3` into storage) to a GitHub repository. Connect the
+repository on this capstone's page and add the workflow file it gives you
+(`.github/workflows/pylearn.yml`): the tests then run on every push, and the page shows the results.
+The review runs hidden tests against the fields, models and tables, runs `python tinyorm.py` and
+compares it with the sample, then reads your code against the criteria: validation in the fields
+only, values in each instance's `__dict__`, registration in `__init_subclass__` with no metaclass,
+tables that store copies and speak the container protocol, and equality and hashing done by the
+rules.

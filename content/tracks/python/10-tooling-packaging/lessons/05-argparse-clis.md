@@ -11,15 +11,11 @@ exercises:
   - cli-task-subcommands
 lab:
   title: A CLI with subcommands and tests
-  kind: output
+  kind: github
   instructions: >-
-    Once cli.py has its report and send subcommands and your tests are updated to match, run the
-    command below and paste its output. The help should list both subcommands and every test
-    should pass.
-  command: uv run cli.py --help; uv run pytest -q
-  patterns:
-    - '^usage: .*\{report,send\}'
-    - '^(=+ )?\d+ passed(, \d+ warnings?)? in [\d.]+s'
+    Push the project with cli.py (or invoicer/cli.py) and your tests/ folder. The checks call
+    build_parser() and main(), confirm the report and send subcommands, the -v count and the usage
+    error, and run your own tests, which must all pass.
 ---
 
 Most tools you build end up run from a terminal: `invoicer report invoices.csv --currency GBP`. The
@@ -266,8 +262,8 @@ def test_missing_path_is_a_usage_error(capsys):
    logging config at the start of `main()`.
 4. Split it into `report` and `send` subcommands with `set_defaults(handler=...)`.
 5. Write `tests/test_cli.py` with the two tests above and run `uv run pytest`.
-6. **Check it:** with the tests updated for the subcommands, paste the output of
-   `uv run cli.py --help; uv run pytest -q` into the lab box below.
+6. **Check it:** update the tests for the subcommands, push, and connect the repository in the lab
+   box below. The checks exercise the CLI and run your tests on GitHub.
 
 ## Where this leaves you
 

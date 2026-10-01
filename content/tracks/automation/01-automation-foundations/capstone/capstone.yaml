@@ -13,9 +13,11 @@ requirements:
   - "A test file, run in the browser, covers every row of the webhook table, the scoring rules and each failure path, using httpx.ASGITransport and fake services"
   - "The same flow is built in n8n on your machine (Webhook, validation, enrichment, CRM upsert, Slack), exported as JSON, and verified by posting the brief's sample submissions to it"
 criteria:
-  - The demo output matches the sample run exactly, and the hidden tests pass against fresh fakes, including failures the demo doesn't produce
+  - The demo output matches the sample run exactly, and the pylearn tests pass against fresh fakes, including failures the demo doesn't produce
   - The raw body is verified before it's parsed, with hmac.compare_digest, and nothing is queued, stored or logged for a request that fails a check
   - The receiver only verifies, validates, deduplicates and queues; enrichment, CRM and Slack calls happen in the background task, and every outside call has a timeout
   - Each outside service's failure is handled once, in one place, with the behaviour the brief specifies (skip, mark failed, or log), and secrets never appear in code, logs or the exported workflow
   - Tests are deterministic (fixed secrets, an injected clock and sleep, fakes instead of the network) and each checks one behaviour
   - The README compares the Python and n8n builds honestly (what each is better at, what each costs to run and change) and recommends one to the client
+acceptance:
+  requirements: [httpx, fastapi, pydantic]

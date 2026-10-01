@@ -53,6 +53,24 @@ function dirs(p: string): string[] {
     .sort();
 }
 
+const SKIP_IN_TREE = new Set(["__pycache__", ".git", ".venv", ".pytest_cache", ".mypy_cache", ".ruff_cache", ".DS_Store"]);
+
+/** Every file under a folder, path (relative to it, with /) -> contents; null when the folder is missing */
+export function readTree(p: string): Record<string, string> | null {
+  if (!existsSync(p)) return null;
+  const out: Record<string, string> = {};
+  const walk = (dir: string, prefix: string) => {
+    for (const name of readdirSync(dir).sort()) {
+      if (SKIP_IN_TREE.has(name)) continue;
+      const full = path.join(dir, name);
+      if (statSync(full).isDirectory()) walk(full, `${prefix}${name}/`);
+      else out[`${prefix}${name}`] = readFileSync(full, "utf8");
+    }
+  };
+  walk(p, "");
+  return out;
+}
+
 function files(p: string, ext: string): string[] {
   if (!existsSync(p)) return [];
   return readdirSync(p)
@@ -161,7 +179,18 @@ export function loadContent(root = path.join(process.cwd(), "content")): LoadRes
     const brief = readOptional(path.join(dir, "brief.md"));
     if (brief === null) err(dir, "missing brief.md");
     if (!meta || brief === null) return null;
-    return { ...meta, path: rel(root, dir), brief, starter: readOptional(path.join(dir, "starter.py")) };
+    const suite = readTree(path.join(dir, "acceptance"));
+    if (suite && !Object.keys(suite).some((p) => /(^|\/)test_[^/]*\.py$/.test(p))) {
+      err(path.join(dir, "acceptance"), "has no test_*.py file");
+    }
+    return {
+      ...meta,
+      path: rel(root, dir),
+      brief,
+      starter: readOptional(path.join(dir, "starter.py")),
+      suite,
+      reference: readTree(path.join(dir, "reference")),
+    };
   }
 
   function loadModule(dir: string, order: number): ContentModule | null {
@@ -197,6 +226,13 @@ export function loadContent(root = path.join(process.cwd(), "content")): LoadRes
       }
       const front = parse(lessonFrontmatterSchema, split.data, p);
       if (!front) continue;
+      // A github lab's checks live in labs/<lesson-slug>/tests/
+      if (front.lab?.kind === "github") {
+        const suite = readTree(path.join(dir, "labs", front.slug, "tests"));
+        if (!suite || !Object.keys(suite).some((f) => /(^|\/)test_[^/]*\.py$/.test(f))) {
+          err(p, `a github lab needs labs/${front.slug}/tests/ with a test_*.py file`);
+        } else front.lab.suite = suite;
+      }
       if (front.slug !== m[2]) warn(p, `file name says "${m[2]}" but slug is "${front.slug}"`);
       checkLessonBody(p, split.body);
       for (const s of [...front.exercises, ...front.optional]) {

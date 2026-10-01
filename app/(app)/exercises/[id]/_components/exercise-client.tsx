@@ -728,9 +728,10 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
               ))}
             </div>
           )}
-          {!activeDef ? (
+          {/* Every file keeps its own editor mounted (tabs only hide them): unmounting Monaco
+              mid-request logs "Canceled" errors and would also lose each file's undo history */}
+          <div className={cn(activeDef && "hidden")}>
             <PythonEditor
-              key="main"
               value={code}
               onChange={setCode}
               storageKey={EDITOR_KEY[mode.kind](drill)}
@@ -738,20 +739,22 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
               onRun={() => void runCheck()}
               height="420px"
             />
-          ) : (
-            <PythonEditor
-              key={activeDef.path}
-              value={files[activeDef.path] ?? activeDef.starter}
-              onChange={(v) => {
-                if (activeDef.editable) setFile(activeDef.path, v);
-              }}
-              readOnly={!activeDef.editable}
-              storageKey={activeDef.editable ? `${EDITOR_KEY[mode.kind](drill)}:${activeDef.path}` : undefined}
-              valueSavedAt={drill.draft?.savedAt ?? null}
-              onRun={() => void runCheck()}
-              height="420px"
-            />
-          )}
+          </div>
+          {drill.files.map((def) => (
+            <div key={def.path} className={cn(activeDef?.path !== def.path && "hidden")}>
+              <PythonEditor
+                value={files[def.path] ?? def.starter}
+                onChange={(v) => {
+                  if (def.editable) setFile(def.path, v);
+                }}
+                readOnly={!def.editable}
+                storageKey={def.editable ? `${EDITOR_KEY[mode.kind](drill)}:${def.path}` : undefined}
+                valueSavedAt={drill.draft?.savedAt ?? null}
+                onRun={() => void runCheck()}
+                height="420px"
+              />
+            </div>
+          ))}
         </div>
       )}
 

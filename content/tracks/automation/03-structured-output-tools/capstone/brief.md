@@ -201,11 +201,45 @@ Before you submit, check each of these with a `ScriptedLLM` of your own:
 - **A FastAPI endpoint.** `POST /tickets` that runs `process_ticket` and returns the result as JSON,
   with the llm and the refund queue provided by dependencies.
 
+## How it's tested
+
+Automated tests run on every push. They import `triage.py` from the top of your repository and
+drive it with their own copy of `ScriptedLLM`, the same shape as the one in `plp_fakes`: scripted
+replies, no key and no network. What they rely on:
+
+- **The starter's names.** `Ticket`, `TicketFacts`, `GetOrder`, `FindOrdersByEmail`,
+  `CreateRefundRequest`, `RefundQueue`, `ToolUse`, `TriageResult` (with its fields), `urgency`,
+  `route`, `SAMPLE_TICKETS`, `demo_llm` and `main` keep their names and signatures. So do the
+  constants: the sample's costs, and the tests' cost checks, use `MAX_CALLS = 8`,
+  `MAX_COST_USD = 0.05`, `INPUT_PER_MTOK = 3.00`, `OUTPUT_PER_MTOK = 15.00` and
+  `REVIEW_BELOW_CONFIDENCE = 0.7`.
+- **`process_ticket(llm, ticket, refunds=queue)`**, with the fake as `llm`, and sometimes one
+  `RefundQueue()` shared by several tickets. It must return a `TriageResult` for every script,
+  however bad, and never raise.
+- **Keyword arguments to `llm.complete`.** Extraction calls pass `schema=` (the tests tell them
+  apart that way) and `temperature=0`; drafting calls pass `tools=` and no `schema=`. The tests read
+  what you sent from the fake's `.calls`, so the history must use the neutral messages from lesson 6:
+  an assistant message with `tool_calls` (each with `id`, `name` and `arguments`), then one
+  `{"role": "tool", "tool_call_id": ..., "content": ...}` per call, with the content a JSON string.
+  A failure's content is `{"error": "..."}`, and a refund request's is exactly
+  `{"request_id": "RR-0001", "status": "waiting for a person to review"}`.
+- **The repair.** After an invalid reply, the next extraction call's messages include that reply
+  as an assistant message and the validation errors in a user message.
+- **The sample run.** The tests swap their fake in for `plp_fakes`, unset `ANTHROPIC_API_KEY` and
+  `OPENAI_API_KEY`, call `main()`, and compare what it prints with the sample above, line by line.
+  You don't need to commit `plp_fakes.py`.
+- **Nothing at import time.** `import triage` must print nothing and create no client or read a
+  key: keep the demo under `if __name__ == "__main__":`.
+
+List `pydantic` (and anything else you import) in a `requirements.txt` or in your `pyproject.toml`
+dependencies, so the workflow can install it.
+
 ## How to submit
 
 Push `triage.py`, your tests and a short `README.md` (what it does, how to run it offline and with
-a key) to a GitHub repository, and submit its link on this capstone's page. The review runs
-`python triage.py` against the sample, runs hidden tickets through `process_ticket` with a
-`ScriptedLLM` (malformed JSON, an unknown order, a model that loops, an injection that asks for a
-refund), and reads your code against the criteria: nothing runs unvalidated, nothing crashes,
-nothing exceeds the caps, and the rules live in Python.
+a key) to a GitHub repository, and submit its link on this capstone's page. Connect the repository
+there too and add the workflow file pylearn gives you (`.github/workflows/pylearn.yml`): the tests
+above then run on every push, and the capstone page shows the results. The review also runs hidden
+tickets through `process_ticket` (malformed JSON, an unknown order, a model that loops, an
+injection that asks for a refund), and reads your code against the criteria: nothing runs
+unvalidated, nothing crashes, nothing exceeds the caps, and the rules live in Python.

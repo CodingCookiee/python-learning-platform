@@ -18,3 +18,5 @@ criteria:
   - "No retrieved text ever reaches the system prompt, document text is escaped inside its tags, and no answer is shown with a citation that doesn't point at a source the model was given"
   - "Embedding happens in batches, never one text per request, and a Retriever rebuilt with the same cache store embeds nothing new"
   - "The code is typed and tested with pytest, ScriptedLLM and fake_embed (at least one test per requirement), and runs live with real embeddings and a real model after MIN_SIMILARITY is re-tuned on the eval"
+acceptance:
+  requirements: [numpy]

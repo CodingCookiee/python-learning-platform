@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { getLessonForUser, type LessonDrill } from "@/lib/lessons";
 import { getLabForUser } from "@/lib/labs";
 import { LabPanel } from "@/components/lesson/lab-panel";
+import { getLink, viewOf } from "@/lib/ci/links";
 import { LessonWorkspace } from "@/components/lesson/lesson-workspace";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import {
@@ -91,6 +92,7 @@ export default async function LessonPage({ params }: PageProps) {
   const lesson = await getLessonForUser(id, user.id);
   if (!lesson) notFound();
   const lab = lesson.moduleUnlocked ? await getLabForUser(user.id, lesson.id) : null;
+  const labCi = lab?.spec.kind === "github" ? await getLink(user.id, "lab", lesson.id) : null;
 
   const required = lesson.drills.filter((d) => d.required);
   const optional = lesson.drills.filter((d) => !d.required);
@@ -176,7 +178,7 @@ export default async function LessonPage({ params }: PageProps) {
 
               {lab && (
                 <div className="max-w-[70ch]">
-                  <LabPanel initial={lab} />
+                  <LabPanel initial={lab} ci={labCi ? viewOf(labCi, lab.spec.title) : null} />
                 </div>
               )}
 

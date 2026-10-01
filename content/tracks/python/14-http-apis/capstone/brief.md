@@ -210,12 +210,29 @@ Before you submit, check each of these, with `sleep=waits.append` so nothing rea
 - **Tests.** Write `test_crm_client.py` with pytest: one test per row of the method table, one per
   failure in "Try these", each building its own `CrmServer` and asserting on what it received.
 
+## How it's tested
+
+Automated tests run on every push to your repository. They rely on this:
+
+- `crm_client.py` is at the top of the repository, with `httpx` and `pydantic` in a
+  `requirements.txt` or `pyproject.toml`. Importing it prints nothing.
+- The tests import `CrmClient`, `Contact`, `Deal` and every exception in the tree above, and build
+  clients with `transport=httpx.MockTransport(...)` and `sleep=waits.append`, so nothing waits.
+  The server is their own copy of the original `CrmServer`, or a small handler that always fails
+  in one way (a `503`, a `429` with `Retry-After`, an HTML error page, no response at all).
+- To check the backoff, some tests pass an `rng` whose `uniform(a, b)` always returns `b`, and
+  others pass `new_key` and `max_attempts`.
+- Retry warnings are read from the `crm_client` logger. A test captures every log record at
+  `DEBUG` and looks for the key.
+- `python crm_client.py` prints the sample run exactly.
+
 ## How to submit
 
 Push `crm_client.py` and a short `README.md` (what it does, how to use it from a script, and how to
-run the demo) to a GitHub repository, and submit its link on this capstone's page. The review runs
-`python crm_client.py` and compares it with the sample run, runs hidden tests against a fresh
-`CrmServer` (including failures the demo doesn't produce), captures every log record to look for
-the key, and then reads your code against the criteria: one place for retries and errors, models
-and exceptions of the client's own, lazy pagination that never drops a page, and creates that are
-safe to retry.
+run the demo) to a GitHub repository. Connect the repository on this capstone's page and add the
+workflow file it gives you (`.github/workflows/pylearn.yml`): the tests then run on every push, and
+the page shows the results. The review runs `python crm_client.py` and compares it with the sample
+run, runs hidden tests against a fresh `CrmServer` (including failures the demo doesn't produce),
+captures every log record to look for the key, and then reads your code against the criteria: one
+place for retries and errors, models and exceptions of the client's own, lazy pagination that never
+drops a page, and creates that are safe to retry.

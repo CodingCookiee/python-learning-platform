@@ -11,7 +11,7 @@ requirements:
   - "One productised offer on a single page: who it's for, the problem, the result to expect, what's included (specific and countable), what isn't, the timeline, a fixed build price, an optional monthly retainer, how AI usage is billed and capped, the assumptions, and the next step"
   - "An outreach file with a first message under 120 words, one follow-up, and a list of at least 10 businesses to contact, each with its source and why you chose it, and no personal contact details in the repository"
   - "A one-page site, or a profile README, that links the offer and the three case studies, and says how to get in touch"
-  - "Either generated with the provided portfolio.py from your own data, with python portfolio.py --check passing, or written by hand to the same structure"
+  - "Your own data is in the provided portfolio.py and python portfolio.py --check passes, whether the pages are generated from it or written by hand to the same structure"
 criteria:
   - "Each headline names a measured result and a kind of business, and a stranger could say in 30 seconds what was built and what changed"
   - "Every number is traceable to its stated source; nothing is invented, and a test-set result is never presented as live results"
