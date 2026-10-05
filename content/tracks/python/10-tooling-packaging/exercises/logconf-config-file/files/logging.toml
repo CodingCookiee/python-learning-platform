@@ -1,0 +1,17 @@
+# The invoicer's logging config: main.configure() passes it to logging.config.dictConfig
+version = 1
+
+[formatters.console]
+format = "%(levelname)s %(name)s: %(message)s"
+
+[handlers.console]
+class = "logging.StreamHandler"
+stream = "ext://sys.stdout"
+formatter = "console"
+level = "INFO"
+
+# A file handler that keeps everything, with timestamps
+
+[root]
+level = "INFO"
+handlers = ["console"]

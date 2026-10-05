@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Local dev probes and screenshot scripts, not app code
+    ".impeccable/**",
   ]),
 ]);
 

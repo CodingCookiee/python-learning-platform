@@ -1,0 +1,130 @@
+Harbour & Hull Coffee: quarterly order report
+01 Jul 2026 to 30 Sep 2026
+
+Orders          5,000
+Revenue    648,323.55 GBP including VAT
+Average        129.66 GBP per order
+
+Revenue by region, excluding VAT
+  Nordics               135,511.60
+  Central Europe        115,940.60
+  Southern Europe       105,454.68
+  Western Europe        103,011.92
+  UK and Ireland         75,820.88
+
+Top 10 products by revenue
+   1. HH-1274  Guatemala Antigua, 1 kg, lot 54           1,438.40
+   2. HH-0089  Colombia Huila, 1 kg, lot 4               1,279.80
+   3. HH-0698  Guatemala Antigua, 1 kg, lot 30           1,254.00
+   4. HH-0425  Colombia Huila, 1 kg, lot 18              1,240.20
+   5. HH-0725  Sumatra Mandheling, 1 kg, lot 31          1,231.20
+   6. HH-0980  Brazil Cerrado, 1 kg, lot 41              1,142.15
+   7. HH-1961  Colombia Huila, 1 kg, lot 82              1,130.35
+   8. HH-0053  Sumatra Mandheling, 1 kg, lot 3           1,064.25
+   9. HH-1481  Colombia Huila, 1 kg, lot 62              1,060.80
+  10. HH-0248  Ethiopia Yirgacheffe, 1 kg, lot 11        1,036.20
+
+Customers
+  Ordered at least once    2,570
+  Ordered again            1,100  (42.8%)
+
+Business days from order to dispatch, by carrier
+  Parcelwise          3.36   (1,736 orders)
+  SwiftPost           3.37   (1,609 orders)
+  Northline Freight   3.28   (1,655 orders)
+
+Orders with a discontinued product: 1,584
+
+Revenue by day
+  Wed 01 Jul    62 orders      7,134.35
+  Thu 02 Jul    64 orders      9,260.85
+  Fri 03 Jul    56 orders      7,085.30
+  Sat 04 Jul    52 orders      6,847.45
+  Sun 05 Jul    61 orders      7,665.80
+  Mon 06 Jul    58 orders      7,105.45
+  Tue 07 Jul    59 orders      9,131.45
+  Wed 08 Jul    54 orders      6,820.30
+  Thu 09 Jul    55 orders      7,090.45
+  Fri 10 Jul    57 orders      7,456.60
+  Sat 11 Jul    63 orders      7,047.00
+  Sun 12 Jul    52 orders      6,197.95
+  Mon 13 Jul    42 orders      5,200.40
+  Tue 14 Jul    53 orders      6,918.00
+  Wed 15 Jul    65 orders      8,837.55
+  Thu 16 Jul    60 orders      7,592.70
+  Fri 17 Jul    52 orders      7,662.05
+  Sat 18 Jul    55 orders      6,998.35
+  Sun 19 Jul    56 orders      5,932.60
+  Mon 20 Jul    50 orders      7,177.20
+  Tue 21 Jul    41 orders      4,457.75
+  Wed 22 Jul    43 orders      6,067.90
+  Thu 23 Jul    54 orders      7,211.30
+  Fri 24 Jul    50 orders      6,716.40
+  Sat 25 Jul    56 orders      7,357.65
+  Sun 26 Jul    58 orders      7,119.40
+  Mon 27 Jul    45 orders      6,112.55
+  Tue 28 Jul    50 orders      6,244.95
+  Wed 29 Jul    58 orders      6,567.50
+  Thu 30 Jul    63 orders      8,192.20
+  Fri 31 Jul    51 orders      6,852.10
+  Sat 01 Aug    49 orders      6,533.55
+  Sun 02 Aug    46 orders      5,827.00
+  Mon 03 Aug    50 orders      6,205.50
+  Tue 04 Aug    59 orders      7,962.15
+  Wed 05 Aug    69 orders      9,166.80
+  Thu 06 Aug    50 orders      7,080.25
+  Fri 07 Aug    66 orders      8,692.15
+  Sat 08 Aug    57 orders      7,669.10
+  Sun 09 Aug    52 orders      6,268.60
+  Mon 10 Aug    50 orders      6,559.60
+  Tue 11 Aug    57 orders      7,176.00
+  Wed 12 Aug    37 orders      5,187.25
+  Thu 13 Aug    52 orders      5,957.95
+  Fri 14 Aug    55 orders      7,438.55
+  Sat 15 Aug    52 orders      5,952.45
+  Sun 16 Aug    61 orders      8,390.55
+  Mon 17 Aug    47 orders      6,613.50
+  Tue 18 Aug    44 orders      5,888.05
+  Wed 19 Aug    60 orders      8,294.50
+  Thu 20 Aug    58 orders      7,760.80
+  Fri 21 Aug    55 orders      6,941.65
+  Sat 22 Aug    52 orders      6,768.35
+  Sun 23 Aug    53 orders      7,343.90
+  Mon 24 Aug    42 orders      5,605.05
+  Tue 25 Aug    59 orders      8,914.00
+  Wed 26 Aug    64 orders      7,625.50
+  Thu 27 Aug    43 orders      6,630.20
+  Fri 28 Aug    56 orders      7,332.85
+  Sat 29 Aug    59 orders      7,630.55
+  Sun 30 Aug    51 orders      5,898.70
+  Mon 31 Aug    51 orders      6,730.65
+  Tue 01 Sep    57 orders      7,275.30
+  Wed 02 Sep    79 orders     10,849.25
+  Thu 03 Sep    46 orders      6,359.85
+  Fri 04 Sep    54 orders      7,155.55
+  Sat 05 Sep    46 orders      6,314.55
+  Sun 06 Sep    41 orders      4,990.00
+  Mon 07 Sep    53 orders      7,279.70
+  Tue 08 Sep    71 orders     10,482.20
+  Wed 09 Sep    53 orders      6,171.70
+  Thu 10 Sep    55 orders      6,858.30
+  Fri 11 Sep    52 orders      6,961.70
+  Sat 12 Sep    48 orders      6,021.30
+  Sun 13 Sep    58 orders      7,512.70
+  Mon 14 Sep    50 orders      6,589.85
+  Tue 15 Sep    48 orders      5,556.90
+  Wed 16 Sep    71 orders      9,544.80
+  Thu 17 Sep    49 orders      6,247.45
+  Fri 18 Sep    59 orders      7,746.20
+  Sat 19 Sep    52 orders      6,804.40
+  Sun 20 Sep    62 orders      7,952.10
+  Mon 21 Sep    57 orders      7,265.25
+  Tue 22 Sep    61 orders      7,020.95
+  Wed 23 Sep    56 orders      7,238.00
+  Thu 24 Sep    54 orders      6,509.85
+  Fri 25 Sep    62 orders      7,142.35
+  Sat 26 Sep    53 orders      7,655.35
+  Sun 27 Sep    48 orders      6,121.35
+  Mon 28 Sep    45 orders      5,167.50
+  Tue 29 Sep    51 orders      6,479.80
+  Wed 30 Sep    58 orders      6,942.15

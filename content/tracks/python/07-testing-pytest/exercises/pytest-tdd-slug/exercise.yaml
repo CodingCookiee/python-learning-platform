@@ -1,0 +1,13 @@
+title: Build slugify test-first
+type: tests
+difficulty: stretch
+tags: [pytest, tdd, red-green-refactor]
+packages: [pytest]
+timeout: 25
+main_file: test_slug.py
+files:
+  - path: slug.py
+hints:
+  - "One rule at a time: write the test in test_slug.py, run it and see it fail, then change slug.py until it passes. The starter's test already passes; the next one won't."
+  - "re.sub(r\"[^a-z0-9]+\", \"-\", title.lower()) turns every run of other characters into one hyphen, and .strip(\"-\") takes them off the ends. An empty result becomes \"untitled\"."
+  - "For long slugs, look at the first max_length + 1 characters. If there's a hyphen in them, keep everything before the last one (rsplit(\"-\", 1)[0]); if there isn't, it's one long word, so cut it at max_length."

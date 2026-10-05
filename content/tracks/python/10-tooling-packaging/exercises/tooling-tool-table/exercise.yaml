@@ -1,0 +1,11 @@
+title: Your own tool table in pyproject.toml
+type: function
+difficulty: core
+tags: [pyproject, toml, configuration]
+main_file: main.py
+files:
+  - path: pyproject.toml
+hints:
+  - "Tools only read their own table under [tool]: ruff reads [tool.ruff], so the invoicer's settings go in [tool.invoicer]. TOML keys are exact strings, so due-days and due_days are different keys."
+  - "In load_settings, open the file in binary mode for tomllib, and catch FileNotFoundError to fall back to the defaults. data.get(\"tool\", {}).get(\"invoicer\", {}) is the table, or {} when there isn't one."
+  - "Check the table's keys against DEFAULTS before merging ({**DEFAULTS, **table} makes a new dict). For due_days, isinstance(True, int) is True, so rule out bool first; re.fullmatch(r\"[A-Z]{3}\", ...) checks the currency."

@@ -8,6 +8,7 @@ exercises:
   - pytest-make-it-green
   - pytest-over-mocked-test
   - pytest-one-behaviour-per-test
+  - pytest-tdd-slug
 ---
 
 You can now write tests for almost anything. This lesson is about two habits that decide whether a

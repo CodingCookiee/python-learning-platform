@@ -78,9 +78,15 @@ except Exception as exc:  # noqa: BLE001 - reporting must never hide the test re
     print(f"Couldn't reach pylearn ({exc}). Use Check now on the pylearn page.")
 `;
 
-/** The files the workflow writes into .pylearn/ besides the tests themselves */
+/**
+ * The files the workflow writes into .pylearn/ besides the tests themselves. pytest puts
+ * .pylearn first on sys.path, so the reporter's name mustn't clash with a learner's module
+ * (a capstone that asks for report.py would import ours instead).
+ */
+export const REPORTER = "_pylearn_report.py";
+
 export function runnerFiles(): Record<string, string> {
-  return { "pytest.ini": PYTEST_INI, "report.py": REPORT_PY };
+  return { "pytest.ini": PYTEST_INI, [REPORTER]: REPORT_PY };
 }
 
 /**
@@ -128,7 +134,7 @@ jobs:
         if: always()
         run: |
           . .venv/bin/activate
-          python .pylearn/report.py
+          python .pylearn/${REPORTER}
 `;
 }
 

@@ -1,0 +1,15 @@
+title: Keep the logging config in a file
+type: function
+difficulty: core
+tags: [logging, dictconfig, toml, configuration]
+main_file: main.py
+files:
+  - path: logging.toml
+  - path: invoicer/__init__.py
+    editable: false
+  - path: invoicer/billing.py
+    editable: false
+hints:
+  - "configure opens the file in binary mode (tomllib needs bytes): with open(path, \"rb\") as fh: config = tomllib.load(fh). Change config[\"handlers\"][\"console\"][\"level\"] when verbose, then call logging.config.dictConfig(config)."
+  - "invoicer/billing.py made its logger when main.py imported it, before configure ran. dictConfig switches such loggers off unless the file says disable_existing_loggers = false (a top-level key, next to version)."
+  - "Add a [formatters.file] table with format = \"%(asctime)s %(levelname)s %(name)s: %(message)s\", a [handlers.file] table (class = \"logging.FileHandler\", filename = \"invoicer.log\", level = \"DEBUG\", formatter = \"file\"), set the root to DEBUG with handlers = [\"console\", \"file\"], and add [loggers.httpx] with level = \"WARNING\"."

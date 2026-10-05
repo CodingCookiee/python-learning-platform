@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { LessonContent, PythonEditor } from "@/components/lesson";
+import { LessonContent, PythonEditor, languageFor } from "@/components/lesson";
 import { TapeMark } from "@/components/brand/marks";
 import { Seal } from "@/components/brand/seal";
 import { AchievementNotificationQueue, Confetti, LevelUpNotification } from "@/components/gamification";
@@ -748,6 +748,7 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
                   if (def.editable) setFile(def.path, v);
                 }}
                 readOnly={!def.editable}
+                language={languageFor(def.path)}
                 storageKey={def.editable ? `${EDITOR_KEY[mode.kind](drill)}:${def.path}` : undefined}
                 valueSavedAt={drill.draft?.savedAt ?? null}
                 onRun={() => void runCheck()}

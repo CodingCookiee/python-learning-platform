@@ -69,6 +69,9 @@ class _FilesLoader(importlib.abc.Loader):
 
 
 class _FilesFinder(importlib.abc.MetaPathFinder):
+    # plp.pytest_run steps around this finder, so files it writes to disk win
+    plp_learner_files = True
+
     def find_spec(self, fullname, path=None, target=None):
         if not _extra_py:
             return None
@@ -618,6 +621,7 @@ async def run_tests(
     plp._SOLUTION.update(source=solution, filename=main_name)
     _reset_user_state()
     user_files = _install_files(files, main_name)
+    plp._SOLUTION["files"] = {path: text for path, text in (files or {}).items() if path != main_name}
     plp.fresh_logging()
     plp.browser_compat()
     for name in ("solution", "tests"):

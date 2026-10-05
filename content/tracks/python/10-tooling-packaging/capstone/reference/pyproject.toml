@@ -1,0 +1,36 @@
+[project]
+name = "worklog"
+version = "0.1.0"
+description = "Log hours against clients from the terminal, and report them by ISO week"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "MIT"
+authors = [{ name = "Ada Lovelace", email = "ada@example.com" }]
+keywords = ["timesheet", "hours", "cli", "invoicing"]
+dependencies = []
+
+[project.urls]
+Repository = "https://github.com/ada/worklog"
+
+[project.scripts]
+worklog = "worklog.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = ["mypy>=1.13", "pytest>=8", "ruff>=0.8"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP", "SIM"]
+
+[tool.mypy]
+strict = true
+files = ["src", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

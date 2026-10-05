@@ -67,7 +67,15 @@ export interface PythonEditorProps {
   /** When `value` came from a server-saved draft: a local copy only wins if it's newer */
   valueSavedAt?: string | null;
   onRun?: () => void;
+  /** Monaco language id; a multi-file drill's data files pass their own (see languageFor) */
+  language?: string;
   className?: string;
+}
+
+/** The Monaco language for a drill file's path. TOML has no built-in mode; ini is close. */
+export function languageFor(path: string): string {
+  const ext = path.slice(path.lastIndexOf(".") + 1).toLowerCase();
+  return { py: "python", toml: "ini", ini: "ini", cfg: "ini", json: "json", md: "markdown", yaml: "yaml", yml: "yaml" }[ext] ?? "plaintext";
 }
 
 export function PythonEditor({
@@ -78,6 +86,7 @@ export function PythonEditor({
   storageKey,
   valueSavedAt,
   onRun,
+  language = "python",
   className,
 }: PythonEditorProps) {
   const { resolvedTheme } = useTheme();
@@ -198,7 +207,7 @@ export function PythonEditor({
       <div className="overflow-hidden rounded-md border border-border">
         <MonacoEditor
           height={editorHeight}
-          defaultLanguage="python"
+          defaultLanguage={language}
           value={synced ? value : initialValue}
           theme={monacoTheme}
           onChange={handleChange}

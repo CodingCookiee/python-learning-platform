@@ -1,0 +1,58 @@
+name: Content
+
+# Runs the slow content checks only when content or the runners change: every drill's
+# solution and starter in Pyodide, and every capstone/lab acceptance suite against its
+# reference solution with real Python.
+on:
+  push:
+    branches: [master]
+    paths: ["content/**", "public/py/**", "scripts/content/**", "lib/content/**", "lib/ci/**"]
+  pull_request:
+    paths: ["content/**", "public/py/**", "scripts/content/**", "lib/content/**", "lib/ci/**"]
+  workflow_dispatch:
+
+jobs:
+  drills:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      AUTH_SECRET: ci-placeholder-secret-that-is-at-least-32-chars
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Cache Pyodide packages
+        uses: actions/cache@v4
+        with:
+          path: .cache/pyodide
+          key: pyodide-${{ hashFiles('package-lock.json') }}
+      - run: npm ci
+      - run: npx prisma generate
+      - name: Every drill, starter and example
+        run: npm run content:validate
+
+  acceptance:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      AUTH_SECRET: ci-placeholder-secret-that-is-at-least-32-chars
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Cache acceptance venvs
+        uses: actions/cache@v4
+        with:
+          path: .cache/acceptance-venvs
+          key: acceptance-${{ hashFiles('content/**/capstone.yaml', 'content/**/reference/**/requirements.txt', 'content/**/reference/**/pyproject.toml') }}
+      - run: npm ci
+      - run: npx prisma generate
+      - name: Capstone and lab suites against their reference solutions
+        run: npm run content:acceptance

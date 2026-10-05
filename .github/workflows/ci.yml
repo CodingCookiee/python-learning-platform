@@ -9,7 +9,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     env:
-      # Placeholder values so env validation passes; CI never connects to a DB.
+      # Placeholder values so env validation passes; this job never connects to a DB.
       DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
       AUTH_SECRET: ci-placeholder-secret-that-is-at-least-32-chars
       NEXT_TELEMETRY_DISABLED: "1"
@@ -23,4 +23,63 @@ jobs:
       - run: npx prisma generate
       - run: npm run lint
       - run: npm run typecheck
+      - name: Unit tests
+        run: npm test
       - run: npx next build
+
+  integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: pylearn
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/pylearn
+      AUTH_SECRET: ci-placeholder-secret-that-is-at-least-32-chars
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: npm ci
+      - run: npx prisma generate
+      - name: Migrate a fresh database
+        run: npx prisma migrate deploy
+      - name: Load the course content
+        run: npm run content:sync
+      - name: Integration tests
+        run: npm run test:integration
+
+  python-runtime:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      AUTH_SECRET: ci-placeholder-secret-that-is-at-least-32-chars
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Cache Pyodide packages
+        uses: actions/cache@v4
+        with:
+          path: .cache/pyodide
+          key: pyodide-${{ hashFiles('package-lock.json') }}
+      - run: npm ci
+      - run: npx prisma generate
+      - name: Pyodide runner and server grading
+        run: npm run test:python

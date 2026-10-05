@@ -19,3 +19,5 @@ criteria:
   - "cli.py is thin: parsing, logging setup and printing only. Hours are Decimal from input to output, and weeks are ISO weeks"
   - "Tests call main([...]) directly with a temporary log file (tmp_path), check both output and exit codes, and never touch the real ~/.worklog.jsonl"
   - "The history shows the project growing in sensible commits, with pre-commit installed from the start, and nothing generated (.venv, dist/, __pycache__) committed"
+acceptance:
+  requirements: [ruff, mypy]

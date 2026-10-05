@@ -315,10 +315,30 @@ Before you tag the release, check each of these by hand:
   unless `--yes` is given.
 - **JSON logs.** A `--log-format json` option that swaps in the JSON formatter from lesson 4.
 
+## How it's tested
+
+Automated tests run on every push to your repository, on the code you pushed (not the tagged
+release). They rely on this:
+
+- The project installs with `uv pip install -e .`, so `pyproject.toml` needs its `[build-system]`
+  table and `worklog = "worklog.cli:main"` under `[project.scripts]`. The tests run your tool as
+  `python -m worklog` and through the installed `worklog` command.
+- Every run passes `--file` with a temporary log, except one that sets `WORKLOG_FILE` instead.
+  Outputs are compared with the sample run character for character, including the rule lines, the
+  `No hours logged.` week and the CSV. JSON output is compared as data.
+- A usage error must exit with status 2, print `usage:` and the reason on stderr, and print nothing
+  on stdout. A skipped log line must log a `worklog: WARNING: ...` line that includes the line
+  number.
+- The tests also call `main([...])` from `worklog.cli` and expect it to return `0`.
+- From the top of the repository, they run `ruff check`, `ruff format --check` and `mypy` with the
+  settings in your `pyproject.toml` (which must set `strict = true` and the `files` to check), and
+  `pytest tests`. All four must pass.
+
 ## How to submit
 
-Push the repository to GitHub, make sure the `v0.1.0` tag is pushed, and submit the repository's
-link on this capstone's page. The review installs your tool with
+Push the repository to GitHub and make sure the `v0.1.0` tag is pushed. Connect the repository on
+this capstone's page and add the workflow file it gives you (`.github/workflows/pylearn.yml`): the
+tests then run on every push, and the page shows the results. The review installs your tool with
 `uv tool install git+<your repo>@v0.1.0`, runs the sample session and the "Try these" checks
 against it, then runs `uv sync --locked`, `uv run ruff check`, `uv run ruff format --check`,
 `uv run mypy` and `uv run pytest` on a fresh clone. Finally it reads the code and the history

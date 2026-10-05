@@ -296,10 +296,32 @@ print the report: it's a quick way to get the pandas right. The whole app works 
 - **CSV import.** `POST /applications/import` takes your old spreadsheet as CSV, cleans it with
   pandas, and imports every row or none, reporting bad rows by line number.
 
+## How it's tested
+
+Automated tests run on every push to your repository. They rely on this:
+
+- `pyproject.toml` has a `[build-system]` table (as `uv init --package` writes) and lists
+  fastapi, sqlalchemy, pandas and alembic as dependencies, so `jobtracker` installs from
+  `src/jobtracker/`. The tests install httpx and pytest-asyncio themselves.
+- `jobtracker` exports `Base`, `create_app` and `build_app`, and `weekly_report` is in
+  `jobtracker/report.py`.
+- Each test builds a fresh in-memory SQLite engine, calls `Base.metadata.create_all`, passes it to
+  `create_app`, and sends requests in-process over `httpx.ASGITransport`. The sample run above is
+  replayed, and every status code and body it shows is checked. Refusals are checked for their
+  `detail`, word for word where the brief gives one.
+- The query-count test lists 3 and then 30 companies (and applications, each with two stages) and
+  counts the SQL statements each list runs.
+- With `JOBTRACKER_DATABASE_URL` set to an empty SQLite file, `alembic upgrade head` and then
+  `alembic check` must both succeed from the top of the repository, and `build_app()` must use that
+  database.
+- Your own suite runs with `pytest tests` from the top of the repository and must pass.
+
 ## How to submit
 
-Push the project to a GitHub repository and submit its link on this page. The README should say
-what the service does, how to install it, migrate the database, run it and run the tests.
+Push the project to a GitHub repository. Connect it on this capstone's page and add the workflow
+file it gives you (`.github/workflows/pylearn.yml`): the tests then run on every push, and the page
+shows the results. The README should say what the service does, how to install it, migrate the
+database, run it and run the tests.
 
 The review runs your test suite and its coverage, runs `alembic upgrade head` on an empty database
 and then `alembic check`, replays the sample run against `create_app` with a fresh engine, and runs

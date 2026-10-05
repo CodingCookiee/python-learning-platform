@@ -9,6 +9,7 @@ exercises:
   - tooling-fix-lint-findings
   - tooling-mypy-overrides
   - tooling-mutable-default-rule
+  - tooling-tool-table
 lab:
   title: Clean under ruff and strict mypy
   kind: github

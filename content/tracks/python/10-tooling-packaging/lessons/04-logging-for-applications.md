@@ -9,6 +9,7 @@ exercises:
   - logconf-dict-config
   - logconf-library-logging
   - logconf-json-formatter
+  - logconf-config-file
 lab:
   title: A console and a log file
   kind: output

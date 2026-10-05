@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parse as parseYaml } from "yaml";
 import { parseRepo } from "@/lib/ci/github";
-import { PYTEST_ARGS, runnerFiles, sameWorkflow, WORKFLOW_PATH, workflowYaml } from "@/lib/ci/workflow";
+import { PYTEST_ARGS, REPORTER, runnerFiles, sameWorkflow, WORKFLOW_PATH, workflowYaml } from "@/lib/ci/workflow";
 
 describe("repo URLs", () => {
   it.each([
@@ -55,7 +55,7 @@ describe("the generated workflow", () => {
   it("ships the runner files the workflow expects", () => {
     const files = runnerFiles();
     expect(files["pytest.ini"]).toContain("pythonpath = .");
-    expect(files["report.py"]).toContain("/api/ci/report/");
+    expect(files[REPORTER]).toContain("/api/ci/report/");
     expect(WORKFLOW_PATH).toBe(".github/workflows/pylearn.yml");
   });
 });

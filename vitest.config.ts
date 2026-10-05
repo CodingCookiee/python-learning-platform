@@ -14,6 +14,8 @@ const alias = { "@": path.resolve(__dirname) };
 export default defineConfig({
   resolve: { alias },
   test: {
+    // On Windows, Vitest can wait on its own file handles at exit; don't wait long
+    teardownTimeout: 2_000,
     projects: [
       {
         resolve: { alias },

@@ -1,0 +1,20 @@
+         13562302 function calls (13562066 primitive calls) in 32.404 seconds
+
+   Ordered by: internal time
+   List reduced from 458 to 12 due to restriction <12>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+   480000    9.486    0.000   19.119    0.000 /usr/lib/python3.14/_strptime.py:516(_strptime)
+    50002    6.125    0.000    6.125    0.000 report_original.py:128(find_product)
+   480000    1.746    0.000   20.865    0.000 /usr/lib/python3.14/_strptime.py:812(_strptime_datetime_datetime)
+   480000    1.686    0.000    1.686    0.000 {built-in method _locale.setlocale}
+   480000    1.454    0.000   22.319    0.000 {built-in method strptime}
+     5000    1.125    0.000    1.125    0.000 report_original.py:135(find_customer)
+        1    1.077    1.077   31.976   31.976 report_original.py:177(build_report)
+   480003    1.003    0.000    1.613    0.000 /usr/lib/python3.14/locale.py:386(normalize)
+   480005    0.955    0.000    0.955    0.000 {method 'match' of 're.Pattern' objects}
+   480000    0.820    0.000   23.395    0.000 report_original.py:123(parse_day)
+  1457708    0.798    0.000    0.798    0.000 {method 'get' of 'dict' objects}
+   480000    0.757    0.000    4.697    0.000 /usr/lib/python3.14/locale.py:581(getlocale)
+
+

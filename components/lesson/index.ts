@@ -7,7 +7,7 @@ export type { LessonContentProps } from "./lesson-content";
 export { CodeBlock } from "./code-block";
 export { JsBridge } from "./js-bridge";
 export type { JsBridgeProps } from "./js-bridge";
-export { PythonEditor } from "./monaco-editor";
+export { PythonEditor, languageFor } from "./monaco-editor";
 export type { PythonEditorProps } from "./monaco-editor";
 export { LessonCompleteButton } from "./lesson-complete-button";
 export type { LessonCompleteButtonProps } from "./lesson-complete-button";

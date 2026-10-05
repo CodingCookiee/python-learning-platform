@@ -144,9 +144,31 @@ Push a GitHub repository containing:
   measured on. One or two sentences per change: what the profile showed, what you changed, and
   why that fix fits the problem.
 
-Submit the repository's link on this capstone's page. The review re-runs your timings on the same
-machine against the starter, runs your tests plus hidden ones (other sample sizes and seeds must
-still match the original exactly), and reads your notes and profiles against the criteria.
+Connect the repository on this capstone's page and add the workflow file it gives you
+(`.github/workflows/pylearn.yml`): the tests then run on every push, and the page shows the
+results. The review re-runs your timings on the same machine against the starter, runs your tests
+plus hidden ones (other sample sizes and seeds must still match the original exactly), and reads
+your notes and profiles against the criteria.
+
+## How it's tested
+
+Automated tests run on every push to your repository. They rely on this:
+
+- Everything in "What to hand in" is at the top of the repository, under exactly those names.
+- The tests import `build_report` and `make_sample` from your `report.py`, and compare your
+  report with the starter's on data from the starter's own `make_sample`: the default sample
+  (against a saved copy of the starter's output), 1,000 orders, several other sizes and seeds,
+  and two calls in a row with different data. `expected.txt` and `expected-1000.txt` must match
+  the starter's output too.
+- They time the starter's `build_report` and yours on the same 1,000-order sample on the test
+  machine, and need yours to be at least 15 times faster. That margin allows for a noisy shared
+  machine; the review still checks for 20 times on the default sample.
+- `python report.py --orders 300` and `--time --repeat 3` behave as the starter's do, with the
+  timing line on stderr.
+- `report.py` imports nothing outside the standard library (other `.py` files of your own are
+  fine).
+- The profiles hold `pstats` output (with its `ncalls` and `tottime` columns), `NOTES.md` has a
+  table, and `pytest test_report.py` passes.
 
 ## Stretch goals
 

@@ -1,0 +1,17 @@
+title: Share fixtures through conftest.py
+type: tests
+difficulty: core
+tags: [pytest, fixtures, conftest]
+packages: [pytest]
+timeout: 25
+main_file: test_cart.py
+files:
+  - path: conftest.py
+  - path: test_discounts.py
+    editable: false
+  - path: cart.py
+    editable: false
+hints:
+  - "A fixture in test_cart.py is only visible to the tests in test_cart.py. Cut the whole cart fixture (decorator and all) and paste it into conftest.py, with the imports it needs: import pytest and from cart import Cart, Customer."
+  - "In conftest.py, add a second fixture called member that returns Customer(\"Amira\", member=True). Test files never import conftest.py; pytest finds the fixtures in it by name."
+  - "For the new test, take member as a parameter, build a fresh Cart holding exactly 1000p (one item at 1000), and check total_for(member) == 900."

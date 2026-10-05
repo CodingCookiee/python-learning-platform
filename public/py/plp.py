@@ -127,7 +127,7 @@ _untimed = _untimed_default
 _REGISTRY: list[dict] = []
 
 # The learner's code, set by the runner before tests.py is imported
-_SOLUTION: dict = {"source": "", "filename": "solution.py"}
+_SOLUTION: dict = {"source": "", "filename": "solution.py", "files": {}}
 
 
 def _register(name: str | None, *, hidden: bool, timeout: Any) -> Callable:
@@ -550,6 +550,12 @@ def solution_source() -> str:
     return _SOLUTION["source"]
 
 
+def learner_files() -> dict[str, str]:
+    """A multi-file drill's other files as the learner left them ({"conftest.py": ...}),
+    without the main file (that's solution_source())."""
+    return dict(_SOLUTION.get("files") or {})
+
+
 def defined_names(kind: str = "any") -> list[str]:
     """Top-level names the learner's code defines: kind is "function", "class" or "any".
     Methods count too for "function" (as "Class.method")."""
@@ -710,6 +716,11 @@ def pytest_run(files: dict[str, str]) -> PytestResult:
 
     out = io.StringIO()
     cwd = os.getcwd()
+    # A multi-file drill serves the learner's .py files from memory; step around that so the
+    # versions written here (a planted bug, say) are the ones pytest imports
+    learner_finders = [f for f in sys.meta_path if getattr(f, "plp_learner_files", False)]
+    for finder in learner_finders:
+        sys.meta_path.remove(finder)
     sys.path.insert(0, folder)
     try:
         os.chdir(folder)
@@ -722,6 +733,7 @@ def pytest_run(files: dict[str, str]) -> PytestResult:
     finally:
         os.chdir(cwd)
         sys.path.remove(folder)
+        sys.meta_path[0:0] = learner_finders
         for stem in stems:
             sys.modules.pop(stem, None)
     return PytestResult(outcome["passed"], outcome["failed"], outcome["errors"], out.getvalue(), details)

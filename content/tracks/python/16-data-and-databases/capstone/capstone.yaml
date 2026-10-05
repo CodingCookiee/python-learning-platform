@@ -21,3 +21,5 @@ criteria:
   - The report's numbers are right for empty weeks, withdrawn and rejected applications, and stages outside the window
   - The test suite is isolated (no test depends on another or on a file on disk), readable, and covers at least 90% of the package's lines
   - The README explains how to install, migrate, run the service and run the tests, and the code is typed, formatted and passes ruff
+acceptance:
+  requirements: [httpx, pytest-asyncio]

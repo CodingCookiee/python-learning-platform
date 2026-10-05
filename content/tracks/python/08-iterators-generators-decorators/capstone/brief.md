@@ -213,11 +213,33 @@ Pick any you like once the requirements work:
   with an endless generator and `islice`, `retry` with a fake `sleep`, and `run_report` with a fake
   clock and `out=lines.append`.
 
+## How it's tested
+
+Automated tests run on every push to your repository. They rely on this:
+
+- `etl.py` is at the top of the repository, with the starter's test data, records and `main()`
+  unchanged.
+- The tests run `python etl.py --generate 200000` in an empty folder and compare every line of the
+  output with the sample run, except the seconds, `Finished in` and `Peak memory`. They check the
+  first rows of the `hourly.csv` it writes against the sample above.
+- They also run `python etl.py <file>` on a file of 20,000 generated lines, and expect the same
+  counts as `--generate 20000`.
+- They import `read_log`, `parse`, `pages`, `hourly`, `write_csv`, `load`, `instrumented`, `retry`,
+  `run_report` and `METRICS`, and call them with the signatures above, on a few lines at a time. They
+  pass `clock`, `sleep` and `out` to check timings, backoff and the report without waiting, so use
+  the ones you're given rather than calling `time` yourself.
+- `run_report` should read its clock once at the start and once at the end. The seconds are shown
+  with one decimal place, like `Finished in 1.9s`.
+- The billion-line check runs in a separate process and fails if the first hour takes more than
+  30 seconds.
+
 ## How to submit
 
 Push `etl.py` and a short `README.md` (what it does, how to run it, and the peak memory you
 measured for 200,000 and 1,000,000 lines) to a GitHub repository, and submit its link on this
-capstone's page. The review runs hidden tests against each stage and decorator, runs
+capstone's page. Connect the repository there too, and add the workflow file it gives you
+(`.github/workflows/pylearn.yml`): the tests above then run on every push, and the page shows the
+results. The review runs hidden tests against each stage and decorator, runs
 `python etl.py --generate 200000` and compares the counts with the sample, then reads your code
 against the criteria: lazy stages that never collect the log, decorators that keep functions
 honest (names, laziness, re-raised errors), a report that survives failures, and stages small

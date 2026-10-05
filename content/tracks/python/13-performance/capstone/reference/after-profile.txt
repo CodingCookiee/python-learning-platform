@@ -1,0 +1,20 @@
+         448963 function calls in 0.864 seconds
+
+   Ordered by: internal time
+   List reduced from 132 to 12 due to restriction <12>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.230    0.230    0.746    0.746 report.py:65(make_sample)
+    57329    0.158    0.000    0.233    0.000 /usr/lib/python3.14/random.py:245(_randbelow_with_getrandbits)
+    27498    0.122    0.000    0.280    0.000 /usr/lib/python3.14/random.py:347(choice)
+        1    0.075    0.075    0.115    0.115 report.py:152(build_report)
+    22498    0.062    0.000    0.164    0.000 /usr/lib/python3.14/random.py:335(randint)
+    78818    0.048    0.000    0.048    0.000 {method 'getrandbits' of '_random.Random' objects}
+    57012    0.030    0.000    0.030    0.000 {built-in method builtins.len}
+    10092    0.028    0.000    0.028    0.000 {method 'isoformat' of 'datetime.date' objects}
+    57329    0.027    0.000    0.027    0.000 {method 'bit_length' of 'int' objects}
+    55996    0.022    0.000    0.022    0.000 {built-in method _operator.index}
+    22608    0.013    0.000    0.013    0.000 {method 'get' of 'dict' objects}
+     7000    0.012    0.000    0.036    0.000 /usr/lib/python3.14/random.py:294(randrange)
+
+

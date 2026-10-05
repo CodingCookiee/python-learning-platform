@@ -8,6 +8,7 @@ exercises:
   - pytest-predict-fixture-scope
   - pytest-yield-cleanup
   - pytest-exchange-rates-scope
+  - pytest-shared-conftest
 ---
 
 Most tests need something set up first: a cart with items in it, a customer, a connection to a

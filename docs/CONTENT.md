@@ -239,8 +239,20 @@ files:
 - The main file is still imported as `solution`, so tests use `from solution import ...` as usual and
   can import the other modules directly (`import pricing`). `defined_names` and `source_uses` look at
   the main file only.
+- `learner_files()` returns the other files as the learner left them (`{"conftest.py": "..."}`),
+  for checks that read them as text or hand them to `pytest_run`.
+- Tabs that aren't `.py` get the matching editor mode: `.toml`, `.ini` and `.cfg` as ini, `.json`,
+  `.md` and `.yaml`; anything else as plain text.
+- `tests` drills can be multi-file too, with the learner's test file as the main file. Pass the
+  other files to `pytest_run` yourself: `SUPPORT.update({"conftest.py": learner_files()["conftest.py"]})`.
+  Files you write in `pytest_run` win over the learner's copies of the same name, so planted bugs
+  still reach their tests.
 - The validator runs the solution with the solution files and the starter with the starter files.
-  See `python/03-functions-and-modules/exercises/imports-split-pricing` for a worked example.
+  Worked examples: `03-functions-and-modules/exercises/imports-split-pricing` (modules),
+  `07-testing-pytest/exercises/pytest-shared-conftest` (a conftest.py and a teammate's test file),
+  `07-testing-pytest/exercises/pytest-tdd-slug` (code and tests written together),
+  `10-tooling-packaging/exercises/logconf-config-file` and `tooling-tool-table` (TOML files the
+  code reads).
 
 ### `tests.py`
 
