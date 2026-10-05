@@ -99,14 +99,18 @@ oldest first, even if nothing happened in it.
 |--------|--------|
 | `week` | The Monday the week starts on |
 | `applied` | Applications with `applied_on` in that week |
-| `responses` | Of those, the ones that heard back: any status except `applied` and `withdrawn` |
-| `interviews` | Of those, the ones with at least one stage |
-| `offers` | Of those, the ones at `offer` or `accepted` |
+| `responses` | Of the `applied` ones, those that heard back: any status except `applied` and `withdrawn` |
+| `interviews` | Of the `responses`, those with at least one stage |
+| `offers` | Of the `interviews`, those at `offer` or `accepted` |
 | `response_rate` | `responses` as a percentage of `applied`, to 1 decimal place, or `0.0` for a week with none |
 | `stages` | Stages **scheduled** in that week, whichever week their application was sent |
 
 The first five columns are about the applications *sent* that week, so you can see which weeks'
-applications worked. Let SQL fetch only the applications and stages inside the window (use
+applications worked. They're a funnel: each one counts some of the applications in the column before
+it. So an application that had an interview and was then withdrawn is neither a response nor an
+interview, and one moved to `offer` without any stage isn't counted as an offer.
+
+Let SQL fetch only the applications and stages inside the window (use
 `pd.read_sql_query(stmt, session.connection(), ...)` with a `select()`), and let pandas do the
 grouping, the empty weeks and the percentages. `GET /reports/weekly` returns
 `df.to_dict("records")` through `WeekRow`, and the CSV endpoint returns `df.to_csv(index=False)`.

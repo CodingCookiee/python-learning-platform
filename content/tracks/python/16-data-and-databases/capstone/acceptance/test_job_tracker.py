@@ -379,6 +379,31 @@ def test_weekly_report_directly(jobtracker, engine, client):
     assert [int(one[c].iloc[0]) for c in ("applied", "responses", "interviews", "offers", "stages")] == [2, 1, 1, 0, 1]
 
 
+def test_weekly_report_counts_a_funnel(jobtracker, engine, client):
+    weekly_report = weekly_report_function(jobtracker)
+    company(client)
+    # Interviewed, then withdrawn: not a response, so not an interview either
+    withdrawn = application(client, applied_on="2026-09-08")["id"]
+    ok(client.post(f"/applications/{withdrawn}/stages", json={"kind": "phone screen", "scheduled_at": "2026-09-10T10:00:00"}), 201)
+    ok(client.patch(f"/applications/{withdrawn}", json={"status": "withdrawn"}))
+    # Moved to offer without a stage: a response, but not an interview or an offer
+    no_stage = application(client, applied_on="2026-09-08")["id"]
+    ok(client.patch(f"/applications/{no_stage}", json={"status": "interviewing"}))
+    ok(client.patch(f"/applications/{no_stage}", json={"status": "offer"}))
+    # Through a stage to an offer: counted in every column
+    offered = application(client, applied_on="2026-09-09")["id"]
+    ok(client.post(f"/applications/{offered}/stages", json={"kind": "final", "scheduled_at": "2026-09-11T15:00:00"}), 201)
+    ok(client.patch(f"/applications/{offered}", json={"status": "offer"}))
+    with Session(engine) as session:
+        week = weekly_report(session, date(2026, 9, 9), weeks=1)
+    got = {c: int(week[c].iloc[0]) for c in ("applied", "responses", "interviews", "offers", "stages")}
+    assert got == {"applied": 3, "responses": 2, "interviews": 1, "offers": 1, "stages": 2}, (
+        f"The report counted {got}. Each column counts only applications in the column before it: a withdrawn "
+        "application isn't a response even after an interview, and an offer without a stage isn't an interview or an offer."
+    )
+    assert float(week["response_rate"].iloc[0]) == 66.7
+
+
 def test_migrations_build_the_schema_from_empty(jobtracker, tmp_path, monkeypatch):
     assert Path("alembic.ini").exists(), "alembic.ini should be at the top of the repository"
     url = f"sqlite:///{(tmp_path / 'jobs.db').as_posix()}"

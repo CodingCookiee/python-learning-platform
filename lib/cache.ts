@@ -84,7 +84,7 @@ export const CacheKeys = {
   lesson: (lessonId: string, userId: string) => `lesson:${lessonId}:${userId}`,
   exercise: (exerciseId: string, userId: string) => `exercise:${exerciseId}:${userId}`,
   /** GET /api/projects/[id]; everything that changes a submission must invalidate this */
-  project: (projectId: string, userId: string) => `project:v5:${projectId}:${userId}`,
+  project: (projectId: string, userId: string) => `project:v6:${projectId}:${userId}`,
   userProgress: (userId: string) => `progress:${userId}`,
   moduleProgress: (moduleId: string, userId: string) => `progress:module:${moduleId}:${userId}`,
 };

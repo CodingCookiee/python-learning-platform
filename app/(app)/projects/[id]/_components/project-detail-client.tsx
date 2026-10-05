@@ -10,6 +10,7 @@ import { TapeMark } from "@/components/brand/marks";
 import { Seal } from "@/components/brand/seal";
 import { AiReviewPanel } from "@/components/projects/ai-review-panel";
 import { CiPanel } from "@/components/ci/ci-panel";
+import { LessonContent } from "@/components/lesson";
 import type { CiLinkView } from "@/lib/ci/links";
 import type { AiReview } from "@/lib/ai/reviewer";
 
@@ -26,6 +27,9 @@ export interface ProjectSubmission {
 export interface ProjectDetailData {
   id: string;
   title: string;
+  /** One line for the header (may contain `code`) */
+  summary?: string;
+  /** The brief, in markdown */
   description: string;
   requirements: string[];
   successCriteria: string[];
@@ -48,6 +52,19 @@ export interface ProjectDetailData {
 
 interface ProjectDetailClientProps {
   project: ProjectDetailData;
+}
+
+/** One line of text where `backticks` mark code, as in the capstone YAML */
+function InlineCode({ text }: { text: string }) {
+  return text.split(/(`[^`]+`)/).map((part, i) =>
+    part.length > 2 && part.startsWith("`") && part.endsWith("`") ? (
+      <code key={i} className="rounded-sm bg-muted px-1 py-0.5 font-mono text-[0.9em]">
+        {part.slice(1, -1)}
+      </code>
+    ) : (
+      part
+    )
+  );
 }
 
 function getSubmissionState(status?: string | null): "none" | "pending" | "rejected" | "approved" {
@@ -103,9 +120,11 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
           <h1 className="font-condensed text-5xl leading-[0.95] font-extrabold tracking-[-0.02em]">
             {project.title}
           </h1>
-          <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground">
-            {project.description}
-          </p>
+          {project.summary && (
+            <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground">
+              <InlineCode text={project.summary} />
+            </p>
+          )}
           <p className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
             <span className={`rounded-sm px-1.5 font-semibold ${status.className}`}>{status.label}</span>
             <span className="text-muted-foreground">
@@ -153,6 +172,13 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
           />
         )}
 
+        <section aria-labelledby="brief-heading" className="flex flex-col gap-4">
+          <h2 id="brief-heading" className="text-2xl font-semibold">
+            The brief
+          </h2>
+          <LessonContent content={project.description} runnable={false} sideToc={false} />
+        </section>
+
         <section aria-labelledby="requirements-heading" className="flex flex-col gap-4">
           <h2 id="requirements-heading" className="text-2xl font-semibold">
             What to build
@@ -164,7 +190,9 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
                   <span className="font-condensed tabular text-lg font-bold text-muted-foreground">
                     {String(i + 1).padStart(2, "0")}
                   </span>
-                  <span className="leading-relaxed">{req}</span>
+                  <span className="leading-relaxed">
+                    <InlineCode text={req} />
+                  </span>
                 </li>
               ))}
             </ol>
@@ -190,7 +218,9 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
                     className="mt-1 size-4 shrink-0 rounded-[3px] border border-(--keyline)/60"
                     aria-hidden="true"
                   />
-                  <span className="leading-relaxed">{criterion}</span>
+                  <span className="leading-relaxed">
+                    <InlineCode text={criterion} />
+                  </span>
                 </li>
               ))}
             </ul>

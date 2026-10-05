@@ -75,5 +75,6 @@ describe("the content tree", () => {
     expect(errors, errors.map((e) => `${e.path}: ${e.message}`).join("\n")).toHaveLength(0);
     expect(tracks.map((t) => t.slug)).toEqual(["python", "automation"]);
     expect(tracks.flatMap((t) => t.modules)).toHaveLength(24);
-  });
+    // Reads every file in content/ (thousands): seconds on Windows, where each read is scanned
+  }, 60_000);
 });

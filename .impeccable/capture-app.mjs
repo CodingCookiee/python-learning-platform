@@ -5,7 +5,7 @@ import { writeFileSync, mkdirSync } from "node:fs";
 const CHROME = "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const OUT = new URL("./review/app/", import.meta.url);
 mkdirSync(OUT, { recursive: true });
-const BASE = "http://localhost:3000";
+const BASE = process.env.BASE ?? "http://localhost:3000";
 const PORT = 9335;
 const chrome = spawn(CHROME, [
   "--headless=new",

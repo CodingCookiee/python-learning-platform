@@ -52,6 +52,7 @@ export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: 
         return {
           id: project.id,
           title: project.title,
+          summary: project.summary,
           description: project.description,
           requirements,
           successCriteria,

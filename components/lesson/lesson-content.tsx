@@ -60,6 +60,8 @@ export interface LessonContentProps {
   className?: string;
   /** False for drill prompts and hints: examples are shown, not run */
   runnable?: boolean;
+  /** False keeps the table of contents above the text, for pages with their own sidebar */
+  sideToc?: boolean;
 }
 
 function TocList({ items, activeSlug }: { items: TocItem[]; activeSlug: string | null }) {
@@ -330,7 +332,7 @@ const components: Components = {
 
 // LessonContent
 
-export function LessonContent({ content, className, runnable = true }: LessonContentProps) {
+export function LessonContent({ content, className, runnable = true, sideToc = true }: LessonContentProps) {
   // The page renders the lesson title; drop a leading markdown h1 that repeats it
   content = content.replace(/^\s*#\s+[^\n]*\n+/, "");
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
@@ -361,7 +363,7 @@ export function LessonContent({ content, className, runnable = true }: LessonCon
   }, [content, hasToc]);
 
   // With the scratchpad open there isn't room for a side table of contents
-  const narrow = useContext(ScratchpadContext)?.open ?? false;
+  const narrow = (useContext(ScratchpadContext)?.open ?? false) || !sideToc;
 
   return (
     <div className={cn("flex gap-12", className)}>

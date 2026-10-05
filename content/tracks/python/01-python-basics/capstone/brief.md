@@ -127,9 +127,24 @@ Pick any you like once the requirements work:
 - **Refuse negative prices.** `Refund, 1, -5.00` parses as a valid `Decimal`. Decide whether it
   should, and handle it.
 
+## How it's tested
+
+Automated tests run your program on every push to your repository. They rely on this:
+
+- `receipt.py` is at the top of the repository and runs with `python receipt.py`.
+- It reads items with `input()` until a blank line. The tests type the lines, then a blank line.
+- The `> ` prompts and anything printed before the `Item` header row are ignored, and so are spaces
+  at the ends of lines. The receipt itself, from the header to the `Total` row, must match the
+  formats above exactly. So must each `Skipped` message.
+- Importing `receipt.py` doesn't start the program: keep the input loop under
+  `if __name__ == "__main__":`.
+
 ## How to submit
 
-Push `receipt.py` to a GitHub repository (a new public repository is fine) and submit its link on this
-capstone's page. The review checks the requirements above by running your program on the sample run
-and on bad input, then reads your code against the criteria: exact money, aligned columns, no
-crashes, named constants and a clear layout. Include a short `README.md` with the command to run it.
+Push `receipt.py` to a GitHub repository (a new public repository is fine). On this capstone's
+page, connect the repository and add the workflow file it gives you
+(`.github/workflows/pylearn.yml`): the tests then run on every push, and the page shows the results.
+Then submit the repository's link. The review checks the requirements above by running your program
+on the sample run and on bad input, then reads your code against the criteria: exact money, aligned
+columns, no crashes, named constants and a clear layout. Include a short `README.md` with the
+command to run it.
