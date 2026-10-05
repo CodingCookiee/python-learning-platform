@@ -53,7 +53,8 @@ async function setup(width, height, scheme) {
   await send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-color-scheme", value: scheme }] });
 }
 async function go(path, wait = 5000) {
-  await send("Page.navigate", { url: BASE + path });
+  const nav = await send("Page.navigate", { url: BASE + path });
+  if (nav.result?.errorText || nav.error) console.log("navigate", path, "->", nav.result?.errorText ?? nav.error);
   await sleep(wait);
 }
 async function shot(name) {

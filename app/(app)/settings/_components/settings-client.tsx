@@ -242,7 +242,7 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
 
       <SettingsRow
         title="AI tutor"
-        description="The drill tutor and error explainer run on your own Anthropic or OpenAI key, so you pay your provider directly. Everything else works without one."
+        description="The drill tutor and error explainer run on your own Anthropic, OpenAI or Google Gemini key, so you pay your provider directly. Everything else works without one."
       >
         <AiSettings initialCredential={ai.credential} usage={ai.usage} available={ai.available} />
       </SettingsRow>

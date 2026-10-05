@@ -398,7 +398,7 @@ model Streak {
 model AiCredential {
   id           String   @id @default(cuid())
   userId       String   @unique
-  /// anthropic | openai
+  /// anthropic | openai | gemini
   provider     String
   model        String
   encryptedKey String   @db.Text

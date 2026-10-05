@@ -1,26 +1,45 @@
 /**
  * The one place the platform talks to model providers. Provider-neutral: callers
  * pass a system prompt and user/assistant turns and get text and token usage back,
- * whichever provider the learner's key is for. Plain fetch, no SDKs.
+ * whichever provider the learner's key is for (Anthropic, OpenAI or Gemini). Plain fetch, no SDKs.
  */
 
-export const PROVIDERS = ["anthropic", "openai"] as const;
+export const PROVIDERS = ["anthropic", "openai", "gemini"] as const;
 export type Provider = (typeof PROVIDERS)[number];
 
 export const PROVIDER_LABEL: Record<Provider, string> = {
   anthropic: "Anthropic",
   openai: "OpenAI",
+  gemini: "Google Gemini",
 };
 
-/** Suggested models per provider; the learner can type any model their key can use */
-export const MODEL_SUGGESTIONS: Record<Provider, string[]> = {
-  anthropic: ["claude-opus-5-5", "claude-sonnet-5", "claude-haiku-4-5-20251001"],
-  openai: ["gpt-5", "gpt-5-mini"],
+export interface ModelSuggestion {
+  id: string;
+  name: string;
+  note: string;
+}
+
+/** Suggested models per provider, most capable first; the learner can type any model their key can use */
+export const MODEL_SUGGESTIONS: Record<Provider, ModelSuggestion[]> = {
+  anthropic: [
+    { id: "claude-opus-5-5", name: "Claude Opus 5.5", note: "The most capable. Costs the most per call." },
+    { id: "claude-sonnet-5", name: "Claude Sonnet 5", note: "Strong and quicker, for less." },
+    { id: "claude-haiku-4-5-20251001", name: "Claude Haiku 4.5", note: "The fastest and cheapest." },
+  ],
+  openai: [
+    { id: "gpt-5", name: "GPT-5", note: "The most capable. Costs the most per call." },
+    { id: "gpt-5-mini", name: "GPT-5 mini", note: "Quicker and cheaper." },
+  ],
+  gemini: [
+    { id: "gemini-3.8-flash", name: "Gemini 3.8 Flash", note: "Google's most capable Flash model. Has a free tier." },
+    { id: "gemini-3.1-flash-lite", name: "Gemini 3.1 Flash-Lite", note: "Quicker and cheaper. Has a free tier." },
+  ],
 };
 
 export const DEFAULT_MODEL: Record<Provider, string> = {
   anthropic: "claude-opus-5-5",
   openai: "gpt-5-mini",
+  gemini: "gemini-3.8-flash",
 };
 
 export interface ChatTurn {
@@ -142,6 +161,54 @@ async function openai(req: CompleteRequest): Promise<CompleteResult> {
   };
 }
 
+async function gemini(req: CompleteRequest): Promise<CompleteResult> {
+  const model = encodeURIComponent(req.model.replace(/^models\//, ""));
+  let data: {
+    candidates?: Array<{ content?: { parts?: Array<{ text?: string; thought?: boolean }> }; finishReason?: string }>;
+    promptFeedback?: { blockReason?: string };
+    usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number; thoughtsTokenCount?: number; cachedContentTokenCount?: number };
+  };
+  try {
+    data = (await post(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+      // In a header rather than ?key=, so the key never ends up in a logged URL
+      { "x-goog-api-key": req.apiKey },
+      {
+        systemInstruction: { parts: [{ text: req.system }] },
+        contents: req.messages.map((m) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] })),
+        // Thinking models spend part of this on thinking, so leave them room
+        generationConfig: { maxOutputTokens: req.maxTokens * 3 },
+      },
+      req.timeoutMs ?? 90_000
+    )) as typeof data;
+  } catch (e) {
+    // Google answers a bad key with 400 INVALID_ARGUMENT ("API key not valid") rather than 401
+    if (e instanceof AiError && e.code === "bad_request" && /api key/i.test(e.message)) {
+      throw new AiError("auth", "The provider rejected the API key.", e.status);
+    }
+    throw e;
+  }
+  const candidate = data.candidates?.[0];
+  const text = (candidate?.content?.parts ?? []).filter((p) => !p.thought).map((p) => p.text ?? "").join("");
+  const reason = data.promptFeedback?.blockReason ?? candidate?.finishReason;
+  if (!text && reason && reason !== "STOP" && reason !== "MAX_TOKENS") {
+    throw new AiError("provider", `Gemini didn't answer (${reason}). Try rephrasing, or try again.`);
+  }
+  const u = data.usageMetadata ?? {};
+  return {
+    text,
+    usage: {
+      input: u.promptTokenCount ?? 0,
+      // Thinking is billed as output
+      output: (u.candidatesTokenCount ?? 0) + (u.thoughtsTokenCount ?? 0),
+      cached: u.cachedContentTokenCount ?? 0,
+    },
+    truncated: candidate?.finishReason === "MAX_TOKENS",
+  };
+}
+
+const PROVIDER_CALL: Record<Provider, (req: CompleteRequest) => Promise<CompleteResult>> = { anthropic, openai, gemini };
+
 export async function complete(req: CompleteRequest): Promise<CompleteResult> {
-  return req.provider === "anthropic" ? anthropic(req) : openai(req);
+  return PROVIDER_CALL[req.provider](req);
 }

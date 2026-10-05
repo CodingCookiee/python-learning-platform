@@ -14,6 +14,7 @@ type Status = { type: "success" | "error"; message: string } | null;
 const KEY_PAGE: Record<Provider, { href: string; label: string; prefix: string }> = {
   anthropic: { href: "https://console.anthropic.com/settings/keys", label: "console.anthropic.com", prefix: "sk-ant-" },
   openai: { href: "https://platform.openai.com/api-keys", label: "platform.openai.com", prefix: "sk-" },
+  gemini: { href: "https://aistudio.google.com/apikey", label: "aistudio.google.com", prefix: "AIza" },
 };
 
 function StatusLine({ status }: { status: Status }) {
@@ -35,6 +36,43 @@ function StatusLine({ status }: { status: Status }) {
 
 const fmt = (n: number) => n.toLocaleString();
 
+function isCustom(provider: Provider, model: string): boolean {
+  return !MODEL_SUGGESTIONS[provider].some((m) => m.id === model);
+}
+
+function ModelOption({
+  checked,
+  onSelect,
+  name,
+  detail,
+  note,
+}: {
+  checked: boolean;
+  onSelect: () => void;
+  name: string;
+  detail?: string;
+  note: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={checked}
+      onClick={onSelect}
+      className={cn(
+        "flex flex-col gap-0.5 rounded-md border px-3 py-2 text-left transition-colors",
+        checked ? "border-primary bg-accent/60" : "border-border hover:border-foreground/35"
+      )}
+    >
+      <span className="flex flex-wrap items-baseline gap-x-2 text-sm font-medium">
+        {name}
+        {detail && <span className="font-mono text-xs font-normal text-muted-foreground">{detail}</span>}
+      </span>
+      <span className="text-sm text-muted-foreground">{note}</span>
+    </button>
+  );
+}
+
 export function AiSettings({
   initialCredential,
   usage,
@@ -47,6 +85,8 @@ export function AiSettings({
   const [credential, setCredential] = React.useState(initialCredential);
   const [provider, setProvider] = React.useState<Provider>(initialCredential?.provider ?? "anthropic");
   const [model, setModel] = React.useState(initialCredential?.model ?? DEFAULT_MODEL.anthropic);
+  // "Another model": a model id typed by hand instead of one of the suggestions
+  const [custom, setCustom] = React.useState(() => isCustom(initialCredential?.provider ?? "anthropic", model));
   const [apiKey, setApiKey] = React.useState("");
   const [busy, setBusy] = React.useState<"save" | "test" | "remove" | null>(null);
   const [status, setStatus] = React.useState<Status>(null);
@@ -56,7 +96,9 @@ export function AiSettings({
   function chooseProvider(next: Provider) {
     setProvider(next);
     // Switching provider starts from its default model, unless coming back to the saved one
-    setModel(credential?.provider === next ? credential.model : DEFAULT_MODEL[next]);
+    const nextModel = credential?.provider === next ? credential.model : DEFAULT_MODEL[next];
+    setModel(nextModel);
+    setCustom(isCustom(next, nextModel));
   }
 
   async function save(e: React.FormEvent) {
@@ -157,7 +199,7 @@ export function AiSettings({
       <form onSubmit={(e) => void save(e)} className="flex flex-col gap-4">
         <fieldset className="flex flex-col gap-2">
           <legend className="mb-2 text-sm font-medium">Provider</legend>
-          <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Provider">
+          <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Provider">
             {PROVIDERS.map((p) => (
               <button
                 key={p}
@@ -176,24 +218,52 @@ export function AiSettings({
           </div>
         </fieldset>
 
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="ai-model">Model</Label>
-          <Input
-            id="ai-model"
-            value={model}
-            onChange={(e) => setModel(e.target.value)}
-            list="ai-model-suggestions"
-            spellCheck={false}
-            autoComplete="off"
-            className="font-mono text-sm"
-          />
-          <datalist id="ai-model-suggestions">
+        <fieldset className="flex flex-col gap-2">
+          <legend className="mb-2 text-sm font-medium">Model</legend>
+          <div className="flex flex-col gap-2" role="radiogroup" aria-label="Model">
             {MODEL_SUGGESTIONS[provider].map((m) => (
-              <option key={m} value={m} />
+              <ModelOption
+                key={m.id}
+                checked={!custom && model === m.id}
+                onSelect={() => {
+                  setCustom(false);
+                  setModel(m.id);
+                }}
+                name={m.name}
+                detail={m.id}
+                note={m.note}
+              />
             ))}
-          </datalist>
-          <p className="text-sm text-muted-foreground">Any model your key can use. Bigger models tutor better and cost more.</p>
-        </div>
+            <ModelOption
+              checked={custom}
+              onSelect={() => {
+                if (!custom) setModel("");
+                setCustom(true);
+              }}
+              name="Another model"
+              note="Type the id of any model your key can use."
+            />
+          </div>
+          {custom && (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="ai-model" className="sr-only">
+                Model id
+              </Label>
+              <Input
+                id="ai-model"
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                placeholder={DEFAULT_MODEL[provider]}
+                spellCheck={false}
+                autoComplete="off"
+                autoFocus
+                required
+                className="font-mono text-sm"
+              />
+            </div>
+          )}
+          <p className="text-sm text-muted-foreground">Bigger models tutor better and cost more per call.</p>
+        </fieldset>
 
         <div className="flex flex-col gap-2">
           <Label htmlFor="ai-key">API key</Label>

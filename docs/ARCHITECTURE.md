@@ -297,8 +297,8 @@ gateway, and MCP servers.
 
 ## 7. AI features (built with Claude; also a live demo of Track 2 concepts)
 
-All calls go through one provider-neutral module, `lib/ai/gateway.ts` (Anthropic Messages and OpenAI
-Chat Completions over plain `fetch`), and run on the **learner's own key** via
+All calls go through one provider-neutral module, `lib/ai/gateway.ts` (Anthropic Messages, OpenAI
+Chat Completions and Gemini `generateContent` over plain `fetch`), and run on the **learner's own key** via
 `callWithLearnerKey` in `lib/ai/credentials.ts`: it decrypts the key, enforces a per-learner daily
 call limit (150), and writes an `LlmUsage` row per call (feature, provider, model, tokens in/out/cached).
 Learners see their usage in Settings. Cost in dollars isn't estimated, since the learner's provider
@@ -454,7 +454,7 @@ Each milestone is shippable and leaves the app better than before.
 
 - **Mastery (M2):** module checkpoints that pass the module, placement tests ("test out"), the spaced-review deck and `/review` queue, and the skill map on the dashboard (§6). Drills inside an open checkpoint are served without hints or solution wherever they're opened.
 
-- **AI (M3):** learners' own keys (Anthropic or OpenAI) encrypted in `AiCredential`, the Socratic tutor and error explainer on drills, and `LlmUsage` logging with a daily limit (§7).
+- **AI (M3):** learners' own keys (Anthropic, OpenAI or Google Gemini) encrypted in `AiCredential`, the Socratic tutor and error explainer on drills, and `LlmUsage` logging with a daily limit (§7).
 
 - **Server grading (M4):** with `GRADING_MODE=server` the submit route re-runs the drill's tests in Node Pyodide (`lib/grading/server.ts`, the same pool `content:validate` uses) and records that verdict, not the browser's. If the grader itself fails, the attempt isn't recorded (503). `next.config.ts` traces Pyodide, the pool and the harness into the submit function; downloaded packages cache in `PLP_CACHE_DIR` (`/tmp/pyodide` on Vercel).
 - **Labs (M4):** a lesson's `lab:` frontmatter (docs/CONTENT.md) declares how its local lab is verified: a personal webhook URL (`/api/labs/hook/{token}`, body checked against expected fields), a probe of a deployed https URL (private addresses refused), or pasted command output matched against patterns. 18 lessons have one. Verifying earns 15 XP; labs never block a lesson.

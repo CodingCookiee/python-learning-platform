@@ -10,15 +10,28 @@ import { getPythonRuntime } from "@/lib/python-runtime";
 import { usePyodide } from "@/lib/pyodide";
 import { cn } from "@/lib/utils";
 
-/**
- * The lesson's split view: the lesson on the left, a scratchpad editor on the
- * right that stays put while you read. Any runnable example can be sent to it
- * ("Scratchpad" on the code block) to take apart and extend. The scratchpad is
- * saved per lesson in the browser.
- */
-
 
 const OPEN_KEY = "pylearn:scratchpad-open";
+
+/** Block elements that can hold the reader's place while the column reflows */
+const ANCHORS = "h1, h2, h3, h4, p, li, pre, table, blockquote, figure, details";
+/** Below the sticky navbar: the first element reaching past this line is what's being read */
+const READING_LINE = 80;
+
+interface ReadingPlace {
+  el: Element;
+  top: number;
+}
+
+/** The first block in the lesson that's on screen, and where it sits */
+function readingPlace(root: HTMLElement | null): ReadingPlace | null {
+  if (!root) return null;
+  for (const el of root.querySelectorAll(ANCHORS)) {
+    const rect = el.getBoundingClientRect();
+    if (rect.height > 0 && rect.bottom > READING_LINE) return { el, top: rect.top };
+  }
+  return null;
+}
 
 function readOpen(): boolean {
   try {
@@ -43,9 +56,22 @@ export function LessonWorkspace({ lessonId, children }: { lessonId: string; chil
   const [result, setResult] = React.useState<RunState | null>(null);
   const { run: runPython } = usePyodide();
   const [running, setRunning] = React.useState(false);
+  const lessonRef = React.useRef<HTMLDivElement>(null);
+  const placeRef = React.useRef<ReadingPlace | null>(null);
+
+  // Opening or closing the pane changes the lesson's width (and folds its side table of
+  // contents in or out), so the text reflows. Put what was being read back where it was.
+  React.useLayoutEffect(() => {
+    const place = placeRef.current;
+    placeRef.current = null;
+    if (!place || !place.el.isConnected) return;
+    const moved = place.el.getBoundingClientRect().top - place.top;
+    if (Math.abs(moved) >= 1) window.scrollBy({ top: moved, behavior: "instant" });
+  }, [open]);
 
   // Remember whether the pane was open, across lessons
   const toggle = React.useCallback((next: boolean) => {
+    placeRef.current = readingPlace(lessonRef.current);
     setOpen(next);
     try {
       localStorage.setItem(OPEN_KEY, next ? "1" : "0");
@@ -94,7 +120,7 @@ export function LessonWorkspace({ lessonId, children }: { lessonId: string; chil
   return (
     <ScratchpadContext.Provider value={scratchpad}>
       <div className={cn("grid min-w-0 gap-8", open && "xl:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]")}>
-        <div className="min-w-0">
+        <div ref={lessonRef} className="min-w-0">
           <div className="mb-6 flex justify-end">
             <Button variant="outline" size="sm" onClick={() => toggle(!open)} aria-expanded={open} aria-controls="scratchpad">
               {open ? <PanelRightClose aria-hidden="true" /> : <PanelRightOpen aria-hidden="true" />}

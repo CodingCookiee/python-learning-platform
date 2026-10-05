@@ -13,15 +13,20 @@ beforeAll(async () => {
 afterAll(() => learner.cleanup());
 afterEach(() => vi.unstubAllGlobals());
 
-/** A fake provider that answers in Anthropic's or OpenAI's own format, and records requests */
-function fakeProvider(status = 200) {
+/** A fake provider that answers in Anthropic's, OpenAI's or Gemini's own format, and records requests */
+function fakeProvider(status = 200, errorMessage = "invalid x-api-key") {
   const seen: Array<{ url: string; headers: Record<string, string>; body: Record<string, unknown> }> = [];
   vi.stubGlobal("fetch", async (url: string, init: RequestInit) => {
     seen.push({ url, headers: init.headers as Record<string, string>, body: JSON.parse(String(init.body)) });
-    if (status !== 200) return new Response(JSON.stringify({ error: { message: "invalid x-api-key" } }), { status });
+    if (status !== 200) return new Response(JSON.stringify({ error: { message: errorMessage } }), { status });
     const payload = url.includes("anthropic")
       ? { content: [{ type: "text", text: "What does divmod return?" }], stop_reason: "end_turn", usage: { input_tokens: 900, output_tokens: 40, cache_read_input_tokens: 700 } }
-      : { choices: [{ message: { content: "Hint" }, finish_reason: "stop" }], usage: { prompt_tokens: 950, completion_tokens: 45 } };
+      : url.includes("generativelanguage")
+        ? {
+            candidates: [{ content: { role: "model", parts: [{ text: "Weighing the hint…", thought: true }, { text: "Which line runs first?" }] }, finishReason: "STOP" }],
+            usageMetadata: { promptTokenCount: 980, candidatesTokenCount: 30, thoughtsTokenCount: 120, cachedContentTokenCount: 600 },
+          }
+        : { choices: [{ message: { content: "Hint" }, finish_reason: "stop" }], usage: { prompt_tokens: 950, completion_tokens: 45 } };
     return new Response(JSON.stringify(payload), { status: 200 });
   });
   return seen;
@@ -74,6 +79,29 @@ describe("learners' own AI keys", () => {
     fakeProvider(401);
     const r = await ask();
     expect(!r.ok && [r.code, r.status]).toEqual(["auth", 401]);
+  });
+
+  it("work with Gemini too: key in a header, its own roles, thinking left out of the reply", async () => {
+    await saveCredential(learner.user.id, { provider: "gemini", model: "gemini-3.8-flash", apiKey: "AIzaSy-gemini-5555" });
+    const seen = fakeProvider();
+    const r = await callWithLearnerKey(learner.user.id, "tutor", {
+      system: "s",
+      messages: [{ role: "user", content: "hi" }, { role: "assistant", content: "Hello" }, { role: "user", content: "help" }],
+      maxTokens: 50,
+    });
+    expect(r.ok && r.result.text).toBe("Which line runs first?");
+    expect(seen[0]!.url).toBe("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent");
+    expect(seen[0]!.url).not.toContain("AIza");
+    expect(seen[0]!.headers["x-goog-api-key"]).toBe("AIzaSy-gemini-5555");
+    expect(seen[0]!.body.systemInstruction).toEqual({ parts: [{ text: "s" }] });
+    expect((seen[0]!.body.contents as Array<{ role: string }>).map((c) => c.role)).toEqual(["user", "model", "user"]);
+    expect(r.ok && r.result.usage).toEqual({ input: 980, output: 150, cached: 600 });
+  });
+
+  it("report a rejected Gemini key as a key problem", async () => {
+    fakeProvider(400, "API key not valid. Please pass a valid API key.");
+    const r = await ask();
+    expect(!r.ok && r.code).toBe("auth");
   });
 
   it("show up in the admin usage report", async () => {
