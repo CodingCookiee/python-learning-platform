@@ -1,6 +1,14 @@
 import { getToken } from "next-auth/jwt";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { contentSecurityPolicy, newNonce } from "@/lib/csp";
+
+/** A page load, as opposed to a script, worker, data or RSC request */
+function isPageRequest(req: NextRequest): boolean {
+  const dest = req.headers.get("sec-fetch-dest");
+  if (dest) return dest === "document";
+  return (req.headers.get("accept") ?? "").includes("text/html");
+}
 
 /**
  * Proxy for route protection and authentication.
@@ -66,6 +74,23 @@ export async function proxy(req: NextRequest) {
     const signInUrl = new URL("/auth/signin", req.url);
     signInUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(signInUrl);
+  }
+
+  // Pages get a Content-Security-Policy with a fresh nonce, which Next.js reads from the
+  // request header and puts on its scripts (lib/csp.ts). Workers and files keep loading as before.
+  if (isPageRequest(req)) {
+    const nonce = newNonce();
+    const csp = contentSecurityPolicy({
+      nonce,
+      dev: process.env.NODE_ENV === "development",
+      https: req.nextUrl.protocol === "https:",
+    });
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set("x-nonce", nonce);
+    requestHeaders.set("content-security-policy", csp);
+    const response = NextResponse.next({ request: { headers: requestHeaders } });
+    response.headers.set("content-security-policy", csp);
+    return response;
   }
 
   return NextResponse.next();

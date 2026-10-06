@@ -48,10 +48,13 @@ export function SiteFooter() {
             Syllabus
           </Link>
           <Link href="/auth/signin" className="text-muted-foreground hover:text-foreground">
-            Sign in
+            Sign in to your account
           </Link>
           <Link href="/auth/signup" className="text-muted-foreground hover:text-foreground">
             Create account
+          </Link>
+          <Link href="/privacy" className="text-muted-foreground hover:text-foreground">
+            Privacy
           </Link>
         </nav>
         <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} pylearn</p>

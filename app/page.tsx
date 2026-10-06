@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import hljs from "highlight.js/lib/core";
@@ -15,6 +16,10 @@ import { BELTS, DAN_TRACK, beltForModule, kyuRange, ordinal } from "@/lib/ranks"
 
 hljs.registerLanguage("javascript", javascript);
 hljs.registerLanguage("python", python);
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 function highlight(code: string, language: "javascript" | "python") {
   return hljs.highlight(code, { language }).value;

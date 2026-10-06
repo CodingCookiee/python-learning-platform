@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
 import { BeltBand } from "@/components/brand/belt";
 import { BELTS, kyuRange } from "@/lib/ranks";
+import { SkipLink } from "@/components/layout/skip-link";
 
 /**
  * Two-panel auth layout: the belt ladder on the left, the form on the right.
@@ -17,6 +18,7 @@ export function AuthShell({
 }) {
   return (
     <div className="grid min-h-screen lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <SkipLink href="#auth-main">Skip to the form</SkipLink>
       <aside className="hidden flex-col justify-between border-r border-border bg-sheet p-12 lg:flex">
         <Link href="/" aria-label="pylearn home" className="w-fit rounded-sm">
           <Logo />
@@ -55,13 +57,18 @@ export function AuthShell({
         </p>
       </aside>
 
-      <main className="flex flex-col px-6 py-8 sm:px-10">
+      <main id="auth-main" tabIndex={-1} className="flex flex-col px-6 py-8 outline-none sm:px-10">
         <Link href="/" aria-label="pylearn home" className="w-fit rounded-sm lg:hidden">
           <Logo />
         </Link>
         <div className="flex flex-1 items-center justify-center py-10">
           <div className="w-full max-w-sm">{children}</div>
         </div>
+        <p className="text-center text-sm text-muted-foreground">
+          <Link href="/privacy" className="hover:text-foreground">
+            Privacy policy
+          </Link>
+        </p>
       </main>
     </div>
   );

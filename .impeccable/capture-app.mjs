@@ -35,6 +35,8 @@ ws.addEventListener("message", (e) => {
   else if (m.method === "Runtime.consoleAPICalled" && ["error", "warning"].includes(m.params.type))
     issues.push(m.params.args.map((a) => a.value ?? a.description).join(" ").slice(0, 2500));
   else if (m.method === "Runtime.exceptionThrown") issues.push("EXC " + m.params.exceptionDetails.text);
+  // CSP violations and failed loads are reported here, not through the console API
+  else if (m.method === "Log.entryAdded" && m.params.entry.level === "error") issues.push("LOG " + m.params.entry.text.slice(0, 600));
 });
 const send = (method, params = {}) =>
   new Promise((res) => {
@@ -47,6 +49,7 @@ const ev = async (expression) =>
     ?.result?.value;
 await send("Page.enable");
 await send("Runtime.enable");
+await send("Log.enable");
 
 async function setup(width, height, scheme) {
   await send("Emulation.setDeviceMetricsOverride", { width, height, deviceScaleFactor: 1, mobile: width < 600 });
@@ -765,6 +768,74 @@ if (process.env.CHECKPOINT) {
   await shot("cp-result-mobile-dark.png");
   await db.end();
   console.log("CHECKPOINT console:", issues.length ? [...new Set(issues)].map((x) => x.slice(0, 300)) : "none");
+  ws.close();
+  chrome.kill();
+  process.exit(0);
+}
+if (process.env.COOKIE_OUT) {
+  // The test account's session as a Cookie header value, for crawling signed-in pages
+  // (squirrel audit -H "Cookie: ..."). Written to a file, never printed: it's a credential.
+  const { cookies } = (await send("Network.getCookies", { urls: [BASE] })).result;
+  (await import("node:fs")).writeFileSync(process.env.COOKIE_OUT, cookies.map((c) => `${c.name}=${c.value}`).join("; "));
+  console.log("cookies written:", cookies.map((c) => c.name).join(", "));
+  ws.close();
+  chrome.kill();
+  process.exit(0);
+}
+if (process.env.CSPCHECK) {
+  // Every kind of page under the Content-Security-Policy: what got blocked, and whether the
+  // theme script, the code editor and Python in the browser still work
+  const waitFor = async (expr, tries = 60) => {
+    for (let i = 0; i < tries; i++) {
+      if (await ev(expr)) return true;
+      await sleep(500);
+    }
+    return false;
+  };
+  const click = (label) => ev(`(() => { const b = [...document.querySelectorAll("button")].find((b) => b.textContent.trim() === ${JSON.stringify(label)}); b?.click(); return !!b; })()`);
+  const results = [];
+  const visit = async (path, act) => {
+    issues.length = 0;
+    await go(path, 6000);
+    const r = {
+      path,
+      at: await ev("location.pathname"),
+      csp: await ev(`fetch(location.href, { headers: { accept: "text/html" } }).then((r) => (r.headers.get("content-security-policy") || "").slice(0, 40))`),
+      theme: await ev(`document.documentElement.className.match(/\\b(light|dark)\\b/)?.[0] ?? "none"`),
+    };
+    if (act) Object.assign(r, await act());
+    r.errors = [...new Set(issues)].map((x) => x.slice(0, 260));
+    results.push(r);
+  };
+  const ids2 = ids;
+  await visit("/dashboard");
+  await visit("/modules");
+  await visit(`/lessons/${ids2.lesson}`, async () => {
+    if (!(await click("Close scratchpad"))) await click("Open scratchpad");
+    else { await sleep(500); await click("Open scratchpad"); }
+    const editor = await waitFor(`!!document.querySelector("#scratchpad .monaco-editor")`, 40);
+    // The scratchpad's own Run button, not a code block's
+    await ev(`[...document.querySelectorAll("#scratchpad button")].find((b) => b.textContent.trim() === "Run")?.click()`);
+    // ExampleOutput: "Ran without printing anything." on success, or Printed / Value / Error blocks
+    const ran = await waitFor(`/Ran without printing anything|Printed|Value|Afterwards|Error/.test(document.querySelector("#scratchpad")?.innerText ?? "")`, 120);
+    return { editor, ran, scratch: (await ev(`document.querySelector("#scratchpad")?.innerText.slice(-120)`)) };
+  });
+  await visit(`/exercises/${ids2.exercise}`, async () => {
+    const editor = await waitFor(`!!document.querySelector(".monaco-editor")`, 40);
+    await waitFor(`[...document.querySelectorAll("button")].some((b) => b.textContent.trim() === "Run tests")`, 120);
+    await click("Run tests");
+    const graded = await waitFor(`/\d+ of \d+ tests? passed|All \d+ tests? passed|Not yet|tests? failed/i.test(document.body.innerText)`, 120);
+    const verdict = await ev(`(document.body.innerText.match(/[^\n]*(\d+ of \d+ tests? passed|All \d+ tests? passed|tests? failed)[^\n]*/i) || [""])[0].slice(0, 120)`);
+    return { editor, graded, verdict };
+  });
+  await visit(`/projects/${ids2.project}`);
+  await visit("/settings");
+  await visit("/log");
+  await visit("/achievements");
+  await visit("/review");
+  await send("Network.clearBrowserCookies");
+  for (const p of ["/", "/auth/signin", "/auth/signup", "/auth/forgot-password", "/privacy", "/no-such-page"]) await visit(p);
+  for (const r of results) console.log(JSON.stringify(r));
   ws.close();
   chrome.kill();
   process.exit(0);

@@ -19,6 +19,9 @@ export function Footer() {
           <Link href="/settings" className="text-muted-foreground hover:text-foreground">
             Settings
           </Link>
+          <Link href="/privacy" className="text-muted-foreground hover:text-foreground">
+            Privacy
+          </Link>
         </nav>
         <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} pylearn</p>
       </div>

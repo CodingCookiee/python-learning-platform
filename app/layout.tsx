@@ -4,6 +4,8 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
+import { headers } from "next/headers";
+import { publicOrigin } from "@/lib/public-origin";
 
 // One family across the width axis: condensed for ranks, normal for reading
 const archivo = Archivo({
@@ -19,14 +21,30 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+const DESCRIPTION =
+  "A graded path from first Python syntax to advanced Python, then AI automation. Lessons, drills and gradings run in your browser.";
+
 export const metadata: Metadata = {
+  // Absolute URLs for canonical links and the share card (app/opengraph-image.tsx)
+  metadataBase: new URL(publicOrigin()),
   title: {
     default: "pylearn: earn your black belt in Python",
     template: "%s · pylearn",
   },
-  description:
-    "A graded path from first Python syntax to advanced Python, then AI automation. Lessons, drills and gradings run in your browser.",
+  description: DESCRIPTION,
   applicationName: "pylearn",
+  openGraph: {
+    type: "website",
+    siteName: "pylearn",
+    title: "pylearn: earn your black belt in Python",
+    description: DESCRIPTION,
+    locale: "en",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "pylearn: earn your black belt in Python",
+    description: DESCRIPTION,
+  },
 };
 
 export const viewport: Viewport = {
@@ -36,11 +54,14 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // The per-request nonce from proxy.ts, for next-themes' inline script. Reading headers also
+  // makes every page render per request, which a nonce needs.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <html
       lang="en"
@@ -49,7 +70,7 @@ export default function RootLayout({
       className={cn("h-full antialiased", archivo.variable, jetbrainsMono.variable)}
     >
       <body className="flex min-h-full flex-col font-sans">
-        <ThemeProvider>
+        <ThemeProvider nonce={nonce}>
           <TooltipProvider>{children}</TooltipProvider>
         </ThemeProvider>
       </body>

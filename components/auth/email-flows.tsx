@@ -92,7 +92,8 @@ export function ForgotPasswordForm() {
     );
   }
   return (
-    <form onSubmit={(e) => void submit(e)} className="flex flex-col gap-5" noValidate>
+    // The browser's own email check explains what's wrong with an address, so it stays on
+    <form onSubmit={(e) => void submit(e)} className="flex flex-col gap-5">
       {error && <FormError message={error} />}
       <div className="flex flex-col gap-2">
         <Label htmlFor="forgot-email">Email</Label>

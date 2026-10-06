@@ -8,7 +8,8 @@ async function main() {
   const project = await prisma.project.findFirstOrThrow({ where: { slug: "receipt-printer" }, select: { id: true } });
   const jobTracker = await prisma.project.findFirstOrThrow({ where: { slug: "job-tracker" }, select: { id: true } });
   const lesson = await prisma.lesson.findFirstOrThrow({ where: { slug: "strings", module: { slug: "python-basics" } }, select: { id: true } });
-  const ids = { project: project.id, jobTracker: jobTracker.id, lesson: lesson.id };
+  const exercise = await prisma.exercise.findFirstOrThrow({ where: { slug: "numbers-make-change" }, select: { id: true } });
+  const ids = { project: project.id, jobTracker: jobTracker.id, lesson: lesson.id, exercise: exercise.id };
   writeFileSync(path.join(process.env.TEMP ?? ".", "review-ids.json"), JSON.stringify(ids));
   console.log("review account:", user ? "exists" : "MISSING", ids);
   await prisma.$disconnect();

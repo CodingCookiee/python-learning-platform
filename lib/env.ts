@@ -29,6 +29,7 @@ const serverSchema = z.object({
   GMAIL_APP_PASSWORD: optional,
   RESEND_API_KEY: optional,
   EMAIL_FROM: optional,
+  CONTACT_EMAIL: optional,
 
   GRADING_MODE: z.enum(["client", "server"]).default("client"),
   ENCRYPTION_KEY: optional,
