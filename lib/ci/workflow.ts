@@ -9,15 +9,22 @@
 
 export const WORKFLOW_PATH = ".github/workflows/pylearn.yml";
 
-/** How pytest runs the suite, here and in scripts/content/run_acceptance.py */
+/**
+ * How pytest runs the suite, here and in scripts/content/run_acceptance.py. Both run it as
+ * `python -P -m pytest ...`: without -P, Python imports from the working directory first,
+ * so a pytest.py in the learner's repo would run instead of pytest and "pass" everything.
+ */
 export const PYTEST_ARGS = [
   ".pylearn",
   "-c",
   ".pylearn/pytest.ini",
   "--rootdir",
   ".",
-  // The learner's conftest.py and pytest settings can't change how our tests run
+  // The learner's conftest.py, pytest settings and plugins (entry points in their package)
+  // can't change how our tests run. A flag, not the env var, so the learner's own test
+  // suite, which some acceptance tests run in a subprocess, still gets its plugins.
   "--noconftest",
+  "--disable-plugin-autoload",
   "-p",
   "no:cacheprovider",
   "-q",
@@ -25,9 +32,13 @@ export const PYTEST_ARGS = [
   ".pylearn/report.xml",
 ];
 
+/** --disable-plugin-autoload is new in pytest 8.4 */
+export const PYTEST_REQUIREMENT = "pytest>=8.4";
+
 export const PYTEST_INI = `[pytest]
-# The project's root is the working directory and is importable
-pythonpath = .
+# The project's root (the working directory) is importable. Relative to this file, so "..";
+# pytest adds it once it's running, so the repo still can't stand in for pytest itself
+pythonpath = ..
 testpaths = .pylearn
 python_files = test_*.py
 addopts =
@@ -129,7 +140,7 @@ jobs:
       - name: Run the tests
         run: |
           . .venv/bin/activate
-          python -m pytest ${PYTEST_ARGS.join(" ")}
+          python -P -m pytest ${PYTEST_ARGS.join(" ")}
       - name: Report to pylearn
         if: always()
         run: |

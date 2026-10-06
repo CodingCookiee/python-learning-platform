@@ -4,14 +4,9 @@ import { Prisma } from "@/lib/generated/prisma/client";
 import { publicOrigin } from "@/lib/public-origin";
 import { parseLab, recordLabCheck, ensureLabRun } from "@/lib/labs";
 import { getFileAt, getRun, latestRun, type GhRun } from "@/lib/ci/github";
-import { runnerFiles, sameWorkflow, WORKFLOW_PATH, workflowYaml } from "@/lib/ci/workflow";
+import { PYTEST_REQUIREMENT, runnerFiles, sameWorkflow, WORKFLOW_PATH, workflowYaml } from "@/lib/ci/workflow";
 
-/**
- * Connecting a learner's GitHub repo to a capstone's acceptance tests or a github
- * lab, and deciding when a run counts. A run counts only when GitHub's API says it
- * belongs to the connected repo, ran our unmodified workflow file, and succeeded
- * (the tests step fails the job if any test fails).
- */
+
 
 export type CiKind = "capstone" | "lab";
 
@@ -123,7 +118,7 @@ export async function connectRepo(userId: string, kind: CiKind, targetId: string
 
 /** The suite as the workflow downloads it: the tests plus our runner files */
 export function suitePayload(suite: Suite) {
-  return { files: { ...suite.files, ...runnerFiles() }, requirements: ["pytest", ...suite.requirements] };
+  return { files: { ...suite.files, ...runnerFiles() }, requirements: [PYTEST_REQUIREMENT, ...suite.requirements] };
 }
 
 function summarize(tests: TestOutcome[]): CiReport {
@@ -134,9 +129,14 @@ function summarize(tests: TestOutcome[]): CiReport {
   };
 }
 
+/** A run's page on GitHub, built from the connected repo rather than taken from a report */
+function runUrlFor(repo: string, runId: string) {
+  return `https://github.com/${repo}/actions/runs/${runId}`;
+}
+
 export async function storeReport(
   token: string,
-  data: { repository: string; runId: string; sha: string; runUrl: string; tests: TestOutcome[] }
+  data: { repository: string; runId: string; sha: string; tests: TestOutcome[] }
 ) {
   const link = await prisma.ciLink.findUnique({ where: { token } });
   if (!link) return null;
@@ -147,7 +147,7 @@ export async function storeReport(
       status: "reported",
       statusDetail: data.repository.toLowerCase() === link.repo.toLowerCase() ? null : `Reported from ${data.repository}, not ${link.repo}`,
       runId: data.runId,
-      runUrl: data.runUrl,
+      runUrl: runUrlFor(link.repo, data.runId),
       sha: data.sha,
       report: summarize(data.tests) as object,
       reportedAt: new Date(),
@@ -157,6 +157,8 @@ export async function storeReport(
 }
 
 const RECHECK_MS = 20_000;
+/** After GitHub fails to answer (rate limit, outage), wait this long before asking again */
+const PROBLEM_BACKOFF_MS = 120_000;
 
 /**
  * Ask GitHub about the reported run (or the latest pylearn run when nothing was
@@ -170,22 +172,22 @@ export async function verifyLink(linkId: string, force = false) {
   if (!force && link.checkedAt && Date.now() - link.checkedAt.getTime() < RECHECK_MS) return link;
 
   const suite = await suiteFor(link.kind as CiKind, link.targetId);
-  let run: GhRun | null = null;
-  let problem: string | null = null;
-  if (link.runId) {
-    const r = await getRun(link.repo, link.runId);
-    if (r.ok) run = r.data;
-    else problem = r.error;
-  } else {
-    const r = await latestRun(link.repo);
-    if (r.ok) run = r.data;
-    else problem = r.error;
-  }
+  const found = link.runId ? await getRun(link.repo, link.runId) : await latestRun(link.repo);
 
   const update = async (status: string, statusDetail: string | null, extra: Record<string, unknown> = {}) =>
     prisma.ciLink.update({ where: { id: link.id }, data: { status, statusDetail, checkedAt: new Date(), ...extra } });
+  // checkedAt drives the throttle above: dating it ahead makes the next check wait out the backoff
+  const backOff = (problem: string, extra: Record<string, unknown> = {}) =>
+    update(link.status, problem, { ...extra, checkedAt: new Date(Date.now() + PROBLEM_BACKOFF_MS - RECHECK_MS) });
 
-  if (problem) return update(link.status, problem);
+  if (!found.ok) {
+    // The repo is public (checked on connect), so a reported run GitHub doesn't know is a dead end
+    if (link.runId && found.status === 404) {
+      return update("invalid", `GitHub has no run ${link.runId} in ${link.repo}. Push again to start a new run.`);
+    }
+    return backOff(found.error);
+  }
+  const run: GhRun | null = found.data;
   if (!run) return update("waiting", "No pylearn run yet. Commit the workflow file and push.");
   if (run.repository.full_name.toLowerCase() !== link.repo.toLowerCase()) return update("invalid", "That run belongs to a different repository.");
   if (run.path !== WORKFLOW_PATH) return update("invalid", `The run didn't come from ${WORKFLOW_PATH}.`);
@@ -196,7 +198,7 @@ export async function verifyLink(linkId: string, force = false) {
 
   // The file GitHub ran must be the one we generated for this connection
   const file = await getFileAt(link.repo, run.head_sha, WORKFLOW_PATH);
-  if (!file.ok) return update(link.status, file.error, runInfo);
+  if (!file.ok) return backOff(file.error, runInfo);
   const expected = workflowYaml({ origin: publicOrigin(), token: link.token, title: suite?.title ?? "" });
   if (!sameWorkflow(file.data, expected)) {
     return update("invalid", "The workflow file in the repo isn't the one pylearn gave you. Copy it again, unchanged.", runInfo);

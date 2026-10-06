@@ -74,7 +74,8 @@ def main() -> None:
         subprocess.run([str(python), "-m", "pip", "install", "-q", "--no-deps", "-e", str(project)], check=False, capture_output=True)
 
     run = subprocess.run(
-        [str(python), "-m", "pytest", *pytest_args], cwd=project, capture_output=True, text=True, timeout=600
+        # -P as in the workflow (lib/ci/workflow.ts): the project's own files can't stand in for pytest
+        [str(python), "-P", "-m", "pytest", *pytest_args], cwd=project, capture_output=True, text=True, timeout=600
     )
     tests = []
     report = project / ".pylearn" / "report.xml"

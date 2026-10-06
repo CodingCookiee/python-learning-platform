@@ -21,6 +21,8 @@ const STATUS: Record<CiLinkView["status"], { label: string; className: string }>
   invalid: { label: "Didn't count", className: "text-destructive" },
 };
 
+const passedOn = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+
 function CopyButton({ text, label }: { text: string; label: string }) {
   const [copied, setCopied] = React.useState(false);
   return (
@@ -113,7 +115,7 @@ export function CiPanel({
   return (
     <section
       aria-labelledby={`ci-${targetId}`}
-      className={cn("flex flex-col gap-5 rounded-md border p-5", link?.status === "passed" ? "border-success/35 bg-success/5" : "border-border bg-sheet")}
+      className={cn("flex flex-col gap-5 rounded-md border p-5", link?.verifiedAt ? "border-success/35 bg-success/5" : "border-border bg-sheet")}
     >
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <GitBranch className="size-5 text-primary" aria-hidden="true" />
@@ -123,6 +125,12 @@ export function CiPanel({
         {status && <span className={cn("ml-auto text-sm font-semibold", status.className)}>{status.label}</span>}
       </div>
       <p className="text-[0.9875rem] leading-relaxed">{intro}</p>
+      {link?.verifiedAt && link.status !== "passed" && (
+        <p className="flex items-start gap-2 text-sm font-semibold text-success">
+          <Check className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          Passed on {passedOn(link.verifiedAt)}. That pass stays counted, whatever later runs do; the latest run is below.
+        </p>
+      )}
 
       {editing || !link ? (
         <form onSubmit={(e) => void connect(e)} className="flex flex-col gap-2">

@@ -490,16 +490,24 @@ acceptance:
 Capstone acceptance tests and `github` labs run in the learner's own public repository, on every
 push, through a workflow file pylearn generates for them (`.github/workflows/pylearn.yml`). The
 workflow installs their project (`pyproject.toml` and/or `requirements.txt`), downloads the tests
-into `.pylearn/`, installs pytest plus the suite's `requirements`, and runs:
+into `.pylearn/`, installs pytest (8.4 or later) plus the suite's `requirements`, and runs:
 
 ```text
-python -m pytest .pylearn -c .pylearn/pytest.ini --rootdir . --noconftest -p no:cacheprovider
+python -P -m pytest .pylearn -c .pylearn/pytest.ini --rootdir . --noconftest --disable-plugin-autoload -p no:cacheprovider
 ```
 
-The repository root is the working directory and is importable. `--noconftest` means the learner's
-conftest.py can't interfere, and neither can yours: keep fixtures and helpers inside the test files.
+The repository root is the working directory and is importable. `-P` stops a file in the learner's
+repo (a `pytest.py`) standing in for pytest. `--noconftest` means the learner's conftest.py can't
+interfere, and neither can yours: keep fixtures and helpers inside the test files. Plugins aren't
+auto-loaded either, so a suite can't rely on one (pytest-asyncio and the like): write async tests as
+plain functions that call `asyncio.run`. A suite that runs the learner's own tests in a subprocess
+still gets their plugins, because the flag doesn't pass to subprocesses.
+
 The app only counts a run after GitHub's API confirms it ran the unmodified workflow in the connected
-repo and succeeded.
+repo and succeeded. Once a run has passed, it stays passed: later failing runs, and reports posted
+with the (public) token, don't take it away. This raises the bar for faking a pass, but can't rule it
+out: the learner's own code runs in the same environment as the tests. The examiner's review is the
+real check.
 
 Writing the tests:
 

@@ -39,8 +39,13 @@ describe("the generated workflow", () => {
 
   it("runs pytest with the shared arguments, so local checks match CI", () => {
     const run = parsed.jobs.pylearn.steps.map((s) => s.run ?? "").join("\n");
-    expect(run).toContain(`python -m pytest ${PYTEST_ARGS.join(" ")}`);
-    expect(PYTEST_ARGS).toContain("--noconftest");
+    expect(run).toContain(`python -P -m pytest ${PYTEST_ARGS.join(" ")}`);
+  });
+
+  it("doesn't let the learner's repo stand in for pytest or change how it runs", () => {
+    // -P: a pytest.py in the repo isn't imported instead of pytest
+    expect(yaml).not.toMatch(/python -m pytest/);
+    expect(PYTEST_ARGS).toEqual(expect.arrayContaining(["--noconftest", "--disable-plugin-autoload"]));
   });
 
   it("strips characters that could break out of the YAML comment", () => {
@@ -49,12 +54,13 @@ describe("the generated workflow", () => {
 
   it("compares workflows ignoring line endings and trailing space, and nothing else", () => {
     expect(sameWorkflow(yaml, yaml.replace(/\n/g, "\r\n") + "\n  ")).toBe(true);
-    expect(sameWorkflow(yaml, yaml.replace("python -m pytest", "true || python -m pytest"))).toBe(false);
+    expect(sameWorkflow(yaml, yaml.replace("python -P -m pytest", "true || python -P -m pytest"))).toBe(false);
   });
 
   it("ships the runner files the workflow expects", () => {
     const files = runnerFiles();
-    expect(files["pytest.ini"]).toContain("pythonpath = .");
+    // Relative to .pylearn/pytest.ini: the repo root
+    expect(files["pytest.ini"]).toMatch(/^pythonpath = \.\.$/m);
     expect(files[REPORTER]).toContain("/api/ci/report/");
     expect(WORKFLOW_PATH).toBe(".github/workflows/pylearn.yml");
   });

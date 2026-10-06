@@ -87,6 +87,13 @@ export function AiSettings({
   const [model, setModel] = React.useState(initialCredential?.model ?? DEFAULT_MODEL.anthropic);
   // "Another model": a model id typed by hand instead of one of the suggestions
   const [custom, setCustom] = React.useState(() => isCustom(initialCredential?.provider ?? "anthropic", model));
+  // Focus the model id box when the learner picks "Another model", not when the page loads with one saved
+  const modelInput = React.useRef<HTMLInputElement>(null);
+  const focusModel = React.useRef(false);
+  React.useEffect(() => {
+    if (custom && focusModel.current) modelInput.current?.focus();
+    focusModel.current = false;
+  }, [custom]);
   const [apiKey, setApiKey] = React.useState("");
   const [busy, setBusy] = React.useState<"save" | "test" | "remove" | null>(null);
   const [status, setStatus] = React.useState<Status>(null);
@@ -237,7 +244,9 @@ export function AiSettings({
             <ModelOption
               checked={custom}
               onSelect={() => {
-                if (!custom) setModel("");
+                if (custom) return;
+                setModel("");
+                focusModel.current = true;
                 setCustom(true);
               }}
               name="Another model"
@@ -251,12 +260,12 @@ export function AiSettings({
               </Label>
               <Input
                 id="ai-model"
+                ref={modelInput}
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
                 placeholder={DEFAULT_MODEL[provider]}
                 spellCheck={false}
                 autoComplete="off"
-                autoFocus
                 required
                 className="font-mono text-sm"
               />

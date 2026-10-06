@@ -23,14 +23,26 @@ interface ReadingPlace {
   top: number;
 }
 
-/** The first block in the lesson that's on screen, and where it sits */
-function readingPlace(root: HTMLElement | null): ReadingPlace | null {
-  if (!root) return null;
+/**
+ * The first few blocks of the lesson text that start on screen, and where each sits: what's
+ * being read, rather than the tail of a block scrolled almost out of view. The inline table of
+ * contents ([data-toc]) doesn't count: it's navigation, and it hides when the pane closes. More
+ * than one block, in case the first is gone after the reflow; the first one still showing is
+ * the one put back. When no block starts on screen (a long code block fills it), the one
+ * reaching into view stands in.
+ */
+function readingPlaces(root: HTMLElement | null): ReadingPlace[] {
+  const places: ReadingPlace[] = [];
+  let reachingIn: ReadingPlace | null = null;
+  if (!root) return places;
   for (const el of root.querySelectorAll(ANCHORS)) {
     const rect = el.getBoundingClientRect();
-    if (rect.height > 0 && rect.bottom > READING_LINE) return { el, top: rect.top };
+    if (rect.height === 0 || rect.bottom <= READING_LINE || el.closest("[data-toc]")) continue;
+    if (rect.top >= READING_LINE) places.push({ el, top: rect.top });
+    else reachingIn ??= { el, top: rect.top };
+    if (places.length === 4 || rect.top > window.innerHeight) break;
   }
-  return null;
+  return places.length > 0 ? places : reachingIn ? [reachingIn] : [];
 }
 
 function readOpen(): boolean {
@@ -57,21 +69,26 @@ export function LessonWorkspace({ lessonId, children }: { lessonId: string; chil
   const { run: runPython } = usePyodide();
   const [running, setRunning] = React.useState(false);
   const lessonRef = React.useRef<HTMLDivElement>(null);
-  const placeRef = React.useRef<ReadingPlace | null>(null);
+  const placesRef = React.useRef<ReadingPlace[]>([]);
 
   // Opening or closing the pane changes the lesson's width (and folds its side table of
   // contents in or out), so the text reflows. Put what was being read back where it was.
   React.useLayoutEffect(() => {
-    const place = placeRef.current;
-    placeRef.current = null;
-    if (!place || !place.el.isConnected) return;
-    const moved = place.el.getBoundingClientRect().top - place.top;
-    if (Math.abs(moved) >= 1) window.scrollBy({ top: moved, behavior: "instant" });
+    const places = placesRef.current;
+    placesRef.current = [];
+    for (const place of places) {
+      if (!place.el.isConnected) continue;
+      const rect = place.el.getBoundingClientRect();
+      if (rect.height === 0) continue;
+      const moved = rect.top - place.top;
+      if (Math.abs(moved) >= 1) window.scrollBy({ top: moved, behavior: "instant" });
+      return;
+    }
   }, [open]);
 
   // Remember whether the pane was open, across lessons
   const toggle = React.useCallback((next: boolean) => {
-    placeRef.current = readingPlace(lessonRef.current);
+    placesRef.current = readingPlaces(lessonRef.current);
     setOpen(next);
     try {
       localStorage.setItem(OPEN_KEY, next ? "1" : "0");

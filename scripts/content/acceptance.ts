@@ -14,7 +14,7 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { loadContent, readTree } from "../../lib/content/load";
-import { PYTEST_ARGS, runnerFiles } from "../../lib/ci/workflow";
+import { PYTEST_ARGS, PYTEST_REQUIREMENT, runnerFiles } from "../../lib/ci/workflow";
 
 interface Target {
   kind: "capstone" | "lab";
@@ -76,7 +76,7 @@ function runSuite(target: Target, project: Record<string, string> | null): RunRe
     for (const [p, c] of Object.entries({ ...target.suite, ...runnerFiles() })) write(path.join(".pylearn", p), c);
     const py = spawnSync(
       process.platform === "win32" ? "python" : "python3",
-      [path.join("scripts", "content", "run_acceptance.py"), dir, JSON.stringify(["pytest", ...target.requirements]), JSON.stringify(PYTEST_ARGS)],
+      [path.join("scripts", "content", "run_acceptance.py"), dir, JSON.stringify([PYTEST_REQUIREMENT, ...target.requirements]), JSON.stringify(PYTEST_ARGS)],
       { encoding: "utf8", timeout: 15 * 60_000 }
     );
     const line = py.stdout.trim().split("\n").at(-1) ?? "";

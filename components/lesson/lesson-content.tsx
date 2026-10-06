@@ -369,7 +369,7 @@ export function LessonContent({ content, className, runnable = true, sideToc = t
     <div className={cn("flex gap-12", className)}>
       <div ref={contentRef} className="min-w-0 max-w-[70ch] flex-1">
         {hasToc && (
-          <details className={cn("mb-8 rounded-md border border-border bg-sheet px-4 py-3", !narrow && "xl:hidden")}>
+          <details data-toc className={cn("mb-8 rounded-md border border-border bg-sheet px-4 py-3", !narrow && "xl:hidden")}>
             <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold [&::-webkit-details-marker]:hidden">
               On this page
               <ChevronDown

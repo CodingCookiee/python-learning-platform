@@ -35,7 +35,7 @@ export interface SubmissionDetail {
   };
   aiReview: (AiReview & { model?: string; files?: number }) | null;
   aiReviewedAt: string | null;
-  ci: { repo: string; status: string; runUrl: string | null; passed: number; total: number } | null;
+  ci: { repo: string; status: string; verifiedAt: string | null; runUrl: string | null; passed: number; total: number } | null;
 }
 
 async function getSubmissionDetail(submissionId: string): Promise<SubmissionDetail | null> {
@@ -91,6 +91,7 @@ async function getSubmissionDetail(submissionId: string): Promise<SubmissionDeta
       ? {
           repo: ci.repo,
           status: ci.status,
+          verifiedAt: ci.verifiedAt?.toISOString() ?? null,
           runUrl: ci.runUrl,
           passed: (ci.report as { passed?: number } | null)?.passed ?? 0,
           total: (ci.report as { tests?: unknown[] } | null)?.tests?.length ?? 0,

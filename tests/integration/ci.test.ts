@@ -22,16 +22,24 @@ beforeAll(async () => {
 afterAll(() => learner.cleanup());
 afterEach(() => vi.unstubAllGlobals());
 
-/** GitHub's API with one run whose state each test sets; everything else goes to the real network */
-function fakeGitHub(run: Record<string, unknown> | null, workflowFile: string) {
+/**
+ * GitHub's API with one run whose state each test sets ("missing": GitHub has no such run;
+ * "limited": rate limited); everything else goes to the real network. Returns the calls made.
+ */
+function fakeGitHub(run: Record<string, unknown> | null | "missing" | "limited", workflowFile = "") {
   const realFetch = globalThis.fetch;
+  const calls: string[] = [];
   vi.stubGlobal("fetch", async (input: string | URL | Request, init?: RequestInit) => {
     const url = String(input);
     if (!url.startsWith("https://api.github.com/")) return realFetch(input, init);
+    calls.push(url);
+    if (run === "limited") return new Response("{}", { status: 403 });
     if (url.includes("/contents/.github/workflows/pylearn.yml")) return new Response(workflowFile);
+    if (run === "missing") return new Response("{}", { status: 404 });
     if (!run) return new Response(JSON.stringify({ workflow_runs: [] }));
     return new Response(JSON.stringify(url.includes("/workflows/") ? { workflow_runs: [run] } : run));
   });
+  return calls;
 }
 
 describe("GitHub Actions checks", () => {
@@ -42,7 +50,7 @@ describe("GitHub Actions checks", () => {
     const suite = (await suiteFor("capstone", project.id))!;
     expect(Object.keys(suite.files)).toContain("test_receipt.py");
     const payload = suitePayload(suite);
-    expect(payload.requirements[0]).toBe("pytest");
+    expect(payload.requirements[0]).toBe("pytest>=8.4");
     expect(Object.keys(payload.files)).toEqual(expect.arrayContaining(["pytest.ini", REPORTER]));
     link = await connectRepo(learner.user.id, "capstone", project.id, "you/receipt");
     yaml = viewOf(link, project.title).workflow;
@@ -96,12 +104,13 @@ describe("GitHub Actions checks", () => {
   });
 
   it("count a run only when GitHub confirms our unmodified workflow passed in the connected repo", async () => {
-    await storeReport(link.token, { repository: "you/receipt", runId: "123", sha: "abc1234", runUrl: "https://github.com/you/receipt/actions/runs/123", tests: [] });
+    await storeReport(link.token, { repository: "you/receipt", runId: "123", sha: "abc1234", tests: [] });
 
     fakeGitHub(run({ status: "in_progress", conclusion: null }), yaml);
     expect((await verifyLink(link.id, true))?.status).toBe("reported");
 
-    fakeGitHub(run(), yaml.replace("python -m pytest", "true || python -m pytest"));
+    expect(yaml).toContain("python -P -m pytest");
+    fakeGitHub(run(), yaml.replace("python -P -m pytest", "true || python -P -m pytest"));
     expect((await verifyLink(link.id, true))?.status).toBe("invalid");
 
     fakeGitHub(run({ repository: { full_name: "someone/else" } }), yaml);
@@ -118,6 +127,36 @@ describe("GitHub Actions checks", () => {
 
   it("count a passed capstone toward the black belt", async () => {
     expect((await getBlackBeltStatus(learner.user.id)).capstones.approved).toBe(1);
+  });
+
+  it("keep a pass when anyone with the public token posts a bogus report", async () => {
+    const posted = await storeReport(link.token, { repository: "you/receipt", runId: "999", sha: "def5678", tests: [] });
+    // The run link is rebuilt from the connected repo, never taken from the report
+    expect(posted?.runUrl).toBe("https://github.com/you/receipt/actions/runs/999");
+    fakeGitHub("missing");
+    const checked = await verifyLink(link.id, true);
+    expect(checked).toMatchObject({ status: "invalid" });
+    expect(checked?.verifiedAt).not.toBeNull();
+    expect((await getBlackBeltStatus(learner.user.id)).capstones.approved).toBe(1);
+  });
+
+  it("keep a pass when a later run fails", async () => {
+    await storeReport(link.token, { repository: "you/receipt", runId: "124", sha: "abc9999", tests: [] });
+    fakeGitHub(run({ id: 124, head_sha: "abc9999", conclusion: "failure" }), yaml);
+    expect((await verifyLink(link.id, true))?.status).toBe("failed");
+    expect((await getBlackBeltStatus(learner.user.id)).capstones.approved).toBe(1);
+  });
+
+  it("back off GitHub after a rate limit instead of asking again on every poll", async () => {
+    await storeReport(link.token, { repository: "you/receipt", runId: "125", sha: "abc1111", tests: [] });
+    const limited = fakeGitHub("limited");
+    const first = await verifyLink(link.id, true);
+    expect(first).toMatchObject({ status: "reported" });
+    expect(first?.statusDetail).toMatch(/rate limiting/);
+    expect(limited).toHaveLength(1);
+    // The page's next poll doesn't reach GitHub
+    await verifyLink(link.id);
+    expect(limited).toHaveLength(1);
   });
 
   it("start over with a new token when the repo changes", async () => {

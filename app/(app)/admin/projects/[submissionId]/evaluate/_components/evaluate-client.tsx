@@ -205,6 +205,13 @@ export function EvaluateClient({ submission }: EvaluateClientProps) {
               Acceptance tests
             </h2>
             <p>
+              {submission.ci.verifiedAt && submission.ci.status !== "passed" && (
+                <span className="font-semibold text-success">
+                  Passed on{" "}
+                  {new Date(submission.ci.verifiedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}{" "}
+                  (confirmed with GitHub) · latest run:{" "}
+                </span>
+              )}
               <span
                 className={
                   submission.ci.status === "passed"

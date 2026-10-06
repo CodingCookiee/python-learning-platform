@@ -7,7 +7,8 @@ const schema = z.object({
   repository: z.string().max(200),
   runId: z.string().regex(/^\d{1,20}$/),
   sha: z.string().regex(/^[0-9a-f]{7,64}$/i),
-  runUrl: z.string().url().max(400),
+  // Sent by older workflow files; ignored, the link is rebuilt from the connected repo
+  runUrl: z.string().max(400).optional(),
   tests: z
     .array(
       z.object({
@@ -32,7 +33,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
   if (!limited.ok) return tooManyRequests(limited);
   const parsed = schema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid report" }, { status: 400 });
-  const link = await storeReport(token, parsed.data);
+  const { repository, runId, sha, tests } = parsed.data;
+  const link = await storeReport(token, { repository, runId, sha, tests });
   if (!link) return NextResponse.json({ error: "Unknown token. Copy the workflow file from pylearn again." }, { status: 404 });
   const failed = parsed.data.tests.filter((t) => t.outcome === "failed").length;
   return NextResponse.json({
