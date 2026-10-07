@@ -112,6 +112,8 @@ export interface LearnerStats {
   lessonsByModule: Map<string, number>;
   /** Different passed drills per drill type */
   passedByType: Map<string, number>;
+  /** Guided quests finished, by name */
+  questsFinished: Set<string>;
   passedModules: Set<string>;
   capstoneModules: Set<string>;
   streak: number;
@@ -120,7 +122,7 @@ export interface LearnerStats {
 }
 
 async function learnerStats(userId: string): Promise<LearnerStats> {
-  const [completedLessons, drills, tracks, capstones, streak, user] = await Promise.all([
+  const [completedLessons, drills, tracks, capstones, streak, user, quests] = await Promise.all([
     prisma.progress.findMany({
       where: { userId, completed: true, lesson: { archivedAt: null } },
       select: { lesson: { select: { module: { select: { slug: true } } } } },
@@ -137,6 +139,7 @@ async function learnerStats(userId: string): Promise<LearnerStats> {
     }),
     prisma.streak.findUnique({ where: { userId }, select: { currentStreak: true, longestStreak: true } }),
     prisma.user.findUnique({ where: { id: userId }, select: { xp: true } }),
+    prisma.questProgress.findMany({ where: { userId, finishedAt: { not: null } }, select: { quest: true } }),
   ]);
   const passedModules = new Set<string>();
   for (const t of tracks) for (const m of t.modules) if (m.passed && m.slug) passedModules.add(m.slug);
@@ -156,6 +159,7 @@ async function learnerStats(userId: string): Promise<LearnerStats> {
     drills: drills.length,
     lessonsByModule: tally(completedLessons.map((p) => p.lesson.module.slug)),
     passedByType: tally(drills.map((d) => d.exercise.type)),
+    questsFinished: new Set(quests.map((q) => q.quest)),
     passedModules,
     capstoneModules: new Set(
       [...capstones.map((c) => c.project.module.slug), ...ciProjects.map((p) => p.module.slug)].filter((s): s is string => Boolean(s))
@@ -187,6 +191,8 @@ export function met(criteria: AchievementCriteria, stats: LearnerStats): boolean
       return (stats.lessonsByModule.get(criteria.module) ?? 0) >= criteria.count;
     case "drill-type":
       return (stats.passedByType.get(criteria.type) ?? 0) >= criteria.count;
+    case "quest":
+      return stats.questsFinished.has(criteria.quest);
   }
 }
 

@@ -3,6 +3,7 @@
 #                 capstone {module} (approved) · streak {days} · xp {amount}
 #                 module-lessons {module, count} (lessons of one module done)
 #                 drill-type {type, count} (different drills of one type passed: function, program, predict, fix, refactor, tests)
+#                 quest {quest} (a guided quest finished, e.g. first-session)
 # Names match earlier achievements where they overlap, so learners keep what they earned.
 
 # The Start on-ramp (content/tracks/start): a reward about every 40 minutes for complete beginners
@@ -46,6 +47,16 @@
   tier: silver
   xp: 50
   criteria: { kind: module-lessons, module: programming-from-zero, count: 6 }
+
+# The first-session quest (lib/quest.ts): five real actions with the sensei
+- slug: ready-to-train
+  name: Ready to Train
+  description: Finish the first-session quest with the sensei
+  icon: Swords
+  category: Learning
+  tier: silver
+  xp: 50
+  criteria: { kind: quest, quest: first-session }
 
 # Learning: the habit of practice
 - slug: first-lesson

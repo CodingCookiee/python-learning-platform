@@ -176,6 +176,8 @@ export const achievementCriteriaSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("module-lessons"), module: slug, count: z.number().int().positive() }),
   /** At least `count` different drills of one type passed, anywhere in the course */
   z.object({ kind: z.literal("drill-type"), type: z.enum(EXERCISE_TYPES), count: z.number().int().positive() }),
+  /** A guided quest finished (lib/quest.ts), e.g. "first-session" */
+  z.object({ kind: z.literal("quest"), quest: slug }),
 ]);
 
 export const achievementSchema = z.object({

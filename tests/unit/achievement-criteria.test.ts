@@ -12,6 +12,7 @@ const stats = (over: Partial<LearnerStats> = {}): LearnerStats => ({
   blackBelt: false,
   lessonsByModule: new Map(),
   passedByType: new Map(),
+  questsFinished: new Set(),
   ...over,
 });
 

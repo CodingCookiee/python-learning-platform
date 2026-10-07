@@ -3,6 +3,7 @@ import { Footer } from "@/components/layout/footer";
 import { PageTransition } from "@/components/animations";
 import { StreakPing } from "@/components/gamification/streak-ping";
 import { ToastProvider } from "@/components/ui/toast";
+import { QuestPanel } from "@/components/quest/quest-panel";
 
 export default function AppLayout({
   children,
@@ -19,6 +20,8 @@ export default function AppLayout({
           <PageTransition>{children}</PageTransition>
         </main>
         <Footer />
+        {/* The first-session quest's guide; renders nothing unless a quest is in progress */}
+        <QuestPanel />
       </div>
     </ToastProvider>
   );

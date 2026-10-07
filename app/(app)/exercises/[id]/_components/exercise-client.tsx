@@ -33,6 +33,7 @@ import {
   type TestRunResult,
 } from "@/lib/python-runtime";
 import type { UnlockedAchievement } from "@/lib/achievements";
+import { QUEST_BADGE, questRefresh } from "@/lib/quest-steps";
 import type { DrillData, DrillMode, DrillType } from "@/lib/drills";
 import { cn } from "@/lib/utils";
 import { TutorPanel, type TutorHandle } from "@/components/tutor/tutor-panel";
@@ -321,7 +322,7 @@ function TestResults({ result, onExplain }: { result: TestRunResult; onExplain?:
   const all = passed === total;
   return (
     <div className={cn("rounded-md border p-4", all ? "border-success/35 bg-success/6" : "border-border bg-sheet")}>
-      <p className={cn("font-condensed tabular text-lg font-bold", all ? "text-success" : "text-foreground")}>
+      <p className={cn("font-condensed tabular text-lg font-bold", all ? "text-success-ink" : "text-foreground")}>
         {passed} of {total} tests passed
       </p>
       <ul className="mt-2 flex flex-col" role="list">
@@ -584,8 +585,11 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
       setConfetti(true);
       setTimeout(() => setConfetti(false), 3200);
     }
-    if (data.achievements.length > 0) setAchievements(data.achievements);
+    // Ready to Train is celebrated by the quest's farewell, which the refresh below brings up
+    const unlocked = data.achievements.filter((a) => a.slug !== QUEST_BADGE);
+    if (unlocked.length > 0) setAchievements(unlocked);
     if (data.levelUp && data.newLevel) setLevelUp(data.newLevel);
+    if (data.submission.passed) questRefresh();
   }
 
   async function runCheck() {
@@ -782,6 +786,7 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
       <div className="flex flex-wrap items-center gap-2.5">
         <Button
           onClick={() => void runCheck()}
+          data-quest-target="run-tests"
           aria-busy={busy === "check" || loading}
           aria-disabled={busy !== null || (isPredict && !answer.trim())}
           className={cn("min-w-36 justify-start", busy !== null && "cursor-progress")}
@@ -853,7 +858,7 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
           <div className="min-w-0 flex-1">
             <p className="font-semibold">
               {finished ? (finished.passed ? "Checkpoint passed" : "Checkpoint closed") : "Drill passed"}
-              {xpGained ? <span className="font-condensed tabular text-primary"> · +{xpGained} XP</span> : null}
+              {xpGained ? <span className="font-condensed tabular text-primary-ink"> · +{xpGained} XP</span> : null}
             </p>
             <p className="mt-0.5 text-sm text-muted-foreground">
               {finished
@@ -883,7 +888,7 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
         <div className="flex flex-wrap items-center gap-5 rounded-md border border-border bg-accent/55 px-5 py-4">
           <div className="min-w-0 flex-1">
             <p className="font-semibold">
-              Recalled{xpGained ? <span className="font-condensed tabular text-primary"> · +{xpGained} XP</span> : null}
+              Recalled{xpGained ? <span className="font-condensed tabular text-primary-ink"> · +{xpGained} XP</span> : null}
             </p>
             <p className="mt-0.5 text-sm text-muted-foreground">
               {reviewOutcome?.nextDueAt
@@ -904,7 +909,7 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
         <div className="flex items-center gap-5 rounded-md border border-border bg-accent/55 px-5 py-4">
           <div className="min-w-0 flex-1">
             <p className="font-semibold">
-              Drill passed{xpGained ? <span className="font-condensed tabular text-primary"> · +{xpGained} XP</span> : null}
+              Drill passed{xpGained ? <span className="font-condensed tabular text-primary-ink"> · +{xpGained} XP</span> : null}
             </p>
             <p className="mt-0.5 text-sm text-muted-foreground">
               {drill.next ? "On to the next one." : "That's the last drill in this lesson."}

@@ -8,6 +8,7 @@ import { ExampleOutput, runExample, type RunState } from "@/components/lesson/co
 import { ScratchpadContext, type Scratchpad } from "@/components/lesson/scratchpad-context";
 import { getPythonRuntime } from "@/lib/python-runtime";
 import { usePyodide } from "@/lib/pyodide";
+import { questAction } from "@/lib/quest-steps";
 import { cn } from "@/lib/utils";
 
 
@@ -86,6 +87,12 @@ export function LessonWorkspace({ lessonId, children }: { lessonId: string; chil
     }
   }, [open]);
 
+  // The quest panel moves out of the pane's way while it's open
+  React.useEffect(() => {
+    document.documentElement.toggleAttribute("data-scratchpad-open", open);
+    return () => document.documentElement.removeAttribute("data-scratchpad-open");
+  }, [open]);
+
   // Remember whether the pane was open, across lessons
   const toggle = React.useCallback((next: boolean) => {
     placesRef.current = readingPlaces(lessonRef.current);
@@ -129,6 +136,7 @@ export function LessonWorkspace({ lessonId, children }: { lessonId: string; chil
     setRunning(true);
     try {
       setResult(await runExample(runPython, codeRef.current, 10_000));
+      questAction("scratchpad");
     } finally {
       setRunning(false);
     }
@@ -139,7 +147,14 @@ export function LessonWorkspace({ lessonId, children }: { lessonId: string; chil
       <div className={cn("grid min-w-0 gap-8", open && "xl:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]")}>
         <div ref={lessonRef} className="min-w-0">
           <div className="mb-6 flex justify-end">
-            <Button variant="outline" size="sm" onClick={() => toggle(!open)} aria-expanded={open} aria-controls={open ? "scratchpad" : undefined}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => toggle(!open)}
+              aria-expanded={open}
+              aria-controls={open ? "scratchpad" : undefined}
+              data-quest-target={open ? undefined : "scratchpad"}
+            >
               {open ? <PanelRightClose aria-hidden="true" /> : <PanelRightOpen aria-hidden="true" />}
               {open ? "Close scratchpad" : "Open scratchpad"}
             </Button>
@@ -157,7 +172,7 @@ export function LessonWorkspace({ lessonId, children }: { lessonId: string; chil
               <SquareTerminal className="size-4 text-primary" aria-hidden="true" />
               <span className="text-sm font-semibold">Scratchpad</span>
               <span className="text-xs text-muted-foreground">Ctrl+Enter runs</span>
-              <Button size="xs" className="ml-auto" onClick={() => void run()} aria-busy={running}>
+              <Button size="xs" className="ml-auto" onClick={() => void run()} aria-busy={running} data-quest-target="scratchpad">
                 {running ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <Play aria-hidden="true" />}
                 Run
               </Button>

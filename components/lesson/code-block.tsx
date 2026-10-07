@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { usePyodide } from "@/lib/pyodide";
 import { isBrowserRunnable } from "@/lib/content/runnable";
+import { questAction } from "@/lib/quest-steps";
 
 export type RunState = {
   status: "idle" | "running" | "ok" | "error";
@@ -107,6 +108,7 @@ export function CodeBlock({
     setResult((r) => ({ ...r, status: "running" }));
     setResult(await runExample(run, editing ? draft : code));
     runningRef.current = false;
+    questAction("run-code");
   }
 
   const busy = loading || result.status === "running";
@@ -147,7 +149,7 @@ export function CodeBlock({
                   <span className="hidden sm:inline">Scratchpad</span>
                 </Button>
               )}
-              <Button size="xs" onClick={() => void execute()} aria-busy={busy} className="min-w-20">
+              <Button size="xs" onClick={() => void execute()} aria-busy={busy} className="min-w-20" data-quest-target="run-example">
                 {busy ? (
                   <LoaderCircle className="animate-spin" aria-hidden="true" />
                 ) : (

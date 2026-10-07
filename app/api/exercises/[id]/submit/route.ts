@@ -9,6 +9,7 @@ import {
   type UnlockedAchievement,
 } from "@/lib/achievements";
 import { SOLUTION_AFTER_ATTEMPTS } from "@/lib/drills";
+import { recordDrillPass } from "@/lib/quest";
 import { openAttemptForDrill, recordCheckpointRun } from "@/lib/checkpoint";
 import { addToReview, recordReview, type ReviewOutcome } from "@/lib/review";
 import { REVIEW_XP } from "@/lib/mastery-rules";
@@ -129,6 +130,8 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
     if (passed) {
       await updateStreak(userId);
       achievements.push(...(await checkAndUnlockAchievements(userId, { type: "exercise_pass", exerciseId })));
+      // The first-session quest's drill steps; never fails the submission
+      achievements.push(...(await recordDrillPass(userId, exercise)));
     }
 
     const userAfter = await prisma.user.findUnique({ where: { id: userId }, select: { level: true } });

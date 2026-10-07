@@ -28,6 +28,7 @@ export const LIMITS = {
   projectSubmit: { limit: 10, windowSec: 60 * 60 },
   aiReview: { limit: 6, windowSec: 60 * 60 },
   draftSave: { limit: 120, windowSec: 60 * 60 },
+  questEvent: { limit: 60, windowSec: 10 * 60 },
 } as const;
 
 export type LimitName = keyof typeof LIMITS;

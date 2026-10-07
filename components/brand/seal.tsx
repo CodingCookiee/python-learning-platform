@@ -1,7 +1,8 @@
 import { cn } from "@/lib/utils";
 
 /**
- * The examiner's seal: a square jade stamp pressed onto passed work.
+ * The examiner's seal: a square jade stamp pressed onto passed work. The lettering is in seal
+ * ink, a touch deeper, so it reads on the tinted pass banners too.
  */
 export function Seal({
   label = "Passed",
@@ -17,7 +18,7 @@ export function Seal({
   return (
     <div
       className={cn(
-        "inline-flex rotate-[-7deg] flex-col items-center justify-center border-[3px] border-seal p-[3px] text-seal",
+        "inline-flex rotate-[-7deg] flex-col items-center justify-center border-[3px] border-seal p-[3px] text-seal-ink",
         animate && "animate-seal-stamp",
         className
       )}

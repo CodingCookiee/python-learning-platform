@@ -11,6 +11,8 @@ import {
 import { StreakDisplay } from "@/components/gamification/streak-display";
 import { OnRampCard, StreakGoal } from "@/components/onramp/onramp-card";
 import { getOnRamp } from "@/lib/onramp";
+import { getQuest, questCard } from "@/lib/quest";
+import { QuestOffer } from "@/components/quest/quest-offer";
 import { XpProgressBar } from "@/components/gamification/xp-progress-bar";
 import { StreakCalendar } from "@/components/gamification/streak-calendar";
 import { MilestoneTracker } from "@/components/gamification/milestone-tracker";
@@ -252,7 +254,7 @@ export default async function DashboardPage() {
     getLearnerRank(dbUser.id),
     getSyllabusProgress(dbUser.id),
   ]);
-  const [skills, reviewsDue, pace, checkIn, onRamp] = await Promise.all([
+  const [skills, reviewsDue, pace, checkIn, onRamp, quest] = await Promise.all([
     getSkillMap(dbUser.id),
     countDueReviews(dbUser.id),
     getPace(dbUser.id),
@@ -261,12 +263,14 @@ export default async function DashboardPage() {
       select: { id: true },
     }),
     getOnRamp(dbUser.id),
+    getQuest(dbUser.id),
   ]);
   // Beginners, and anyone who has started it, see the Start on-ramp first until it's finished
   const showOnRamp = onRamp?.showOnDashboard ?? false;
   const current = syllabus.find((m) => m.state === "current");
   // Learners who already code can test out of the module in front of them
   const suggestPlacement = dbUser.experience !== "new" && current && current.lessonsDone === 0 && !current.checkpointDue;
+  const questOffer = questCard(quest);
   const weekPct = Math.min(100, (pace.hoursThisWeek / pace.weeklyHours) * 100);
 
   if (!data) {
@@ -304,25 +308,34 @@ export default async function DashboardPage() {
           </header>
         </FadeIn>
 
+        {/* The first-session quest: offered once to learners who never had it, resumable when skipped midway */}
+        {questOffer && (
+          <FadeIn delay={0.02}>
+            <QuestOffer kind={questOffer} done={quest?.completed.length ?? 0} />
+          </FadeIn>
+        )}
         {showOnRamp && onRamp && (
           <FadeIn delay={0.03}>
             <OnRampCard onRamp={onRamp} />
           </FadeIn>
         )}
         <FadeIn delay={0.04}>
-          <RankCard rank={rank} />
+          {/* The quest's last step points at the belt, the streak and the XP in turn */}
+          <div data-quest-target="belt">
+            <RankCard rank={rank} />
+          </div>
         </FadeIn>
 
         <FadeIn delay={0.06}>
           <dl className="grid gap-x-10 border-y border-border md:grid-cols-3">
-            <div className="flex flex-col gap-3 border-b border-border py-5 md:border-b-0">
+            <div data-quest-target="streak" className="flex flex-col gap-3 border-b border-border py-5 md:border-b-0">
               <dt className="text-sm text-muted-foreground">Streak</dt>
               <dd>
                 <StreakDisplay currentStreak={streak.current} longestStreak={streak.longest} size="sm" />
                 {showOnRamp && <StreakGoal current={streak.current} />}
               </dd>
             </div>
-            <div className="flex flex-col gap-3 border-b border-border py-5 md:border-b-0">
+            <div data-quest-target="xp" className="flex flex-col gap-3 border-b border-border py-5 md:border-b-0">
               <dt className="text-sm text-muted-foreground">
                 Level {user.level} · {user.xp.toLocaleString()} XP
               </dt>

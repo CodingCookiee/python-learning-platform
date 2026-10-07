@@ -63,6 +63,7 @@ import {
   Signpost,
   RefreshCw,
   Ribbon,
+  Swords,
   type LucideIcon,
 } from "lucide-react";
 import { SealMark, StreakMark, TapeMark } from "@/components/brand/marks";
@@ -143,6 +144,8 @@ const ACHIEVEMENT_ICONS: Record<string, IconComponent> = {
   Signpost,
   RefreshCw,
   Ribbon,
+  // The first-session quest
+  Swords,
 };
 
 type AchievementIconProps = {

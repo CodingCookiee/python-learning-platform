@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { START_TRACK } from "@/lib/curriculum-state";
+import { startQuest } from "@/lib/quest";
 
 /** The first-run answers, and later changes to the plan */
 export const onboardingSchema = z.object({
@@ -44,6 +45,8 @@ export async function saveOnboarding(userId: string, input: unknown): Promise<On
       ageConfirmedAt: user.ageConfirmedAt ?? new Date(),
     },
   });
+  // A new learner's first session is guided by the sensei's quest (lib/quest.ts)
+  if (!user.onboardedAt) await startQuest(userId);
   const next = answers.experience === "new" ? await onRampPage() : null;
   return { ok: true, next: next ?? "/dashboard" };
 }

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
 import { invalidateUserCache } from "@/lib/cache";
 import { checkAndUnlockAchievements, updateStreak, updateUserLevel } from "@/lib/achievements";
+import { recordDrillPass } from "@/lib/quest";
 import { z } from "zod";
 
 const exerciseSubmissionSchema = z.object({
@@ -90,6 +91,8 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
         });
         newAchievements.push(...xpAchievements);
       }
+
+      newAchievements.push(...(await recordDrillPass(context.userId, exercise)));
     }
 
     await invalidateUserCache(context.userId);

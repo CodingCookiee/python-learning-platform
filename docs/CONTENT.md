@@ -84,6 +84,7 @@ anything that could earn one. Criteria:
 | `xp` | `amount` | the learner has that much XP |
 | `module-lessons` | `module`, `count` | that many lessons of one module are complete |
 | `drill-type` | `type`, `count` | that many different drills of one type (`function`, `program`, `predict`, `fix`, `refactor`, `tests`) are passed |
+| `quest` | `quest` | that quest is finished (`first-session` is the only one: Ready to Train) |
 
 ## `module.yaml`
 

@@ -59,6 +59,7 @@ model User {
   drillDrafts         DrillDraft[]
   learningLog         LearningLogEntry[]
   ciLinks             CiLink[]
+  quests              QuestProgress[]
 
   @@map("users")
 }
@@ -524,4 +525,23 @@ model CiLink {
 
   @@unique([userId, kind, targetId])
   @@map("ci_links")
+}
+
+/// A learner's progress through a guided quest (lib/quest.ts), e.g. the first-session quest
+model QuestProgress {
+  id         String    @id @default(cuid())
+  userId     String
+  /// e.g. "first-session"
+  quest      String
+  /// Step keys done so far, in the order they were done
+  completed  String[]  @default([])
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  /// Set when the learner skips (or declines) the quest; cleared on resume
+  skippedAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, quest])
+  @@map("quest_progress")
 }
