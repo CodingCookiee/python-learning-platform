@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import { BeltBand } from "@/components/brand/belt";
 
 /**
- * The Start on-ramp's progress: a white belt with a knot for each lesson, pressed on in tape as
+ * The Start on-ramp's progress: a white belt with a knot for each lesson, filled in green as
  * lessons are finished. All knots filled means the belt is tied, and module 1 is next.
  */
 export function BeltTying({ done, total, className }: { done: number; total: number; className?: string }) {
@@ -19,7 +19,9 @@ export function BeltTying({ done, total, className }: { done: number; total: num
             key={i}
             className={cn(
               "size-3.5 rotate-45 border transition-colors duration-500 motion-reduce:transition-none",
-              i < done ? "border-(--keyline) bg-tape" : "border-(--keyline)/45 bg-background/60"
+              // The cloth is light in both themes, so knots are inked in belt black: filled green when
+              // done, an empty outline when not (tape, near white, would vanish into the cloth)
+              i < done ? "border-(--belt-black) bg-(--belt-green)" : "border-(--belt-black)/55 bg-transparent"
             )}
           />
         ))}

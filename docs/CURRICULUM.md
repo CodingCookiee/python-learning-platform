@@ -6,7 +6,7 @@ Two tracks, one path, and a grade for every module:
 
 - **Python** takes you from zero to advanced across 16 modules. Each module passed is one kyu grade,
   from 16 kyu up to 1 kyu. Passing module 16 earns the black belt, 1st dan. Learners who have never
-  programmed start with a short on-ramp before module 1 (being designed, see below).
+  programmed start with a short on-ramp before module 1 (see below).
 - **AI Automation** takes you from Python developer to paid automation engineer across 8 modules.
   Each module passed is one dan grade, from 2nd up to 9th. It follows `AI_Automation_Roadmap_Raza_Awan.pdf`.
 
@@ -63,13 +63,26 @@ The AI Automation track is designed so that on finishing it you can:
 
 ## Before the white belt: the on-ramp
 
-Status: decided 2026-10-07, design in progress ([ARCHITECTURE.md §16](ARCHITECTURE.md#16-decisions-2026-10-07-a-course-for-everyone)).
+Status: built 2026-10-07 ([ARCHITECTURE.md §16](ARCHITECTURE.md#16-decisions-2026-10-07-a-course-for-everyone),
+spec in `docs/superpowers/specs/2026-10-07-beginner-on-ramp-design.md`).
 
 Module 1 is written for people who already program. The on-ramp is for everyone else: people who have
-never written code, and students. It's short, in plain language, and every idea is practised in the
-browser straight away: what a program is, values and names, making decisions, repeating work, and
-writing small functions. It sits outside the kyu grades, so passing it doesn't change the 16 modules or
-their numbering; it hands the learner over to module 1 ready for it. Developers skip it.
+never written code, and students (pylearn is for people 16 and over). It's the **Start** track's one
+module, `programming-from-zero` (`content/tracks/start/`, `grade: none`): no kyu grade, no checkpoint,
+never a gate. Finishing its six lessons ties the white belt and hands the learner over to module 1.
+Developers skip it; "New to programming" in onboarding starts there.
+
+**Start here: programming from zero** · `programming-from-zero` · ~4 h · 6 lessons, 44 drills
+1. What a program is: `print`, top to bottom, text and numbers, reading `SyntaxError` and `NameError`, comments
+2. Values and names: names for values, what `=` means, changing a value, `+=` and `-=`, naming rules
+3. Working with text and numbers: joining text, f-strings, `input()`, `int()` and `float()`, `TypeError` and `ValueError`, `round()`
+4. Making decisions: comparisons, `if` / `elif` / `else`, indentation, `and` / `or` / `not`
+5. Repeating things: `for` with `range()` and simple lists, building a total, `while`, spotting an endless loop
+6. Your first function: `def`, parameters, `return` versus `print`, `import random`; finale, a number-guessing game
+
+Every lesson has at least one read-the-error drill (`fix` type). Incentives: a belt with a knot per
+lesson on the dashboard and module page, five badges (Hello, World; Bug Squasher; Decision Maker; In the
+Loop; White Belt Tied) and a ceremony when the belt is tied.
 
 ## Track 1: Python (16 kyu → 1st dan)
 

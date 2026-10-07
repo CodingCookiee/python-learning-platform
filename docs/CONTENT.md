@@ -62,7 +62,8 @@ grade: kyu          # kyu (counts down from 16), dan (counts up from 2), or none
 order: 1            # position among tracks (the Start on-ramp is 0)
 ```
 
-A `grade: none` track gives no grade and never gates another track: modules unlock in order within
+A `grade: none` track gives no grade, has no checkpoint (finishing a module's lessons passes it,
+whatever its `checkpoint` settings) and never gates another track: modules unlock in order within
 their own track, and rank, the black belt and pacing read the Python track by slug. The Start
 on-ramp (`content/tracks/start/`) is the one such track.
 
