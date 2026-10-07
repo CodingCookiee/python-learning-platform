@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getCurriculumState } from "@/lib/curriculum-state";
+import { getCurriculumState, type TrackGrade } from "@/lib/curriculum-state";
 import { drillStrength, reviewEligible } from "@/lib/mastery-rules";
 
 /**
@@ -14,7 +14,7 @@ export interface SkillModule {
   title: string;
   order: number;
   track: string;
-  grade: "kyu" | "dan";
+  grade: TrackGrade;
   strength: number;
   solved: number;
   drills: number;

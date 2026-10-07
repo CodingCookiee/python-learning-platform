@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getCurriculumState, indexModules } from "@/lib/curriculum-state";
+import { getCurriculumState, indexModules, trackGrade } from "@/lib/curriculum-state";
 import {
   checkAndUnlockAchievements,
   updateStreak,
@@ -108,6 +108,7 @@ async function modulePool(moduleId: string) {
       checkpointPick: true,
       checkpointPassMark: true,
       checkpointPool: true,
+      track: { select: { grade: true } },
       lessons: {
         where: { archivedAt: null },
         select: {
@@ -120,7 +121,11 @@ async function modulePool(moduleId: string) {
     },
   });
   if (!mod) return null;
-  const pool = mod.lessons.flatMap((l) => l.exercises).filter((e) => inCheckpointPool(e, mod.checkpointPool));
+  // No checkpoint in a track with no grade (the Start on-ramp), as in lib/curriculum-state.ts
+  const pool =
+    mod.track && trackGrade(mod.track.grade) === "none"
+      ? []
+      : mod.lessons.flatMap((l) => l.exercises).filter((e) => inCheckpointPool(e, mod.checkpointPool));
   return { pool, pick: Math.min(mod.checkpointPick, pool.length), passMark: mod.checkpointPassMark };
 }
 

@@ -23,7 +23,7 @@ export function SkillMap({ map }: { map: SkillMapData }) {
               className="grid grid-cols-[3.25rem_minmax(0,1fr)_7rem_2.75rem] items-center gap-x-3 py-2.5 text-sm hover:text-primary"
             >
               <span className="font-condensed tabular text-muted-foreground">
-                {m.grade === "dan" ? `${ordinal(m.order + 1)} dan` : String(m.order).padStart(2, "0")}
+                {m.grade === "dan" ? `${ordinal(m.order + 1)} dan` : m.grade === "none" ? "Start" : String(m.order).padStart(2, "0")}
               </span>
               <span className="flex min-w-0 items-center gap-1.5 truncate">
                 <span className="truncate">{m.title}</span>

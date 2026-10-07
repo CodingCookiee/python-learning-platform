@@ -202,7 +202,13 @@ export default async function ModuleDetailPage({ params }: PageProps) {
   const firstLesson = lessons[0] ?? null;
   const displayDuration = learningModule.duration;
   const isDan = learningModule.track?.grade === "dan";
-  const moduleLabel = isDan ? `${ordinal(learningModule.order + 1)} dan` : `Module ${learningModule.order}`;
+  // The Start on-ramp: no grade, no stripe, never a gate
+  const isStart = learningModule.track?.grade === "none";
+  const moduleLabel = isDan
+    ? `${ordinal(learningModule.order + 1)} dan`
+    : isStart
+      ? "Start here"
+      : `Module ${learningModule.order}`;
   const belt = beltForModule(learningModule.order);
   const stripeNumber = learningModule.order - belt.fromModule + 1;
   const stripeSlots = belt.toModule - belt.fromModule + 1;
@@ -269,6 +275,8 @@ export default async function ModuleDetailPage({ params }: PageProps) {
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
                 {isDan ? (
                   <span>AI automation · {moduleLabel}</span>
+                ) : isStart ? (
+                  <span>Before the white belt · optional, no grade</span>
                 ) : (
                   <span className="flex items-center gap-2">
                     <BeltBand

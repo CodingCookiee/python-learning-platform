@@ -73,8 +73,10 @@ describe("the content tree", () => {
     const { tracks, issues } = loadContent();
     const errors = issues.filter((i) => i.level === "error");
     expect(errors, errors.map((e) => `${e.path}: ${e.message}`).join("\n")).toHaveLength(0);
-    expect(tracks.map((t) => t.slug)).toEqual(["python", "automation"]);
-    expect(tracks.flatMap((t) => t.modules)).toHaveLength(24);
+    // The Start on-ramp (no grade) comes first, then the 16 Python and 8 automation modules
+    expect(tracks.map((t) => t.slug)).toEqual(["start", "python", "automation"]);
+    expect(tracks.flatMap((t) => t.modules)).toHaveLength(25);
+    expect(tracks[0]!.grade).toBe("none");
     // Reads every file in content/ (thousands): seconds on Windows, where each read is scanned
   }, 60_000);
 });

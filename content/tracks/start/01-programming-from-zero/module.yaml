@@ -1,0 +1,17 @@
+slug: programming-from-zero
+title: "Start here: programming from zero"
+summary: What a program is, values and names, decisions, repetition and your first function, in plain language.
+description: >
+  For anyone who has never written code. Six short lessons take you from your first line of Python to a
+  small game you build yourself: what a program is and how to read its error messages, keeping values
+  under names, working with text and numbers, making decisions, repeating work, and writing your own
+  functions. Every idea is practised in your browser straight away, and every word is explained the first
+  time it comes up. When you finish, your white belt is tied and module 1 will feel like a review.
+hours: 4
+outcomes:
+  - Write and run short programs that print text and numbers, and read the error message when one fails
+  - Keep values under names, change them, and combine text and numbers in a sentence
+  - Ask the user a question and use their answer, including as a number
+  - Make a program choose between actions with if, elif and else
+  - Repeat work with for and while loops, and build up a total
+  - Write small functions that take inputs and return a result

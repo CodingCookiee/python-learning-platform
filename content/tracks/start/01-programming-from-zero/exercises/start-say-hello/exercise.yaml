@@ -1,0 +1,7 @@
+title: Say hello
+type: program
+difficulty: warm-up
+tags: [print]
+hints:
+  - "Use print, with the text inside quote marks, inside the round brackets."
+  - "print(\"Hello, world!\")"

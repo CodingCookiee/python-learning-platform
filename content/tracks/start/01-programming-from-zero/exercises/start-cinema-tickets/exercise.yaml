@@ -1,0 +1,8 @@
+title: Cinema tickets
+type: program
+difficulty: core
+tags: [print, arithmetic]
+hints:
+  - "Three print lines. Each one shows a label in quote marks and a number, separated by a comma."
+  - "The star * multiplies. Let Python work out 2 * 8 for the last line."
+  - "print(\"Total:\", 2 * 8)"

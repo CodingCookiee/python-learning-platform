@@ -15,8 +15,10 @@ export const trackSchema = z.object({
   slug,
   title: text,
   summary: text,
-  grade: z.enum(["kyu", "dan"]),
-  order: z.number().int().min(1),
+  /** kyu and dan tracks give a grade per module; "none" (the beginner on-ramp) gives none */
+  grade: z.enum(["kyu", "dan", "none"]),
+  /** 0 sorts before Python (1) */
+  order: z.number().int().min(0),
 });
 
 export const moduleSchema = z.object({
@@ -170,6 +172,10 @@ export const achievementCriteriaSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("black-belt") }),
   z.object({ kind: z.literal("streak"), days: z.number().int().positive() }),
   z.object({ kind: z.literal("xp"), amount: z.number().int().positive() }),
+  /** At least `count` lessons of one module completed (the Start on-ramp's badges) */
+  z.object({ kind: z.literal("module-lessons"), module: slug, count: z.number().int().positive() }),
+  /** At least `count` different drills of one type passed, anywhere in the course */
+  z.object({ kind: z.literal("drill-type"), type: z.enum(EXERCISE_TYPES), count: z.number().int().positive() }),
 ]);
 
 export const achievementSchema = z.object({

@@ -100,6 +100,26 @@ export function SignUpForm() {
         </div>
       ))}
 
+      <div className="flex flex-col gap-2">
+        <label htmlFor="ageConfirmed" className="flex items-start gap-3 text-sm leading-relaxed">
+          <input
+            id="ageConfirmed"
+            type="checkbox"
+            className="mt-0.5 size-4 shrink-0 accent-primary"
+            disabled={isLoading}
+            aria-invalid={Boolean(errors.ageConfirmed)}
+            aria-describedby={errors.ageConfirmed ? "ageConfirmed-error" : undefined}
+            {...register("ageConfirmed")}
+          />
+          <span>I&apos;m 16 or older</span>
+        </label>
+        {errors.ageConfirmed && (
+          <p id="ageConfirmed-error" className="text-sm text-destructive">
+            {errors.ageConfirmed.message}
+          </p>
+        )}
+      </div>
+
       <Button type="submit" size="lg" className="mt-2 w-full" disabled={isLoading}>
         {isLoading && <LoaderCircle className="animate-spin" aria-hidden="true" />}
         {isLoading ? "Creating your account…" : "Create account"}

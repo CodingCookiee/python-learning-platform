@@ -66,6 +66,13 @@ export default function PrivacyPage() {
           </p>
         </Section>
 
+        <Section id="age" title="Who it's for">
+          <p>
+            pylearn is for people 16 and over. Sign-up asks you to confirm your age, and we keep the date you did. If
+            you&apos;re under 16, please don&apos;t create an account.
+          </p>
+        </Section>
+
         <Section id="why" title="Why">
           <p>
             To run your training: to grade your work, keep your place, show your progress and rank, and send the emails

@@ -1,6 +1,8 @@
 # Achievements (patches). Synced by `npm run content:sync`; evaluated by lib/achievements.ts.
 # criteria kinds: lessons {count} · drills {count} · modules {modules: [slugs]} (all passed)
 #                 capstone {module} (approved) · streak {days} · xp {amount}
+#                 module-lessons {module, count} (lessons of one module done)
+#                 drill-type {type, count} (different drills of one type passed: function, program, predict, fix, refactor, tests)
 # Names match earlier achievements where they overlap, so learners keep what they earned.
 
 # Learning: the habit of practice

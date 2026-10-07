@@ -95,9 +95,13 @@ export async function updateStreak(userId: string): Promise<number> {
 
 // Evaluation
 
-interface LearnerStats {
+export interface LearnerStats {
   lessons: number;
   drills: number;
+  /** Completed lessons per module slug */
+  lessonsByModule: Map<string, number>;
+  /** Different passed drills per drill type */
+  passedByType: Map<string, number>;
   passedModules: Set<string>;
   capstoneModules: Set<string>;
   streak: number;
@@ -106,12 +110,15 @@ interface LearnerStats {
 }
 
 async function learnerStats(userId: string): Promise<LearnerStats> {
-  const [lessons, drills, tracks, capstones, streak, user] = await Promise.all([
-    prisma.progress.count({ where: { userId, completed: true, lesson: { archivedAt: null } } }),
+  const [completedLessons, drills, tracks, capstones, streak, user] = await Promise.all([
+    prisma.progress.findMany({
+      where: { userId, completed: true, lesson: { archivedAt: null } },
+      select: { lesson: { select: { module: { select: { slug: true } } } } },
+    }),
     prisma.exerciseSubmission.findMany({
       where: { userId, passed: true, exercise: { archivedAt: null } },
       distinct: ["exerciseId"],
-      select: { exerciseId: true },
+      select: { exerciseId: true, exercise: { select: { type: true } } },
     }),
     getCurriculumState(userId),
     prisma.projectSubmission.findMany({
@@ -129,9 +136,16 @@ async function learnerStats(userId: string): Promise<LearnerStats> {
     where: { id: { in: await ciPassedProjectIds(userId) }, archivedAt: null },
     select: { module: { select: { slug: true } } },
   });
+  const tally = (keys: Array<string | null | undefined>) => {
+    const counts = new Map<string, number>();
+    for (const key of keys) if (key) counts.set(key, (counts.get(key) ?? 0) + 1);
+    return counts;
+  };
   return {
-    lessons,
+    lessons: completedLessons.length,
     drills: drills.length,
+    lessonsByModule: tally(completedLessons.map((p) => p.lesson.module.slug)),
+    passedByType: tally(drills.map((d) => d.exercise.type)),
     passedModules,
     capstoneModules: new Set(
       [...capstones.map((c) => c.project.module.slug), ...ciProjects.map((p) => p.module.slug)].filter((s): s is string => Boolean(s))
@@ -143,7 +157,7 @@ async function learnerStats(userId: string): Promise<LearnerStats> {
   };
 }
 
-function met(criteria: AchievementCriteria, stats: LearnerStats): boolean {
+export function met(criteria: AchievementCriteria, stats: LearnerStats): boolean {
   switch (criteria.kind) {
     case "lessons":
       return stats.lessons >= criteria.count;
@@ -159,6 +173,10 @@ function met(criteria: AchievementCriteria, stats: LearnerStats): boolean {
       return stats.xp >= criteria.amount;
     case "black-belt":
       return stats.blackBelt;
+    case "module-lessons":
+      return (stats.lessonsByModule.get(criteria.module) ?? 0) >= criteria.count;
+    case "drill-type":
+      return (stats.passedByType.get(criteria.type) ?? 0) >= criteria.count;
   }
 }
 

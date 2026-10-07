@@ -3,7 +3,9 @@ import { prisma } from "@/lib/prisma";
 /** A throwaway learner, unique per run, removed by cleanup() (everything they own cascades) */
 export async function makeLearner(label: string, data: Record<string, unknown> = {}) {
   const email = `${label}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.invalid`;
-  const user = await prisma.user.create({ data: { email, name: label, emailVerified: new Date(), ...data } });
+  const user = await prisma.user.create({
+    data: { email, name: label, emailVerified: new Date(), ageConfirmedAt: new Date(), ...data },
+  });
   return {
     user,
     cleanup: () => prisma.user.deleteMany({ where: { id: user.id } }),

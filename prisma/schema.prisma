@@ -28,24 +28,26 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts      Account[]
-  sessions      Session[]
-  progress      Progress[]
-  achievements  UserAchievement[]
-  streak        Streak?
+  accounts     Account[]
+  sessions     Session[]
+  progress     Progress[]
+  achievements UserAchievement[]
+  streak       Streak?
 
-  xp            Int       @default(0)
-  level         Int       @default(1)
-  role          Role      @default(LEARNER)
+  xp    Int  @default(0)
+  level Int  @default(1)
+  role  Role @default(LEARNER)
 
   /// First-run setup (/onboarding): set once the learner has answered it
-  onboardedAt   DateTime?
+  onboardedAt    DateTime?
+  /// When the learner confirmed they're 16 or over (at sign-up, or in onboarding for other sign-ins)
+  ageConfirmedAt DateTime?
   /// new | other-language | python
-  experience    String?
+  experience     String?
   /// python | automation
-  goal          String?
+  goal           String?
   /// The weekly training target the dashboard plans around
-  weeklyHours   Int       @default(10)
+  weeklyHours    Int       @default(10)
 
   exerciseSubmissions ExerciseSubmission[]
   projectSubmissions  ProjectSubmission[]
@@ -136,7 +138,7 @@ model Module {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  track       Track?    @relation(fields: [trackId], references: [id])
+  track              Track?   @relation(fields: [trackId], references: [id])
   /// Checkpoint (module exam): how many drills an attempt draws, the pass mark, and an
   /// optional explicit pool of drill slugs (default: the module's core and stretch drills)
   checkpointPick     Int      @default(6)
@@ -155,95 +157,95 @@ model Module {
 }
 
 model Lesson {
-  id            String   @id @default(cuid())
-  slug          String?  @unique
+  id            String    @id @default(cuid())
+  slug          String?   @unique
   archivedAt    DateTime?
   moduleId      String
   title         String
   description   String
-  content       String   @db.Text
+  content       String    @db.Text
   order         Int
   estimatedTime Int
   /// The lesson's local lab and how it's verified (lab: in the lesson's frontmatter), if any
   lab           Json?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  module        Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  exercises     Exercise[]
-  progress      Progress[]
-  labRuns       LabRun[]
+  module    Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  exercises Exercise[]
+  progress  Progress[]
+  labRuns   LabRun[]
 
   @@unique([moduleId, order])
   @@map("lessons")
 }
 
 model Exercise {
-  id            String   @id @default(cuid())
-  slug          String?  @unique
-  lessonId      String
-  title         String
-  description   String
+  id             String    @id @default(cuid())
+  slug           String?   @unique
+  lessonId       String
+  title          String
+  description    String
   /// The prompt, in markdown
-  instructions  String   @db.Text
-  starterCode   String   @db.Text
-  solution      String   @db.Text
+  instructions   String    @db.Text
+  starterCode    String    @db.Text
+  solution       String    @db.Text
   /// JSON [{ name, hidden }]: the test list shown before the first run
-  testCases     String   @db.Text
+  testCases      String    @db.Text
   /// The drill's plp tests.py source
-  tests         String   @db.Text @default("")
+  tests          String    @default("") @db.Text
   /// function | program | predict | fix | refactor
-  type          String   @default("function")
-  hints         String   @db.Text
+  type           String    @default("function")
+  hints          String    @db.Text
   /// warm-up | core | stretch
-  difficulty    String
-  tags          String[] @default([])
-  packages      String[] @default([])
-  timeoutMs     Int      @default(5000)
+  difficulty     String
+  tags           String[]  @default([])
+  packages       String[]  @default([])
+  timeoutMs      Int       @default(5000)
   /// False for script-style drills (programs, tests, script: true): the code runs, it isn't imported
-  importSolution Boolean  @default(true)
+  importSolution Boolean   @default(true)
   /// Multi-file drills: [{ path, editable, starter, solution }] for the learner's other files
-  files         Json?
+  files          Json?
   /// The main file's name (solution.py for single-file drills, main.py by default for multi-file)
-  mainFile      String   @default("solution.py")
+  mainFile       String    @default("solution.py")
   /// Required drills gate lesson completion; optional ones are extra practice
-  required      Boolean  @default(true)
-  archivedAt    DateTime?
-  order         Int
-  xpReward      Int      @default(25)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  required       Boolean   @default(true)
+  archivedAt     DateTime?
+  order          Int
+  xpReward       Int       @default(25)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  lesson        Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  submissions   ExerciseSubmission[]
-  reviewItems   ReviewItem[]
-  drafts        DrillDraft[]
+  lesson      Lesson               @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  submissions ExerciseSubmission[]
+  reviewItems ReviewItem[]
+  drafts      DrillDraft[]
 
   @@unique([lessonId, order])
   @@map("exercises")
 }
 
 model Project {
-  id              String   @id @default(cuid())
-  slug            String?  @unique
+  id              String    @id @default(cuid())
+  slug            String?   @unique
   archivedAt      DateTime?
   moduleId        String
   title           String
-  summary         String   @default("")
+  summary         String    @default("")
   /// The brief, in markdown
   description     String
-  requirements    String   @db.Text
-  successCriteria String   @db.Text
-  starterTemplate String?  @db.Text
+  requirements    String    @db.Text
+  successCriteria String    @db.Text
+  starterTemplate String?   @db.Text
   /// Acceptance tests run by GitHub Actions in the learner's repo: { files: {path: source}, requirements: [...] }
   acceptance      Json?
   estimatedTime   Int
-  xpReward        Int      @default(100)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  xpReward        Int       @default(100)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  module          Module              @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  submissions     ProjectSubmission[]
+  module      Module              @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  submissions ProjectSubmission[]
 
   @@map("projects")
 }
@@ -257,7 +259,7 @@ model Progress {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
   @@unique([userId, lessonId])
@@ -265,18 +267,18 @@ model Progress {
 }
 
 model ExerciseSubmission {
-  id          String   @id @default(cuid())
-  userId      String
-  exerciseId  String
-  code        String   @db.Text
-  passed      Boolean
-  testResults String   @db.Text
-  hintsUsed   Int      @default(0)
-  attempts    Int      @default(1)
+  id                  String   @id @default(cuid())
+  userId              String
+  exerciseId          String
+  code                String   @db.Text
+  passed              Boolean
+  testResults         String   @db.Text
+  hintsUsed           Int      @default(0)
+  attempts            Int      @default(1)
   /// practice (the drill page), review (spaced repetition) or checkpoint (module exam)
-  mode        String   @default("practice")
+  mode                String   @default("practice")
   checkpointAttemptId String?
-  submittedAt DateTime @default(now())
+  submittedAt         DateTime @default(now())
 
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
@@ -328,17 +330,17 @@ model ReviewItem {
 }
 
 model ProjectSubmission {
-  id          String   @id @default(cuid())
-  userId      String
-  projectId   String
-  files       String   @db.Text
-  status      String
-  feedback    String?  @db.Text
+  id           String    @id @default(cuid())
+  userId       String
+  projectId    String
+  files        String    @db.Text
+  status       String
+  feedback     String?   @db.Text
   /// A rubric review by the learner's own AI key (lib/ai/reviewer.ts); the examiner still decides
   aiReview     Json?
   aiReviewedAt DateTime?
-  submittedAt DateTime @default(now())
-  evaluatedAt DateTime?
+  submittedAt  DateTime  @default(now())
+  evaluatedAt  DateTime?
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -348,18 +350,18 @@ model ProjectSubmission {
 }
 
 model Achievement {
-  id          String   @id @default(cuid())
-  slug        String?  @unique
+  id          String    @id @default(cuid())
+  slug        String?   @unique
   archivedAt  DateTime?
-  order       Int      @default(0)
-  name        String   @unique
+  order       Int       @default(0)
+  name        String    @unique
   description String
   icon        String
   category    String
-  criteria    String   @db.Text
-  xpReward    Int      @default(0)
+  criteria    String    @db.Text
+  xpReward    Int       @default(0)
   tier        String
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
 
   users UserAchievement[]
 
@@ -477,11 +479,11 @@ model LearningLogEntry {
   /// Where the learner was in the course when they wrote it
   phase     String   @default("")
   hours     Float    @default(0)
-  built     String   @db.Text @default("")
-  learned   String   @db.Text @default("")
-  stuck     String   @db.Text @default("")
-  nextGoal  String   @db.Text @default("")
-  question  String   @db.Text @default("")
+  built     String   @default("") @db.Text
+  learned   String   @default("") @db.Text
+  stuck     String   @default("") @db.Text
+  nextGoal  String   @default("") @db.Text
+  question  String   @default("") @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

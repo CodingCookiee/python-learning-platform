@@ -7,7 +7,14 @@ import { FadeIn, StaggerContainer } from "@/components/animations";
 import { RankCard } from "@/components/brand/rank-card";
 import { SyllabusProgress } from "@/components/brand/syllabus-progress";
 import { LockedMark, SealMark } from "@/components/brand/marks";
-import { AUTOMATION_TRACK, AUTOMATION_UNLOCK_AFTER, getCurriculumState, PYTHON_TRACK } from "@/lib/curriculum-state";
+import {
+  AUTOMATION_TRACK,
+  AUTOMATION_UNLOCK_AFTER,
+  getCurriculumState,
+  PYTHON_TRACK,
+  START_TRACK,
+  type ModuleProgress,
+} from "@/lib/curriculum-state";
 import { rankFromTracks } from "@/lib/learner-rank";
 import { blackBeltIfDue } from "@/lib/black-belt";
 import { toSyllabus, type SyllabusModule } from "@/lib/syllabus";
@@ -15,6 +22,24 @@ import { DAN_TRACK, ordinal } from "@/lib/ranks";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Syllabus" };
+
+/** The on-ramp's status: no grade, so it's done, in progress, or an optional few hours */
+function StartStatus({ module }: { module: ModuleProgress }) {
+  if (module.passed)
+    return (
+      <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-success">
+        <SealMark className="size-4" />
+        Done
+      </span>
+    );
+  if (module.lessonsDone > 0)
+    return (
+      <span className="font-condensed tabular text-sm whitespace-nowrap">
+        {module.lessonsDone} / {module.lessonsTotal} lessons
+      </span>
+    );
+  return <span className="font-condensed tabular text-sm whitespace-nowrap text-muted-foreground">Optional · ~{module.duration} h</span>;
+}
 
 function DanStatus({ module, trackOpen }: { module: SyllabusModule | undefined; trackOpen: boolean }) {
   if (!module) return <span className="text-sm text-muted-foreground">In preparation</span>;
@@ -54,6 +79,7 @@ export default async function ModulesPage() {
 
   const tracks = await getCurriculumState(userId);
   const rank = rankFromTracks(tracks, await blackBeltIfDue(userId, tracks));
+  const start = tracks.find((t) => t.slug === START_TRACK);
   const python = tracks.find((t) => t.slug === PYTHON_TRACK);
   const automation = tracks.find((t) => t.slug === AUTOMATION_TRACK);
   const modules = python ? toSyllabus(python) : [];
@@ -89,6 +115,40 @@ export default async function ModulesPage() {
         <FadeIn delay={0.06}>
           <RankCard rank={rank} showLadder={false} />
         </FadeIn>
+
+        {start && start.modules.length > 0 && (
+          <FadeIn delay={0.075}>
+            <section
+              aria-labelledby="start-heading"
+              className="grid gap-5 border-y border-border py-7 md:grid-cols-[13rem_minmax(0,1fr)] md:gap-10"
+            >
+              <div className="flex flex-col gap-2">
+                <h2 id="start-heading" className="font-condensed text-xl font-bold">
+                  Before the white belt
+                </h2>
+                <p className="text-sm text-muted-foreground">{start.summary}</p>
+              </div>
+              <ol className="flex flex-col">
+                {start.modules.map((m) => (
+                  <li key={m.id}>
+                    <Link
+                      href={`/modules/${m.id}`}
+                      className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 py-1 hover:text-primary"
+                    >
+                      <span className="flex min-w-0 flex-col gap-0.5">
+                        <span className="font-semibold">{m.title}</span>
+                        <span className="line-clamp-2 text-sm text-muted-foreground">{m.description}</span>
+                      </span>
+                      <span className="self-center justify-self-end">
+                        <StartStatus module={m} />
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          </FadeIn>
+        )}
 
         <FadeIn delay={0.09}>
           <SyllabusProgress modules={modules} headingLevel={2} />

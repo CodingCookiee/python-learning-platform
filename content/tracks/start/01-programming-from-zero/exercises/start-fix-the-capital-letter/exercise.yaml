@@ -1,0 +1,8 @@
+title: Fix the capital letter
+type: fix
+script: true
+difficulty: warm-up
+tags: [errors, names]
+hints:
+  - "Run it. The first line prints, then Python stops with a NameError. Which line does the error point to?"
+  - "Python cares about capital letters: print and Print are different words, and only print is an instruction it knows."

@@ -1,0 +1,7 @@
+title: "Predict: in what order?"
+type: predict
+difficulty: warm-up
+tags: [print, order]
+hints:
+  - Python runs the lines from top to bottom, exactly as written. It doesn't read the step numbers.
+  - "The third line in the program is printed third, even though it says Step 2."

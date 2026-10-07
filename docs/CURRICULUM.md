@@ -1,11 +1,12 @@
 # pylearn curriculum
 
-Status: approved plan · Last updated: 2026-09-25 · Owner: Raza Awan
+Status: approved plan · Last updated: 2026-10-07 · Owner: Raza Awan
 
 Two tracks, one path, and a grade for every module:
 
 - **Python** takes you from zero to advanced across 16 modules. Each module passed is one kyu grade,
-  from 16 kyu up to 1 kyu. Passing module 16 earns the black belt, 1st dan.
+  from 16 kyu up to 1 kyu. Passing module 16 earns the black belt, 1st dan. Learners who have never
+  programmed start with a short on-ramp before module 1 (being designed, see below).
 - **AI Automation** takes you from Python developer to paid automation engineer across 8 modules.
   Each module passed is one dan grade, from 2nd up to 9th. It follows `AI_Automation_Roadmap_Raza_Awan.pdf`.
 
@@ -59,6 +60,16 @@ The AI Automation track is designed so that on finishing it you can:
    deterministic and free.
 
 ---
+
+## Before the white belt: the on-ramp
+
+Status: decided 2026-10-07, design in progress ([ARCHITECTURE.md §16](ARCHITECTURE.md#16-decisions-2026-10-07-a-course-for-everyone)).
+
+Module 1 is written for people who already program. The on-ramp is for everyone else: people who have
+never written code, and students. It's short, in plain language, and every idea is practised in the
+browser straight away: what a program is, values and names, making decisions, repeating work, and
+writing small functions. It sits outside the kyu grades, so passing it doesn't change the 16 modules or
+their numbering; it hands the learner over to module 1 ready for it. Developers skip it.
 
 ## Track 1: Python (16 kyu → 1st dan)
 

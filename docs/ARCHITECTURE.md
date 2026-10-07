@@ -469,6 +469,7 @@ Each milestone is shippable and leaves the app better than before.
 - **Checkpoint feedback:** a closed attempt with misses lists the topics of the missed drills, the lessons to reread and the drills to redo.
 - **Multi-file drills:** an exercise can have other files (`files:` in exercise.yaml, docs/CONTENT.md), shown as editor tabs; read-only ones are locked. The runner serves the learner's modules to Python's import system from memory under their own names (so tracebacks and time limits cover them) and writes data files to the working directory. Validation, server grading, drafts and the tutor all carry every file. Two drills use it so far, in module 3's "Modules and imports".
 - **Admin AI usage:** `/admin/ai` shows calls and tokens per day, by feature, by model and by learner, the prompt-cache hit rate and how many learners have a key, over 7, 30 or 90 days.
+- **Public site and security (2026-10-06):** `robots.txt`, `sitemap.xml` and `/llms.txt` (app/robots.ts, app/sitemap.ts, app/llms.txt); per-page titles, descriptions and canonical links, with a generated share card (app/opengraph-image.tsx, lib/page-titles.ts for lessons, drills, modules, capstones and checkpoints); a privacy policy at `/privacy` (contact address from `CONTACT_EMAIL`). Every page gets a Content-Security-Policy with a per-request nonce from `proxy.ts` (lib/csp.ts: only this site plus the exact Monaco and Pyodide CDN paths, WebAssembly and PyPI), and next.config.ts adds `X-Frame-Options`, `nosniff`, a referrer policy, a permissions policy and HSTS. Because of the nonce every page renders per request. The sign-in and sign-up pages render on the server (only the forms are client components). Audited with squirrelscan and axe: no axe violations on the main signed-in pages in light or dark.
 
 - **Acceptance tests in GitHub Actions:** capstones (`capstone/acceptance/`) and `github` labs run their tests in the learner's own public repo through a workflow file generated per connection (`lib/ci/workflow.ts`). The workflow fetches the suite from `/api/ci/suite/{token}` and posts results to `/api/ci/report/{token}`; a run only counts after GitHub's API confirms it belongs to the connected repo, used the unmodified workflow file, and succeeded (`lib/ci/links.ts`). Costs nothing: GitHub Actions is free on public repos. A capstone that passes its acceptance tests counts toward the black belt like an approved one, and stays passed (`verifiedAt`) whatever later runs or posted reports say; a passed github lab is a verified lab. The tests run with `python -P -m pytest --noconftest --disable-plugin-autoload`, so the repo can't swap in its own pytest, conftest or plugins, though the learner's code still shares the environment: the examiner's review remains the real check. Reports only say which run to look up; the run link shown is rebuilt from the connected repo, and GitHub problems (rate limits) back off for two minutes. `npm run content:acceptance` checks each suite against a reference solution locally.
 
@@ -485,6 +486,7 @@ Still open:
 | **M5** | Track 2 part 1 | A0–A4 content, fake LLM client library, RAG sandbox with pgvector | Roadmap Phases 1–3 doable in-app |
 | **M6** | Track 2 part 2 | A5–A8, MCP harness, red-team labs, learning log + weekly check-in, portfolio export | Roadmap Phases 4–6 doable in-app |
 | **M7** | Public-ready | Email verification/reset, rate limits everywhere, onboarding + pacing, analytics, accessibility pass, docs for content authors | Safe to share with anyone |
+| **M8** | Everyone welcome (§16) | 1. Beginner on-ramp before module 1 · 2. First-session quest after onboarding · 3. "How it works" on the landing page | A complete beginner, a student and a developer each understand the app from the landing page and finish a guided first session |
 
 ---
 
@@ -539,4 +541,19 @@ Still open:
 | 7 | Rollout | **Engine first, then module by module** | The exercise engine and content pipeline ship first, then modules 1–3 as the reference, then the rest in order |
 | 8 | Old lessons | **Replaced, not migrated** | The 64 old seed lessons and `lib/*-content.ts` overrides are deleted once `content/` is live |
 | 9 | Runtime | **Pyodide 314.0.7 (Python 3.14.2)** in a Web Worker | Matches local Python 3.14, which `content:validate` uses to run every solution |
+
+## 16. Decisions (2026-10-07): a course for everyone
+
+The audience widens from developers to everyone: people who have never programmed, students, and
+developers. Retention depends on a new learner understanding the app at once and getting a first
+success in their first session.
+
+| # | Question | Decision | Consequence |
+|---|----------|----------|-------------|
+| 1 | Learners who have never programmed | **A beginner on-ramp before module 1** | A short module in plain language (what a program is, values and names, decisions, loops, functions) with in-browser drills. It sits "before the white belt", outside the 16 kyu grades, so no module is renumbered. Developers skip it. See [CURRICULUM.md](CURRICULUM.md#before-the-white-belt-the-on-ramp) |
+| 2 | First login | **A first-session quest**, not a tooltip tour | Like a game's tutorial level: after onboarding, a short quest on the real app where the learner runs their first code, passes their first drill and sees their first progress, with a quest tracker, pointers to each part of the screen as they reach it, and a reward at the end. It starts from each learner's starting point (the on-ramp or module 1) |
+| 3 | Explaining the app to visitors | **A hands-on "How it works" section on the landing page** | One learner's journey step by step (lesson, drill, grading, belt, capstone, black belt, AI grades) with steps to try for real, then "Who it's for" (beginners, students, developers) and an FAQ (cost, time, what you need) |
+| 4 | Order | **On-ramp, then quest, then landing page** | The quest needs each learner's starting point and the landing page describes the finished experience. The on-ramp's lessons can be written while the quest is built |
+
+Each part gets its own design, spec and plan before it's built (milestone M8 in §12).
 

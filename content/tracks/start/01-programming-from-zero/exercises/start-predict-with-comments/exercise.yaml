@@ -1,0 +1,7 @@
+title: "Predict: comments and sums"
+type: predict
+difficulty: core
+tags: [print, comments, arithmetic]
+hints:
+  - "Lines that start with # are comments: Python skips them completely."
+  - "In the last line, Python works out 2 * 2 before printing, and puts a space between the two things."

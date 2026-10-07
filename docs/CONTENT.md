@@ -13,7 +13,12 @@ What to teach is in [CURRICULUM.md](CURRICULUM.md). This file covers how to writ
 
 ```
 content/
+  achievements.yaml                # the badges (see below)
   tracks/
+    start/                         # the beginner on-ramp: no grade, before Python
+      track.yaml
+      01-programming-from-zero/
+        ...
     python/
       track.yaml
       01-python-basics/            # NN- prefix sets the module's order in the track
@@ -53,9 +58,31 @@ Removing a file archives the item: learners' history stays and the item disappea
 slug: python
 title: Python
 summary: From zero to advanced, one kyu grade per module.
-grade: kyu          # kyu (counts down from 16) or dan (counts up from 2)
-order: 1            # position among tracks
+grade: kyu          # kyu (counts down from 16), dan (counts up from 2), or none
+order: 1            # position among tracks (the Start on-ramp is 0)
 ```
+
+A `grade: none` track gives no grade and never gates another track: modules unlock in order within
+their own track, and rank, the black belt and pacing read the Python track by slug. The Start
+on-ramp (`content/tracks/start/`) is the one such track.
+
+## `achievements.yaml`
+
+The badges, each with a slug, name, description, icon (a lucide name), category, tier (bronze,
+silver, gold), XP and `criteria`. `content:sync` loads them; `lib/achievements.ts` checks them after
+anything that could earn one. Criteria:
+
+| `kind` | Fields | Earned when |
+|--------|--------|-------------|
+| `lessons` | `count` | that many lessons are complete |
+| `drills` | `count` | that many different drills are passed |
+| `modules` | `modules: [slugs]` | every listed module is passed |
+| `capstone` | `module` | that module's capstone is approved or its acceptance tests passed |
+| `black-belt` | | the black belt is earned |
+| `streak` | `days` | the streak has reached that many days |
+| `xp` | `amount` | the learner has that much XP |
+| `module-lessons` | `module`, `count` | that many lessons of one module are complete |
+| `drill-type` | `type`, `count` | that many different drills of one type (`function`, `program`, `predict`, `fix`, `refactor`, `tests`) are passed |
 
 ## `module.yaml`
 

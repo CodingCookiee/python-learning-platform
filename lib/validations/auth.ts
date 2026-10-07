@@ -15,6 +15,7 @@ export const signUpSchema = z
     email: z.string().email("Invalid email address"),
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string(),
+    ageConfirmed: z.literal(true, { message: "pylearn is for people 16 and over." }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",

@@ -34,6 +34,8 @@ export async function POST(req: Request) {
         password: hashedPassword,
         // With email set up, the address is confirmed by link; without it there's no way to, so trust it
         emailVerified: isEmailConfigured() ? null : new Date(),
+        // signUpSchema only lets this through when they confirmed they're 16 or over
+        ageConfirmedAt: new Date(),
       },
     });
 

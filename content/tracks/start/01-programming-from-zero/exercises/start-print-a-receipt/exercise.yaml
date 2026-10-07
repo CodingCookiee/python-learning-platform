@@ -1,0 +1,8 @@
+title: Print a receipt
+type: program
+difficulty: core
+tags: [print, arithmetic]
+hints:
+  - "One print per line. Text goes in quote marks; numbers don't need them."
+  - "print can show several things separated by commas, and puts a space between them: print(\"Coffee\", 3)"
+  - "For the last line, let Python add the prices: print(\"Total\", 3 + 2)"

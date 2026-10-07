@@ -17,6 +17,15 @@ import { inCheckpointPool } from "@/lib/mastery-rules";
  */
 
 export const PYTHON_TRACK = "python";
+/** The beginner on-ramp: before the white belt, no grade, never a gate */
+export const START_TRACK = "start";
+
+/** How a track's modules map to grades: kyu (Python), dan (Automation), or none (the Start on-ramp) */
+export type TrackGrade = "kyu" | "dan" | "none";
+
+export function trackGrade(raw: string): TrackGrade {
+  return raw === "dan" || raw === "none" ? raw : "kyu";
+}
 export const AUTOMATION_TRACK = "automation";
 export const AUTOMATION_UNLOCK_AFTER = 14;
 
@@ -52,7 +61,7 @@ export interface TrackProgress {
   slug: string;
   title: string;
   summary: string;
-  grade: "kyu" | "dan";
+  grade: TrackGrade;
   order: number;
   unlocked: boolean;
   modules: ModuleProgress[];
@@ -121,9 +130,11 @@ export async function getCurriculumState(userId: string | null): Promise<TrackPr
       const lessonIds = m.lessons.map((l) => l.id);
       const lessonsDone = lessonIds.filter((id) => done.has(id)).length;
       const lessonsComplete = lessonIds.length > 0 && lessonsDone === lessonIds.length;
-      const poolSize = m.lessons
-        .flatMap((l) => l.exercises)
-        .filter((e) => inCheckpointPool(e, m.checkpointPool)).length;
+      // A track with no grade (the Start on-ramp) has no checkpoint: finishing its lessons passes a module
+      const poolSize =
+        trackGrade(t.grade) === "none"
+          ? 0
+          : m.lessons.flatMap((l) => l.exercises).filter((e) => inCheckpointPool(e, m.checkpointPool)).length;
       const checkpoint = passedCheckpoints.get(m.id);
       const passed = lessonIds.length > 0 && (poolSize > 0 ? Boolean(checkpoint) : lessonsComplete);
       const unlocked = priorPassed;
@@ -159,7 +170,7 @@ export async function getCurriculumState(userId: string | null): Promise<TrackPr
       slug: t.slug,
       title: t.title,
       summary: t.summary,
-      grade: t.grade === "dan" ? "dan" : "kyu",
+      grade: trackGrade(t.grade),
       order: t.order,
       unlocked: true,
       modules,

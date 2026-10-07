@@ -12,7 +12,7 @@ export default async function OnboardingPage() {
   if (!session?.user?.id) redirect("/auth/signin");
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { name: true, onboardedAt: true, experience: true, goal: true, weeklyHours: true },
+    select: { name: true, onboardedAt: true, ageConfirmedAt: true, experience: true, goal: true, weeklyHours: true },
   });
   if (!user) redirect("/auth/signin");
 
@@ -26,13 +26,15 @@ export default async function OnboardingPage() {
             {first ? `Welcome to the mat${user.name ? `, ${user.name.split(" ")[0]}` : ""}.` : "Change your plan"}
           </h1>
           <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground">
-            Three questions so the course meets you where you are. You can change them later from the dashboard.
+            {user.ageConfirmedAt ? "Three" : "Four"} questions so the course meets you where you are. You can change your
+            plan later from the dashboard.
           </p>
         </header>
       </FadeIn>
       <FadeIn delay={0.05}>
         <OnboardingForm
           first={first}
+          askAge={!user.ageConfirmedAt}
           initial={{
             experience: (user.experience as "new" | "other-language" | "python" | null) ?? null,
             goal: (user.goal as "python" | "automation" | null) ?? null,
