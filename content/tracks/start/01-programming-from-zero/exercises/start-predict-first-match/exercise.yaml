@@ -1,0 +1,8 @@
+title: "Predict: which medal?"
+type: predict
+difficulty: core
+tags: [elif, conditions]
+hints:
+  - "Python checks the conditions from the top and runs only the first block whose condition is True. Then it skips the rest of the if, elif and else."
+  - "Is 250 >= 100? If so, that block runs, even though 250 >= 200 is True as well."
+  - "The last line isn't indented, so it runs every time."

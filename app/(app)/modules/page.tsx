@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import { RankCard } from "@/components/brand/rank-card";
@@ -77,7 +78,10 @@ export default async function ModulesPage() {
   const userId = session?.user?.id;
   if (!userId) redirect("/auth/signin");
 
-  const tracks = await getCurriculumState(userId);
+  const [tracks, learner] = await Promise.all([
+    getCurriculumState(userId),
+    prisma.user.findUnique({ where: { id: userId }, select: { experience: true } }),
+  ]);
   const rank = rankFromTracks(tracks, await blackBeltIfDue(userId, tracks));
   const start = tracks.find((t) => t.slug === START_TRACK);
   const python = tracks.find((t) => t.slug === PYTHON_TRACK);
@@ -127,6 +131,9 @@ export default async function ModulesPage() {
                   Before the white belt
                 </h2>
                 <p className="text-sm text-muted-foreground">{start.summary}</p>
+                {learner?.experience !== "new" && (
+                  <p className="text-sm font-medium">Never programmed? Start here; it&apos;s optional.</p>
+                )}
               </div>
               <ol className="flex flex-col">
                 {start.modules.map((m) => (

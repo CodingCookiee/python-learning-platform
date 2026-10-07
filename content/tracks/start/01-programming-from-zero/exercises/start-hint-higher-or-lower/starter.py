@@ -1,0 +1,3 @@
+def hint(secret, guess):
+    # Return "higher", "lower" or "correct"
+    ...

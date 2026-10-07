@@ -1,0 +1,8 @@
+title: Zoo ticket prices
+type: program
+difficulty: core
+tags: [if, elif, else, comparisons, input]
+hints:
+  - "Read the age with int(input(...)). Then use if, elif and else: one block for each kind of ticket."
+  - "Python stops at the first condition that's True, so check the ages in order: if age <= 12 first, then elif age <= 64. Everyone left is 65 or over."
+  - "The last line runs for everyone, so don't indent it."

@@ -9,6 +9,7 @@ import { getLessonForUser, type LessonDrill } from "@/lib/lessons";
 import { getLabForUser } from "@/lib/labs";
 import { LabPanel } from "@/components/lesson/lab-panel";
 import { getLink, viewOf } from "@/lib/ci/links";
+import { PYTHON_TRACK, START_TRACK } from "@/lib/curriculum-state";
 import { LessonWorkspace } from "@/components/lesson/lesson-workspace";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import {
@@ -81,6 +82,21 @@ function DrillList({ drills }: { drills: LessonDrill[] }) {
   );
 }
 
+/** For a lesson in the Start on-ramp: module 1's page and the on-ramp's lesson count; otherwise null */
+async function onRampHandOver(moduleId: string) {
+  const learningModule = await prisma.module.findUnique({
+    where: { id: moduleId },
+    select: { track: { select: { slug: true } }, _count: { select: { lessons: { where: { archivedAt: null } } } } },
+  });
+  if (learningModule?.track?.slug !== START_TRACK) return null;
+  const firstPython = await prisma.module.findFirst({
+    where: { archivedAt: null, track: { slug: PYTHON_TRACK } },
+    orderBy: { order: "asc" },
+    select: { id: true },
+  });
+  return { nextHref: firstPython ? `/modules/${firstPython.id}` : "/modules", lessons: learningModule._count.lessons };
+}
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }
@@ -100,6 +116,8 @@ export default async function LessonPage({ params }: PageProps) {
   if (!lesson) notFound();
   const lab = lesson.moduleUnlocked ? await getLabForUser(user.id, lesson.id) : null;
   const labCi = lab?.spec.kind === "github" ? await getLink(user.id, "lab", lesson.id) : null;
+  // On-ramp lessons: the white belt ceremony hands over to Python module 1
+  const onRamp = await onRampHandOver(lesson.module.id);
 
   const required = lesson.drills.filter((d) => d.required);
   const optional = lesson.drills.filter((d) => !d.required);
@@ -226,6 +244,8 @@ export default async function LessonPage({ params }: PageProps) {
                   initialCompleted={lesson.completed}
                   isLocked={!lesson.completed && !lesson.canComplete}
                   lockedMessage={blockedMessage}
+                  afterOnRampHref={onRamp?.nextHref}
+                  onRampLessons={onRamp?.lessons}
                 />
                 <LessonNavigation previous={lesson.previous} next={lesson.next} />
               </div>

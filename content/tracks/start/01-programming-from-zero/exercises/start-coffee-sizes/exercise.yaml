@@ -1,0 +1,8 @@
+title: Coffee sizes
+type: program
+difficulty: core
+tags: [if, elif, else, input]
+hints:
+  - "Read the size with input(). You don't need int() here: the sizes are letters, so compare them as text, in quote marks."
+  - "Use if for the first size, elif for the next two, and else for anything that isn't on the menu."
+  - "if size == \"S\":"

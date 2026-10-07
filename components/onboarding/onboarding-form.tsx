@@ -11,7 +11,11 @@ type Experience = "new" | "other-language" | "python";
 type Goal = "python" | "automation";
 
 const EXPERIENCE: Array<{ value: Experience; title: string; detail: string }> = [
-  { value: "new", title: "New to programming", detail: "Start at module 1 and take it in order." },
+  {
+    value: "new",
+    title: "New to programming",
+    detail: "Start with Start here, a 4-hour on-ramp in plain language, then module 1.",
+  },
   {
     value: "other-language",
     title: "I code in another language",
@@ -133,7 +137,9 @@ export function OnboardingForm({
         setBusy(false);
         return;
       }
-      router.push("/dashboard");
+      // After sign-up a beginner's first stop is the Start on-ramp; plan changes go back to the dashboard
+      const { next } = (await res.json().catch(() => ({}))) as { next?: string };
+      router.push(first && next ? next : "/dashboard");
       router.refresh();
     } catch {
       setError("We couldn't reach the server.");

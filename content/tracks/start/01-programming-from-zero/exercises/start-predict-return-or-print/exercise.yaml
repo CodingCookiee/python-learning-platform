@@ -1,0 +1,7 @@
+title: "Predict: return or print?"
+type: predict
+difficulty: core
+tags: [functions, return, print, none]
+hints:
+  - "total_for_two hands its answer back with return. show_total only prints its answer, so the call hands back None."
+  - "The line total = show_total(10) prints 20 while the function runs. After that, total holds None, and the last line prints it."

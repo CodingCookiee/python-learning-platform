@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { START_TRACK } from "@/lib/curriculum-state";
 
 /** The first-run answers, and later changes to the plan */
 export const onboardingSchema = z.object({
@@ -12,7 +13,18 @@ export const onboardingSchema = z.object({
 
 export type OnboardingInput = z.infer<typeof onboardingSchema>;
 
-export type OnboardingResult = { ok: true } | { ok: false; status: 400 | 404; error: string };
+/** `next` is where to go: the Start on-ramp for "New to programming", otherwise the dashboard */
+export type OnboardingResult = { ok: true; next: string } | { ok: false; status: 400 | 404; error: string };
+
+/** The Start on-ramp's page, if there is one */
+async function onRampPage(): Promise<string | null> {
+  const onRampModule = await prisma.module.findFirst({
+    where: { archivedAt: null, track: { slug: START_TRACK, archivedAt: null } },
+    orderBy: { order: "asc" },
+    select: { id: true },
+  });
+  return onRampModule ? `/modules/${onRampModule.id}` : null;
+}
 
 export async function saveOnboarding(userId: string, input: unknown): Promise<OnboardingResult> {
   const parsed = onboardingSchema.safeParse(input);
@@ -32,5 +44,6 @@ export async function saveOnboarding(userId: string, input: unknown): Promise<On
       ageConfirmedAt: user.ageConfirmedAt ?? new Date(),
     },
   });
-  return { ok: true };
+  const next = answers.experience === "new" ? await onRampPage() : null;
+  return { ok: true, next: next ?? "/dashboard" };
 }

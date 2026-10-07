@@ -5,6 +5,48 @@
 #                 drill-type {type, count} (different drills of one type passed: function, program, predict, fix, refactor, tests)
 # Names match earlier achievements where they overlap, so learners keep what they earned.
 
+# The Start on-ramp (content/tracks/start): a reward about every 40 minutes for complete beginners
+- slug: hello-world
+  name: Hello, World
+  description: Finish the first lesson of Start here
+  icon: Hand
+  category: Learning
+  tier: bronze
+  xp: 10
+  criteria: { kind: module-lessons, module: programming-from-zero, count: 1 }
+- slug: bug-squasher
+  name: Bug Squasher
+  description: Pass your first fix-the-bug drill
+  icon: Bug
+  category: Learning
+  tier: bronze
+  xp: 10
+  criteria: { kind: drill-type, type: fix, count: 1 }
+- slug: decision-maker
+  name: Decision Maker
+  description: Finish four lessons of Start here, through making decisions
+  icon: Signpost
+  category: Learning
+  tier: bronze
+  xp: 15
+  criteria: { kind: module-lessons, module: programming-from-zero, count: 4 }
+- slug: in-the-loop
+  name: In the Loop
+  description: Finish five lessons of Start here, through repeating things
+  icon: RefreshCw
+  category: Learning
+  tier: bronze
+  xp: 15
+  criteria: { kind: module-lessons, module: programming-from-zero, count: 5 }
+- slug: white-belt-tied
+  name: White Belt Tied
+  description: Finish Start here, ready for module 1
+  icon: Ribbon
+  category: Learning
+  tier: silver
+  xp: 50
+  criteria: { kind: module-lessons, module: programming-from-zero, count: 6 }
+
 # Learning: the habit of practice
 - slug: first-lesson
   name: First Steps

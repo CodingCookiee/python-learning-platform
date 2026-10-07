@@ -1,0 +1,8 @@
+title: The shop till
+type: program
+difficulty: core
+tags: [input, int, float, f-strings]
+hints:
+  - "Two questions, so two input() calls, in this order: the price, then how many. A price can have pence, so turn it into a number with float(). The number of items is whole, so use int()."
+  - "Multiply the two numbers, then round the answer to two decimal places with round( , 2), as with any sum of money."
+  - 'cost = round(price * quantity, 2), then print(f"Cost: {cost}")'

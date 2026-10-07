@@ -1,0 +1,8 @@
+title: Split the bill
+type: function
+difficulty: core
+tags: [functions, return, parameters, rounding]
+hints:
+  - "Each person's share is the total divided by the number of people. In Python, / divides."
+  - "round(number, 2) rounds a number to 2 decimal places. Hand the answer back with return, not print."
+  - "return round(total / people, 2)"

@@ -1,0 +1,8 @@
+title: Pizza night
+type: program
+difficulty: core
+tags: [variables, arithmetic]
+hints:
+  - "Give each answer a name of its own. Python works out the right-hand side first: pizzas_cost = pizza_price * pizzas"
+  - "Work out drinks_cost the same way. The total is the two costs added together: total = pizzas_cost + drinks_cost"
+  - "Finish with three prints, one per line, for example print(\"Pizzas:\", pizzas_cost)"

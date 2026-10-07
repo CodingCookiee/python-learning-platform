@@ -1,0 +1,8 @@
+title: Fix the order of the lines
+type: fix
+script: true
+difficulty: warm-up
+tags: [errors, functions, def]
+hints:
+  - "Run it and read the last line of the error. A NameError means Python met a name it doesn't know yet. Which line does it point to?"
+  - "Python reads from the top down. On the first line it hasn't reached the def yet, so it doesn't know welcome. Move welcome(\"Ada\") so that it comes after the function."

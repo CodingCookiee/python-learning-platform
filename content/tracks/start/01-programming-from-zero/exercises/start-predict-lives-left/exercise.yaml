@@ -1,0 +1,7 @@
+title: "Predict: lives left"
+type: predict
+difficulty: warm-up
+tags: [variables, assignment]
+hints:
+  - "Go through it one line at a time, keeping track of the value lives has right now. Each print shows the value at that moment."
+  - "lives = lives - 1 takes the current value (3), subtracts 1, and stores the answer (2) under lives."

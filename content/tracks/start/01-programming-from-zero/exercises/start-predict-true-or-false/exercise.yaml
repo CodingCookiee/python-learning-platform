@@ -1,0 +1,8 @@
+title: "Predict: true or false?"
+type: predict
+difficulty: warm-up
+tags: [comparisons, booleans]
+hints:
+  - "Each print shows the answer to a yes-or-no question: True for yes, False for no."
+  - "!= means \"is not equal to\", and <= means \"is less than or equal to\". The price is 8, so price <= 8 is True."
+  - "Text must match exactly to be equal, capital letters included."

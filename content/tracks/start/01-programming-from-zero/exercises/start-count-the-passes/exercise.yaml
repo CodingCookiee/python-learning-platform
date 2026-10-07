@@ -1,0 +1,8 @@
+title: Count the passes
+type: program
+difficulty: core
+tags: [loops, conditions, totals]
+hints:
+  - "Go through the marks with a for loop. Inside it, use if and else to print the mark with pass or fail."
+  - "To count the passes, start a name at 0 before the loop, and add 1 to it inside the if. len(marks) gives the number of marks."
+  - "After the loop, not indented: print(f\"{passed} of {len(marks)} passed\")"

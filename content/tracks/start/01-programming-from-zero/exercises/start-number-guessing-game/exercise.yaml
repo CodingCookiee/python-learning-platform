@@ -1,0 +1,8 @@
+title: The number-guessing game
+type: program
+difficulty: stretch
+tags: [functions, while, input, random]
+hints:
+  - "Work in steps. After picking the secret, set up two names before the loop: guesses = 0 for the count, and result = \"\" (empty text) for the latest hint."
+  - "Start the loop with while result != \"correct\": and inside it, ask for a guess with int(input(...)), add 1 to guesses, call hint, and print what it hands back."
+  - "After the loop, with no indent: print(\"You win! Guesses:\", guesses)"

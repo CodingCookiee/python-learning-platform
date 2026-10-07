@@ -58,6 +58,11 @@ import {
   Trophy,
   Webhook,
   Wrench,
+  Hand,
+  Bug,
+  Signpost,
+  RefreshCw,
+  Ribbon,
   type LucideIcon,
 } from "lucide-react";
 import { SealMark, StreakMark, TapeMark } from "@/components/brand/marks";
@@ -132,6 +137,12 @@ const ACHIEVEMENT_ICONS: Record<string, IconComponent> = {
   Trophy,
   Webhook,
   Wrench,
+  // The Start on-ramp's badges
+  Hand,
+  Bug,
+  Signpost,
+  RefreshCw,
+  Ribbon,
 };
 
 type AchievementIconProps = {

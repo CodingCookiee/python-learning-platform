@@ -1,0 +1,8 @@
+title: Add up the bill
+type: program
+difficulty: core
+tags: [loops, lists, totals]
+hints:
+  - "Before the loop, make a name for the total and start it at 0."
+  - "Go through the prices with a for loop, and inside it add each price to the total with +=. Print the total after the loop, not indented."
+  - "total = 0, then for price in prices: with total += price indented underneath, then print(f\"Total: {total}\")"

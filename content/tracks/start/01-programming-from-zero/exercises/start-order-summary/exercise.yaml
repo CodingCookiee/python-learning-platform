@@ -1,0 +1,8 @@
+title: Order summary
+type: program
+difficulty: core
+tags: [f-strings, arithmetic, names]
+hints:
+  - 'Put f just before the opening quote mark, then put each name inside curly brackets: f"Order for {customer}"'
+  - "Inside the curly brackets you can do a sum too, such as {price * quantity}."
+  - 'print(f"{quantity} x {item} at {price} each")'

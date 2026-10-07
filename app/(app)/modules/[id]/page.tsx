@@ -12,6 +12,7 @@ import { getLessonAccessState, getSequentialModuleUnlockMap } from "@/lib/module
 import { ArrowLeft, ArrowRight, Check, Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BeltBand } from "@/components/brand/belt";
+import { BeltTying } from "@/components/brand/belt-tying";
 import { LockedMark } from "@/components/brand/marks";
 import { beltForModule, ordinal } from "@/lib/ranks";
 import { getCheckpointSummary, type CheckpointSummary } from "@/lib/checkpoint";
@@ -272,6 +273,7 @@ export default async function ModuleDetailPage({ params }: PageProps) {
               <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground">
                 {learningModule.description}
               </p>
+              {isStart && <BeltTying done={completedCount} total={totalLessons} className="max-w-md" />}
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
                 {isDan ? (
                   <span>AI automation · {moduleLabel}</span>

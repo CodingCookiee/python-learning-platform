@@ -13,6 +13,8 @@ import { ciPassedProjectIds } from "@/lib/ci/passed";
 
 export interface UnlockedAchievement {
   id: string;
+  /** Stable name from content/achievements.yaml, e.g. "white-belt-tied" */
+  slug: string | null;
   name: string;
   description: string;
   icon: string;
@@ -44,7 +46,15 @@ export async function updateUserLevel(userId: string): Promise<void> {
 
 async function unlock(
   userId: string,
-  achievement: { id: string; name: string; description: string; icon: string; tier: string; xpReward: number }
+  achievement: {
+    id: string;
+    slug: string | null;
+    name: string;
+    description: string;
+    icon: string;
+    tier: string;
+    xpReward: number;
+  }
 ): Promise<UnlockedAchievement | null> {
   try {
     await prisma.userAchievement.create({ data: { userId, achievementId: achievement.id } });
@@ -54,8 +64,8 @@ async function unlock(
   if (achievement.xpReward > 0) {
     await prisma.user.update({ where: { id: userId }, data: { xp: { increment: achievement.xpReward } } });
   }
-  const { id, name, description, icon, tier, xpReward } = achievement;
-  return { id, name, description, icon, tier, xpReward };
+  const { id, slug, name, description, icon, tier, xpReward } = achievement;
+  return { id, slug, name, description, icon, tier, xpReward };
 }
 
 /** Unlock one achievement by name (kept for callers that award something directly). */

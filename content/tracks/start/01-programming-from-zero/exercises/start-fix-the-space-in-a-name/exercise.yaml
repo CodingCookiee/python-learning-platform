@@ -1,0 +1,8 @@
+title: Fix the space in a name
+type: fix
+script: true
+difficulty: warm-up
+tags: [errors, variables]
+hints:
+  - "Run it and read the last line of the error: SyntaxError means Python can't understand how a line is written. Which line does it point to?"
+  - "A name can't contain a space. The last line of the program shows how the name should be written."

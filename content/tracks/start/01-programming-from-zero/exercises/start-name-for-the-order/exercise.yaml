@@ -1,0 +1,8 @@
+title: Name for the order
+type: program
+difficulty: warm-up
+tags: [input, f-strings]
+hints:
+  - 'input("Name for the order: ") shows the question, waits for an answer, and gives back what was typed. Store it under a name.'
+  - "Then print a sentence with that name inside it, using an f-string."
+  - 'print(f"Thanks, {name}! Your order will be ready soon.")'

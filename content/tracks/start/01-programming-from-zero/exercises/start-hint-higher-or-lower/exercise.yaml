@@ -1,0 +1,8 @@
+title: Higher or lower?
+type: function
+difficulty: core
+tags: [functions, return, conditions]
+hints:
+  - "Compare the two numbers with if, elif and else. There are three possible answers, so you need three branches."
+  - "If the guess is smaller than the secret, the player needs to go higher. That branch is: if guess < secret: return \"higher\""
+  - "Each branch returns a word. Check the spelling: all lowercase, with no spaces or full stop."

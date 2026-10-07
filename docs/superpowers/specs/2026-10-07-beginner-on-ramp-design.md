@@ -117,7 +117,7 @@ passed when its lessons are complete then applies.
 | Slug | Name | Earned for | Tier | XP |
 |------|------|-----------|------|----|
 | `hello-world` | Hello, World | 1 on-ramp lesson complete | bronze | 10 |
-| `bug-hunter` | Bug Hunter | 1 fix drill passed, anywhere | bronze | 10 |
+| `bug-squasher` | Bug Squasher | 1 fix drill passed, anywhere | bronze | 10 |
 | `decision-maker` | Decision Maker | 4 on-ramp lessons complete | bronze | 15 |
 | `in-the-loop` | In the Loop | 5 on-ramp lessons complete | bronze | 15 |
 | `white-belt-tied` | White Belt Tied | all 6 on-ramp lessons complete | silver | 50 |
@@ -126,7 +126,8 @@ These need two new achievement criteria, in `lib/content/schema.ts` and `lib/ach
 - `module-lessons { module: <slug>, count }`: at least `count` lessons of that module completed;
 - `drill-type { type: <exercise type>, count }`: at least `count` distinct passed drills of that type.
 
-"Hello, World" arrives together with the existing "First Steps" (first lesson anywhere); that's fine.
+"Hello, World" arrives together with the existing "First Steps" (first lesson anywhere); that's fine. The
+fix-drill badge is "Bug Squasher", because "Bug Hunter" is already the module 7 capstone's badge.
 
 **Momentum nudges.**
 - While the on-ramp is in progress, the dashboard's top card states what's left ("Lesson 3 of 6, about

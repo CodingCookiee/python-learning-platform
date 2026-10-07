@@ -7,7 +7,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { AchievementNotificationQueue } from "@/components/gamification";
+import { WhiteBeltCeremony } from "@/components/onramp/white-belt-ceremony";
 import type { UnlockedAchievement } from "@/lib/achievements";
+
+/** Finishing the Start on-ramp's last lesson earns this, and plays the white belt ceremony */
+const WHITE_BELT_TIED = "white-belt-tied";
 
 export interface LessonCompleteButtonProps {
   lessonId: string;
@@ -17,6 +21,10 @@ export interface LessonCompleteButtonProps {
   initialCompleted?: boolean;
   isLocked?: boolean;
   lockedMessage?: string;
+  /** On-ramp lessons only: module 1's page, where the white belt ceremony sends the learner */
+  afterOnRampHref?: string;
+  /** On-ramp lessons only: how many lessons the on-ramp has, for the ceremony's belt */
+  onRampLessons?: number;
   className?: string;
 }
 
@@ -29,8 +37,11 @@ export function LessonCompleteButton({
   initialCompleted = false,
   isLocked = false,
   lockedMessage,
+  afterOnRampHref,
+  onRampLessons = 6,
   className,
 }: LessonCompleteButtonProps) {
+  const [ceremony, setCeremony] = React.useState<UnlockedAchievement | null>(null);
   const router = useRouter();
   const [completed, setCompleted] = React.useState(initialCompleted);
   const [status, setStatus] = React.useState<Status>("idle");
@@ -78,15 +89,22 @@ export function LessonCompleteButton({
         setTimeout(() => setShowXp(false), 2500);
       }
 
-      if (nowCompleted && data.achievements.length > 0) {
+      const tied = nowCompleted && afterOnRampHref ? data.achievements.find((a) => a.slug === WHITE_BELT_TIED) : undefined;
+      if (tied) {
+        // The ceremony is the celebration, so it doesn't queue as a toast as well
+        setCeremony(tied);
+        setAchievements(data.achievements.filter((a) => a.slug !== WHITE_BELT_TIED));
+      } else if (nowCompleted && data.achievements.length > 0) {
         setAchievements(data.achievements);
       }
 
       // Refresh server component data
       router.refresh();
 
-      // Auto-navigate to next lesson after a short delay
-      if (nowCompleted && nextLessonId) {
+      // Auto-navigate to next lesson after a short delay (not when the ceremony is on screen)
+      if (tied) {
+        // The learner moves on from the ceremony
+      } else if (nowCompleted && nextLessonId) {
         setTimeout(() => {
           router.push(`/lessons/${nextLessonId}`);
         }, 1200);
@@ -113,6 +131,17 @@ export function LessonCompleteButton({
   return (
     <>
       <AchievementNotificationQueue achievements={achievements} />
+      {ceremony && afterOnRampHref && (
+        <WhiteBeltCeremony
+          open
+          onOpenChange={(open) => {
+            if (!open) setCeremony(null);
+          }}
+          xp={ceremony.xpReward}
+          lessons={onRampLessons}
+          nextHref={afterOnRampHref}
+        />
+      )}
 
       <div className={cn("flex flex-col gap-3", className)}>
         <div className="relative">

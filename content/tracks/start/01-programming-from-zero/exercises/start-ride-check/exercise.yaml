@@ -1,0 +1,8 @@
+title: Can I ride?
+type: program
+difficulty: core
+tags: [and-or, conditions, input]
+hints:
+  - "Read both answers with int(input(...)), one after the other, and keep them under two names, such as age and height."
+  - "Both rules must be True, so join the two comparisons with and. With or, passing one rule would be enough."
+  - "if age >= 8 and height >= 120:"

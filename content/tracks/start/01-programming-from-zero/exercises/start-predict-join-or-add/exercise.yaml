@@ -1,0 +1,7 @@
+title: "Predict: join or add?"
+type: predict
+difficulty: warm-up
+tags: [strings, arithmetic, types]
+hints:
+  - "With two numbers, + adds them. With two pieces of text, + joins them, even when the text is made of digits."
+  - 'The last line works out price + 1 first, then str() turns the answer into text so it can be joined to "Price: ".'

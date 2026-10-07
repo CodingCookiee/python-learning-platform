@@ -1,0 +1,8 @@
+title: Shopping list
+type: program
+difficulty: warm-up
+tags: [loops, lists, f-strings]
+hints:
+  - "A for loop goes through a list one item at a time. Start it with: for item in shopping:"
+  - "Inside the loop (indented), print the item with a dash and a space in front. An f-string makes that easy."
+  - "print(f\"- {item}\")"

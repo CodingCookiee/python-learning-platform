@@ -1,0 +1,8 @@
+title: Fix the indentation
+type: fix
+script: true
+difficulty: warm-up
+tags: [errors, indentation, if]
+hints:
+  - "Read the last line of the error. An IndentationError is about the spaces at the start of a line, and this one names the line with the if."
+  - "The lines that belong to an if are pushed in by four spaces. Which print belongs to the if, and which should run every time?"

@@ -9,6 +9,8 @@ import {
   AnimatedNumber,
 } from "@/components/progress";
 import { StreakDisplay } from "@/components/gamification/streak-display";
+import { OnRampCard, StreakGoal } from "@/components/onramp/onramp-card";
+import { getOnRamp } from "@/lib/onramp";
 import { XpProgressBar } from "@/components/gamification/xp-progress-bar";
 import { StreakCalendar } from "@/components/gamification/streak-calendar";
 import { MilestoneTracker } from "@/components/gamification/milestone-tracker";
@@ -250,7 +252,7 @@ export default async function DashboardPage() {
     getLearnerRank(dbUser.id),
     getSyllabusProgress(dbUser.id),
   ]);
-  const [skills, reviewsDue, pace, checkIn] = await Promise.all([
+  const [skills, reviewsDue, pace, checkIn, onRamp] = await Promise.all([
     getSkillMap(dbUser.id),
     countDueReviews(dbUser.id),
     getPace(dbUser.id),
@@ -258,7 +260,10 @@ export default async function DashboardPage() {
       where: { userId_weekOf: { userId: dbUser.id, weekOf: startOfWeek() } },
       select: { id: true },
     }),
+    getOnRamp(dbUser.id),
   ]);
+  // Beginners, and anyone who has started it, see the Start on-ramp first until it's finished
+  const showOnRamp = onRamp?.showOnDashboard ?? false;
   const current = syllabus.find((m) => m.state === "current");
   // Learners who already code can test out of the module in front of them
   const suggestPlacement = dbUser.experience !== "new" && current && current.lessonsDone === 0 && !current.checkpointDue;
@@ -298,6 +303,12 @@ export default async function DashboardPage() {
             </p>
           </header>
         </FadeIn>
+
+        {showOnRamp && onRamp && (
+          <FadeIn delay={0.03}>
+            <OnRampCard onRamp={onRamp} />
+          </FadeIn>
+        )}
         <FadeIn delay={0.04}>
           <RankCard rank={rank} />
         </FadeIn>
@@ -308,6 +319,7 @@ export default async function DashboardPage() {
               <dt className="text-sm text-muted-foreground">Streak</dt>
               <dd>
                 <StreakDisplay currentStreak={streak.current} longestStreak={streak.longest} size="sm" />
+                {showOnRamp && <StreakGoal current={streak.current} />}
               </dd>
             </div>
             <div className="flex flex-col gap-3 border-b border-border py-5 md:border-b-0">

@@ -1,0 +1,8 @@
+title: Times table
+type: program
+difficulty: core
+tags: [loops, range, input, f-strings]
+hints:
+  - "input() gives you text, so turn the answer into a number with int(input(\"Which times table? \")) before you multiply with it."
+  - "range(1, 11) gives the numbers 1 to 10. Loop over it, and print one line each time round."
+  - "for number in range(1, 11): with print(f\"{number} x {table} = {number * table}\") indented underneath"

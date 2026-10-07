@@ -1,0 +1,8 @@
+title: Scan the basket
+type: program
+difficulty: core
+tags: [variables, running-total]
+hints:
+  - "Start with total = 0, before you add anything. Then add the first price to it: total = total + apples"
+  - "After each addition, print the total so far: print(\"Total so far:\", total)"
+  - "You need four pairs of lines, one pair per item: add its price to total, then print. total += bread is the short way to write total = total + bread."

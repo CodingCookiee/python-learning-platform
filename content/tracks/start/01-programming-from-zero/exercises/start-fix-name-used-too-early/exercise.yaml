@@ -1,0 +1,9 @@
+title: Fix the name used too early
+type: fix
+script: true
+difficulty: warm-up
+tags: [errors, variables]
+hints:
+  - "Run it. The first line prints, then Python stops with a NameError. Which name does the error mention, and which line does it point to?"
+  - "Python runs from top to bottom. When it reaches print(\"Cake:\", cake), has any line given cake a value yet?"
+  - "Move the line cake = 4 up, so that it comes before the first line that uses cake."

@@ -1,0 +1,8 @@
+title: Countdown
+type: program
+difficulty: core
+tags: [loops, while, input]
+hints:
+  - "Turn the answer into a number with int(input(\"Count down from? \")), and keep it under a name such as count."
+  - "while count > 0: repeats as long as count is above 0. Inside the loop, print count, then take 1 away with count -= 1."
+  - "If the program never finishes, the count isn't going down: check that count -= 1 is indented inside the loop. Lift off! is printed once, after the loop, so it isn't indented."

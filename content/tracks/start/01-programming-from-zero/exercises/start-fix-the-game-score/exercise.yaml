@@ -1,0 +1,8 @@
+title: Fix the game score
+type: fix
+script: true
+difficulty: warm-up
+tags: [loops, totals, bugs]
+hints:
+  - "Follow the loop one time round at a time. What happens to score at the start of each time round?"
+  - "score = 0 is inside the loop, so the score goes back to 0 every time round. Start the score once, before the loop."

@@ -1,0 +1,8 @@
+title: Free delivery
+type: program
+difficulty: warm-up
+tags: [if, comparisons, input]
+hints:
+  - "The first line already reads the total as a number. Under it, write an if with the condition total >= 30, a colon, and an indented print."
+  - "The thank-you line runs every time, so it must not be indented: start it at the left edge, below the if."
+  - "if total >= 30:"

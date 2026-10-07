@@ -1,0 +1,3 @@
+def split_bill(total, people):
+    # Work out each person's share, round it to 2 decimal places, and return it
+    ...

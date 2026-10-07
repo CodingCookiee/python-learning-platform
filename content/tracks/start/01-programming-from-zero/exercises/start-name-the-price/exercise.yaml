@@ -1,0 +1,8 @@
+title: Name the price
+type: program
+difficulty: warm-up
+tags: [variables, print]
+hints:
+  - "First give the price its name. The name goes on the left of the =, and the value on the right: ticket_price = 8"
+  - "Then print the label in quote marks and the name without them, separated by a comma."
+  - "print(\"Ticket price:\", ticket_price)"

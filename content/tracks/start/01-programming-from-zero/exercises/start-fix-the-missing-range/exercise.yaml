@@ -1,0 +1,8 @@
+title: Fix the missing range
+type: fix
+script: true
+difficulty: warm-up
+tags: [errors, loops, range]
+hints:
+  - "Run it and read the last line of the error. TypeError means a value is the wrong kind for the job: here, a whole number where the loop needs a series of values to go through."
+  - "A for loop can't go through the number 3 on its own. range(3) gives it three numbers to go through."

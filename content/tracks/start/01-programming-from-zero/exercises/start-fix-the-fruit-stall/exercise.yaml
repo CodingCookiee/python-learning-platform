@@ -1,0 +1,9 @@
+title: Fix the fruit stall
+type: fix
+script: true
+difficulty: core
+tags: [errors, input, float]
+hints:
+  - "Type 2.5 in the Input for Run box and press Run. Read the last line of the error: what kind of error is it, and what value is in quote marks at the end?"
+  - "int() only turns whole numbers into numbers, and 2.5 has a decimal point."
+  - "float() turns text with a decimal point into a number. Only the word int on the kilos line needs to change."

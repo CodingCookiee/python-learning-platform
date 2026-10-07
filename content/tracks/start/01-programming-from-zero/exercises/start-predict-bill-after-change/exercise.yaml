@@ -1,0 +1,7 @@
+title: "Predict: does the bill change?"
+type: predict
+difficulty: core
+tags: [variables, assignment]
+hints:
+  - "On the second line, Python works out coffees * 3 straight away and stores the answer under bill."
+  - "Changing coffees afterwards moves the coffees label only. No line works out bill again."

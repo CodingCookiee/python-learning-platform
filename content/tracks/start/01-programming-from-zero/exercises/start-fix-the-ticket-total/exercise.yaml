@@ -1,0 +1,9 @@
+title: Fix the ticket total
+type: fix
+script: true
+difficulty: warm-up
+tags: [errors, strings, f-strings]
+hints:
+  - "Run it. The first line prints, then Python stops with a TypeError. Which line does the error point to?"
+  - 'The last line of the error, can only concatenate str (not "int") to str, means: I can only join text to text, and you gave me a whole number. total holds the number 24.'
+  - 'Put the number inside the sentence with an f-string: print(f"Total: {total}")'

@@ -1,0 +1,7 @@
+title: Make an announcement
+type: program
+difficulty: warm-up
+tags: [functions, def]
+hints:
+  - "Start with the line def announce(): and put the two print lines underneath it, indented."
+  - "Defining the function doesn't run it. Underneath, with no indent, call it twice: write announce() on two lines."

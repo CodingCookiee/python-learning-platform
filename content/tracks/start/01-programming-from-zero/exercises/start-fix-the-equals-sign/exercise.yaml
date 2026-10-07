@@ -1,0 +1,8 @@
+title: Fix the equals sign
+type: fix
+script: true
+difficulty: warm-up
+tags: [errors, comparisons, if]
+hints:
+  - "Run it and read the last line of the error. Python even suggests what you meant (ignore the := part)."
+  - "One equals sign stores a value under a name. To ask whether two things are equal, use two: ==."

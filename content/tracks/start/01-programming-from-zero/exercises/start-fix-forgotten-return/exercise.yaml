@@ -1,0 +1,9 @@
+title: Fix the forgotten return
+type: fix
+script: true
+difficulty: core
+tags: [errors, functions, return, none, loops]
+hints:
+  - "Read the last line of the error. NoneType is the type of None, Python's value for nothing. So one of the values being added is None."
+  - "total += ticket_price(age) adds whatever ticket_price hands back. The function works out price, but does it ever hand it back?"
+  - "Add return price as the last line of the function, lined up with the if and the else."

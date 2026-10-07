@@ -1,0 +1,7 @@
+title: "Predict: laps of the track"
+type: predict
+difficulty: warm-up
+tags: [loops, range]
+hints:
+  - "range(3) gives three numbers, and it starts counting at 0, not 1."
+  - "The last line isn't indented, so it isn't part of the loop: it runs once, after the loop has finished."

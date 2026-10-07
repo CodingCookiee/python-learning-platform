@@ -1,0 +1,8 @@
+title: Next birthday
+type: program
+difficulty: core
+tags: [input, int, f-strings]
+hints:
+  - "input() gives back text, even when someone types digits, and adding 1 to text is a TypeError. Turn the answer into a whole number first."
+  - 'int( ) turns text like "17" into the number 17. You can wrap it round the question: int(input("How old are you? "))'
+  - "print(f\"On your next birthday you'll be {age + 1}.\")"
