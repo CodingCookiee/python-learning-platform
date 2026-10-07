@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { auth } from "@/auth";
@@ -7,6 +8,8 @@ import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { AchievementPatch } from "@/components/gamification/achievement-badge";
 import { tierStyle } from "@/lib/achievement-tier";
 import { SealMark } from "@/components/brand/marks";
+
+export const metadata: Metadata = { title: "Achievements" };
 
 interface Achievement {
   id: string;

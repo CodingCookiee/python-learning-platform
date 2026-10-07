@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight, Repeat } from "lucide-react";
@@ -7,6 +8,8 @@ import { REVIEW_INTERVALS } from "@/lib/mastery-rules";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { FadeIn } from "@/components/animations";
 import { Button } from "@/components/ui/button";
+
+export const metadata: Metadata = { title: "Review" };
 
 const TYPE_LABEL: Record<string, string> = {
   function: "Write the code",

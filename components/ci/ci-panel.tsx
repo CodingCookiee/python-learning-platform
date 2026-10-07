@@ -158,7 +158,7 @@ export function CiPanel({
         <>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
             <span className="font-semibold">1. Repository</span>
-            <a href={`https://github.com/${link.repo}`} target="_blank" rel="noreferrer" className="font-mono text-primary underline">
+            <a href={`https://github.com/${link.repo}`} target="_blank" rel="noopener noreferrer" className="font-mono text-primary underline">
               {link.repo}
             </a>
             <button type="button" onClick={() => setEditing(true)} className="text-muted-foreground underline hover:text-foreground">
@@ -198,7 +198,7 @@ export function CiPanel({
                 Check now
               </Button>
               {link.runUrl && (
-                <a href={link.runUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-sm text-primary underline">
+                <a href={link.runUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-primary underline">
                   The run on GitHub
                   <ExternalLink className="size-3.5" aria-hidden="true" />
                 </a>

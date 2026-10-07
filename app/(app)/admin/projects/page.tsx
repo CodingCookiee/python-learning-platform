@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { cookies } from "next/headers";
@@ -11,6 +12,8 @@ import { ArrowRight, FileUp, GitBranch } from "lucide-react";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { SealMark } from "@/components/brand/marks";
 import type { EvaluationListItem } from "@/app/api/admin/projects/submissions/route";
+
+export const metadata: Metadata = { title: "Capstone submissions (admin)" };
 
 async function getSubmissions(cookieHeader: string): Promise<EvaluationListItem[]> {
   const res = await fetch(`${await getAppOrigin()}/api/admin/projects/submissions`, {

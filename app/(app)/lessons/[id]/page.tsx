@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import { lessonMetadata } from "@/lib/page-titles";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
@@ -17,6 +19,11 @@ import {
 } from "@/components/lesson";
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import { LockedMark, TapeMark } from "@/components/brand/marks";
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  return lessonMetadata(id);
+}
 
 const DRILL_KIND: Record<string, string> = {
   function: "Code",

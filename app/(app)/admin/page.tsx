@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, GitBranch, FileUp } from "lucide-react";
@@ -9,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { SealMark } from "@/components/brand/marks";
 import type { Prisma } from "@/lib/generated/prisma/client";
+
+export const metadata: Metadata = { title: "Admin" };
 
 /** Live content only: archived rows and pre-content legacy modules (no track) are not counted */
 const LIVE_MODULE = { archivedAt: null, trackId: { not: null } } satisfies Prisma.ModuleWhereInput;

@@ -1,9 +1,16 @@
+import type { Metadata } from "next";
+import { projectMetadata } from "@/lib/page-titles";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import { ProjectSubmitClient } from "./_components/project-submit-client";
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  return projectMetadata(id, true);
+}
 
 interface ProjectInfo {
   id: string;

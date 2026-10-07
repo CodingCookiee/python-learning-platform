@@ -147,7 +147,6 @@ export function SearchBar() {
       <button
         onClick={() => setOpen(true)}
         className="hidden h-9 items-center gap-2 rounded-sm border border-border bg-sheet px-3 text-sm text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground md:flex"
-        aria-label={`Search (${modKey === "⌘" ? "Cmd" : "Ctrl"}+K)`}
       >
         <Search className="size-3.5" aria-hidden="true" />
         <span>Search</span>

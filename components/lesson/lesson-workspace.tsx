@@ -139,7 +139,7 @@ export function LessonWorkspace({ lessonId, children }: { lessonId: string; chil
       <div className={cn("grid min-w-0 gap-8", open && "xl:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]")}>
         <div ref={lessonRef} className="min-w-0">
           <div className="mb-6 flex justify-end">
-            <Button variant="outline" size="sm" onClick={() => toggle(!open)} aria-expanded={open} aria-controls="scratchpad">
+            <Button variant="outline" size="sm" onClick={() => toggle(!open)} aria-expanded={open} aria-controls={open ? "scratchpad" : undefined}>
               {open ? <PanelRightClose aria-hidden="true" /> : <PanelRightOpen aria-hidden="true" />}
               {open ? "Close scratchpad" : "Open scratchpad"}
             </Button>

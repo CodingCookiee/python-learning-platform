@@ -288,7 +288,7 @@ export function AiSettings({
           />
           <p className="text-sm text-muted-foreground">
             Create one at{" "}
-            <a href={KEY_PAGE[provider].href} target="_blank" rel="noreferrer" className="text-primary underline">
+            <a href={KEY_PAGE[provider].href} target="_blank" rel="noopener noreferrer" className="text-primary underline">
               {KEY_PAGE[provider].label}
             </a>{" "}
             and set a spend limit there. It&apos;s encrypted on our server, used only for your tutor calls, and never

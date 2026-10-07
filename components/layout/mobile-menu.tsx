@@ -85,7 +85,7 @@ export function MobileMenu({
         onClick={() => setOpen((prev) => !prev)}
         aria-label={open ? "Close navigation menu" : "Open navigation menu"}
         aria-expanded={open}
-        aria-controls="mobile-nav"
+        aria-controls={open ? "mobile-nav" : undefined}
       >
         <AnimatePresence mode="wait" initial={false}>
           {open ? (

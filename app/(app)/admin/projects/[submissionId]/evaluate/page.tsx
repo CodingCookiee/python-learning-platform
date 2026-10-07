@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { isAdmin } from "@/lib/api-auth";
@@ -8,6 +9,8 @@ import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { EvaluateClient } from "./_components/evaluate-client";
 import { parseProjectListText } from "@/lib/project-content";
 import { reviewSchema, type AiReview } from "@/lib/ai/reviewer";
+
+export const metadata: Metadata = { title: "Evaluate a submission (admin)" };
 
 export interface SubmissionDetail {
   id: string;

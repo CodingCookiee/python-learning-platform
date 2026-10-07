@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { LessonContent, PythonEditor, languageFor } from "@/components/lesson";
 import { TapeMark } from "@/components/brand/marks";
@@ -114,6 +113,7 @@ function ErrorBox({ error, title, onExplain }: { error: PyError; title?: string;
 // Prompt panel: the task, the test list, hints
 
 function TestList({ drill, check }: { drill: DrillData; check: CheckState }) {
+  const headingId = React.useId();
   const results = check.kind === "tests" ? check.result.tests : null;
   const rows =
     results && results.length > 0
@@ -121,8 +121,8 @@ function TestList({ drill, check }: { drill: DrillData; check: CheckState }) {
       : drill.testList.map((t) => ({ ...t, passed: null as boolean | null }));
   if (rows.length === 0) return null;
   return (
-    <section aria-labelledby="tests-heading">
-      <h2 id="tests-heading" className="mb-2 flex items-baseline gap-2 text-base font-semibold">
+    <section aria-labelledby={headingId}>
+      <h2 id={headingId} className="mb-2 flex items-baseline gap-2 text-base font-semibold">
         Tests
         <span className="font-condensed tabular text-sm font-normal text-muted-foreground">{rows.length}</span>
       </h2>
@@ -151,10 +151,11 @@ function TestList({ drill, check }: { drill: DrillData; check: CheckState }) {
 }
 
 function Hints({ hints, used, onReveal }: { hints: string[]; used: number; onReveal: () => void }) {
+  const headingId = React.useId();
   if (hints.length === 0) return null;
   return (
-    <section aria-labelledby="hints-heading" className="rounded-md border border-border bg-sheet p-4">
-      <h2 id="hints-heading" className="flex items-center gap-2 text-base font-semibold">
+    <section aria-labelledby={headingId} className="rounded-md border border-border bg-sheet p-4">
+      <h2 id={headingId} className="flex items-center gap-2 text-base font-semibold">
         <Lightbulb className="size-4 text-(--code-string)" aria-hidden="true" />
         Hints
       </h2>
@@ -451,6 +452,8 @@ function describeCheck(check: CheckState, run: RunResult | null, answer: string)
 }
 
 export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: boolean }) {
+  // Phones show the task or the code; wide screens show both
+  const [mobilePane, setMobilePane] = React.useState<"task" | "code">("task");
   const { status: runtimeStatus, text: runtimeText } = useRuntimeStatus();
   const isPredict = drill.type === "predict";
   const mode = drill.mode;
@@ -1018,27 +1021,28 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
       {levelUp !== null && <LevelUpNotification level={levelUp} onDismiss={() => setLevelUp(null)} />}
       {achievements.length > 0 && <AchievementNotificationQueue achievements={achievements} />}
 
-      <div className="hidden lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-10">
-        <div className="sticky top-24 max-h-[calc(100dvh-8rem)] self-start overflow-y-auto pr-1">{prompt}</div>
-        <div>{workspace}</div>
+      {/* One copy of the task and the workspace: side by side on wide screens, switched on phones */}
+      <div className="mb-4 grid grid-cols-2 gap-1 rounded-md bg-muted p-1 lg:hidden" role="group" aria-label="Show">
+        {(["task", "code"] as const).map((pane) => (
+          <button
+            key={pane}
+            type="button"
+            aria-pressed={mobilePane === pane}
+            onClick={() => setMobilePane(pane)}
+            className={cn(
+              "rounded-sm px-3 py-1.5 text-sm font-medium transition-colors",
+              mobilePane === pane ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {pane === "task" ? "Task" : isPredict ? "Answer" : "Code"}
+          </button>
+        ))}
       </div>
-      <div className="lg:hidden">
-        <Tabs defaultValue="task">
-          <TabsList className="w-full">
-            <TabsTrigger value="task" className="flex-1">
-              Task
-            </TabsTrigger>
-            <TabsTrigger value="code" className="flex-1">
-              {isPredict ? "Answer" : "Code"}
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="task" className="mt-4">
-            {prompt}
-          </TabsContent>
-          <TabsContent value="code" className="mt-4">
-            {workspace}
-          </TabsContent>
-        </Tabs>
+      <div className="lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-10">
+        <div className={cn("lg:sticky lg:top-24 lg:block lg:max-h-[calc(100dvh-8rem)] lg:self-start lg:overflow-y-auto lg:pr-1", mobilePane !== "task" && "hidden")}>
+          {prompt}
+        </div>
+        <div className={cn("lg:block", mobilePane !== "code" && "hidden")}>{workspace}</div>
       </div>
     </>
   );

@@ -1,4 +1,6 @@
-﻿import { notFound, redirect } from "next/navigation";
+﻿import type { Metadata } from "next";
+import { projectMetadata } from "@/lib/page-titles";
+import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { auth } from "@/auth";
 import { getAppOrigin } from "@/lib/server-url";
@@ -6,6 +8,11 @@ import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import { ProjectDetailClient } from "./_components/project-detail-client";
 import type { ProjectDetailData } from "./_components/project-detail-client";
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  return projectMetadata(id);
+}
 
 async function getProject(id: string, cookieHeader: string): Promise<ProjectDetailData | null> {
   const res = await fetch(`${await getAppOrigin()}/api/projects/${id}`, {

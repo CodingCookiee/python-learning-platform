@@ -125,13 +125,6 @@ export function LessonCompleteButton({
               "w-full sm:w-auto",
               completed && "border-success/40 text-success disabled:opacity-100"
             )}
-            aria-label={
-              isLocked
-                ? "Lesson locked"
-                : completed
-                  ? "Lesson completed and available for review"
-                  : "Mark lesson as complete"
-            }
           >
             {isLoading ? (
               <Loader2 className="size-4 animate-spin" aria-hidden="true" />

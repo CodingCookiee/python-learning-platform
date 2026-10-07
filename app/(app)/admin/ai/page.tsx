@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/auth";
@@ -9,6 +10,8 @@ import { FadeIn, StaggerContainer } from "@/components/animations";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { UsageChart } from "@/components/admin/usage-chart";
 import { cn } from "@/lib/utils";
+
+export const metadata: Metadata = { title: "AI usage (admin)" };
 
 const FEATURE: Record<string, string> = {
   tutor: "Drill tutor",

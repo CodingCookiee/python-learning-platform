@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { initialsFor } from "@/lib/utils";
@@ -15,6 +16,8 @@ import { AchievementPatch } from "@/components/gamification/achievement-badge";
 import { SealMark } from "@/components/brand/marks";
 import { getLearnerRank } from "@/lib/learner-rank";
 import { tierStyle } from "@/lib/achievement-tier";
+
+export const metadata: Metadata = { title: "Profile" };
 
 interface ProgressData {
   user: { id: string; name: string | null; email: string | null; xp: number; level: number };

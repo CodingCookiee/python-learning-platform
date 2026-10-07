@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import { checkpointMetadata } from "@/lib/page-titles";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowRight, Check, Circle, X } from "lucide-react";
@@ -10,6 +12,11 @@ import { Seal } from "@/components/brand/seal";
 import { CheckpointClock, HandInButton, StartCheckpointButton } from "@/components/mastery/checkpoint-controls";
 import { CHECKPOINT_RETRY_MINUTES } from "@/lib/mastery-rules";
 import { cn } from "@/lib/utils";
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  return checkpointMetadata(id);
+}
 
 interface PageProps {
   params: Promise<{ id: string }>;

@@ -238,7 +238,7 @@ export function EvaluateClient({ submission }: EvaluateClientProps) {
               <span className="text-muted-foreground"> · {submission.ci.repo}</span>
             </p>
             {submission.ci.runUrl && (
-              <a href={submission.ci.runUrl} target="_blank" rel="noreferrer" className="w-fit text-primary underline">
+              <a href={submission.ci.runUrl} target="_blank" rel="noopener noreferrer" className="w-fit text-primary underline">
                 Open the run on GitHub
               </a>
             )}

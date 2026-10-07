@@ -209,12 +209,17 @@ export function ProjectSubmitClient({ projectId, projectTitle }: ProjectSubmitCl
           <div
             role="button"
             tabIndex={0}
-            aria-label="Click or drag and drop files to upload"
+            aria-label="Drop files here or click to browse"
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            onKeyDown={(e) => e.key === "Enter" && fileInputRef.current?.click()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                fileInputRef.current?.click();
+              }
+            }}
             className={cn(
               "flex min-h-36 cursor-pointer flex-col items-center justify-center gap-3 rounded-sm border-2 border-dashed transition-colors",
               isDragging
@@ -232,9 +237,10 @@ export function ProjectSubmitClient({ projectId, projectTitle }: ProjectSubmitCl
               type="file"
               multiple
               accept={ACCEPTED_EXTENSIONS.join(",")}
-              className="sr-only"
+              // Opened by the drop zone above; kept out of the tab order and the accessibility tree
+              className="hidden"
+              aria-label="Upload files"
               onChange={(e) => void addFiles(e.target.files)}
-              aria-hidden="true"
             />
           </div>
 

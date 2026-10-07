@@ -51,6 +51,7 @@ export function SyllabusProgress({
   modules,
   compact = false,
   onlyCurrentBelt = false,
+  headingLevel = 3,
   className,
 }: {
   modules: SyllabusModule[];
@@ -58,8 +59,11 @@ export function SyllabusProgress({
   compact?: boolean;
   /** Show just the belt the learner is working on (dashboard) */
   onlyCurrentBelt?: boolean;
+  /** The belt headings' level: 3 under a page section's h2, 2 straight under the page's h1 */
+  headingLevel?: 2 | 3;
   className?: string;
 }) {
+  const BeltHeading = headingLevel === 2 ? "h2" : "h3";
   return (
     <div className={cn("flex flex-col", className)}>
       {BELTS.filter((belt) => {
@@ -83,9 +87,9 @@ export function SyllabusProgress({
             <div className="flex flex-col gap-2.5">
               <BeltBand belt={belt.key} slots={slots} filled={passed} />
               <div className="flex items-baseline justify-between gap-3">
-                <h3 id={`sp-${belt.key}`} className="font-condensed text-xl font-bold">
+                <BeltHeading id={`sp-${belt.key}`} className="font-condensed text-xl font-bold">
                   {belt.label}
-                </h3>
+                </BeltHeading>
                 <span className="font-condensed tabular text-sm text-muted-foreground">
                   {kyuRange(belt)}
                 </span>

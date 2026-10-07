@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
@@ -12,6 +13,8 @@ import { blackBeltIfDue } from "@/lib/black-belt";
 import { toSyllabus, type SyllabusModule } from "@/lib/syllabus";
 import { DAN_TRACK, ordinal } from "@/lib/ranks";
 import { cn } from "@/lib/utils";
+
+export const metadata: Metadata = { title: "Syllabus" };
 
 function DanStatus({ module, trackOpen }: { module: SyllabusModule | undefined; trackOpen: boolean }) {
   if (!module) return <span className="text-sm text-muted-foreground">In preparation</span>;
@@ -88,7 +91,7 @@ export default async function ModulesPage() {
         </FadeIn>
 
         <FadeIn delay={0.09}>
-          <SyllabusProgress modules={modules} />
+          <SyllabusProgress modules={modules} headingLevel={2} />
         </FadeIn>
 
         <FadeIn delay={0.12}>

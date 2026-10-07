@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import { exerciseMetadata } from "@/lib/page-titles";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -5,6 +7,11 @@ import { getDrillForUser } from "@/lib/drills";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { FadeIn } from "@/components/animations";
 import { ExerciseClient } from "./_components/exercise-client";
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  return exerciseMetadata(id);
+}
 
 interface PageProps {
   params: Promise<{ id: string }>;

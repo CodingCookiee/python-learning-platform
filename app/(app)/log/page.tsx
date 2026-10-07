@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getCurrentWeek, getPastWeeks } from "@/lib/learning-log";
@@ -5,6 +6,8 @@ import { formatCheckIn } from "@/lib/learning-log-format";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { FadeIn } from "@/components/animations";
 import { CheckInForm, CopyCheckIn } from "@/components/log/check-in-form";
+
+export const metadata: Metadata = { title: "Learning log" };
 
 function weekLabel(iso: string): string {
   const start = new Date(iso);

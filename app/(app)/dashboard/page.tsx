@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/auth";
@@ -23,6 +24,8 @@ import { SkillMap } from "@/components/mastery/skill-map";
 import { getSkillMap } from "@/lib/skill-map";
 import { countDueReviews } from "@/lib/review";
 import { getPace, startOfWeek } from "@/lib/pacing";
+
+export const metadata: Metadata = { title: "Dashboard" };
 
 interface ProgressData {
   user: {

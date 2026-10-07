@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { isAdmin } from "@/lib/api-auth";
@@ -6,6 +7,8 @@ import { prisma } from "@/lib/prisma";
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { TrackTable } from "./_components/track-table";
+
+export const metadata: Metadata = { title: "Content (admin)" };
 
 export default async function ContentManagementPage() {
   const session = await auth();

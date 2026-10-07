@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import { moduleMetadata } from "@/lib/page-titles";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/auth";
@@ -14,6 +16,11 @@ import { LockedMark } from "@/components/brand/marks";
 import { beltForModule, ordinal } from "@/lib/ranks";
 import { getCheckpointSummary, type CheckpointSummary } from "@/lib/checkpoint";
 import { StartCheckpointButton } from "@/components/mastery/checkpoint-controls";
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  return moduleMetadata(id);
+}
 
 function CheckpointSection({ moduleId, summary }: { moduleId: string; summary: CheckpointSummary }) {
   const terms = `${summary.pick} drills from this module, ${summary.minutes} minutes, pass ${Math.round(summary.passMark * 100)}%`;
