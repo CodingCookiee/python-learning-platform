@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { AlertCircle, CheckCircle2, KeyRound, LoaderCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { AlertCircle, CheckCircle2, KeyRound } from "lucide-react";
+import { LoadingButton } from "@/components/ui/loading-button";
+import { PendingLine } from "@/components/ui/pending-line";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -97,6 +98,8 @@ export function AiSettings({
   const [apiKey, setApiKey] = React.useState("");
   const [busy, setBusy] = React.useState<"save" | "test" | "remove" | null>(null);
   const [status, setStatus] = React.useState<Status>(null);
+  // The key test's answer, shown beside the key rather than under the form
+  const [testResult, setTestResult] = React.useState<Status>(null);
 
   const keepsKey = credential !== null && credential.provider === provider;
 
@@ -140,16 +143,17 @@ export function AiSettings({
   async function test() {
     setBusy("test");
     setStatus(null);
+    setTestResult(null);
     try {
       const res = await fetch("/api/settings/ai/test", { method: "POST" });
       const data = (await res.json().catch(() => ({}))) as { model?: string; error?: string };
-      setStatus(
+      setTestResult(
         res.ok
           ? { type: "success", message: `The key works with ${data.model}.` }
           : { type: "error", message: data.error ?? "The test call failed." }
       );
     } catch {
-      setStatus({ type: "error", message: "We couldn't reach the server." });
+      setTestResult({ type: "error", message: "We couldn't reach the server." });
     } finally {
       setBusy(null);
     }
@@ -162,8 +166,11 @@ export function AiSettings({
       const res = await fetch("/api/settings/ai", { method: "DELETE" });
       if (res.ok) {
         setCredential(null);
+        setTestResult(null);
         setStatus({ type: "success", message: "Key removed from pylearn." });
       } else setStatus({ type: "error", message: "The key wasn't removed. Try again." });
+    } catch {
+      setStatus({ type: "error", message: "We couldn't reach the server, so the key is still here." });
     } finally {
       setBusy(null);
     }
@@ -192,16 +199,40 @@ export function AiSettings({
             </span>
           </div>
           <div className="flex shrink-0 gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={() => void test()} disabled={busy !== null}>
-              {busy === "test" && <LoaderCircle className="animate-spin" aria-hidden="true" />}
+            <LoadingButton
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => void test()}
+              loading={busy === "test"}
+              loadingText="Testing…"
+              disabled={busy !== null && busy !== "test"}
+            >
               Test
-            </Button>
-            <Button type="button" variant="ghost" size="sm" onClick={() => void remove()} disabled={busy !== null}>
+            </LoadingButton>
+            <LoadingButton
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => void remove()}
+              loading={busy === "remove"}
+              loadingText="Removing…"
+              disabled={busy !== null && busy !== "remove"}
+            >
               Remove
-            </Button>
+            </LoadingButton>
           </div>
         </div>
       )}
+      {/* The test's progress and its answer sit right under the key they're about */}
+      {credential && busy === "test" && (
+        <PendingLine
+          lines={[`Calling ${PROVIDER_LABEL[credential.provider]} with your key…`, "Waiting for its answer…"]}
+          still="Some providers take a few seconds to answer."
+          slow="Still waiting: the test gives up after 30 seconds."
+        />
+      )}
+      {credential && busy !== "test" && <StatusLine status={testResult} />}
 
       <form onSubmit={(e) => void save(e)} className="flex flex-col gap-4">
         <fieldset className="flex flex-col gap-2">
@@ -297,9 +328,9 @@ export function AiSettings({
         </div>
 
         <StatusLine status={status} />
-        <Button type="submit" disabled={busy !== null} className="w-fit">
-          {busy === "save" ? "Saving…" : credential ? "Save changes" : "Save key"}
-        </Button>
+        <LoadingButton type="submit" loading={busy === "save"} loadingText="Saving…" disabled={busy !== null && busy !== "save"} className="w-fit">
+          {credential ? "Save changes" : "Save key"}
+        </LoadingButton>
       </form>
 
       <p className="font-condensed tabular text-sm text-muted-foreground">

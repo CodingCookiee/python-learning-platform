@@ -1,8 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { Check, CircleDashed, Copy, Download, ExternalLink, GitBranch, LoaderCircle, RefreshCw, X } from "lucide-react";
+import { Check, CircleDashed, Copy, Download, ExternalLink, GitBranch, RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LoadingButton } from "@/components/ui/loading-button";
+import { PendingLine } from "@/components/ui/pending-line";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { CiKind, CiLinkView } from "@/lib/ci/links";
@@ -104,6 +106,8 @@ export function CiPanel({
       const data = (await res.json().catch(() => ({}))) as CiLinkView & { error?: string };
       if (!res.ok) setError(data.error ?? "The check didn't run.");
       else setLink(data);
+    } catch {
+      setError("We couldn't reach the server.");
     } finally {
       setBusy(null);
     }
@@ -145,10 +149,9 @@ export function CiPanel({
               placeholder="https://github.com/you/project"
               className="font-mono text-sm"
             />
-            <Button type="submit" disabled={busy !== null || !repo.trim()}>
-              {busy === "connect" && <LoaderCircle className="animate-spin" aria-hidden="true" />}
+            <LoadingButton type="submit" loading={busy === "connect"} loadingText="Connecting…" disabled={busy === "check" || !repo.trim()}>
               Connect
-            </Button>
+            </LoadingButton>
           </div>
           <p className="text-xs text-muted-foreground">
             Public repos only: pylearn reads the run from GitHub to confirm it. Actions minutes on public repos are free.
@@ -193,10 +196,17 @@ export function CiPanel({
               <span className="font-semibold">3. Push.</span> Each push runs the tests on GitHub and the result shows up here.
             </p>
             <div className="flex flex-wrap items-center gap-3">
-              <Button variant="outline" size="sm" onClick={() => void check()} disabled={busy !== null}>
-                {busy === "check" ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <RefreshCw aria-hidden="true" />}
+              <LoadingButton
+                variant="outline"
+                size="sm"
+                onClick={() => void check()}
+                loading={busy === "check"}
+                loadingText="Checking…"
+                disabled={busy === "connect"}
+                icon={<RefreshCw aria-hidden="true" />}
+              >
                 Check now
-              </Button>
+              </LoadingButton>
               {link.runUrl && (
                 <a href={link.runUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-primary underline">
                   The run on GitHub
@@ -206,6 +216,17 @@ export function CiPanel({
               {link.sha && <span className="font-mono text-xs text-muted-foreground">{link.sha.slice(0, 7)}</span>}
             </div>
             {link.statusDetail && <p className="text-sm text-muted-foreground">{link.statusDetail}</p>}
+            {/* A run in flight: this page asks every 15 seconds, and says so while it waits */}
+            {(link.status === "waiting" || link.status === "reported") && (
+              <PendingLine
+                key={link.status}
+                lines={[link.status === "reported" ? "Confirming the run with GitHub…" : "Watching GitHub for your run…"]}
+                stillAfterMs={60_000}
+                slowAfterMs={180_000}
+                still="Runs usually take a minute or two. This page keeps checking by itself."
+                slow="Still running on GitHub. You can leave this page; the result will be here when you're back."
+              />
+            )}
           </div>
 
           {link.report && link.report.tests.length > 0 && (

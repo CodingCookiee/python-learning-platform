@@ -317,6 +317,22 @@
   animation: seal-stamp 520ms var(--ease-out-expo) both;
 }
 
+/* The navigation bar (components/layout/navigation-progress.tsx): it appears after a beat, so quick
+   pages don't flash it, then a jade segment travels across until the page arrives */
+@keyframes nav-appear {
+  to {
+    opacity: 1;
+  }
+}
+@keyframes nav-progress {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+
 /* The quest pointer: a ring breathing out from the control it points at */
 @keyframes quest-pulse {
   from {

@@ -18,6 +18,7 @@ import {
 import { SealMark } from "@/components/brand/marks";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { SignOutButton } from "@/components/layout/sign-out";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 interface MobileMenuProps {
@@ -172,11 +173,7 @@ export function MobileMenu({
 
                   <div className="flex items-center justify-between px-3 py-2">
                     <ThemeToggle />
-                    <form action={onSignOut}>
-                      <Button variant="ghost" size="sm" type="submit">
-                        Sign out
-                      </Button>
-                    </form>
+                    <SignOutButton action={onSignOut} />
                   </div>
                 </>
               ) : (

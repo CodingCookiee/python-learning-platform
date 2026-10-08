@@ -1,8 +1,9 @@
 import { Skeleton, SkeletonLine } from "@/components/animations";
+import { PageLoading } from "@/components/layout/page-loading";
 
 export default function ExerciseLoading() {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+    <PageLoading label="Loading the drill">
       <div className="flex flex-col gap-8">
         {/* Breadcrumb */}
         <SkeletonLine width="50%" className="h-3" />
@@ -77,6 +78,6 @@ export default function ExerciseLoading() {
           </div>
         </div>
       </div>
-    </div>
+    </PageLoading>
   );
 }

@@ -1,8 +1,9 @@
-﻿import { Skeleton, SkeletonLine } from "@/components/animations";
+import { Skeleton, SkeletonLine } from "@/components/animations";
+import { PageLoading } from "@/components/layout/page-loading";
 
 export default function ProjectSubmitLoading() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+    <PageLoading label="Loading the hand-in form" className="max-w-3xl">
       <div className="flex flex-col gap-8">
         {/* Breadcrumb */}
         <SkeletonLine width="50%" className="h-3" />
@@ -36,6 +37,6 @@ export default function ProjectSubmitLoading() {
           <Skeleton className="h-9 w-32" />
         </div>
       </div>
-    </div>
+    </PageLoading>
   );
 }

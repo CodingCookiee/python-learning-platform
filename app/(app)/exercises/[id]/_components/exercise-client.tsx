@@ -2,6 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { holdNavigation, startNavigation } from "@/components/layout/navigation-progress";
 import {
   ArrowLeft,
   ArrowRight,
@@ -19,6 +21,7 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PendingLine } from "@/components/ui/pending-line";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { LessonContent, PythonEditor, languageFor } from "@/components/lesson";
@@ -452,7 +455,47 @@ function describeCheck(check: CheckState, run: RunResult | null, answer: string)
   return parts.length ? parts.join("\n") : undefined;
 }
 
-export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: boolean }) {
+/**
+ * A link away from the drill that waits for a saving pass: pressed during the save it says "Saving…"
+ * and goes once the save lands (and anything it unlocked has been seen). One width in both states.
+ */
+function WaitLink({
+  href,
+  pending,
+  onClick,
+  variant,
+  children,
+}: {
+  href: string;
+  pending: string | null;
+  onClick: (href: string) => (event: React.MouseEvent) => void;
+  variant?: "default" | "outline";
+  children: React.ReactNode;
+}) {
+  const waiting = pending === href;
+  return (
+    <Button asChild variant={variant}>
+      <Link href={href} onClick={onClick(href)} aria-busy={waiting || undefined}>
+        {waiting && <LoaderCircle className="animate-spin" aria-hidden="true" />}
+        <span className="grid justify-items-center">
+          <span className={cn("col-start-1 row-start-1 inline-flex items-center gap-1.5", waiting && "invisible")}>{children}</span>
+          <span className={cn("col-start-1 row-start-1", !waiting && "invisible")}>Saving…</span>
+        </span>
+      </Link>
+    </Button>
+  );
+}
+
+export function ExerciseClient({
+  drill,
+  aiReady,
+  serverGrading = false,
+}: {
+  drill: DrillData;
+  aiReady: boolean;
+  /** GRADING_MODE=server: a save re-runs the tests on the server, which the save's progress says */
+  serverGrading?: boolean;
+}) {
   // Phones show the task or the code; wide screens show both
   const [mobilePane, setMobilePane] = React.useState<"task" | "code">("task");
   const { status: runtimeStatus, text: runtimeText } = useRuntimeStatus();
@@ -478,6 +521,8 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
   const [activeFile, setActiveFile] = React.useState(drill.mainFile);
   const activeDef = drill.files.find((d) => d.path === activeFile) ?? null;
   const lastDraftRef = React.useRef("");
+  // Shown quietly beside the attempt count once a draft has reached the server
+  const [draftSaved, setDraftSaved] = React.useState(false);
   const scheduleDraft = React.useCallback(() => {
     if (drill.mode.kind !== "practice" || drill.type === "predict") return;
     if (draftTimer.current) clearTimeout(draftTimer.current);
@@ -491,7 +536,10 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
         body,
         keepalive: body.length < 60_000,
       }).then((r) => {
-        if (r.ok) lastDraftRef.current = now;
+        if (r.ok) {
+          lastDraftRef.current = now;
+          setDraftSaved(true);
+        }
       }, () => {});
     }, 2500);
   }, [drill.id, drill.mode.kind, drill.type, multi]);
@@ -530,6 +578,16 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
   const [progress, setProgress] = React.useState<{ passedCount: number; total: number } | null>(null);
   const [finished, setFinished] = React.useState<{ score: number; passed: boolean } | null>(null);
   const [saveError, setSaveError] = React.useState<string | null>(null);
+  // The save runs after the result is on screen: what it's saving, and an attempt to send again
+  // if it failed on the way
+  const [saving, setSaving] = React.useState<{ passed: boolean } | null>(null);
+  const [retry, setRetry] = React.useState<{ passed: boolean; submitted: string; summary: unknown } | null>(null);
+  // The server's verdict on the latest attempt (with server grading it can overrule the browser's)
+  const [verdict, setVerdict] = React.useState<boolean | null>(null);
+  // A link followed while a pass was saving: taken once the save (and its celebrations) are done
+  const [pendingHref, setPendingHref] = React.useState<string | null>(null);
+  const [announcement, setAnnouncement] = React.useState("");
+  const router = useRouter();
   const busyRef = React.useRef(false);
   const tutorRef = React.useRef<TutorHandle>(null);
   // Asking the tutor in a review counts as help, like a hint
@@ -543,60 +601,89 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
 
   const loading = runtimeStatus === "loading";
 
+  React.useEffect(() => {
+    if (!pendingHref || saving || saveError || achievements.length > 0 || levelUp !== null) return;
+    // A moment to see the XP land before the page moves on
+    const timer = window.setTimeout(() => {
+      startNavigation();
+      router.push(pendingHref);
+    }, xpGained ? 900 : 0);
+    return () => window.clearTimeout(timer);
+  }, [pendingHref, saving, saveError, achievements.length, levelUp, xpGained, router]);
+
   async function record(passed: boolean, submitted: string, summary: unknown) {
-    const res = await fetch(`/api/exercises/${drill.id}/submit`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        code: submitted,
-        ...(multi ? { files: filesRef.current } : {}),
-        passed,
-        testResults: JSON.stringify(summary),
-        hintsUsed: hintsUsed + (tutorUsedRef.current ? 1 : 0),
-        mode: mode.kind,
-      }),
-    });
-    if (!res.ok) {
-      const body = (await res.json().catch(() => null)) as { error?: string } | null;
-      setSaveError(body?.error ?? "Couldn’t save this attempt.");
-      return;
-    }
+    setSaving({ passed });
+    setRetry(null);
     setSaveError(null);
-    const data = (await res.json()) as SubmitResponse;
-    if (data.gradingDisagreed) {
-      setSaveError(
-        data.submission.passed
-          ? "The server re-ran the tests and they passed there, so this counts as a pass."
-          : "The server re-ran the tests and not all of them passed there, so this attempt counts as failed. Check for code that depends on timing or randomness."
+    try {
+      const res = await fetch(`/api/exercises/${drill.id}/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: submitted,
+          ...(multi ? { files: filesRef.current } : {}),
+          passed,
+          testResults: JSON.stringify(summary),
+          hintsUsed: hintsUsed + (tutorUsedRef.current ? 1 : 0),
+          mode: mode.kind,
+        }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as { error?: string } | null;
+        setSaveError(body?.error ?? "Couldn’t save this attempt.");
+        // The server or its grader stumbled: worth another go (a closed checkpoint isn't)
+        if (res.status >= 500) setRetry({ passed, submitted, summary });
+        setPendingHref(null);
+        return;
+      }
+      const data = (await res.json()) as SubmitResponse;
+      setVerdict(data.submission.passed);
+      setAnnouncement(
+        data.submission.passed ? (data.xpGained > 0 ? `Saved: plus ${data.xpGained} XP.` : "Saved.") : "Attempt saved."
       );
+      if (data.gradingDisagreed) {
+        setSaveError(
+          data.submission.passed
+            ? "The server re-ran the tests and they passed there, so this counts as a pass."
+            : "The server re-ran the tests and not all of them passed there, so this attempt counts as failed. Check for code that depends on timing or randomness."
+        );
+      }
+      if (data.review?.counted) setReviewOutcome(data.review);
+      if (data.checkpoint && "error" in data.checkpoint) setSaveError(data.checkpoint.error);
+      else if (data.checkpoint) {
+        setProgress({ passedCount: data.checkpoint.passedCount, total: data.checkpoint.total });
+        if (data.checkpoint.finished) setFinished(data.checkpoint.finished);
+      }
+      setAttempts(data.submission.attempts);
+      if (data.submission.passed) setSolved(true);
+      if (data.solution) setSolution(data.solution);
+      if (data.solutionFiles) setSolutionFiles(data.solutionFiles);
+      if (data.xpGained > 0) {
+        setXpGained(data.xpGained);
+        setConfetti(true);
+        setTimeout(() => setConfetti(false), 3200);
+      }
+      // Ready to Train is celebrated by the quest's farewell, which the refresh below brings up
+      const unlocked = data.achievements.filter((a) => a.slug !== QUEST_BADGE);
+      if (unlocked.length > 0) setAchievements(unlocked);
+      if (data.levelUp && data.newLevel) setLevelUp(data.newLevel);
+      if (data.submission.passed) questRefresh();
+    } catch {
+      setSaveError("This attempt didn’t save: the connection dropped.");
+      setRetry({ passed, submitted, summary });
+      setPendingHref(null);
+    } finally {
+      setSaving(null);
     }
-    if (data.review?.counted) setReviewOutcome(data.review);
-    if (data.checkpoint && "error" in data.checkpoint) setSaveError(data.checkpoint.error);
-    else if (data.checkpoint) {
-      setProgress({ passedCount: data.checkpoint.passedCount, total: data.checkpoint.total });
-      if (data.checkpoint.finished) setFinished(data.checkpoint.finished);
-    }
-    setAttempts(data.submission.attempts);
-    if (data.submission.passed) setSolved(true);
-    if (data.solution) setSolution(data.solution);
-    if (data.solutionFiles) setSolutionFiles(data.solutionFiles);
-    if (data.xpGained > 0) {
-      setXpGained(data.xpGained);
-      setConfetti(true);
-      setTimeout(() => setConfetti(false), 3200);
-    }
-    // Ready to Train is celebrated by the quest's farewell, which the refresh below brings up
-    const unlocked = data.achievements.filter((a) => a.slug !== QUEST_BADGE);
-    if (unlocked.length > 0) setAchievements(unlocked);
-    if (data.levelUp && data.newLevel) setLevelUp(data.newLevel);
-    if (data.submission.passed) questRefresh();
   }
 
   async function runCheck() {
-    if (busyRef.current) return;
+    if (busyRef.current || saving) return;
     if (isPredict && !answer.trim()) return;
     busyRef.current = true;
     setBusy("check");
+    setVerdict(null);
+    setAnnouncement("");
     // Grading happens here; saving the attempt happens after the result is on screen,
     // so the buttons are free again as soon as the learner can read the outcome
     let attempt: { passed: boolean; submitted: string; summary: unknown } | null = null;
@@ -677,7 +764,38 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
   const allPassed =
     (check.kind === "tests" && check.result.status === "ok" && check.result.passed === true) ||
     (check.kind === "predict" && check.correct);
-  const checkLabel = loading ? "Loading Python…" : busy === "check" ? "Checking…" : isPredict ? "Check answer" : "Run tests";
+  // Short busy labels: the line beside the buttons says what's running in full
+  const checkLabels = isPredict ? ["Check answer", "Checking…", "Saving…"] : ["Run tests", "Running…", "Saving…"];
+  const checkLabel = busy === "check" ? checkLabels[1] : saving ? checkLabels[2] : checkLabels[0];
+  const checkBusy = busy === "check" || saving !== null;
+  // What the save says while it works, in this drill's mode
+  const savingLines = (passed: boolean) =>
+    passed
+      ? [
+          mode.kind === "review" ? "Saving your review…" : mode.kind === "checkpoint" ? "Saving your answer…" : "Saving your pass…",
+          ...(serverGrading ? ["Double-checking your tests on our server…"] : []),
+          mode.kind === "review"
+            ? "Scheduling your next review…"
+            : mode.kind === "checkpoint"
+              ? "Updating your checkpoint…"
+              : "Adding your XP…",
+        ]
+      : ["Saving this attempt…", ...(serverGrading ? ["Re-running your tests on our server…"] : [])];
+  const saveLine = (passed: boolean, live = true) => (
+    <PendingLine
+      live={live}
+      lines={savingLines(passed)}
+      still="Still saving: the server is taking a moment."
+      slow="Taking longer than usual. Keep this page open and it will finish."
+    />
+  );
+  // Links away from the drill wait for a pass to save, then go (after its celebrations)
+  const guard = (href: string) => (event: React.MouseEvent) => {
+    if (!saving) return;
+    event.preventDefault();
+    holdNavigation();
+    setPendingHref(href);
+  };
   // Predict drills show the real output only once solved or after enough tries, and never in an exam
   const canRunPredict = !isPredict || (!exam && (solved || solution !== null));
   // Programs always read input; other drills get the box once their code calls input()
@@ -787,18 +905,25 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
         <Button
           onClick={() => void runCheck()}
           data-quest-target="run-tests"
-          aria-busy={busy === "check" || loading}
-          aria-disabled={busy !== null || (isPredict && !answer.trim())}
-          className={cn("min-w-36 justify-start", busy !== null && "cursor-progress")}
+          aria-busy={checkBusy}
+          aria-disabled={busy !== null || saving !== null || (isPredict && !answer.trim())}
+          className={cn("justify-start", (busy !== null || saving) && "cursor-progress")}
         >
-          {busy === "check" || loading ? (
+          {checkBusy ? (
             <LoaderCircle className="animate-spin" aria-hidden="true" />
           ) : isPredict ? (
             <Check aria-hidden="true" />
           ) : (
             <Play aria-hidden="true" />
           )}
-          {checkLabel}
+          {/* Every label in one cell, start-aligned beside the icon: one width, no jump */}
+          <span className="grid justify-items-start text-left">
+            {checkLabels.map((label) => (
+              <span key={label} className={cn("col-start-1 row-start-1", label !== checkLabel && "invisible")}>
+                {label}
+              </span>
+            ))}
+          </span>
         </Button>
         {canRunPredict && (
           <Button variant="outline" onClick={() => void runCode()} aria-busy={busy === "run"} aria-disabled={busy !== null}>
@@ -821,15 +946,21 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
             Reset
           </Button>
         )}
-        <span className="ml-auto text-xs text-muted-foreground">
-          {loading
-            ? runtimeText || "The first run downloads Python (a few seconds)"
-            : runtimeText && runtimeStatus === "busy"
-              ? runtimeText
-              : exam
-                ? ""
-                : `${attempts} ${attempts === 1 ? "attempt" : "attempts"}${solved ? " · solved" : ""}`}
-        </span>
+        <div className="ml-auto min-w-0 text-xs text-muted-foreground">
+          {loading || (busy !== null && runtimeText) ? (
+            <PendingLine
+              key="python"
+              className="text-xs"
+              lines={[runtimeText || "Downloading Python…"]}
+              still="The first time takes a few seconds; after that it's quick."
+              slow="Still downloading: a slow connection takes longer."
+            />
+          ) : busy === "check" ? (
+            <PendingLine key="tests" className="text-xs" delayMs={700} lines={["Running your tests…"]} still="Some tests take a few seconds." />
+          ) : exam ? null : (
+            `${attempts} ${attempts === 1 ? "attempt" : "attempts"}${solved ? " · solved" : ""}${draftSaved ? " · draft saved" : ""}`
+          )}
+        </div>
       </div>
 
       <div aria-live="polite" className={cn("flex flex-col gap-4 transition-opacity", busy && "opacity-60")}>
@@ -850,82 +981,101 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
             </div>
           ))}
         {runResult && <RunOutput result={runResult} onExplain={explain} />}
-        {saveError && <p className="text-sm text-destructive">{saveError}</p>}
+        {saving && !saving.passed && saveLine(false, false)}
+        {saveError && (
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-sm text-destructive">{saveError}</p>
+            {retry && (
+              <Button size="sm" variant="outline" onClick={() => void record(retry.passed, retry.submitted, retry.summary)}>
+                <RotateCcw aria-hidden="true" />
+                Try again
+              </Button>
+            )}
+          </div>
+        )}
       </div>
+      <p className="sr-only" aria-live="polite">
+        {announcement}
+      </p>
 
-      {allPassed && mode.kind === "checkpoint" && (
+      {allPassed && verdict !== false && mode.kind === "checkpoint" && (
         <div className="flex flex-wrap items-center gap-5 rounded-md border border-border bg-accent/55 px-5 py-4">
           <div className="min-w-0 flex-1">
             <p className="font-semibold">
               {finished ? (finished.passed ? "Checkpoint passed" : "Checkpoint closed") : "Drill passed"}
               {xpGained ? <span className="font-condensed tabular text-primary-ink"> · +{xpGained} XP</span> : null}
             </p>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              {finished
-                ? `You scored ${Math.round(finished.score * 100)}%.`
-                : progress
-                  ? `${progress.passedCount} of ${progress.total} done.`
-                  : "Saving…"}
-            </p>
+            <div className="mt-0.5 text-sm text-muted-foreground">
+              {saving
+                ? saveLine(true)
+                : finished
+                  ? `You scored ${Math.round(finished.score * 100)}%.`
+                  : progress
+                    ? `${progress.passedCount} of ${progress.total} done.`
+                    : saveError
+                      ? "Not saved yet."
+                      : null}
+            </div>
           </div>
           {drill.next && !finished ? (
-            <Button asChild>
-              <Link href={`/exercises/${drill.next.id}`}>
-                Next drill
-                <ArrowRight aria-hidden="true" />
-              </Link>
-            </Button>
+            <WaitLink href={`/exercises/${drill.next.id}`} pending={pendingHref} onClick={guard}>
+              Next drill
+              <ArrowRight aria-hidden="true" />
+            </WaitLink>
           ) : (
-            <Button asChild variant={finished ? "default" : "outline"}>
-              <Link href={`/checkpoints/${mode.attemptId}`}>{finished ? "See the result" : "Back to the checkpoint"}</Link>
-            </Button>
+            <WaitLink
+              href={`/checkpoints/${mode.attemptId}`}
+              pending={pendingHref}
+              onClick={guard}
+              variant={finished ? "default" : "outline"}
+            >
+              {finished ? "See the result" : "Back to the checkpoint"}
+            </WaitLink>
           )}
           {finished?.passed ? <Seal label="Passed" detail="Checkpoint" animate className="hidden shrink-0 sm:inline-flex" /> : null}
         </div>
       )}
 
-      {allPassed && mode.kind === "review" && (
+      {allPassed && verdict !== false && mode.kind === "review" && (
         <div className="flex flex-wrap items-center gap-5 rounded-md border border-border bg-accent/55 px-5 py-4">
           <div className="min-w-0 flex-1">
             <p className="font-semibold">
               Recalled{xpGained ? <span className="font-condensed tabular text-primary-ink"> · +{xpGained} XP</span> : null}
             </p>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              {reviewOutcome?.nextDueAt
-                ? `It comes back in ${daysUntil(reviewOutcome.nextDueAt)} ${daysUntil(reviewOutcome.nextDueAt) === 1 ? "day" : "days"}.`
-                : "Practice only; the schedule didn’t change."}
-            </p>
+            <div className="mt-0.5 text-sm text-muted-foreground">
+              {saving
+                ? saveLine(true)
+                : reviewOutcome?.nextDueAt
+                  ? `It comes back in ${daysUntil(reviewOutcome.nextDueAt)} ${daysUntil(reviewOutcome.nextDueAt) === 1 ? "day" : "days"}.`
+                  : "Practice only; the schedule didn’t change."}
+            </div>
           </div>
-          <Button asChild>
-            <Link href="/review">
-              Back to review
-              <ArrowRight aria-hidden="true" />
-            </Link>
-          </Button>
+          <WaitLink href="/review" pending={pendingHref} onClick={guard}>
+            Back to review
+            <ArrowRight aria-hidden="true" />
+          </WaitLink>
         </div>
       )}
 
-      {allPassed && mode.kind === "practice" && (
+      {allPassed && verdict !== false && mode.kind === "practice" && (
         <div className="flex items-center gap-5 rounded-md border border-border bg-accent/55 px-5 py-4">
           <div className="min-w-0 flex-1">
             <p className="font-semibold">
               Drill passed{xpGained ? <span className="font-condensed tabular text-primary-ink"> · +{xpGained} XP</span> : null}
             </p>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              {drill.next ? "On to the next one." : "That's the last drill in this lesson."}
-            </p>
+            <div className="mt-0.5 text-sm text-muted-foreground">
+              {saving ? saveLine(true) : drill.next ? "On to the next one." : "That's the last drill in this lesson."}
+            </div>
           </div>
           {drill.next ? (
-            <Button asChild>
-              <Link href={`/exercises/${drill.next.id}`}>
-                Next drill
-                <ArrowRight aria-hidden="true" />
-              </Link>
-            </Button>
+            <WaitLink href={`/exercises/${drill.next.id}`} pending={pendingHref} onClick={guard}>
+              Next drill
+              <ArrowRight aria-hidden="true" />
+            </WaitLink>
           ) : (
-            <Button asChild variant="outline">
-              <Link href={`/lessons/${drill.lesson.id}`}>Back to the lesson</Link>
-            </Button>
+            <WaitLink href={`/lessons/${drill.lesson.id}`} pending={pendingHref} onClick={guard} variant="outline">
+              Back to the lesson
+            </WaitLink>
           )}
           {xpGained ? <Seal label="Passed" detail="Drill" animate className="hidden shrink-0 sm:inline-flex" /> : null}
         </div>
@@ -980,18 +1130,23 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
 
       <nav className="flex items-center justify-between gap-3 border-t border-border pt-4 text-sm" aria-label="Drills">
         {mode.kind === "review" ? (
-          <Link href="/review" className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
+          <Link href="/review" onClick={guard("/review")} className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
             <ArrowLeft className="size-4" aria-hidden="true" />
             The review queue
           </Link>
         ) : drill.previous ? (
-          <Link href={`/exercises/${drill.previous.id}`} className="flex min-w-0 items-center gap-1.5 text-muted-foreground hover:text-foreground">
+          <Link
+            href={`/exercises/${drill.previous.id}`}
+            onClick={guard(`/exercises/${drill.previous.id}`)}
+            className="flex min-w-0 items-center gap-1.5 text-muted-foreground hover:text-foreground"
+          >
             <ArrowLeft className="size-4 shrink-0" aria-hidden="true" />
             <span className="truncate">{drill.previous.title}</span>
           </Link>
         ) : (
           <Link
             href={mode.kind === "checkpoint" ? `/checkpoints/${mode.attemptId}` : `/lessons/${drill.lesson.id}`}
+            onClick={guard(mode.kind === "checkpoint" ? `/checkpoints/${mode.attemptId}` : `/lessons/${drill.lesson.id}`)}
             className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="size-4" aria-hidden="true" />
@@ -999,7 +1154,13 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
           </Link>
         )}
         {drill.next && (
-          <Link href={`/exercises/${drill.next.id}`} className="flex min-w-0 items-center gap-1.5 text-muted-foreground hover:text-foreground">
+          <Link
+            href={`/exercises/${drill.next.id}`}
+            onClick={guard(`/exercises/${drill.next.id}`)}
+            aria-busy={pendingHref === `/exercises/${drill.next.id}` || undefined}
+            className="flex min-w-0 items-center gap-1.5 text-muted-foreground hover:text-foreground"
+          >
+            {pendingHref === `/exercises/${drill.next.id}` && <LoaderCircle className="size-4 shrink-0 animate-spin" aria-hidden="true" />}
             <span className="truncate">{drill.next.title}</span>
             <ArrowRight className="size-4 shrink-0" aria-hidden="true" />
           </Link>
@@ -1024,7 +1185,7 @@ export function ExerciseClient({ drill, aiReady }: { drill: DrillData; aiReady: 
         <Confetti active={confetti} particleCount={70} duration={2800} />
       </div>
       {levelUp !== null && <LevelUpNotification level={levelUp} onDismiss={() => setLevelUp(null)} />}
-      {achievements.length > 0 && <AchievementNotificationQueue achievements={achievements} />}
+      {achievements.length > 0 && <AchievementNotificationQueue achievements={achievements} onDone={() => setAchievements([])} />}
 
       {/* One copy of the task and the workspace: side by side on wide screens, switched on phones */}
       <div className="mb-4 grid grid-cols-2 gap-1 rounded-md bg-muted p-1 lg:hidden" role="group" aria-label="Show">

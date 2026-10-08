@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { startNavigation } from "@/components/layout/navigation-progress";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { LoaderCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { LoadingButton } from "@/components/ui/loading-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FormError } from "@/components/auth/auth-shell";
@@ -29,7 +29,12 @@ export function SignInForm({ notice }: { notice: string | null }) {
     resolver: zodResolver(signInSchema),
   });
 
+  // Signed in and on the way to the dashboard: the form stays busy until it's replaced
+  const [leaving, setLeaving] = useState(false);
+
   const onSubmit = async (data: SignInInput) => {
+    if (isLoading) return;
+    let leavingNow = false;
     setIsLoading(true);
     setError(null);
     setUnverifiedEmail(null);
@@ -53,12 +58,15 @@ export function SignInForm({ notice }: { notice: string | null }) {
         return;
       }
 
+      leavingNow = true;
+      setLeaving(true);
+      startNavigation();
       router.push("/dashboard");
       router.refresh();
     } catch {
       setError("We couldn't reach the server. Check your connection and try again.");
     } finally {
-      setIsLoading(false);
+      if (!leavingNow) setIsLoading(false);
     }
   };
 
@@ -106,10 +114,15 @@ export function SignInForm({ notice }: { notice: string | null }) {
         {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
       </div>
 
-      <Button type="submit" size="lg" className="mt-2 w-full" disabled={isLoading}>
-        {isLoading && <LoaderCircle className="animate-spin" aria-hidden="true" />}
-        {isLoading ? "Signing in…" : "Sign in"}
-      </Button>
+      <LoadingButton
+        type="submit"
+        size="lg"
+        className="mt-2 w-full"
+        loading={isLoading}
+        loadingText={leaving ? "Opening your dashboard…" : "Signing in…"}
+      >
+        Sign in
+      </LoadingButton>
     </form>
   );
 }

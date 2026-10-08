@@ -1,6 +1,7 @@
 // Database steps for the quest run-through (.impeccable/quest-e2e.mjs). Throwaway accounts only.
 //   npx tsx .impeccable/quest-e2e-db.ts drill <exerciseId>      a drill's type, main file and reference solution
 //   npx tsx .impeccable/quest-e2e-db.ts drill-id <slug>             a drill's id
+//   npx tsx .impeccable/quest-e2e-db.ts lesson-id <slug> / module-id <order>   ids for the run-throughs
 //   npx tsx .impeccable/quest-e2e-db.ts fresh <email> <name>      a verified 16+ account, not onboarded yet
 //   npx tsx .impeccable/quest-e2e-db.ts existing <email>        an onboarded developer from before the quest, one fix drill passed
 //   npx tsx .impeccable/quest-e2e-db.ts tutor <email>           an onboarded learner with a dummy AI key (the page's tutor shows; tests intercept /api/tutor, no provider is called)
@@ -22,6 +23,22 @@ async function main() {
     console.log(JSON.stringify(drill));
   } else if (command === "drill-id") {
     console.log((await prisma.exercise.findFirstOrThrow({ where: { slug: args[0]!, archivedAt: null }, select: { id: true } })).id);
+  } else if (command === "pass-lesson") {
+    // Every drill of a lesson passed, so its "Mark lesson complete" opens
+    const user = await prisma.user.findUniqueOrThrow({ where: { email: args[0]! }, select: { id: true } });
+    const lesson = await prisma.lesson.findFirstOrThrow({
+      where: { slug: args[1]!, archivedAt: null },
+      select: { exercises: { where: { archivedAt: null }, select: { id: true } } },
+    });
+    await prisma.exerciseSubmission.createMany({
+      data: lesson.exercises.map((e) => ({ userId: user.id, exerciseId: e.id, code: "", passed: true, testResults: "[]" })),
+    });
+    console.log("passed");
+  } else if (command === "lesson-id") {
+    console.log((await prisma.lesson.findFirstOrThrow({ where: { slug: args[0]!, archivedAt: null }, select: { id: true } })).id);
+  } else if (command === "module-id") {
+    // The Python track's module at this order
+    console.log((await prisma.module.findFirstOrThrow({ where: { order: Number(args[0]), track: { slug: "python" } }, select: { id: true } })).id);
   } else if (command === "fresh") {
     // A verified 16+ account that hasn't onboarded: sign-up without the sign-up rate limit
     await prisma.user.create({

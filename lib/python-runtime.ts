@@ -53,6 +53,8 @@ interface Job {
   resolve: (value: unknown) => void;
   /** Already re-run once after the interpreter crashed */
   retried?: boolean;
+  /** Packages are in and the code has started (the worker said "running") */
+  started?: boolean;
 }
 
 const WORKER_URL = "/workers/python-worker.mjs?v=314.0.7-6";
@@ -90,7 +92,7 @@ class PythonRuntime {
 
   private ensureWorker(): Promise<void> {
     if (this.workerReady) return this.workerReady;
-    this.setStatus("loading", "Loading Python…");
+    this.setStatus("loading", "Downloading Python…");
     const worker = new Worker(WORKER_URL, { type: "module" });
     this.worker = worker;
     this.workerReady = new Promise<void>((resolve, reject) => {
@@ -114,7 +116,12 @@ class PythonRuntime {
         }
         if (data.type === "running") {
           // Packages have loaded: restart the clock so downloads never count as a timeout
-          if (this.active && data.id === this.active.id) this.armTimer(this.active);
+          if (this.active && data.id === this.active.id) {
+            this.active.started = true;
+            this.armTimer(this.active);
+            // "Loading pandas…" is done: the page names the run itself
+            if (this.statusText) this.setStatus(this.status, "");
+          }
           return;
         }
         if (data.type === "failure" && data.id === undefined) {
@@ -203,7 +210,12 @@ class PythonRuntime {
     this.timer = setTimeout(() => {
       if (this.active !== job) return;
       this.reset();
-      this.finish({ __timeout: true });
+      // Out of time before the code even started: the download was slow, not the learner's code
+      this.finish(
+        job.started
+          ? { __timeout: true }
+          : { __failure: "Python's packages took too long to download. Check your connection and try again." }
+      );
     }, ms);
   }
 

@@ -2,8 +2,9 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Check, CircleDashed, LoaderCircle, Sparkles, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Check, CircleDashed, Sparkles, X } from "lucide-react";
+import { LoadingButton } from "@/components/ui/loading-button";
+import { PendingLine } from "@/components/ui/pending-line";
 import { cn } from "@/lib/utils";
 import type { AiReview } from "@/lib/ai/reviewer";
 
@@ -110,10 +111,15 @@ export function AiReviewPanel({
           AI review
         </h2>
         {aiReady && (
-          <Button variant={review ? "outline" : "default"} size="sm" onClick={() => void run()} disabled={busy}>
-            {busy && <LoaderCircle className="animate-spin" aria-hidden="true" />}
-            {busy ? "Reviewing… (up to a minute)" : review ? "Review again" : "Review my submission"}
-          </Button>
+          <LoadingButton
+            variant={review ? "outline" : "default"}
+            size="sm"
+            onClick={() => void run()}
+            loading={busy}
+            loadingText="Reviewing…"
+          >
+            {review ? "Review again" : "Review my submission"}
+          </LoadingButton>
         )}
       </div>
       {!aiReady && (
@@ -126,9 +132,28 @@ export function AiReviewPanel({
           .
         </p>
       )}
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {busy && (
+        <PendingLine
+          shimmer
+          icon={<Sparkles className="size-4 shrink-0 text-primary motion-safe:animate-pulse" aria-hidden="true" />}
+          lines={["Reading your submission…", "Checking it against “How it's graded”…", "Writing your review…"]}
+          stepMs={7000}
+          stillAfterMs={25_000}
+          slowAfterMs={70_000}
+          still="Still reviewing: a careful review takes up to a minute."
+          slow="Some models take up to two minutes. It's still working."
+        />
+      )}
+      {error && (
+        <p role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      )}
       {review ? (
-        <AiReviewBody review={review} reviewedAt={reviewedAt} />
+        // The old review stays readable but steps back while a new one is written
+        <div className={cn("transition-opacity", busy && "opacity-50")}>
+          <AiReviewBody review={review} reviewedAt={reviewedAt} />
+        </div>
       ) : (
         aiReady && (
           <p className="text-sm text-muted-foreground">

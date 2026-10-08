@@ -1,7 +1,7 @@
 "use client";
 
-import * as React from "react";
 import { Sparkles } from "lucide-react";
+import { useElapsed } from "@/components/ui/pending-line";
 import { lineAt, STILL_AFTER_MS, STILL_LINE } from "@/lib/tutor/wait-lines";
 
 /**
@@ -11,21 +11,14 @@ import { lineAt, STILL_AFTER_MS, STILL_LINE } from "@/lib/tutor/wait-lines";
  * lines in between are for the eye.
  */
 export function TutorWaiting({ lines }: { lines: string[] }) {
-  const [elapsed, setElapsed] = React.useState(0);
-
-  React.useEffect(() => {
-    const start = Date.now();
-    const timer = window.setInterval(() => setElapsed(Date.now() - start), 400);
-    return () => window.clearInterval(timer);
-  }, []);
-
+  const elapsed = useElapsed();
   const line = lineAt(lines, elapsed);
   return (
     <li className="mr-4 flex flex-col gap-2 rounded-md bg-sheet px-3 py-2 text-sm text-muted-foreground">
       <span className="flex items-center gap-2">
         <Sparkles className="size-4 shrink-0 text-primary motion-safe:animate-pulse" aria-hidden="true" />
-        {/* Keyed so each new line fades in */}
-        <span key={line} aria-hidden="true" className="animate-in fade-in-0 duration-300">
+        {/* Keyed so each new line slides in (no fade, so the text is never faint) */}
+        <span key={line} aria-hidden="true" className="animate-in slide-in-from-bottom-1 duration-300">
           {line}
         </span>
         <span className="sr-only">{elapsed >= STILL_AFTER_MS ? STILL_LINE : lines[0]}</span>

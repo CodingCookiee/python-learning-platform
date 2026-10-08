@@ -24,10 +24,12 @@ export interface UsePyodideReturn {
   run: (code: string, timeoutMs?: number, options?: RunOptions) => Promise<PyodideRunResult>;
   loading: boolean;
   ready: boolean;
+  /** What Python is doing right now ("Downloading Python…", "Loading pandas…"), or "" */
+  text: string;
 }
 
 export function usePyodide(): UsePyodideReturn {
-  const { status } = useRuntimeStatus();
+  const { status, text } = useRuntimeStatus();
 
   const run = useCallback(
     async (code: string, timeoutMs = 10_000, options: RunOptions = {}): Promise<PyodideRunResult> => {
@@ -40,5 +42,5 @@ export function usePyodide(): UsePyodideReturn {
     []
   );
 
-  return { run, loading: status === "loading", ready: status === "ready" || status === "busy" };
+  return { run, loading: status === "loading", ready: status === "ready" || status === "busy", text };
 }

@@ -3,8 +3,10 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, LoaderCircle } from "lucide-react";
+import { startNavigation } from "@/components/layout/navigation-progress";
+import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LoadingButton } from "@/components/ui/loading-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FormError } from "@/components/auth/auth-shell";
@@ -56,10 +58,9 @@ export function VerifyEmailForm({ token }: { token: string }) {
   return (
     <div className="flex flex-col gap-4">
       {error && <FormError message={error} />}
-      <Button size="lg" onClick={() => void confirm()} disabled={state === "busy" || !token} className="w-full">
-        {state === "busy" && <LoaderCircle className="animate-spin" aria-hidden="true" />}
+      <LoadingButton size="lg" onClick={() => void confirm()} loading={state === "busy"} loadingText="Confirming…" disabled={!token} className="w-full">
         Confirm my email
-      </Button>
+      </LoadingButton>
     </div>
   );
 }
@@ -105,12 +106,20 @@ export function ForgotPasswordForm() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
           required
+          // Held while the link is sent, so "check your inbox" names the address it went to
+          readOnly={state === "busy"}
         />
       </div>
-      <Button type="submit" size="lg" className="w-full" disabled={state === "busy" || !email.includes("@")}>
-        {state === "busy" && <LoaderCircle className="animate-spin" aria-hidden="true" />}
+      <LoadingButton
+        type="submit"
+        size="lg"
+        className="w-full"
+        loading={state === "busy"}
+        loadingText="Sending the link…"
+        disabled={!email.includes("@")}
+      >
         Send the reset link
-      </Button>
+      </LoadingButton>
     </form>
   );
 }
@@ -124,14 +133,21 @@ export function ResetPasswordForm({ token }: { token: string }) {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    // A reset link works once: never send it twice
+    if (busy) return;
     if (password.length < 8) return setError("Password must be at least 8 characters.");
     if (password !== confirm) return setError("The two passwords don't match.");
     setError(null);
     setBusy(true);
     const r = await post("/api/auth/password/reset", { token, password });
+    if (r.ok) {
+      // Busy until sign-in replaces this form
+      startNavigation();
+      router.push("/auth/signin?reset=1");
+      return;
+    }
     setBusy(false);
-    if (r.ok) router.push("/auth/signin?reset=1");
-    else setError(r.error ?? null);
+    setError(r.error ?? null);
   }
 
   return (
@@ -145,10 +161,9 @@ export function ResetPasswordForm({ token }: { token: string }) {
         <Label htmlFor="reset-confirm">Confirm new password</Label>
         <Input id="reset-confirm" type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
       </div>
-      <Button type="submit" size="lg" className="w-full" disabled={busy || !token}>
-        {busy && <LoaderCircle className="animate-spin" aria-hidden="true" />}
+      <LoadingButton type="submit" size="lg" className="w-full" loading={busy} loadingText="Saving your new password…" disabled={!token}>
         Set the new password
-      </Button>
+      </LoadingButton>
     </form>
   );
 }
@@ -160,12 +175,13 @@ export function ResendVerification({ email }: { email: string }) {
   if (state === "sent") return <p className="text-sm text-success">A new link is on its way to {email}.</p>;
   return (
     <div className="flex flex-col gap-1.5">
-      <Button
+      <LoadingButton
         type="button"
         variant="outline"
         size="sm"
         className="w-fit"
-        disabled={state === "busy"}
+        loading={state === "busy"}
+        loadingText="Sending…"
         onClick={async () => {
           setState("busy");
           const r = await post("/api/auth/verify/resend", { email });
@@ -177,7 +193,7 @@ export function ResendVerification({ email }: { email: string }) {
         }}
       >
         Send the link again
-      </Button>
+      </LoadingButton>
       {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   );

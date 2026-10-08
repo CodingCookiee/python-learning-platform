@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { getDrillForUser } from "@/lib/drills";
+import { isServerGrading } from "@/lib/grading/server";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { FadeIn } from "@/components/animations";
 import { ExerciseClient } from "./_components/exercise-client";
@@ -55,7 +56,7 @@ export default async function ExercisePage({ params, searchParams }: PageProps) 
         </FadeIn>
 
         <FadeIn delay={0.05}>
-          <ExerciseClient key={`${drill.id}-${drill.mode.kind}`} drill={drill} aiReady={aiKeys > 0} />
+          <ExerciseClient key={`${drill.id}-${drill.mode.kind}`} drill={drill} aiReady={aiKeys > 0} serverGrading={isServerGrading()} />
         </FadeIn>
       </div>
     </div>

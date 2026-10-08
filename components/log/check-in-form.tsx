@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Check, Copy, LoaderCircle, RotateCcw } from "lucide-react";
+import { Check, Copy, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LoadingButton } from "@/components/ui/loading-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -74,6 +75,7 @@ export function CheckInForm({ initial }: { initial: LogWeek }) {
 
   async function refill() {
     setBusy("refill");
+    setStatus(null);
     try {
       const res = await fetch("/api/log");
       if (res.ok) {
@@ -81,7 +83,10 @@ export function CheckInForm({ initial }: { initial: LogWeek }) {
         // Keep what the learner wrote in the fields activity can't fill
         setFields((f) => ({ ...draft, question: f.question, learned: f.learned || draft.learned }));
         setSaved(false);
-      }
+        setStatus("Refilled from this week's activity. Your own notes are kept.");
+      } else setStatus("Couldn't read this week's activity. Try again in a moment.");
+    } catch {
+      setStatus("We couldn't reach the server.");
     } finally {
       setBusy(null);
     }
@@ -118,14 +123,20 @@ export function CheckInForm({ initial }: { initial: LogWeek }) {
           </div>
         ))}
         <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit" disabled={busy !== null}>
-            {busy === "save" && <LoaderCircle className="animate-spin" aria-hidden="true" />}
+          <LoadingButton type="submit" loading={busy === "save"} loadingText="Saving…" disabled={busy === "refill"}>
             {saved ? "Saved" : "Save this week"}
-          </Button>
-          <Button type="button" variant="ghost" onClick={() => void refill()} disabled={busy !== null}>
-            {busy === "refill" ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <RotateCcw aria-hidden="true" />}
+          </LoadingButton>
+          <LoadingButton
+            type="button"
+            variant="ghost"
+            onClick={() => void refill()}
+            loading={busy === "refill"}
+            loadingText="Reading this week…"
+            disabled={busy === "save"}
+            icon={<RotateCcw aria-hidden="true" />}
+          >
             Refill from this week&apos;s activity
-          </Button>
+          </LoadingButton>
           {status && (
             <p role="status" className="text-sm text-muted-foreground">
               {status}

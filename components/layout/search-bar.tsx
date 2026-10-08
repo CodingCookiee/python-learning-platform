@@ -3,7 +3,8 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, X, BookOpen, Layers, Code2, Loader2 } from "lucide-react";
+import { Search, X, BookOpen, Layers, Code2, LoaderCircle } from "lucide-react";
+import { PendingLine } from "@/components/ui/pending-line";
 import { cn } from "@/lib/utils";
 import { LockedMark } from "@/components/brand/marks";
 
@@ -50,6 +51,10 @@ export function SearchBar() {
   const [query, setQuery] = React.useState("");
   const [results, setResults] = React.useState<SearchResult[]>([]);
   const [loading, setLoading] = React.useState(false);
+  // The query the results on screen belong to, and whether its search failed: "no matches" only
+  // shows for a search that actually came back empty, never while one is still on its way
+  const [searched, setSearched] = React.useState<string | null>(null);
+  const [searchFailed, setSearchFailed] = React.useState(false);
   const [selectedIdx, setSelectedIdx] = React.useState(-1);
   // Show the shortcut the learner will actually press (Ctrl on Windows/Linux)
   const modKey = React.useSyncExternalStore(
@@ -106,10 +111,19 @@ export function SearchBar() {
       setLoading(true);
       try {
         const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-        if (!cancelled && res.ok) {
-          const data = (await res.json()) as { results: SearchResult[] };
-          setResults(data.results);
-          setSelectedIdx(-1);
+        if (!cancelled) {
+          if (res.ok) {
+            const data = (await res.json()) as { results: SearchResult[] };
+            setResults(data.results);
+            setSelectedIdx(-1);
+          }
+          setSearchFailed(!res.ok);
+          setSearched(query);
+        }
+      } catch {
+        if (!cancelled) {
+          setSearchFailed(true);
+          setSearched(query);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -191,7 +205,7 @@ export function SearchBar() {
               {/* Search input */}
               <div className="flex items-center gap-3 px-4 py-3.5">
                 {loading && query.length >= 2 ? (
-                  <Loader2
+                  <LoaderCircle
                     className="size-4 shrink-0 text-muted-foreground animate-spin"
                     aria-hidden="true"
                   />
@@ -234,11 +248,16 @@ export function SearchBar() {
               </div>
 
               {/* Results */}
+              {/* Results; the last ones step back while a newer search runs */}
               {visibleResults.length > 0 && (
                 <div
                   id={resultsId}
-                  className="max-h-[60vh] overflow-y-auto border-t border-border"
+                  className={cn(
+                    "max-h-[60vh] overflow-y-auto border-t border-border transition-opacity",
+                    searched !== query && "opacity-60"
+                  )}
                   role="listbox"
+                  aria-busy={searched !== query || undefined}
                 >
                   {visibleResults.map((r, i) => {
                     const Icon = TYPE_ICONS[r.type];
@@ -288,7 +307,25 @@ export function SearchBar() {
                 </div>
               )}
 
-              {query.length >= 2 && !loading && visibleResults.length === 0 && (
+              {query.length >= 2 && searched !== query && visibleResults.length === 0 && (
+                <div className="border-t border-border px-4 py-5">
+                  <PendingLine live={false} delayMs={300} lines={["Searching the syllabus…"]} still="Still searching…" />
+                </div>
+              )}
+
+              {query.length >= 2 && searched === query && searchFailed && (
+                <div className="border-t border-border px-4 py-6 text-center">
+                  <p className="text-sm text-destructive">Search isn&apos;t working right now. Try again in a moment.</p>
+                </div>
+              )}
+
+              <p className="sr-only" aria-live="polite">
+                {query.length >= 2 && searched === query && !searchFailed
+                  ? `${visibleResults.length} ${visibleResults.length === 1 ? "result" : "results"}`
+                  : ""}
+              </p>
+
+              {query.length >= 2 && searched === query && !searchFailed && !loading && visibleResults.length === 0 && (
                 <div className="border-t border-border px-4 py-6 text-center">
                   <p className="text-sm text-muted-foreground">
                     Nothing in the syllabus matches &ldquo;{query}&rdquo;. Try a topic like

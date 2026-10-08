@@ -6,6 +6,8 @@ import { ScratchpadContext } from "@/components/lesson/scratchpad-context";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { usePyodide } from "@/lib/pyodide";
+import { getPythonRuntime } from "@/lib/python-runtime";
+import { PendingLine } from "@/components/ui/pending-line";
 import { isBrowserRunnable } from "@/lib/content/runnable";
 import { questAction } from "@/lib/quest-steps";
 
@@ -88,7 +90,7 @@ export function CodeBlock({
   const examplesRunnable = React.useContext(RunnableExamples);
   const scratchpad = React.useContext(ScratchpadContext);
   const runnable = examplesRunnable && language === "python" && !norun && isBrowserRunnable(code);
-  const { run, loading } = usePyodide();
+  const { run, text: pythonText } = usePyodide();
   // (runExample below does the REPL-style run; the scratchpad uses it too)
   const [copied, setCopied] = React.useState(false);
   const [editing, setEditing] = React.useState(false);
@@ -111,11 +113,14 @@ export function CodeBlock({
     questAction("run-code");
   }
 
-  const busy = loading || result.status === "running";
+  // Only this example's own run shows here; Python's download shows in its output, not on every button
+  const busy = result.status === "running";
+  // Start Python as the reader reaches for Run, so the first run doesn't wait for the whole download
+  const warmUp = runnable ? () => getPythonRuntime().preload() : undefined;
   const lines = draft.split("\n").length;
 
   return (
-    <div className="my-6 overflow-hidden rounded-md border border-border bg-sheet">
+    <div className="my-6 overflow-hidden rounded-md border border-border bg-sheet" onPointerEnter={warmUp} onFocus={warmUp}>
       <div className="flex items-center gap-1 border-b border-border py-1 pr-1.5 pl-4">
         <span className="font-condensed text-xs font-semibold text-muted-foreground select-none">
           {language || "text"}
@@ -155,7 +160,7 @@ export function CodeBlock({
                 ) : (
                   <Play aria-hidden="true" />
                 )}
-                {loading ? "Loading…" : "Run"}
+                {busy ? "Running…" : "Run"}
               </Button>
             </>
           )}
@@ -192,7 +197,7 @@ export function CodeBlock({
         </pre>
       )}
 
-      <ExampleOutput result={result} />
+      <ExampleOutput result={result} pythonText={pythonText} />
     </div>
   );
 }
@@ -218,10 +223,30 @@ export async function runExample(run: RunFn, source: string, timeoutMs = 8000): 
   return { status: "ok", output: printed.replace(/\n$/, ""), values };
 }
 
-export function ExampleOutput({ result, className }: { result: RunState; className?: string }) {
+export function ExampleOutput({
+  result,
+  className,
+  pythonText,
+}: {
+  result: RunState;
+  className?: string;
+  /** What Python is doing ("Downloading Python…"), shown while a first run has nothing to dim */
+  pythonText?: string;
+}) {
+  const firstRun = result.status === "running" && result.output.trim() === "" && result.values.length === 0;
   return (
     <>
-      {result.status !== "idle" && (
+      {firstRun ? (
+        <div aria-live="polite" className={cn("border-t border-border bg-accent/35 px-4 py-3", className)}>
+          <PendingLine
+            live={false}
+            delayMs={300}
+            lines={[pythonText || "Running your code…"]}
+            still="The first run downloads Python; after that it's quick."
+            slow="Still downloading: a slow connection takes longer."
+          />
+        </div>
+      ) : result.status !== "idle" && (
         <div
           aria-live="polite"
           className={cn(

@@ -2,9 +2,10 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, LoaderCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
+import { LoadingButton } from "@/components/ui/loading-button";
 import { Sensei } from "@/components/quest/sensei";
+import { PendingLine } from "@/components/ui/pending-line";
 import { questRefresh, SENSEI } from "@/lib/quest-steps";
 
 /**
@@ -16,7 +17,9 @@ export function QuestOffer({ kind, done = 0 }: { kind: "offer" | "resume"; done?
   const router = useRouter();
   const [busy, setBusy] = React.useState<"go" | "decline" | null>(null);
   const [failed, setFailed] = React.useState(false);
-  const [answered, setAnswered] = React.useState(false);
+  // What the learner chose, shown until the refreshed dashboard (with the quest panel) takes over
+  const [answered, setAnswered] = React.useState<"start" | "resume" | "skip" | null>(null);
+  const [refreshing, startRefresh] = React.useTransition();
 
   async function send(action: "start" | "resume" | "skip") {
     setBusy(action === "skip" ? "decline" : "go");
@@ -27,13 +30,12 @@ export function QuestOffer({ kind, done = 0 }: { kind: "offer" | "resume"; done?
       setFailed(true);
       return;
     }
-    // The card goes at once; the refresh brings the rest of the dashboard up to date
-    setAnswered(true);
+    setAnswered(action);
     questRefresh();
-    router.refresh();
+    startRefresh(() => router.refresh());
   }
 
-  if (answered) return null;
+  if (answered && !refreshing) return null;
 
   const title = kind === "offer" ? SENSEI.offer.title : SENSEI.resume.title;
   const line = kind === "offer" ? SENSEI.offer.line : SENSEI.resume.line(done);
@@ -54,18 +56,32 @@ export function QuestOffer({ kind, done = 0 }: { kind: "offer" | "resume"; done?
           </p>
         )}
       </div>
-      <div className="flex shrink-0 flex-wrap gap-2">
-        <Button onClick={() => void send(kind === "offer" ? "start" : "resume")} aria-busy={busy === "go"} disabled={busy !== null}>
-          {busy === "go" && <LoaderCircle className="animate-spin" aria-hidden="true" />}
-          {kind === "offer" ? "Start the quest" : "Resume"}
-          <ArrowRight data-icon="inline-end" aria-hidden="true" />
-        </Button>
-        {kind === "offer" && (
-          <Button variant="ghost" onClick={() => void send("skip")} aria-busy={busy === "decline"} disabled={busy !== null}>
-            No thanks
-          </Button>
-        )}
-      </div>
+      {answered ? (
+        <PendingLine
+          className="shrink-0"
+          lines={[answered === "start" ? "Starting your quest…" : answered === "resume" ? "Picking up where you left off…" : "Saving your choice…"]}
+          still="Still loading your dashboard…"
+        />
+      ) : (
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <LoadingButton
+            onClick={() => void send(kind === "offer" ? "start" : "resume")}
+            loading={busy === "go"}
+            loadingText={kind === "offer" ? "Starting…" : "Resuming…"}
+            disabled={busy === "decline"}
+          >
+            <span className="inline-flex items-center gap-1.5">
+              {kind === "offer" ? "Start the quest" : "Resume"}
+              <ArrowRight aria-hidden="true" />
+            </span>
+          </LoadingButton>
+          {kind === "offer" && (
+            <LoadingButton variant="ghost" onClick={() => void send("skip")} loading={busy === "decline"} loadingText="Saving…" disabled={busy === "go"}>
+              No thanks
+            </LoadingButton>
+          )}
+        </div>
+      )}
     </section>
   );
 }

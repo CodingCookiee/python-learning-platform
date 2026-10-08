@@ -1,3 +1,4 @@
+import { SignOutMenuItem } from "@/components/layout/sign-out";
 import Link from "next/link";
 import { auth, signOut } from "@/auth";
 import { initialsFor } from "@/lib/utils";
@@ -106,13 +107,7 @@ export async function Navbar() {
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <form action={handleSignOut} className="w-full">
-                    <button type="submit" className="w-full text-left">
-                      Sign out
-                    </button>
-                  </form>
-                </DropdownMenuItem>
+                <SignOutMenuItem action={handleSignOut} />
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (

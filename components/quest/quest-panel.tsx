@@ -3,8 +3,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowRight, Check, Crosshair, Minus } from "lucide-react";
+import { ArrowRight, Check, Crosshair, LoaderCircle, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LoadingButton } from "@/components/ui/loading-button";
 import { Progress } from "@/components/ui/progress";
 import {
   AlertDialog,
@@ -118,6 +119,9 @@ export function QuestPanel() {
   // fold only (the page, the pane, the typing as they were), and until the learner types again
   const [heldFor, setHeldFor] = React.useState<string | null>(null);
   const pending = React.useRef(new Set<string>());
+  // A step being recorded ("Got it" on the tour), and a skip on its way
+  const [posting, setPosting] = React.useState<StepKey | null>(null);
+  const [skipping, setSkipping] = React.useState(false);
   const pillRef = React.useRef<HTMLButtonElement>(null);
   const cardRef = React.useRef<HTMLElement>(null);
   const focusAfter = React.useRef<"pill" | "card" | null>(null);
@@ -168,9 +172,13 @@ export function QuestPanel() {
       const current = viewRef.current;
       if (!step || !current?.active || current.completed.includes(step) || pending.current.has(step)) return;
       pending.current.add(step);
+      setPosting(step);
       void post<{ quest: QuestView | null; achievements: UnlockedAchievement[] }>("/api/quest/event", { step })
         .then((data) => data && apply(data.quest, data.achievements))
-        .finally(() => pending.current.delete(step));
+        .finally(() => {
+          pending.current.delete(step);
+          setPosting(null);
+        });
     };
     // Once the learner types on a page the panel stays folded there, so it doesn't spring back over
     // the results when they press Run tests; the next page starts afresh
@@ -348,10 +356,15 @@ export function QuestPanel() {
                 Show me
               </Button>
               {lastStop ? (
-                <Button size="sm" onClick={() => questAction("progress")}>
-                  <Check aria-hidden="true" />
+                <LoadingButton
+                  size="sm"
+                  onClick={() => questAction("progress")}
+                  loading={posting === "progress"}
+                  loadingText="Saving…"
+                  icon={<Check aria-hidden="true" />}
+                >
                   Got it
-                </Button>
+                </LoadingButton>
               ) : (
                 <Button size="sm" onClick={() => setTour((t) => t + 1)}>
                   Next
@@ -418,7 +431,22 @@ export function QuestPanel() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Keep going</AlertDialogCancel>
-            <AlertDialogAction onClick={() => void skip()}>Skip the quest</AlertDialogAction>
+            <AlertDialogAction
+              aria-busy={skipping || undefined}
+              onClick={(event) => {
+                // Stays open, saying so, until the skip has landed
+                event.preventDefault();
+                if (skipping) return;
+                setSkipping(true);
+                void skip().finally(() => {
+                  setSkipping(false);
+                  setConfirmSkip(false);
+                });
+              }}
+            >
+              {skipping && <LoaderCircle className="animate-spin" aria-hidden="true" />}
+              {skipping ? "Skipping…" : "Skip the quest"}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

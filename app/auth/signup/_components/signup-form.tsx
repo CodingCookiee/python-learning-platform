@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { startNavigation } from "@/components/layout/navigation-progress";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LoaderCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { LoadingButton } from "@/components/ui/loading-button";
+import { PendingLine } from "@/components/ui/pending-line";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FormError } from "@/components/auth/auth-shell";
@@ -42,7 +43,12 @@ export function SignUpForm({ start }: { start?: string }) {
     resolver: zodResolver(signUpSchema),
   });
 
+  // Where the form is taking the new learner, once the account exists (it stays busy until then)
+  const [leaving, setLeaving] = useState<"signin" | "app" | null>(null);
+
   const onSubmit = async (data: SignUpInput) => {
+    if (isLoading) return;
+    let leavingNow = false;
     setIsLoading(true);
     setError(null);
 
@@ -62,6 +68,9 @@ export function SignUpForm({ start }: { start?: string }) {
 
       // With email verification on, the account opens from the link in the inbox
       if (result.needsVerification) {
+        leavingNow = true;
+        setLeaving("signin");
+        startNavigation();
         router.push("/auth/signin?check=1");
         return;
       }
@@ -72,12 +81,15 @@ export function SignUpForm({ start }: { start?: string }) {
         redirect: false,
       });
 
+      leavingNow = true;
+      setLeaving("app");
+      startNavigation();
       router.push("/dashboard");
       router.refresh();
     } catch {
       setError("We couldn't reach the server. Check your connection and try again.");
     } finally {
-      setIsLoading(false);
+      if (!leavingNow) setIsLoading(false);
     }
   };
 
@@ -123,10 +135,24 @@ export function SignUpForm({ start }: { start?: string }) {
         )}
       </div>
 
-      <Button type="submit" size="lg" className="mt-2 w-full" disabled={isLoading}>
-        {isLoading && <LoaderCircle className="animate-spin" aria-hidden="true" />}
-        {isLoading ? "Creating your account…" : "Create account"}
-      </Button>
+      <LoadingButton
+        type="submit"
+        size="lg"
+        className="mt-2 w-full"
+        loading={isLoading}
+        loadingText={leaving === "signin" ? "Taking you to sign in…" : leaving === "app" ? "Opening pylearn…" : "Creating your account…"}
+      >
+        Create account
+      </LoadingButton>
+      {isLoading && !leaving && (
+        <PendingLine
+          className="self-center"
+          delayMs={900}
+          stepMs={1800}
+          lines={["Saving your details…", "Sending your confirmation email…"]}
+          still="Email can take a few seconds to send."
+        />
+      )}
     </form>
   );
 }

@@ -31,6 +31,7 @@ const PYPI_DEPS = { mypy: ["mypy_extensions", "pathspec"] };
 async function installPypiDeps(py, packages) {
   const extra = [...new Set((packages ?? []).flatMap((p) => PYPI_DEPS[p] ?? []))].filter((p) => !loaded.has(`pypi:${p}`));
   if (extra.length === 0) return;
+  self.postMessage({ type: "status", text: `Installing ${extra.join(", ")}…` });
   py.globals.set("_plp_pypi", JSON.stringify(extra));
   await py.runPythonAsync("import json, micropip\nawait micropip.install(json.loads(_plp_pypi))");
   extra.forEach((p) => loaded.add(`pypi:${p}`));
@@ -46,6 +47,8 @@ const implicitPackages = (msg) => {
 
 const ready = (async () => {
   const py = await loadPyodide({ indexURL: INDEX_URL });
+  // Downloaded and compiled; what's left is the test harness (the page says "Downloading Python…" until now)
+  self.postMessage({ type: "status", text: "Starting Python…" });
   const version = new URL(self.location.href).searchParams.get("v") ?? "";
   const files = ["plp.py", "plp_runner.py", "plp_fakes.py"];
   const sources = await Promise.all(

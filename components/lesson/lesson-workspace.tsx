@@ -10,6 +10,7 @@ import { getPythonRuntime } from "@/lib/python-runtime";
 import { usePyodide } from "@/lib/pyodide";
 import { questAction } from "@/lib/quest-steps";
 import { cn } from "@/lib/utils";
+import { PendingLine } from "@/components/ui/pending-line";
 
 
 const OPEN_KEY = "pylearn:scratchpad-open";
@@ -67,7 +68,7 @@ export function LessonWorkspace({ lessonId, children }: { lessonId: string; chil
   const codeRef = React.useRef(code);
   const [editorKey, setEditorKey] = React.useState(0);
   const [result, setResult] = React.useState<RunState | null>(null);
-  const { run: runPython } = usePyodide();
+  const { run: runPython, text: pythonText } = usePyodide();
   const [running, setRunning] = React.useState(false);
   const lessonRef = React.useRef<HTMLDivElement>(null);
   const placesRef = React.useRef<ReadingPlace[]>([]);
@@ -174,7 +175,7 @@ export function LessonWorkspace({ lessonId, children }: { lessonId: string; chil
               <span className="text-xs text-muted-foreground">Ctrl+Enter runs</span>
               <Button size="xs" className="ml-auto" onClick={() => void run()} aria-busy={running} data-quest-target="scratchpad">
                 {running ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <Play aria-hidden="true" />}
-                Run
+                {running ? "Running…" : "Run"}
               </Button>
               <Button variant="ghost" size="icon-xs" onClick={() => toggle(false)} aria-label="Close scratchpad">
                 <PanelRightClose aria-hidden="true" />
@@ -183,7 +184,19 @@ export function LessonWorkspace({ lessonId, children }: { lessonId: string; chil
             <div className="min-h-0 flex-1 overflow-hidden">
               <PythonEditor key={editorKey} value={code} onChange={update} storageKey={`scratch-${lessonId}`} onRun={() => void run()} height="min(40dvh, 380px)" />
             </div>
-            {result && <ExampleOutput result={result} className="max-h-48 overflow-auto px-3 py-2" />}
+            {running ? (
+              <div aria-live="polite" className="border-t border-border bg-accent/35 px-3 py-2">
+                <PendingLine
+                  live={false}
+                  delayMs={300}
+                  lines={[pythonText || "Running your code…"]}
+                  still="The first run downloads Python; after that it's quick."
+                  slow="Still downloading: a slow connection takes longer."
+                />
+              </div>
+            ) : (
+              result && <ExampleOutput result={result} className="max-h-48 overflow-auto px-3 py-2" />
+            )}
           </aside>
         )}
       </div>

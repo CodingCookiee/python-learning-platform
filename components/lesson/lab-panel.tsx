@@ -1,9 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { Check, Copy, FlaskConical, LoaderCircle, RefreshCw } from "lucide-react";
+import { Check, Copy, FlaskConical, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { LoadingButton } from "@/components/ui/loading-button";
+import { PendingLine } from "@/components/ui/pending-line";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import type { LabView } from "@/lib/labs";
@@ -75,9 +77,13 @@ function LabPanelInner({ initial }: { initial: LabView }) {
 
   async function refresh() {
     setBusy("refresh");
+    setError(null);
     try {
       const res = await fetch(`/api/labs/${lab.lessonId}`);
       if (res.ok) setLab((await res.json()) as LabView);
+      else setError("Couldn't check for your request. Try again in a moment.");
+    } catch {
+      setError("We couldn't reach the server.");
     } finally {
       setBusy(null);
     }
@@ -143,10 +149,18 @@ function LabPanelInner({ initial }: { initial: LabView }) {
               <pre className="mt-2 overflow-x-auto rounded-sm border border-border bg-background p-3 font-mono text-xs leading-5">{curl}</pre>
             </details>
           )}
-          <Button variant="outline" size="sm" className="w-fit" onClick={() => void refresh()} disabled={busy !== null}>
-            {busy === "refresh" ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <RefreshCw aria-hidden="true" />}
+          <LoadingButton
+            variant="outline"
+            size="sm"
+            className="w-fit"
+            onClick={() => void refresh()}
+            loading={busy === "refresh"}
+            loadingText="Checking…"
+            disabled={busy === "check"}
+            icon={<RefreshCw aria-hidden="true" />}
+          >
             Check for my request
-          </Button>
+          </LoadingButton>
         </div>
       )}
 
@@ -157,11 +171,16 @@ function LabPanelInner({ initial }: { initial: LabView }) {
           </label>
           <div className="flex gap-2">
             <Input id="lab-url" value={input} onChange={(e) => setInput(e.target.value)} placeholder="https://my-service.example.com" className="font-mono text-sm" />
-            <Button onClick={() => void check()} disabled={busy !== null || !input.trim()}>
-              {busy === "check" && <LoaderCircle className="animate-spin" aria-hidden="true" />}
+            <LoadingButton onClick={() => void check()} loading={busy === "check"} loadingText="Checking…" disabled={busy === "refresh" || !input.trim()}>
               Check
-            </Button>
+            </LoadingButton>
           </div>
+          {busy === "check" && (
+            <PendingLine
+              lines={["Calling your deployment…", "Reading its answer…"]}
+              still="Your service has a few seconds to answer; one that's waking up can be slow."
+            />
+          )}
         </div>
       )}
 
@@ -171,10 +190,9 @@ function LabPanelInner({ initial }: { initial: LabView }) {
             Paste the output{spec.command ? <> of <code className="font-mono text-[0.8125rem]">{spec.command}</code></> : null}
           </label>
           <Textarea id="lab-output" value={input} onChange={(e) => setInput(e.target.value)} rows={5} spellCheck={false} className="font-mono text-xs" />
-          <Button className="w-fit" onClick={() => void check()} disabled={busy !== null || !input.trim()}>
-            {busy === "check" && <LoaderCircle className="animate-spin" aria-hidden="true" />}
+          <LoadingButton className="w-fit" onClick={() => void check()} loading={busy === "check"} loadingText="Checking…" disabled={busy === "refresh" || !input.trim()}>
             Check
-          </Button>
+          </LoadingButton>
         </div>
       )}
 

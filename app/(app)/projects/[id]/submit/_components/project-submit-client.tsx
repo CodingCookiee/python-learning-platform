@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload, GitBranch, CheckCircle2, AlertCircle, X, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LoadingButton } from "@/components/ui/loading-button";
+import { PendingLine } from "@/components/ui/pending-line";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -357,14 +359,22 @@ export function ProjectSubmitClient({ projectId, projectTitle }: ProjectSubmitCl
         >
           Cancel
         </Button>
-        <Button type="submit" disabled={isSubmitting || isProcessingFiles}>
-          {isSubmitting
-            ? "Submitting\u2026"
-            : isProcessingFiles
-              ? "Preparing files\u2026"
-              : "Submit Project"}
-        </Button>
+        <LoadingButton
+          type="submit"
+          loading={isSubmitting || isProcessingFiles}
+          loadingText={isSubmitting ? "Submitting\u2026" : "Preparing files\u2026"}
+        >
+          Submit Project
+        </LoadingButton>
       </div>
+      {isSubmitting && (
+        <PendingLine
+          className="self-end"
+          lines={["Sending your submission\u2026", "Saving it for the examiner\u2026"]}
+          stepMs={3000}
+          still="Large uploads take a little longer on a slow connection."
+        />
+      )}
     </form>
   );
 }

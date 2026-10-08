@@ -2,13 +2,15 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Circle, Loader2 } from "lucide-react";
+import { startNavigation } from "@/components/layout/navigation-progress";
+import { CheckCircle2, Circle, LoaderCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { AchievementNotificationQueue } from "@/components/gamification";
 import { WhiteBeltCeremony } from "@/components/onramp/white-belt-ceremony";
 import type { UnlockedAchievement } from "@/lib/achievements";
+import { PendingLine } from "@/components/ui/pending-line";
 
 /** Finishing the Start on-ramp's last lesson earns this, and plays the white belt ceremony */
 const WHITE_BELT_TIED = "white-belt-tied";
@@ -49,6 +51,17 @@ export function LessonCompleteButton({
   const [achievements, setAchievements] = React.useState<UnlockedAchievement[]>([]);
   const [showXp, setShowXp] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+  // Where the learner goes next once it's saved (and anything it unlocked has been seen)
+  const [moveTo, setMoveTo] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (!moveTo || achievements.length > 0) return;
+    const timer = window.setTimeout(() => {
+      startNavigation();
+      router.push(moveTo);
+    }, nextLessonId ? 1200 : 1800);
+    return () => window.clearTimeout(timer);
+  }, [moveTo, achievements.length, nextLessonId, router]);
 
   async function handleToggle() {
     setStatus("loading");
@@ -101,20 +114,11 @@ export function LessonCompleteButton({
       // Refresh server component data
       router.refresh();
 
-      // Auto-navigate to next lesson after a short delay (not when the ceremony is on screen)
-      if (tied) {
-        // The learner moves on from the ceremony
-      } else if (nowCompleted && nextLessonId) {
-        setTimeout(() => {
-          router.push(`/lessons/${nextLessonId}`);
-        }, 1200);
-      } else if (nowCompleted && moduleId) {
-        setTimeout(() => {
-          router.push(`/modules/${moduleId}#checkpoint-heading`);
-        }, 1800);
-      }
-
-      setTimeout(() => setStatus("idle"), 1000);
+      // Move on to the next lesson, or the module's checkpoint (not when the ceremony is on screen:
+      // the learner moves on from there); the success line stays until the page changes
+      const next = !tied && nowCompleted ? (nextLessonId ? `/lessons/${nextLessonId}` : moduleId ? `/modules/${moduleId}#checkpoint-heading` : null) : null;
+      if (next) setMoveTo(next);
+      else setTimeout(() => setStatus("idle"), 1000);
     } catch {
       setErrorMessage("Something went wrong. Please try again.");
       setStatus("error");
@@ -130,7 +134,7 @@ export function LessonCompleteButton({
 
   return (
     <>
-      <AchievementNotificationQueue achievements={achievements} />
+      <AchievementNotificationQueue achievements={achievements} onDone={() => setAchievements([])} />
       {ceremony && afterOnRampHref && (
         <WhiteBeltCeremony
           open
@@ -146,17 +150,22 @@ export function LessonCompleteButton({
       <div className={cn("flex flex-col gap-3", className)}>
         <div className="relative">
           <Button
-            onClick={handleToggle}
-            disabled={isLoading || isLocked || isReadOnly}
+            onClick={() => {
+              if (!isLoading) void handleToggle();
+            }}
+            aria-busy={isLoading || undefined}
+            aria-disabled={isLoading || undefined}
+            disabled={isLocked || isReadOnly}
             variant={completed ? "outline" : "default"}
             size="lg"
             className={cn(
               "w-full sm:w-auto",
+              isLoading && "cursor-progress",
               completed && "border-success/40 text-success disabled:opacity-100"
             )}
           >
             {isLoading ? (
-              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
             ) : completed ? (
               <CheckCircle2 className="size-4 text-success" aria-hidden="true" />
             ) : (
@@ -188,6 +197,14 @@ export function LessonCompleteButton({
             )}
           </AnimatePresence>
         </div>
+
+        {isLoading && <PendingLine delayMs={600} lines={["Saving your progress…", "Adding your XP…"]} still="Still saving: the server is taking a moment." />}
+        {moveTo && (
+          <PendingLine
+            lines={[nextLessonId ? "Taking you to the next lesson…" : "Taking you to the module's checkpoint…"]}
+            still="Still loading the page…"
+          />
+        )}
 
         {/* Status messages */}
         <AnimatePresence>

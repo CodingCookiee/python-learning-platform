@@ -1,8 +1,9 @@
-﻿import { Skeleton, SkeletonCard, SkeletonLine } from "@/components/animations";
+import { Skeleton, SkeletonCard, SkeletonLine } from "@/components/animations";
+import { PageLoading } from "@/components/layout/page-loading";
 
 export default function ProjectDetailLoading() {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+    <PageLoading label="Loading the capstone">
       <div className="flex flex-col gap-8">
         {/* Breadcrumb skeleton */}
         <SkeletonLine width="50%" className="h-3" />
@@ -68,6 +69,6 @@ export default function ProjectDetailLoading() {
           </div>
         </div>
       </div>
-    </div>
+    </PageLoading>
   );
 }

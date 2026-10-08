@@ -6,9 +6,11 @@ import type { UnlockedAchievement } from "@/lib/achievements";
 
 export interface AchievementNotificationQueueProps {
   achievements: UnlockedAchievement[];
+  /** Called once the last one has been dismissed (e.g. to move on to the next page) */
+  onDone?: () => void;
 }
 
-export function AchievementNotificationQueue({ achievements }: AchievementNotificationQueueProps) {
+export function AchievementNotificationQueue({ achievements, onDone }: AchievementNotificationQueueProps) {
   const [dismissedAchievementIds, setDismissedAchievementIds] = React.useState<Set<string>>(
     () => new Set()
   );
@@ -18,7 +20,9 @@ export function AchievementNotificationQueue({ achievements }: AchievementNotifi
 
   const handleClose = () => {
     if (current) {
-      setDismissedAchievementIds((prev) => new Set(prev).add(current.id));
+      const dismissed = new Set(dismissedAchievementIds).add(current.id);
+      setDismissedAchievementIds(dismissed);
+      if (achievements.every((a) => dismissed.has(a.id))) onDone?.();
     }
   };
 

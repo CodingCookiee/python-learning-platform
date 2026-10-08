@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { LoadingButton } from "@/components/ui/loading-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -144,13 +144,14 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
     try {
       const res = await fetch("/api/settings/delete", { method: "DELETE" });
       if (res.ok) {
+        // Deleted: busy until signing out takes the browser to the home page
         await signOut({ callbackUrl: "/" });
         return;
       }
       setDeleteError("Your account wasn't deleted. Try again, or sign out and back in first.");
+      setDeleting(false);
     } catch {
       setDeleteError("We couldn't reach the server, so nothing was deleted.");
-    } finally {
       setDeleting(false);
     }
   }
@@ -189,9 +190,9 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
             </p>
           </div>
           <StatusBanner status={profileStatus} />
-          <Button type="submit" disabled={savingProfile} className="w-fit">
-            {savingProfile ? "Saving…" : "Save name"}
-          </Button>
+          <LoadingButton type="submit" loading={savingProfile} loadingText="Saving…" className="w-fit">
+            Save name
+          </LoadingButton>
         </form>
       </SettingsRow>
 
@@ -289,9 +290,9 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
               />
             </div>
             <StatusBanner status={pwStatus} />
-            <Button type="submit" disabled={savingPw} className="w-fit">
-              {savingPw ? "Changing…" : "Change password"}
-            </Button>
+            <LoadingButton type="submit" loading={savingPw} loadingText="Changing…" className="w-fit">
+              Change password
+            </LoadingButton>
           </form>
         </SettingsRow>
       )}
@@ -303,10 +304,9 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
         <div className="flex flex-col gap-3">
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive" disabled={deleting} className="w-fit">
-                <Trash2 aria-hidden="true" />
-                {deleting ? "Deleting…" : "Delete my account"}
-              </Button>
+              <LoadingButton variant="destructive" loading={deleting} loadingText="Deleting your account…" icon={<Trash2 aria-hidden="true" />} className="w-fit">
+                Delete my account
+              </LoadingButton>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { startNavigation } from "@/components/layout/navigation-progress";
 import { ArrowRight, Clock, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -38,6 +39,7 @@ export function StartCheckpointButton({
         setBusy(false);
         return;
       }
+      startNavigation();
       router.push(`/checkpoints/${data.attemptId}`);
     } catch {
       setError("Couldn’t start the checkpoint.");
@@ -47,9 +49,10 @@ export function StartCheckpointButton({
 
   return (
     <div className="flex flex-col items-start gap-2">
-      <Button onClick={() => void start()} variant={variant} size={size} aria-busy={busy}>
+      <Button onClick={() => void start()} variant={variant} size={size} aria-busy={busy} className={cn(busy && "cursor-progress")}>
         {busy ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : null}
-        {label}
+        {/* A one-off that moves on to the checkpoint: the label simply says what's happening */}
+        {busy ? "Drawing your drills…" : label}
         {!busy && <ArrowRight data-icon="inline-end" aria-hidden="true" />}
       </Button>
       {error && <p className="text-sm text-destructive">{error}</p>}
@@ -92,8 +95,12 @@ export function CheckpointClock({ deadline, className }: { deadline: string; cla
         className
       )}
     >
-      <Clock className="size-4" aria-hidden="true" />
-      {left === null ? "…" : left === 0 ? "Time’s up" : `${formatClock(left)} left`}
+      {left === 0 ? (
+        <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
+      ) : (
+        <Clock className="size-4" aria-hidden="true" />
+      )}
+      {left === null ? "…" : left === 0 ? "Time’s up: marking your checkpoint…" : `${formatClock(left)} left`}
     </span>
   );
 }
@@ -103,28 +110,49 @@ export function HandInButton({ attemptId, allPassed }: { attemptId: string; allP
   const router = useRouter();
   const [confirming, setConfirming] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  // The refresh that brings in the marked checkpoint: busy until it has
+  const [refreshing, startRefresh] = React.useTransition();
 
   async function handIn() {
+    if (busy) return;
     setBusy(true);
+    setError(null);
     try {
-      await fetch(`/api/checkpoints/${attemptId}/hand-in`, { method: "POST" });
-    } finally {
-      router.refresh();
+      const res = await fetch(`/api/checkpoints/${attemptId}/hand-in`, { method: "POST" });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        setError(data.error ?? "That didn't hand in. Try again in a moment.");
+        setBusy(false);
+        return;
+      }
+      startRefresh(() => router.refresh());
+    } catch {
+      setError("We couldn't reach the server. Try again in a moment.");
+      setBusy(false);
     }
   }
+  const working = busy || refreshing;
 
   if (allPassed || confirming) {
     return (
-      <div className="flex flex-wrap items-center gap-3">
-        {!allPassed && <span className="text-sm">Hand in now? Drills you haven’t passed count as failed.</span>}
-        <Button onClick={() => void handIn()} aria-busy={busy} disabled={busy}>
-          {busy && <LoaderCircle className="animate-spin" aria-hidden="true" />}
-          Hand in
-        </Button>
-        {!allPassed && (
-          <Button variant="ghost" onClick={() => setConfirming(false)} disabled={busy}>
-            Keep going
+      <div className="flex flex-col items-start gap-2">
+        <div className="flex flex-wrap items-center gap-3">
+          {!allPassed && <span className="text-sm">Hand in now? Drills you haven’t passed count as failed.</span>}
+          <Button onClick={() => void handIn()} aria-busy={working} aria-disabled={working} className={cn(working && "cursor-progress")}>
+            {working && <LoaderCircle className="animate-spin" aria-hidden="true" />}
+            {working ? "Marking your checkpoint…" : "Hand in"}
           </Button>
+          {!allPassed && (
+            <Button variant="ghost" onClick={() => setConfirming(false)} disabled={working}>
+              Keep going
+            </Button>
+          )}
+        </div>
+        {error && (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
         )}
       </div>
     );

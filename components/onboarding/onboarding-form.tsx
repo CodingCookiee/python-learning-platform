@@ -2,9 +2,11 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { startNavigation } from "@/components/layout/navigation-progress";
 import { signOut } from "next-auth/react";
 import { LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LoadingButton } from "@/components/ui/loading-button";
 import { cn } from "@/lib/utils";
 import { forgetStart, readStart } from "@/lib/start-intent";
 
@@ -77,21 +79,26 @@ function Choice<T extends string>({
   options,
   value,
   onChange,
+  locked = false,
 }: {
   name: string;
   options: Array<{ value: T; title: string; detail: string }>;
   value: T | null;
   onChange: (v: T) => void;
+  /** While the plan saves, the answers hold still */
+  locked?: boolean;
 }) {
   return (
-    <div role="radiogroup" aria-label={name} className="grid gap-3">
+    <div role="radiogroup" aria-label={name} aria-disabled={locked || undefined} className="grid gap-3">
       {options.map((o) => (
         <button
           key={o.value}
           type="button"
           role="radio"
           aria-checked={value === o.value}
-          onClick={() => onChange(o.value)}
+          onClick={() => {
+            if (!locked) onChange(o.value);
+          }}
           className={cn(
             "flex flex-col gap-1 rounded-md border p-4 text-left transition-colors",
             value === o.value ? "border-primary bg-accent/60" : "border-border hover:border-foreground/35"
@@ -147,6 +154,7 @@ export function OnboardingForm({
       forgetStart();
       // After sign-up a beginner's first stop is the Start on-ramp; plan changes go back to the dashboard
       const { next } = (await res.json().catch(() => ({}))) as { next?: string };
+      startNavigation();
       router.push(first && next ? next : "/dashboard");
       router.refresh();
     } catch {
@@ -171,12 +179,12 @@ export function OnboardingForm({
         <>
           <section className="flex flex-col gap-3">
             <h2 className="text-xl font-semibold">{n(1)}. Where are you starting from?</h2>
-            <Choice name="Experience" options={EXPERIENCE} value={experience} onChange={setExperience} />
+            <Choice name="Experience" options={EXPERIENCE} value={experience} onChange={setExperience} locked={busy} />
           </section>
 
           <section className="flex flex-col gap-3">
             <h2 className="text-xl font-semibold">{n(2)}. Where do you want to get to?</h2>
-            <Choice name="Goal" options={GOALS} value={goal} onChange={setGoal} />
+            <Choice name="Goal" options={GOALS} value={goal} onChange={setGoal} locked={busy} />
           </section>
 
           <section className="flex flex-col gap-3">
@@ -206,10 +214,14 @@ export function OnboardingForm({
 
           {error && <p className="text-sm text-destructive">{error}</p>}
           <div className="flex flex-wrap items-center gap-3">
-            <Button size="lg" onClick={() => void save()} disabled={busy}>
-              {busy && <LoaderCircle className="animate-spin" aria-hidden="true" />}
+            <LoadingButton
+              size="lg"
+              onClick={() => void save()}
+              loading={busy}
+              loadingText={first ? "Setting up your training…" : "Saving your plan…"}
+            >
               {first ? "Start training" : "Save my plan"}
-            </Button>
+            </LoadingButton>
             {!first && (
               <Button variant="ghost" onClick={() => router.push("/dashboard")} disabled={busy}>
                 Cancel

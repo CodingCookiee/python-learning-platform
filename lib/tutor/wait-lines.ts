@@ -1,3 +1,5 @@
+import { stageIndex } from "@/lib/pending/stages";
+
 /**
  * What the tutor panel says while it waits for a reply: short lines that follow what the tutor is
  * really doing with what the learner sent (their code, their last run or the error), then, on a
@@ -54,5 +56,5 @@ export function waitLines({ kind, code, result, error }: WaitInput): string[] {
 export function lineAt(lines: string[], elapsedMs: number): string {
   if (elapsedMs >= SLOW_AFTER_MS) return SLOW_LINE;
   if (elapsedMs >= STILL_AFTER_MS) return STILL_LINE;
-  return lines[Math.min(Math.floor(elapsedMs / STEP_MS), lines.length - 1)] ?? STILL_LINE;
+  return lines[stageIndex(lines.length, elapsedMs, STEP_MS)] ?? STILL_LINE;
 }

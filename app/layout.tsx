@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { NavigationProgress } from "@/components/layout/navigation-progress";
 import type { Metadata, Viewport } from "next";
 import { Archivo, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
@@ -71,6 +73,10 @@ export default async function RootLayout({
     >
       <body className="flex min-h-full flex-col font-sans">
         <ThemeProvider nonce={nonce}>
+          {/* The bar at the top while the next page loads */}
+          <Suspense fallback={null}>
+            <NavigationProgress />
+          </Suspense>
           <TooltipProvider>{children}</TooltipProvider>
         </ThemeProvider>
       </body>
