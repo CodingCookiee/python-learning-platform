@@ -1,6 +1,6 @@
 # Landing page "How it works": design
 
-Status: approved design, awaiting spec review · Date: 2026-10-08 · Owner: Raza Awan
+Status: built 2026-10-08 (see section 10 for what changed during the build) · Date: 2026-10-08 · Owner: Raza Awan
 Part 3 of milestone M8 ([ARCHITECTURE.md §12 and §16](../../ARCHITECTURE.md#16-decisions-2026-10-07-a-course-for-everyone)).
 Builds on part 1, the beginner on-ramp ([spec](2026-10-07-beginner-on-ramp-design.md)), and part 2,
 the first-session quest ([spec](2026-10-07-first-session-quest-design.md)).
@@ -176,3 +176,18 @@ like the stat line, so they stay true as content changes. The same questions and
 | FAQ numbers drift from the content | Hours are computed from the modules' `hours` at render time |
 | A remembered "never coded" surprises someone who changes their mind | It only pre-selects; one click changes it, and it's cleared after onboarding |
 | The sensei's sandbox lines miss the tone | Owner review in build step 2 |
+
+## 10. Changes made during the build
+
+Found while building and checking the page; each keeps to the approved design.
+
+| Change | Why |
+|--------|-----|
+| The site header and mobile menu link **How it works**, **Syllabus**, **For JS developers** and **Questions** (in page order) | Their "How rank is earned" link pointed at `#rank`, the section How it works replaced |
+| Signed-out sign-up buttons read **Start free** (landing header, app navbar, mobile menu), not "Start at white belt" | One message across the site: it's free |
+| Step 3's sensei line, when Python couldn't run and no stripe was earned, is the approved line's second half: "Here you earn rank by passing, not by clicking next." (`TRY_IT_LINES.stripeUnearned`) | "That's a stripe." would be untrue without a pass |
+| The FAQ's heading is **Questions** | Plain word, same as the nav link |
+| `/llms.txt` lists the Start here on-ramp and that it's for people 16 and over, besides the agreed wording | It describes the site for AI agents and should match the page |
+| `DanBand` is exported from `components/brand/belt.tsx` | How it works reuses it for stop 7 |
+| The sandbox keeps its steady height (`min-h-60`) from `sm` up only | On phones it left an empty band under step 1 |
+| The dev scripts `.impeccable/capture.mjs` and `.impeccable/flash-test.mjs` drive the sandbox instead of the removed drill; `.impeccable/landing-e2e.mjs` is the page's run-through | They clicked the old "Submit drill" |

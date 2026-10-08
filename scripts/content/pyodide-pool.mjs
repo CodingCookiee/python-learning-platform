@@ -1,6 +1,12 @@
 // A pool of Pyodide worker threads for running drills in Node (content:validate,
 // and later server-side grading). A job that overruns its timeout terminates its
 // thread; a fresh one replaces it.
+//
+// A long-lived interpreter piles up state from every drill it ran, and a full garbage
+// collection over a heap like that can overflow Pyodide's stack, a fatal error that
+// leaves the instance unusable. So each thread retires after `maxJobs` jobs, and a job
+// that hits a fatal error gets one more go on a fresh thread: the learner's code
+// didn't fail, the interpreter did.
 
 import { Worker } from "node:worker_threads";
 import { fileURLToPath } from "node:url";
@@ -14,10 +20,16 @@ export class PyodidePool {
     size = Number(process.env.PLP_POOL_SIZE) || Math.max(1, Math.min(4, os.cpus().length - 1)),
     // Where downloaded Pyodide packages are cached (a writable dir; /tmp on serverless hosts)
     cacheDir = undefined,
+    // Jobs a thread runs before a fresh one replaces it
+    maxJobs = Number(process.env.PLP_MAX_JOBS) || 500,
+    // The thread script (tests swap in a fake)
+    thread = THREAD,
   }) {
     this.root = root;
     this.cacheDir = cacheDir;
     this.size = size;
+    this.maxJobs = maxJobs;
+    this.thread = thread;
     this.idle = [];
     this.queue = [];
     this.threads = new Set();
@@ -26,8 +38,8 @@ export class PyodidePool {
   }
 
   spawn() {
-    const worker = new Worker(THREAD, { workerData: { root: this.root, cacheDir: this.cacheDir } });
-    const slot = { worker, job: null, timer: null, ready: false };
+    const worker = new Worker(this.thread, { workerData: { root: this.root, cacheDir: this.cacheDir } });
+    const slot = { worker, job: null, timer: null, ready: false, jobs: 0 };
     this.threads.add(slot);
     worker.on("message", (msg) => {
       if (msg.type === "ready") {
@@ -48,6 +60,19 @@ export class PyodidePool {
         const job = slot.job;
         clearTimeout(slot.timer);
         slot.job = null;
+        if (msg.type === "failure" && msg.fatal) {
+          // The interpreter crashed: replace it, and run the job once more on a fresh one
+          this.retire(slot);
+          if (job.retried) job.resolve({ __failure: msg.message });
+          else {
+            job.retried = true;
+            const idle = this.idle.pop();
+            if (idle) this.start(idle, job);
+            else this.queue.unshift(job);
+          }
+          if (!this.closed) this.fill();
+          return;
+        }
         job.resolve(msg.type === "result" ? msg.result : { __failure: msg.message });
         this.release(slot);
       }
@@ -76,8 +101,21 @@ export class PyodidePool {
     if (!this.closed) this.fill();
   }
 
+  /** Take a thread out of service; `fill` starts its replacement */
+  retire(slot) {
+    this.threads.delete(slot);
+    this.idle = this.idle.filter((s) => s !== slot);
+    void slot.worker.terminate();
+  }
+
   release(slot) {
     if (this.closed) return;
+    if (slot.jobs >= this.maxJobs) {
+      // Worn: a fresh thread takes over before the heap grows any further
+      this.retire(slot);
+      this.fill();
+      return;
+    }
     const job = this.queue.shift();
     if (!job) {
       this.idle.push(slot);
@@ -100,6 +138,7 @@ export class PyodidePool {
 
   start(slot, job) {
     slot.job = job;
+    slot.jobs += 1;
     // Package downloads get their own generous window; the job's limit starts on "running"
     this.arm(slot, job, Math.max(job.timeoutMs, 120_000));
     slot.worker.postMessage({ id: job.id, ...job.message });

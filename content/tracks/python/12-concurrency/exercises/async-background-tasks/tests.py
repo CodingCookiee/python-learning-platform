@@ -43,7 +43,9 @@ async def _():
     assert sorted(log) == ["wh_1", "wh_2", "wh_3"]
 
 
-@test("A task nobody else refers to survives garbage collection")
+# A full collection is the point here (it's what frees an unreferenced task), and its cost grows with
+# everything else in the interpreter, so this check gets more than the usual 2 s
+@test("A task nobody else refers to survives garbage collection", timeout=10)
 async def _():
     background, signals, log = BackgroundTasks(), [], []
     background.spawn(wait_for_signal(signals, log))

@@ -54,6 +54,19 @@ ready.then(
   (err) => parentPort.postMessage({ type: "failure", message: String(err?.message ?? err) })
 );
 
+/**
+ * After a job: collect what it left behind, then freeze everything still alive, so later collections
+ * (drills and pytest both call gc.collect()) only walk what the next job makes, not a heap of every
+ * package imported so far. Runs synchronously, between jobs, outside any time limit.
+ */
+function settle(py) {
+  try {
+    py.runPython("import gc as _gc\n_gc.collect()\n_gc.freeze()");
+  } catch {
+    // A crashed instance can't settle; it's being replaced anyway
+  }
+}
+
 parentPort.on("message", async (msg) => {
   try {
     const py = await ready;
@@ -85,7 +98,12 @@ parentPort.on("message", async (msg) => {
       `import json as _json\n_plp_runner = __import__("plp_runner")\n_plp_runner.to_json(await _plp_runner.${fn}(**_json.loads(_plp_args)))`
     );
     parentPort.postMessage({ id: msg.id, type: "result", result: JSON.parse(json) });
+    settle(py);
   } catch (err) {
-    parentPort.postMessage({ id: msg.id, type: "failure", message: String(err?.message ?? err) });
+    // A Pyodide fatal error (or any call after one) means this instance is finished: say so,
+    // so the pool replaces it rather than handing it the next job
+    const message = String(err?.message ?? err);
+    const fatal = Boolean(err?.pyodide_fatal_error) || /fatally failed/i.test(message);
+    parentPort.postMessage({ id: msg.id, type: "failure", message, fatal });
   }
 });

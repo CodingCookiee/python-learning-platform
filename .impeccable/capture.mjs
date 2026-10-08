@@ -5,7 +5,7 @@ import { writeFileSync, mkdirSync } from "node:fs";
 const CHROME = "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const OUT = new URL("./review/", import.meta.url);
 mkdirSync(OUT, { recursive: true });
-const BASE = "http://localhost:3000";
+const BASE = process.env.BASE ?? "http://localhost:3000";
 const PORT = 9333;
 
 const chrome = spawn(CHROME, [
@@ -93,15 +93,21 @@ async function shot(name, fullPage) {
   console.log("saved", name);
 }
 
-async function solveDrill() {
+/** The landing sandbox: on to step 2, fix the missing quote, run the tests */
+async function solveSandbox() {
+  const sandbox = `document.querySelector("section[aria-labelledby=try-it-heading]")`;
+  const press = (label) =>
+    evaluate(`[...${sandbox}.querySelectorAll("button")].find((b) => b.textContent.trim() === ${JSON.stringify(label)}).click()`);
+  await press("Next");
+  await sleep(300);
   await evaluate(`(() => {
-    const ta = document.querySelector('#drill-code');
+    const ta = document.querySelector('#try-it-code');
     const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
-    setter.call(ta, 'def greet(name):\\n    return f"Hello, {name}!"\\n');
+    setter.call(ta, 'print("Welcome to the café!")');
     ta.dispatchEvent(new Event('input', { bubbles: true }));
   })()`);
   await sleep(300);
-  await evaluate(`[...document.querySelectorAll('button')].find(b => b.textContent.includes('Submit drill')).click()`);
+  await press("Run tests");
   for (let i = 0; i < 90; i++) {
     const done = await evaluate(`document.body.innerText.includes('Stripe earned')`);
     if (done) break;
@@ -115,7 +121,7 @@ await setup(1440, 900, "light");
 await go("/");
 await shot("desktop-viewport.png");
 await shot("desktop.png", true);
-await solveDrill();
+await solveSandbox();
 await shot("drill-passed-desktop.png");
 
 // Desktop dark
@@ -127,8 +133,9 @@ await shot("desktop-dark.png", true);
 await setup(390, 844, "light");
 await go("/");
 await shot("mobile.png", true);
-await solveDrill();
-await evaluate(`document.querySelector('#drill-code').closest('div.relative.rounded-md').scrollIntoView({block:'start'})`);
+await solveSandbox();
+// Below the sticky navbar
+await evaluate(`scrollTo(0, document.querySelector("section[aria-labelledby=try-it-heading]").getBoundingClientRect().top + scrollY - 72)`);
 await sleep(500);
 await shot("drill-passed-mobile.png");
 

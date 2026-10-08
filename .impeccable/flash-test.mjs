@@ -1,4 +1,5 @@
-// Dev-only: measures layout stability of the landing drill when re-submitting after an error.
+// Dev-only: measures layout stability of the landing sandbox's Run tests row when re-running after an error.
+//   BASE=http://localhost:3010 node .impeccable/flash-test.mjs   (default: the dev server on :3000)
 import { spawn } from "node:child_process";
 
 const CHROME = "C:/Program Files/Google/Chrome/Application/chrome.exe";
@@ -38,33 +39,37 @@ const ev = async (expression) =>
     ?.result?.value;
 
 await send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
-await send("Page.navigate", { url: "http://localhost:3000/" });
+await send("Page.navigate", { url: (process.env.BASE ?? "http://localhost:3000") + "/" });
 await sleep(4500);
 
+// The landing sandbox's step 2: its code box and the Run tests button
+const SANDBOX = `document.querySelector("section[aria-labelledby=try-it-heading]")`;
+const button = (label) => `[...${SANDBOX}.querySelectorAll("button")].find((b) => b.textContent.trim() === ${JSON.stringify(label)})`;
 const setCode = (code) =>
-  ev(`(() => { const ta = document.querySelector('#drill-code');
+  ev(`(() => { const ta = document.querySelector('#try-it-code');
     Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(ta, ${JSON.stringify(code)});
     ta.dispatchEvent(new Event('input', { bubbles: true })); })()`);
-const clickSubmit = () =>
-  ev(`[...document.querySelectorAll('button')].find(b => /Submit drill|Grading|Loading Python/.test(b.textContent)).click()`);
 const waitIdle = async () => {
   for (let i = 0; i < 120; i++) {
-    if (await ev(`!document.querySelector('[aria-busy="true"]')`)) return;
+    if (await ev(`!${SANDBOX}.querySelector('[aria-busy="true"]') && !${SANDBOX}.innerText.includes("Loading Python")`)) return;
     await sleep(250);
   }
 };
 
-// 1) First submit with a syntax error (also warms up Pyodide)
-await setCode("def greet(name)\n    return 1\n");
+await ev(`${button("Next")}.click()`);
+await sleep(300);
+
+// 1) First run of the tests on the broken line (also warms up Pyodide)
+await setCode('print("Welcome to the café!)');
 await sleep(200);
-await clickSubmit();
+await ev(`${button("Run tests")}.click()`);
 await sleep(500);
 await waitIdle();
-console.log("after first submit, error shown:", await ev(`!!document.body.innerText.match(/SyntaxError/)`));
+console.log("after first run, error shown:", await ev(`!!${SANDBOX}.innerText.match(/SyntaxError/)`));
 
-// 2) Re-submit and sample the button row every 20ms while grading
+// 2) Run the tests again and sample the button row every 20ms while it runs
 const samples = await ev(`new Promise((resolve) => {
-  const btn = [...document.querySelectorAll('button')].find(b => b.textContent.includes('Submit drill'));
+  const btn = ${button("Run tests")};
   const row = btn.parentElement;
   const out = [];
   const t0 = performance.now();

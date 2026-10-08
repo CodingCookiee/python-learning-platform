@@ -51,9 +51,11 @@ interface Job {
   message: Record<string, unknown>;
   timeoutMs: number;
   resolve: (value: unknown) => void;
+  /** Already re-run once after the interpreter crashed */
+  retried?: boolean;
 }
 
-const WORKER_URL = "/workers/python-worker.mjs?v=314.0.7-5";
+const WORKER_URL = "/workers/python-worker.mjs?v=314.0.7-6";
 /** Time allowed for downloading a drill's packages (pandas, mypy…) before its code starts */
 const PACKAGE_LOAD_MS = 120_000;
 
@@ -93,7 +95,14 @@ class PythonRuntime {
     this.worker = worker;
     this.workerReady = new Promise<void>((resolve, reject) => {
       worker.onmessage = (event: MessageEvent) => {
-        const data = event.data as { type: string; id?: number; text?: string; message?: string; result?: unknown };
+        const data = event.data as {
+          type: string;
+          id?: number;
+          text?: string;
+          message?: string;
+          result?: unknown;
+          fatal?: boolean;
+        };
         if (data.type === "ready") {
           this.setStatus(this.active ? "busy" : "ready");
           resolve();
@@ -114,7 +123,22 @@ class PythonRuntime {
           reject(new Error(data.message ?? "Python failed to load"));
           return;
         }
+        if (this.active && data.id === this.active.id && data.type === "failure" && data.fatal && !this.active.retried) {
+          // Python itself crashed (a long session's heap, not the learner's code): start a
+          // fresh worker and run the job once more
+          const job = this.active;
+          job.retried = true;
+          if (this.timer) clearTimeout(this.timer);
+          this.timer = null;
+          this.active = null;
+          this.reset();
+          this.queue.unshift(job);
+          this.pump();
+          return;
+        }
         if (this.active && data.id === this.active.id) {
+          // Crashed twice: report it, and still don't hand the dead worker another run
+          if (data.fatal) this.reset();
           this.finish(
             data.type === "result"
               ? data.result

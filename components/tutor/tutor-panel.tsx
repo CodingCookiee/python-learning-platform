@@ -2,10 +2,12 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowUp, LoaderCircle, MessageCircleQuestion, Sparkles } from "lucide-react";
+import { ArrowUp, MessageCircleQuestion, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { LessonContent } from "@/components/lesson";
+import { TutorWaiting } from "@/components/tutor/tutor-waiting";
+import { waitLines } from "@/lib/tutor/wait-lines";
 import { cn } from "@/lib/utils";
 
 /**
@@ -55,6 +57,8 @@ export function TutorPanel({
   const [turns, setTurns] = React.useState<Turn[]>([]);
   const [input, setInput] = React.useState("");
   const [busy, setBusy] = React.useState(false);
+  // What the waiting reply says, built from what this question sends
+  const [waiting, setWaiting] = React.useState<string[]>([]);
   const [error, setError] = React.useState<string | null>(null);
   const [needsKey, setNeedsKey] = React.useState(!aiReady);
   const listRef = React.useRef<HTMLOListElement>(null);
@@ -79,6 +83,7 @@ export function TutorPanel({
       setBusy(true);
       try {
         const ctx = getContext();
+        setWaiting(waitLines({ kind, code: ctx.code, result: ctx.result, error: errorText }));
         const res = await fetch("/api/tutor", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -180,12 +185,8 @@ export function TutorPanel({
                   )}
                 </li>
               ))}
-              {busy && (
-                <li className="mr-4 flex items-center gap-2 rounded-md bg-sheet px-3 py-2 text-sm text-muted-foreground">
-                  <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
-                  Thinking…
-                </li>
-              )}
+              {/* Keyed by the question, so each wait starts its lines afresh */}
+              {busy && waiting.length > 0 && <TutorWaiting key={turns.length} lines={waiting} />}
             </ol>
           )}
 

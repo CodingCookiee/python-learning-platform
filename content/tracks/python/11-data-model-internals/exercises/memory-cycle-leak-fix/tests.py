@@ -8,14 +8,19 @@ from solution import Order
 
 @contextlib.contextmanager
 def collector_off():
-    """Run with the cycle collector disabled, as the nightly job does."""
-    gc.collect()
+    """Run with the cycle collector disabled, as the nightly job does.
+
+    Only the young generation is collected around the test: with the collector off, everything the
+    test makes stays young, so that frees any cycles it leaves. A full collection would walk the whole
+    heap of a long-lived grader, whose size depends on what ran before, and could miss the time limit.
+    """
+    gc.collect(0)
     gc.disable()
     try:
         yield
     finally:
         gc.enable()
-        gc.collect()
+        gc.collect(0)
 
 
 @test("An order is freed as soon as nothing uses it, with the collector off", timeout=10)
