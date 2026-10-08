@@ -284,7 +284,7 @@ export function QuestPanel() {
           onClick={expand}
           aria-label={`Open the quest: step ${position} of ${total}, ${step.title}`}
           className={cn(
-            "fixed right-4 bottom-4 z-40 inline-flex items-center gap-2 rounded-full border border-border bg-card py-1 pr-3.5 pl-1.5 text-sm font-semibold shadow-overlay transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+            "fixed right-4 bottom-4 z-42 inline-flex items-center gap-2 rounded-full border border-border bg-card py-1 pr-3.5 pl-1.5 text-sm font-semibold shadow-overlay transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
             // Out of the scratchpad's way: above its bottom sheet, or beside its column on wide screens
             scratchpadOpen && (xl ? "right-auto left-4" : "top-20 bottom-auto")
           )}
@@ -314,7 +314,7 @@ export function QuestPanel() {
           }
         }}
         className={cn(
-          "fixed inset-x-2 bottom-2 z-40 flex max-h-[min(36rem,calc(100dvh-6rem))] flex-col gap-3 overflow-y-auto rounded-md border border-border bg-card p-4 shadow-overlay outline-none md:inset-x-auto md:right-4 md:bottom-4 md:w-80",
+          "fixed inset-x-2 bottom-2 z-42 flex max-h-[min(36rem,calc(100dvh-6rem))] flex-col gap-3 overflow-y-auto rounded-md border border-border bg-card p-4 shadow-overlay outline-none md:inset-x-auto md:right-4 md:bottom-4 md:w-80",
           scratchpadOpen && !xl && "top-20 bottom-auto"
         )}
       >

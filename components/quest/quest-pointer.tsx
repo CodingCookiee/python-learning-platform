@@ -105,14 +105,16 @@ export function QuestPointer({
   // The label sits above the control, or below it when that would run under the navbar
   const above = spot.top - 30 > NAV;
   const alignRight = spot.left + spot.width / 2 > window.innerWidth / 2;
+  // Layer 41: above the page, the sticky navbar and the phone scratchpad pane (40), under the quest
+  // panel (42), so a ring around a wide target never draws across the panel
   return (
     <div aria-hidden="true" className="pointer-events-none">
       <div
-        className="fixed z-45 rounded-md border-2 border-primary motion-safe:animate-quest-pulse"
+        className="fixed z-41 rounded-md border-2 border-primary motion-safe:animate-quest-pulse"
         style={{ top: spot.top - pad, left: spot.left - pad, width: spot.width + pad * 2, height: spot.height + pad * 2 }}
       />
       <span
-        className="fixed z-45 max-w-56 rounded-sm bg-primary px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-primary-foreground shadow-sm"
+        className="fixed z-41 max-w-56 rounded-sm bg-primary px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-primary-foreground shadow-sm"
         style={{
           top: above ? spot.top - pad - 26 : spot.top + spot.height + pad + 6,
           ...(alignRight
