@@ -10,7 +10,13 @@ export const metadata: Metadata = {
   alternates: { canonical: "/auth/signup" },
 };
 
-export default function SignUpPage() {
+export default async function SignUpPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  // ?start=new: the landing page's "I've never coded", carried into onboarding
+  const { start } = await searchParams;
   return (
     <AuthShell
       title="Tie on the white belt."
@@ -26,7 +32,7 @@ export default function SignUpPage() {
             </Link>
           </p>
         </div>
-        <SignUpForm />
+        <SignUpForm start={typeof start === "string" ? start : undefined} />
         <p className="text-sm text-muted-foreground">
           What we keep and why is in the{" "}
           <Link href="/privacy" className="font-medium text-primary underline">

@@ -121,7 +121,7 @@ export async function Navbar() {
                 <Link href="/auth/signin">Sign in</Link>
               </Button>
               <Button size="sm" asChild>
-                <Link href="/auth/signup">Start at white belt</Link>
+                <Link href="/auth/signup">Start free</Link>
               </Button>
             </>
           )}

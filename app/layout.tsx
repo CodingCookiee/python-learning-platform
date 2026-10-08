@@ -22,7 +22,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 const DESCRIPTION =
-  "A graded path from first Python syntax to advanced Python, then AI automation. Lessons, drills and gradings run in your browser.";
+  "A graded path from first Python syntax to advanced Python, then AI automation. Lessons, drills and gradings run in your browser. Free, no experience needed.";
 
 export const metadata: Metadata = {
   // Absolute URLs for canonical links and the share card (app/opengraph-image.tsx)

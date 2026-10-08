@@ -6,6 +6,10 @@ import { signOut } from "next-auth/react";
 import { LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { forgetStart, readStart } from "@/lib/start-intent";
+
+/** The remembered start never changes while the form is open */
+const noSubscribe = () => () => {};
 
 type Experience = "new" | "other-language" | "python";
 type Goal = "python" | "automation";
@@ -113,7 +117,10 @@ export function OnboardingForm({
 }) {
   const [age, setAge] = React.useState<Age | null>(null);
   const router = useRouter();
-  const [experience, setExperience] = React.useState<Experience | null>(initial.experience);
+  const [picked, setExperience] = React.useState<Experience | null>(initial.experience);
+  // "I've never coded" on the landing page pre-selects "New to programming" until an answer is on record
+  const remembered = React.useSyncExternalStore(noSubscribe, readStart, () => null);
+  const experience = picked ?? (remembered === "new" ? "new" : null);
   const [goal, setGoal] = React.useState<Goal | null>(initial.goal);
   const [hours, setHours] = React.useState(initial.weeklyHours);
   const [busy, setBusy] = React.useState(false);
@@ -137,6 +144,7 @@ export function OnboardingForm({
         setBusy(false);
         return;
       }
+      forgetStart();
       // After sign-up a beginner's first stop is the Start on-ramp; plan changes go back to the dashboard
       const { next } = (await res.json().catch(() => ({}))) as { next?: string };
       router.push(first && next ? next : "/dashboard");

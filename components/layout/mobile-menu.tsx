@@ -29,9 +29,10 @@ interface MobileMenuProps {
 }
 
 const publicLinks = [
+  { href: "/#how-it-works", label: "How it works" },
   { href: "/#syllabus", label: "Syllabus" },
-  { href: "/#rank", label: "How rank is earned" },
   { href: "/#bridge", label: "For JS developers" },
+  { href: "/#faq", label: "Questions" },
 ];
 
 const authLinks = [
@@ -195,7 +196,7 @@ export function MobileMenu({
                       <Link href="/auth/signin">Sign in</Link>
                     </Button>
                     <Button size="sm" asChild>
-                      <Link href="/auth/signup">Start at white belt</Link>
+                      <Link href="/auth/signup">Start free</Link>
                     </Button>
                   </div>
                 </>

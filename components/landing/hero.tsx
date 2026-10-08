@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BeltLadder } from "@/components/brand/belt";
-import { LiveDrill } from "@/components/landing/live-drill";
+import { TryIt } from "@/components/landing/try-it";
 
 export function Hero({ moduleCount, lessonCount }: { moduleCount: number; lessonCount: number }) {
   const [stripes, setStripes] = React.useState(0);
@@ -21,30 +21,30 @@ export function Hero({ moduleCount, lessonCount }: { moduleCount: number; lesson
             Earn your black belt in Python.
           </h1>
           <p className="max-w-[34rem] text-lg leading-relaxed text-muted-foreground">
-            A graded path for developers, from first syntax to advanced Python, then on to AI
-            automation. You don&apos;t move up by clicking &ldquo;next&rdquo;. You move up by
-            passing drills and gradings, right here in the browser.
+            From your very first line of code to advanced Python, then AI automation: one graded
+            step at a time, in your browser. Free, nothing to install, no experience needed.
           </p>
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+          {/* Two ways in: "never coded" carries into onboarding's first answer */}
+          <div className="flex flex-wrap items-center gap-3">
             <Button size="lg" asChild>
-              <Link href="/auth/signup">
-                Start at white belt
+              <Link href="/auth/signup?start=new">
+                I&apos;ve never coded
                 <ArrowRight data-icon="inline-end" aria-hidden="true" />
               </Link>
             </Button>
-            <Link
-              href="#syllabus"
-              className="text-sm font-semibold underline decoration-foreground/30 hover:decoration-foreground"
-            >
-              Read the syllabus
-            </Link>
+            <Button size="lg" variant="outline" asChild>
+              <Link href="/auth/signup">
+                I already code
+                <ArrowRight data-icon="inline-end" aria-hidden="true" />
+              </Link>
+            </Button>
           </div>
           <p className="font-condensed tabular text-sm text-muted-foreground">
-            {moduleCount} modules · {lessonCount} lessons · no install, Python runs in your browser
+            {moduleCount} modules · {lessonCount} lessons · free · Python runs in your browser
           </p>
         </div>
 
-        <LiveDrill onPass={() => setStripes(1)} />
+        <TryIt onPass={() => setStripes(1)} />
       </div>
 
       <div className="mx-auto mt-14 max-w-7xl lg:mt-20">

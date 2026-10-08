@@ -37,16 +37,20 @@ export function GET() {
   const origin = publicOrigin();
   const body = `# pylearn
 
-> A graded course that takes developers from first Python syntax to advanced Python, then to building AI automation. Lessons, drills and gradings run in the browser; ranks follow the martial-arts belts, from 16 kyu (white belt) to black belt.
+> A free, graded course that takes anyone, from their first line of code, to advanced Python, then to building AI automation. Lessons, drills and gradings run in the browser; ranks follow the martial-arts belts, from 16 kyu (white belt) to black belt. People who have never programmed start with a 4-hour on-ramp in plain language; developers can test out of what they know.
 
-Lessons and drills need a free account; the pages below are public.
+Everything is free. Lessons and drills need a free account; the pages below are public. The optional AI tutor and reviewer use the learner's own Anthropic, OpenAI or Google key, so the learner pays that provider directly. For people 16 and over.
 
 ## Pages
 
-- [Home](${origin}/): the syllabus, how rank is earned, and Python next to JavaScript
+- [Home](${origin}/): try a line of Python in the browser, how it works, who it's for, the syllabus, Python next to JavaScript, and questions (cost, time, what you need)
 - [Create an account](${origin}/auth/signup): start at the white belt
 - [Sign in](${origin}/auth/signin)
 - [Privacy policy](${origin}/privacy): what is stored, who handles it, and how to delete it
+
+## Start here (optional on-ramp, about 4 hours, no grade)
+
+- Programming from zero: what a program is, values and names, text and numbers, decisions, loops, your first function
 
 ## Python track (16 modules, kyu ranks)
 
@@ -60,7 +64,7 @@ ${AUTOMATION.map((t, i) => `- A${i + 1}. ${t}`).join("\n")}
 
 - Each lesson ends in drills graded in the browser with real Python (Pyodide).
 - Each module ends in a checkpoint grading and a capstone project, tested automatically in the learner's own GitHub repository and reviewed by an examiner.
-- AI lessons are provider-neutral (Anthropic, OpenAI); the optional AI tutor runs on the learner's own API key.
+- AI lessons are provider-neutral (Anthropic, OpenAI); the optional AI tutor runs on the learner's own API key (Anthropic, OpenAI or Google).
 `;
   return new Response(body, { headers: { "content-type": "text/plain; charset=utf-8" } });
 }

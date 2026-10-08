@@ -64,7 +64,7 @@ export function BeltBand({
 }
 
 /** Dashed band for the AI track's dan ranks, which are not open yet */
-function DanBand({ className }: { className?: string }) {
+export function DanBand({ className }: { className?: string }) {
   return (
     <div
       className={cn(

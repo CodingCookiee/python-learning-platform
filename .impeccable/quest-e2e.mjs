@@ -43,6 +43,8 @@ const ev = async (expression) => (await send("Runtime.evaluate", { expression, a
 await send("Page.enable");
 await send("Runtime.enable");
 await send("Log.enable");
+// Headless pages aren't focused, so focus events wouldn't fire without this
+await send("Emulation.setFocusEmulationEnabled", { enabled: true });
 const desktop = () => send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
 const phone = () => send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
 const theme = (value) => send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-color-scheme", value }] });
@@ -241,7 +243,19 @@ try {
   if (process.env.ONLY === "contrast") {
     await newLearner(BEGINNER, "Quest Beginner", "New to programming");
     await go(`/exercises/${db("drill-id", "start-say-hello")}`, 6000);
+    await waitFor(`!!window.monaco?.editor?.getEditors?.().length`, 60);
+    const cardBefore = await ev(`!!document.querySelector("section[data-quest-panel]")`);
+    // A real click into the editor, as a learner would
+    const at_ = await ev(`(() => { const r = document.querySelector(".monaco-editor .view-lines").getBoundingClientRect(); return { x: r.left + 120, y: r.top + 10 }; })()`);
+    for (const type of ["mousePressed", "mouseReleased"]) await send("Input.dispatchMouseEvent", { type, x: at_.x, y: at_.y, button: "left", clickCount: 1 });
+    await sleep(600);
+    const focusedIn = await ev(`document.activeElement?.closest(".monaco-editor") ? document.activeElement.className : document.activeElement?.tagName`);
+    const foldedTyping = await ev(`!!document.querySelector("button[data-quest-panel]")`);
     const d = await passDrill("contrast-light");
+    const foldedAfterRun = await ev(`!!document.querySelector("button[data-quest-panel]")`);
+    await expand();
+    const reopened = await ev(`!!document.querySelector("section[data-quest-panel]")`);
+    await step("typing", { cardBefore, focusedIn, foldedTyping, foldedAfterRun, reopened });
     await sleep(4000);
     const light = await axe();
     await theme("dark");

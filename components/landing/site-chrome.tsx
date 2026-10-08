@@ -11,14 +11,17 @@ export function SiteHeader() {
           <Logo />
         </Link>
         <nav aria-label="Main" className="hidden items-center gap-7 text-sm md:flex">
+          <Link href="/#how-it-works" className="text-muted-foreground hover:text-foreground">
+            How it works
+          </Link>
           <Link href="/#syllabus" className="text-muted-foreground hover:text-foreground">
             Syllabus
           </Link>
-          <Link href="/#rank" className="text-muted-foreground hover:text-foreground">
-            How rank is earned
-          </Link>
           <Link href="/#bridge" className="text-muted-foreground hover:text-foreground">
             For JS developers
+          </Link>
+          <Link href="/#faq" className="text-muted-foreground hover:text-foreground">
+            Questions
           </Link>
         </nav>
         <div className="flex items-center gap-1 sm:gap-2">
@@ -29,7 +32,7 @@ export function SiteHeader() {
           <Button size="sm" asChild>
             <Link href="/auth/signup">
               <span className="sm:hidden">Start</span>
-              <span className="hidden sm:inline">Start at white belt</span>
+              <span className="hidden sm:inline">Start free</span>
             </Link>
           </Button>
         </div>

@@ -1,17 +1,21 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import hljs from "highlight.js/lib/core";
 import javascript from "highlight.js/lib/languages/javascript";
 import python from "highlight.js/lib/languages/python";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { BeltBand } from "@/components/brand/belt";
-import { Seal } from "@/components/brand/seal";
 import { Hero } from "@/components/landing/hero";
 import { SiteFooter, SiteHeader } from "@/components/landing/site-chrome";
+import { HowItWorks } from "@/components/landing/how-it-works";
+import { WhoItsFor } from "@/components/landing/who-its-for";
+import { Faq, faqItems, faqJsonLd } from "@/components/landing/faq";
+import { getCourseHours } from "@/lib/landing/facts";
 import { BELTS, DAN_TRACK, beltForModule, kyuRange, ordinal } from "@/lib/ranks";
 
 hljs.registerLanguage("javascript", javascript);
@@ -55,7 +59,7 @@ export default async function LandingPage() {
   const session = await auth();
   if (session?.user) redirect("/dashboard");
 
-  const [modules, lessonCount, achievements, achievementCount] = await Promise.all([
+  const [modules, lessonCount, achievements, achievementCount, hours] = await Promise.all([
     prisma.module.findMany({
       where: { archivedAt: null, track: { slug: "python", archivedAt: null } },
       orderBy: { order: "asc" },
@@ -77,7 +81,11 @@ export default async function LandingPage() {
       take: 3,
     }),
     prisma.achievement.count({ where: { archivedAt: null } }),
+    getCourseHours(),
   ]);
+  const faq = faqItems(hours);
+  // Structured data is inert, but it carries the request's nonce like every other script on the page
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   return (
     <div className="flex min-h-full flex-col">
@@ -85,6 +93,10 @@ export default async function LandingPage() {
 
       <main className="flex-1">
         <Hero moduleCount={modules.length} lessonCount={lessonCount} />
+
+        <HowItWorks />
+
+        <WhoItsFor />
 
         {/* ── Syllabus ───────────────────────────────────────────────── */}
         <section
@@ -208,90 +220,11 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* ── How rank is earned ─────────────────────────────────────── */}
-        <section
-          id="rank"
-          aria-labelledby="rank-heading"
-          className="scroll-mt-16 border-t border-border px-4 py-20 sm:px-6 lg:px-8 lg:py-28"
-        >
-          <div className="mx-auto max-w-7xl">
-            <h2
-              id="rank-heading"
-              className="font-condensed max-w-3xl text-5xl leading-none font-extrabold tracking-[-0.02em] sm:text-6xl"
-            >
-              Rank is earned, not clicked.
-            </h2>
-
-            {/* The sequence runs along one belt; the grading is where the stripe goes on */}
-            <div className="mt-14">
-              <BeltBand belt="white" slots={4} filled={1} className="hidden h-4 lg:flex" />
-              <ol className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.5fr)_minmax(0,1fr)] lg:gap-0">
-                <li className="flex flex-col gap-4 lg:border-l lg:border-(--keyline)/40 lg:pt-7 lg:pr-8 lg:pl-5">
-                  <h3 className="text-lg font-semibold">Learn the technique</h3>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    Short lessons with examples you run in place. Change them, break them, run them
-                    again.
-                  </p>
-                  <pre className="mt-auto rounded-sm border border-border bg-sheet p-3 font-mono text-[0.8125rem] leading-6">
-                    <span className="text-muted-foreground">&gt;&gt;&gt; </span>
-                    [n * 2 for n in range(3)]{"\n"}
-                    <span className="text-muted-foreground">[0, 2, 4]</span>
-                  </pre>
-                </li>
-                <li className="flex flex-col gap-4 lg:border-l lg:border-(--keyline)/40 lg:pt-7 lg:pr-8 lg:pl-5">
-                  <h3 className="text-lg font-semibold">Drill it</h3>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    Graded exercises checked against real tests. Hints are there when you need
-                    them. Each one costs a little XP.
-                  </p>
-                  <div className="mt-auto flex flex-col rounded-sm border border-border bg-sheet font-mono text-[0.8125rem]">
-                    {['greet("Ada")', 'greet("Linus")'].map((t) => (
-                      <span
-                        key={t}
-                        className="flex items-center gap-2 border-b border-border/70 px-3 py-2 last:border-b-0"
-                      >
-                        <Check className="size-4 shrink-0 text-success" aria-hidden="true" />
-                        <span className="truncate">{t}</span>
-                        <span className="ml-auto text-muted-foreground">passed</span>
-                      </span>
-                    ))}
-                  </div>
-                </li>
-                <li className="flex flex-col gap-5 rounded-md bg-accent/70 p-6 lg:mx-3 lg:mt-3 lg:rounded-t-none lg:px-8 lg:pt-7">
-                  <h3 className="font-condensed text-4xl leading-none font-extrabold tracking-[-0.02em]">
-                    Pass the grading
-                  </h3>
-                  <p className="leading-relaxed">
-                    Every module ends with a grading: no hints, no solutions, 80% to pass. Pass it
-                    and the seal goes on your record, and a stripe goes on your belt.
-                  </p>
-                  <div className="mt-auto flex items-center justify-center py-6">
-                    <Seal label="Passed" detail="Module grading" className="origin-center scale-150" />
-                  </div>
-                </li>
-                <li className="flex flex-col gap-4 lg:border-l lg:border-(--keyline)/40 lg:pt-7 lg:pr-2 lg:pl-5">
-                  <h3 className="text-lg font-semibold">Keep it sharp</h3>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    Skills you haven&apos;t used in a while fade. A short daily review brings them
-                    back before they&apos;re gone.
-                  </p>
-                  <div className="mt-auto flex flex-col gap-2 rounded-sm border border-border bg-sheet p-3">
-                    <BeltBand belt="green" slots={3} filled={3} faded={1} />
-                    <span className="text-xs text-muted-foreground">
-                      Third stripe fading: decorators are due for review
-                    </span>
-                  </div>
-                </li>
-              </ol>
-            </div>
-          </div>
-        </section>
-
         {/* ── JS bridge ──────────────────────────────────────────────── */}
         <section
           id="bridge"
           aria-labelledby="bridge-heading"
-          className="scroll-mt-16 border-t border-border bg-sheet px-4 py-20 sm:px-6 lg:px-8 lg:py-28"
+          className="scroll-mt-16 border-t border-border px-4 py-20 sm:px-6 lg:px-8 lg:py-28"
         >
           <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] lg:gap-16">
             <div className="flex flex-col gap-5">
@@ -307,7 +240,7 @@ export default async function LandingPage() {
               </p>
             </div>
 
-            <div className="overflow-hidden rounded-md border border-border bg-background">
+            <div className="overflow-hidden rounded-md border border-border bg-sheet">
               <div className="hidden grid-cols-2 border-b border-border text-sm font-semibold sm:grid">
                 <span className="px-4 py-2.5">JavaScript</span>
                 <span className="border-l border-border px-4 py-2.5">Python</span>
@@ -342,7 +275,7 @@ export default async function LandingPage() {
         {/* ── Training record ───────────────────────────────────────── */}
         <section
           aria-labelledby="record-heading"
-          className="border-t border-border px-4 py-20 sm:px-6 lg:px-8 lg:py-28"
+          className="border-t border-border bg-sheet px-4 py-20 sm:px-6 lg:px-8 lg:py-28"
         >
           <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2 lg:gap-16">
             <div className="flex flex-col gap-5">
@@ -358,7 +291,7 @@ export default async function LandingPage() {
               </p>
             </div>
 
-            <figure className="rounded-md border border-border bg-sheet">
+            <figure className="rounded-md border border-border bg-background">
               <div className="flex items-end justify-between gap-6 border-b border-border p-6">
                 <div className="flex items-end gap-3">
                   <span className="font-condensed tabular text-[5.5rem] leading-[0.8] font-extrabold tracking-[-0.03em]">
@@ -408,6 +341,14 @@ export default async function LandingPage() {
           </div>
         </section>
 
+        <Faq items={faq} />
+        <script
+          type="application/ld+json"
+          nonce={nonce}
+          // JSON in a script element: escape "<" so no answer can close the tag
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(faq)).replace(/</g, "\\u003c") }}
+        />
+
         {/* ── Close ─────────────────────────────────────────────────── */}
         <section
           aria-labelledby="close-heading"
@@ -422,8 +363,14 @@ export default async function LandingPage() {
             </h2>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
               <Button size="lg" asChild>
+                <Link href="/auth/signup?start=new">
+                  I&apos;ve never coded
+                  <ArrowRight data-icon="inline-end" aria-hidden="true" />
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild>
                 <Link href="/auth/signup">
-                  Create your account
+                  I already code
                   <ArrowRight data-icon="inline-end" aria-hidden="true" />
                 </Link>
               </Button>
@@ -431,7 +378,7 @@ export default async function LandingPage() {
                 href="/auth/signin"
                 className="text-sm font-semibold underline decoration-foreground/30 hover:decoration-foreground"
               >
-                I already have one
+                I already have an account
               </Link>
             </div>
           </div>

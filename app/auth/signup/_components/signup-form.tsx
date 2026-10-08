@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FormError } from "@/components/auth/auth-shell";
 import { signUpSchema, type SignUpInput } from "@/lib/validations/auth";
+import { rememberStart } from "@/lib/start-intent";
 
 const FIELDS: Array<{
   name: keyof SignUpInput;
@@ -26,7 +27,9 @@ const FIELDS: Array<{
 ];
 
 /** The sign-up form. The page around it renders on the server */
-export function SignUpForm() {
+export function SignUpForm({ start }: { start?: string }) {
+  // Kept before any sign-up path, Google and GitHub included, so onboarding can pre-select it
+  useEffect(() => rememberStart(start), [start]);
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);

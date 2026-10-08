@@ -93,8 +93,8 @@ const isEditor = (el: EventTarget | null) =>
  * The first-session quest's guide, in the signed-in layout. It loads its own state on every page
  * change and on `pylearn:quest`, records browser steps from `pylearn:quest-action`, points at the
  * control the current step needs, and shows the farewell when the quest finishes. A card in the
- * corner on wide screens, a pill (and a sheet when opened) on phones; it gets out of the way while
- * the learner types or has the scratchpad open.
+ * corner on wide screens, a pill (and a sheet when opened) on phones; it gets out of the way once
+ * the learner types on a page, and while the scratchpad is open.
  */
 export function QuestPanel() {
   const pathname = usePathname();
@@ -172,12 +172,12 @@ export function QuestPanel() {
         .then((data) => data && apply(data.quest, data.achievements))
         .finally(() => pending.current.delete(step));
     };
+    // Once the learner types on a page the panel stays folded there, so it doesn't spring back over
+    // the results when they press Run tests; the next page starts afresh
     const onFocus = (event: FocusEvent) => {
       if (isEditor(event.target)) {
         setTypingOn(window.location.pathname);
         setHeldFor(null);
-      } else if (event.target instanceof Element && !event.target.closest("[data-quest-panel]")) {
-        setTypingOn(null);
       }
     };
     window.addEventListener(QUEST_REFRESH_EVENT, onRefresh);
