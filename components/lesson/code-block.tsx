@@ -223,6 +223,26 @@ export async function runExample(run: RunFn, source: string, timeoutMs = 8000): 
   return { status: "ok", output: printed.replace(/\n$/, ""), values };
 }
 
+/**
+ * A run with nothing to show yet: what Python is doing while it downloads and starts, then that the
+ * code is running. Keyed on the phase, so a long download doesn't make the run itself sound slow.
+ */
+export function RunPending({ pythonText, className }: { pythonText?: string; className?: string }) {
+  const downloading = Boolean(pythonText);
+  return (
+    <div aria-live="polite" className={cn("border-t border-border bg-accent/35", className)}>
+      <PendingLine
+        key={downloading ? "python" : "code"}
+        live={false}
+        delayMs={300}
+        lines={[pythonText || "Running your code…"]}
+        still={downloading ? "The first run downloads Python; after that it's quick." : "Your code is still running."}
+        slow={downloading ? "Still downloading: a slow connection takes longer." : undefined}
+      />
+    </div>
+  );
+}
+
 export function ExampleOutput({
   result,
   className,
@@ -237,15 +257,7 @@ export function ExampleOutput({
   return (
     <>
       {firstRun ? (
-        <div aria-live="polite" className={cn("border-t border-border bg-accent/35 px-4 py-3", className)}>
-          <PendingLine
-            live={false}
-            delayMs={300}
-            lines={[pythonText || "Running your code…"]}
-            still="The first run downloads Python; after that it's quick."
-            slow="Still downloading: a slow connection takes longer."
-          />
-        </div>
+        <RunPending pythonText={pythonText} className={cn("px-4 py-3", className)} />
       ) : result.status !== "idle" && (
         <div
           aria-live="polite"

@@ -1,5 +1,5 @@
 // Dev-only: the app's waiting states, for real in the browser (docs/superpowers/plans/2026-10-08-waiting-states-plan.md).
-//   BASE=http://localhost:3010 [ONLY=phase3,phase4,signedout] node .impeccable/waiting-e2e.mjs
+//   BASE=http://localhost:3010 [ONLY=phase3,phase4,signedout,fixes] node .impeccable/waiting-e2e.mjs
 // Slow steps are made visible by holding the browser's requests back (Fetch interception), and a
 // dropped connection is simulated by failing one. A throwaway learner, deleted at the end.
 import { execSync, spawn } from "node:child_process";
@@ -28,9 +28,12 @@ let id = 0;
 const pending = new Map();
 const issues = [];
 const paused = [];
+// Every request the page sends (to count refreshes)
+const requests = [];
 ws.addEventListener("message", (e) => {
   const m = JSON.parse(e.data);
   if (m.method === "Fetch.requestPaused") return void paused.push(m.params);
+  if (m.method === "Network.requestWillBeSent") return void requests.push(m.params.request.url);
   if (m.id && pending.has(m.id)) (pending.get(m.id)(m), pending.delete(m.id));
   else if (m.method === "Runtime.consoleAPICalled" && m.params.type === "error") issues.push(m.params.args.map((a) => a.value ?? a.description).join(" ").slice(0, 300));
   else if (m.method === "Runtime.exceptionThrown") issues.push("EXC " + m.params.exceptionDetails.text + " " + (m.params.exceptionDetails.exception?.description ?? "").slice(0, 200));
@@ -69,6 +72,17 @@ async function release(how = "continue") {
   }
 }
 const stopIntercepting = () => send("Fetch.disable");
+/** Answer the held requests with this JSON instead of letting them reach the server */
+async function fulfill(json) {
+  for (const p of paused.splice(0)) {
+    await send("Fetch.fulfillRequest", {
+      requestId: p.requestId,
+      responseCode: 200,
+      responseHeaders: [{ name: "Content-Type", value: "application/json" }],
+      body: Buffer.from(JSON.stringify(json)).toString("base64"),
+    });
+  }
+}
 /** Dismiss achievement and level-up dialogs one by one, as a learner would; their titles */
 async function dismissCelebrations(tries = 20) {
   const seen = [];
@@ -526,6 +540,153 @@ async function signedOut() {
   step("forgot password", { sending, emailLocked, failed });
 }
 
+/** The review's fixes (2026-10-09): nothing a save, search, skip or clock leaves spinning */
+async function fixes() {
+  const drillId = db("drill-id", "hello-pylearn");
+  const SUBMIT = "*/api/exercises/*/submit*";
+  const saved = (over) => ({
+    mode: "practice",
+    grading: "client",
+    gradingDisagreed: false,
+    submission: { attempts: 1, passed: true },
+    xpGained: 0,
+    newlySolved: false,
+    achievements: [],
+    review: null,
+    checkpoint: null,
+    ...over,
+  });
+  const NEXT_IN_BANNER = `[...document.querySelectorAll("div")].find((d) => d.className.includes("bg-accent/55"))?.querySelector("a")`;
+
+  if (process.env.CLOCK_ONLY) return clockAhead();
+  // A. Saved, but the checkpoint had closed: "Next drill" (pressed during the save) settles, the page stays
+  await go(`/exercises/${drillId}`, 6000);
+  await setSolution(drillId);
+  await intercept(SUBMIT);
+  await ev(`document.querySelector("[data-quest-target=run-tests]").click()`);
+  const passedA = await waitFor(`/Drill passed/.test(${BANNER})`, 90);
+  await ev(`${NEXT_IN_BANNER}?.click()`);
+  await sleep(600);
+  const holdingA = await ev(`${NEXT_IN_BANNER}?.innerText.trim()`);
+  await fulfill(saved({ checkpoint: { error: "This checkpoint has closed." } }));
+  await stopIntercepting();
+  await sleep(2500);
+  step("save with a checkpoint error", {
+    passedA,
+    holdingA,
+    linkAfter: await ev(`${NEXT_IN_BANNER}?.innerText.trim() + " | aria-busy=" + ${NEXT_IN_BANNER}?.getAttribute("aria-busy")`),
+    stayed: await ev(`location.pathname === ${JSON.stringify(`/exercises/${drillId}`)}`),
+    message: await ev(`document.body.innerText.includes("This checkpoint has closed.")`),
+  });
+
+  // B. The server overruled the pass: the bottom "next" link (pressed during the save) settles, the page stays
+  await go(`/exercises/${drillId}`, 6000);
+  await setSolution(drillId);
+  await intercept(SUBMIT);
+  await ev(`document.querySelector("[data-quest-target=run-tests]").click()`);
+  const passedB = await waitFor(`/Drill passed/.test(${BANNER})`, 90);
+  const BOTTOM_NEXT = `[...document.querySelectorAll("nav[aria-label=Drills] a")].at(-1)`;
+  await ev(`${BOTTOM_NEXT}.click()`);
+  await sleep(600);
+  const holdingB = await ev(`${BOTTOM_NEXT}.getAttribute("aria-busy")`);
+  await fulfill(saved({ gradingDisagreed: true, submission: { attempts: 2, passed: false } }));
+  await stopIntercepting();
+  await sleep(2500);
+  step("save the server overruled", {
+    passedB,
+    holdingB,
+    busyAfter: await ev(`${BOTTOM_NEXT}.getAttribute("aria-busy") ?? "none"`),
+    spinnerAfter: await ev(`!!${BOTTOM_NEXT}.querySelector(".animate-spin")`),
+    stayed: await ev(`location.pathname === ${JSON.stringify(`/exercises/${drillId}`)}`),
+    bannerGone: await ev(`!/Drill passed/.test(${BANNER})`),
+    message: await ev(`document.body.innerText.includes("The server re-ran the tests and not all of them passed")`),
+  });
+
+  // C. A search that fails clears the last results instead of leaving them under the error
+  await go("/dashboard", 6000);
+  await ev(`[...document.querySelectorAll("header button")].find((b) => b.offsetParent && /Search/.test(b.innerText + (b.getAttribute("aria-label") ?? "")))?.click()`);
+  await waitFor(`!!document.querySelector("input[aria-label='Search query']")`, 10);
+  await fill("input[aria-label='Search query']", "list");
+  const firstResults = await waitFor(`!!document.querySelector("[role=dialog][aria-label=Search] [role=listbox]")`, 40);
+  await intercept("*/api/search*");
+  await fill("input[aria-label='Search query']", "lists");
+  await sleep(1000);
+  await release("fail");
+  await stopIntercepting();
+  await sleep(800);
+  step("search that fails", {
+    firstResults,
+    staleResults: await ev(`!!document.querySelector("[role=dialog][aria-label=Search] [role=listbox]")`),
+    error: await ev(`document.querySelector("[role=dialog][aria-label=Search]")?.innerText.includes("Search isn't working right now")`),
+  });
+  await send("Input.dispatchKeyEvent", { type: "keyDown", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
+  await sleep(500);
+
+  // D. Slow code in the scratchpad: "still running", not "the first run downloads Python"
+  const lesson = db("lesson-id", "running-python");
+  await go(`/lessons/${lesson}`, 6000);
+  await ev(`[...document.querySelectorAll("button")].find((b) => b.textContent.includes("Open scratchpad"))?.click()`);
+  await waitFor(`!!document.querySelector("#scratchpad") && !!window.monaco?.editor?.getEditors?.().length`, 40);
+  await sleep(1000);
+  await ev(`window.monaco.editor.getEditors().at(-1).setValue("import time\\ntime.sleep(9.5)\\nprint('done')")`);
+  await ev(`document.querySelector("#scratchpad [data-quest-target=scratchpad]").click()`);
+  const pad = await watch(`document.querySelector("#scratchpad")?.innerText`, 21000, 250);
+  step("slow scratchpad code", { lines: pad.filter((l) => /…|still|downloads|done|Python/i.test(l)) });
+
+  // E. Skipping the quest when the skip doesn't land: the dialog stays and says so; trying again works
+  await go("/dashboard", 6000);
+  await clickText("button", "Start the quest");
+  await waitFor(`[...document.querySelectorAll("button")].some((b) => b.innerText.includes("Skip the quest"))`, 30);
+  await sleep(1000);
+  await clickText("button", "Skip the quest");
+  await waitFor(`!!document.querySelector("[role=alertdialog]")`, 10);
+  await intercept("*/api/quest/skip*");
+  await clickText("[role=alertdialog] button", "Skip the quest");
+  await sleep(700);
+  await release("fail");
+  await stopIntercepting();
+  await sleep(800);
+  const failedSkip = await ev(`document.querySelector("[role=alertdialog]")?.innerText.split("\\n").filter(Boolean).slice(-3).join(" / ") ?? "dialog closed"`);
+  await shot("fix-skip-failed.png");
+  await clickText("[role=alertdialog] button", "Skip the quest");
+  const retried = await waitFor(`!document.querySelector("[role=alertdialog]")`, 20);
+  step("quest skip that fails", { failedSkip, retriedAndClosed: retried });
+
+  await clockAhead();
+}
+
+/** F. A clock that runs ahead of the server's: it keeps asking, and the page closes once the server agrees */
+async function clockAhead() {
+  const moduleId = db("module-id", "1");
+  await go(`/modules/${moduleId}`, 6000);
+  await ev(`[...document.querySelectorAll("button")].find((b) => /checkpoint|Test out/i.test(b.textContent))?.click()`);
+  await waitFor(`location.pathname.startsWith("/checkpoints/")`, 40);
+  const attempt = await ev("location.pathname");
+  // This computer's clock six hours fast, from the next page load on
+  const { result: skew } = await send("Page.addScriptToEvaluateOnNewDocument", {
+    source: "(() => { const real = Date.now.bind(Date); Date.now = () => real() + 6 * 3600_000; })();",
+  });
+  await go(attempt, 5000);
+  const clock = await ev(`document.querySelector("main")?.innerText.includes("Time\\u2019s up: marking your checkpoint")`);
+  requests.length = 0;
+  await sleep(16000);
+  const refreshes = requests.filter((u) => u.includes(attempt)).length;
+  const expired = db("expire-checkpoints", EMAIL);
+  const expiredAt = Date.now();
+  requests.length = 0;
+  const closed = await waitFor(`!document.querySelector("main")?.innerText.includes("marking your checkpoint") && /Try a fresh set|fresh set of drills|try a fresh set|Back to the module/.test(document.querySelector("main")?.innerText ?? "")`, 60);
+  await send("Page.removeScriptToEvaluateOnNewDocument", { identifier: skew.identifier });
+  step("clock ahead of the server", {
+    clock,
+    refreshesIn16s: refreshes,
+    expired,
+    closedOnceServerAgreed: closed,
+    refreshesAfterExpiry: requests.filter((u) => u.includes(attempt)).length,
+    closedAfterMs: Date.now() - expiredAt,
+    mainAfter: await ev(`document.querySelector("main h1")?.closest("div")?.innerText.split("\n").filter(Boolean).slice(0, 3).join(" | ")`),
+  });
+}
+
 try {
   await signIn();
   if (process.env.ONLY === "probe") {
@@ -558,6 +719,7 @@ try {
   if (want("phase3")) await phase3();
   if (want("phase4")) await phase4();
   if (want("signedout")) await signedOut();
+  if (process.env.ONLY?.split(",").includes("fixes")) await fixes();
 } catch (e) {
   if (e !== "done") report.push({ step: "crashed", error: String(e && e.stack || e) });
 } finally {
