@@ -119,9 +119,10 @@ export function QuestPanel() {
   // fold only (the page, the pane, the typing as they were), and until the learner types again
   const [heldFor, setHeldFor] = React.useState<string | null>(null);
   const pending = React.useRef(new Set<string>());
-  // A step being recorded ("Got it" on the tour), and a skip on its way
+  // A step being recorded ("Got it" on the tour), and a skip on its way (or one that didn't land)
   const [posting, setPosting] = React.useState<StepKey | null>(null);
   const [skipping, setSkipping] = React.useState(false);
+  const [skipFailed, setSkipFailed] = React.useState(false);
   const pillRef = React.useRef<HTMLButtonElement>(null);
   const cardRef = React.useRef<HTMLElement>(null);
   const focusAfter = React.useRef<"pill" | "card" | null>(null);
@@ -229,9 +230,11 @@ export function QuestPanel() {
     setHeldFor(null);
     remember("min");
   }
-  async function skip() {
+  /** Whether the skip landed */
+  async function skip(): Promise<boolean> {
     const data = await post<{ quest: QuestView | null }>("/api/quest/skip");
     if (data) apply(data.quest);
+    return data !== null;
   }
 
   const live = (
@@ -423,25 +426,40 @@ export function QuestPanel() {
         </button>
       </section>
 
-      <AlertDialog open={confirmSkip} onOpenChange={setConfirmSkip}>
+      <AlertDialog
+        open={confirmSkip}
+        onOpenChange={(open) => {
+          setConfirmSkip(open);
+          setSkipFailed(false);
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{SENSEI.skip.title}</AlertDialogTitle>
             <AlertDialogDescription>{SENSEI.skip.line}</AlertDialogDescription>
           </AlertDialogHeader>
+          {skipFailed && (
+            <p role="alert" className="text-sm text-destructive">
+              That didn&apos;t go through, so the quest is still on. Try again in a moment.
+            </p>
+          )}
           <AlertDialogFooter>
             <AlertDialogCancel>Keep going</AlertDialogCancel>
             <AlertDialogAction
               aria-busy={skipping || undefined}
               onClick={(event) => {
-                // Stays open, saying so, until the skip has landed
+                // Stays open, saying so, until the skip has landed; if it doesn't, it says that too
                 event.preventDefault();
                 if (skipping) return;
                 setSkipping(true);
-                void skip().finally(() => {
-                  setSkipping(false);
-                  setConfirmSkip(false);
-                });
+                setSkipFailed(false);
+                void skip()
+                  .catch(() => false)
+                  .then((landed) => {
+                    setSkipping(false);
+                    if (landed) setConfirmSkip(false);
+                    else setSkipFailed(true);
+                  });
               }}
             >
               {skipping && <LoaderCircle className="animate-spin" aria-hidden="true" />}

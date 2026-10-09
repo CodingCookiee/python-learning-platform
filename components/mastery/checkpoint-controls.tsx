@@ -68,19 +68,31 @@ function formatClock(ms: number): string {
   return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${sec}` : `${m}:${sec}`;
 }
 
+/** How often a clock at zero asks the server again to close the attempt */
+const REFRESH_AT_ZERO_MS = 5000;
+
 /** Time left on an attempt; refreshes the page when it runs out so the server closes it. */
 export function CheckpointClock({ deadline, className }: { deadline: string; className?: string }) {
   const router = useRouter();
   const [left, setLeft] = React.useState<number | null>(null);
+  // A refresh still on its way (the one that closes the attempt marks it, which takes a moment):
+  // the next waits for it rather than piling up behind it
+  const [refreshing, startRefresh] = React.useTransition();
+  const refreshingRef = React.useRef(false);
+  React.useEffect(() => {
+    refreshingRef.current = refreshing;
+  }, [refreshing]);
   React.useEffect(() => {
     const end = new Date(deadline).getTime();
-    let refreshed = false;
+    let lastRefresh = 0;
     const tick = () => {
       const ms = Math.max(0, end - Date.now());
       setLeft(ms);
-      if (ms === 0 && !refreshed) {
-        refreshed = true;
-        router.refresh();
+      // Again every few seconds until the closed checkpoint replaces this page: this computer's
+      // clock can run ahead of the server's, which only closes it once its own time is up
+      if (ms === 0 && !refreshingRef.current && Date.now() - lastRefresh >= REFRESH_AT_ZERO_MS) {
+        lastRefresh = Date.now();
+        startRefresh(() => router.refresh());
       }
     };
     tick();

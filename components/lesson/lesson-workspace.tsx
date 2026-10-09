@@ -4,13 +4,12 @@ import * as React from "react";
 import { LoaderCircle, PanelRightClose, PanelRightOpen, Play, SquareTerminal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PythonEditor } from "@/components/lesson/monaco-editor";
-import { ExampleOutput, runExample, type RunState } from "@/components/lesson/code-block";
+import { ExampleOutput, RunPending, runExample, type RunState } from "@/components/lesson/code-block";
 import { ScratchpadContext, type Scratchpad } from "@/components/lesson/scratchpad-context";
 import { getPythonRuntime } from "@/lib/python-runtime";
 import { usePyodide } from "@/lib/pyodide";
 import { questAction } from "@/lib/quest-steps";
 import { cn } from "@/lib/utils";
-import { PendingLine } from "@/components/ui/pending-line";
 
 
 const OPEN_KEY = "pylearn:scratchpad-open";
@@ -185,15 +184,7 @@ export function LessonWorkspace({ lessonId, children }: { lessonId: string; chil
               <PythonEditor key={editorKey} value={code} onChange={update} storageKey={`scratch-${lessonId}`} onRun={() => void run()} height="min(40dvh, 380px)" />
             </div>
             {running ? (
-              <div aria-live="polite" className="border-t border-border bg-accent/35 px-3 py-2">
-                <PendingLine
-                  live={false}
-                  delayMs={300}
-                  lines={[pythonText || "Running your code…"]}
-                  still="The first run downloads Python; after that it's quick."
-                  slow="Still downloading: a slow connection takes longer."
-                />
-              </div>
+              <RunPending pythonText={pythonText} className="px-3 py-2" />
             ) : (
               result && <ExampleOutput result={result} className="max-h-48 overflow-auto px-3 py-2" />
             )}

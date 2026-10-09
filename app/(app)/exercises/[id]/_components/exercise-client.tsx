@@ -641,16 +641,21 @@ export function ExerciseClient({
       setAnnouncement(
         data.submission.passed ? (data.xpGained > 0 ? `Saved: plus ${data.xpGained} XP.` : "Saved.") : "Attempt saved."
       );
+      // Saved, but with something to read first (the server overruled the browser, or the checkpoint
+      // closed): a link followed during the save stays put rather than moving past the message
       if (data.gradingDisagreed) {
         setSaveError(
           data.submission.passed
             ? "The server re-ran the tests and they passed there, so this counts as a pass."
             : "The server re-ran the tests and not all of them passed there, so this attempt counts as failed. Check for code that depends on timing or randomness."
         );
+        setPendingHref(null);
       }
       if (data.review?.counted) setReviewOutcome(data.review);
-      if (data.checkpoint && "error" in data.checkpoint) setSaveError(data.checkpoint.error);
-      else if (data.checkpoint) {
+      if (data.checkpoint && "error" in data.checkpoint) {
+        setSaveError(data.checkpoint.error);
+        setPendingHref(null);
+      } else if (data.checkpoint) {
         setProgress({ passedCount: data.checkpoint.passedCount, total: data.checkpoint.total });
         if (data.checkpoint.finished) setFinished(data.checkpoint.finished);
       }

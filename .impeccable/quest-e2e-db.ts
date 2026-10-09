@@ -2,6 +2,7 @@
 //   npx tsx .impeccable/quest-e2e-db.ts drill <exerciseId>      a drill's type, main file and reference solution
 //   npx tsx .impeccable/quest-e2e-db.ts drill-id <slug>             a drill's id
 //   npx tsx .impeccable/quest-e2e-db.ts lesson-id <slug> / module-id <order>   ids for the run-throughs
+//   npx tsx .impeccable/quest-e2e-db.ts expire-checkpoints <email>   the learner's open checkpoints run out of time on the server
 //   npx tsx .impeccable/quest-e2e-db.ts fresh <email> <name>      a verified 16+ account, not onboarded yet
 //   npx tsx .impeccable/quest-e2e-db.ts existing <email>        an onboarded developer from before the quest, one fix drill passed
 //   npx tsx .impeccable/quest-e2e-db.ts tutor <email>           an onboarded learner with a dummy AI key (the page's tutor shows; tests intercept /api/tutor, no provider is called)
@@ -36,6 +37,14 @@ async function main() {
     console.log("passed");
   } else if (command === "lesson-id") {
     console.log((await prisma.lesson.findFirstOrThrow({ where: { slug: args[0]!, archivedAt: null }, select: { id: true } })).id);
+  } else if (command === "expire-checkpoints") {
+    // The learner's open checkpoints run out of time, as far as the server is concerned
+    const user = await prisma.user.findUniqueOrThrow({ where: { email: args[0]! }, select: { id: true } });
+    const { count } = await prisma.checkpointAttempt.updateMany({
+      where: { userId: user.id, submittedAt: null },
+      data: { startedAt: new Date(Date.now() - 24 * 3600_000) },
+    });
+    console.log(`expired ${count}`);
   } else if (command === "module-id") {
     // The Python track's module at this order
     console.log((await prisma.module.findFirstOrThrow({ where: { order: Number(args[0]), track: { slug: "python" } }, select: { id: true } })).id);

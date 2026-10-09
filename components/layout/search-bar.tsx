@@ -109,22 +109,19 @@ export function SearchBar() {
     let cancelled = false;
     const t = setTimeout(async () => {
       setLoading(true);
+      // A failed search clears the last one's results, so they don't sit under the error as if current
+      const settle = (results: SearchResult[] | null) => {
+        if (cancelled) return;
+        setResults(results ?? []);
+        setSelectedIdx(-1);
+        setSearchFailed(results === null);
+        setSearched(query);
+      };
       try {
         const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-        if (!cancelled) {
-          if (res.ok) {
-            const data = (await res.json()) as { results: SearchResult[] };
-            setResults(data.results);
-            setSelectedIdx(-1);
-          }
-          setSearchFailed(!res.ok);
-          setSearched(query);
-        }
+        settle(res.ok ? ((await res.json()) as { results: SearchResult[] }).results : null);
       } catch {
-        if (!cancelled) {
-          setSearchFailed(true);
-          setSearched(query);
-        }
+        settle(null);
       } finally {
         if (!cancelled) setLoading(false);
       }
