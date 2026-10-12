@@ -83,9 +83,16 @@ function buildGrid(numWeeks: number) {
   return columns;
 }
 
+/** A month name needs three columns: a label closer to the next one than that would run into it */
+const LABEL_COLUMNS = 3;
+
 /** Determines whether to show the month label for a column */
 function getMonthLabel(columns: ReturnType<typeof buildGrid>, colIndex: number): string | null {
-  if (colIndex === 0) return MONTH_NAMES[columns[0].month];
+  if (colIndex === 0) {
+    // The first column's month only gets a label when the next month starts far enough away
+    const nextMonth = columns.findIndex((col) => col.month !== columns[0].month);
+    return nextMonth === -1 || nextMonth >= LABEL_COLUMNS ? MONTH_NAMES[columns[0].month] : null;
+  }
   const prev = columns[colIndex - 1];
   const cur = columns[colIndex];
   if (prev && cur && prev.month !== cur.month) {

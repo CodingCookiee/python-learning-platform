@@ -1,6 +1,6 @@
 /**
  * The roadmap's weekly check-in (AI_Automation_Roadmap, section 07), as text to
- * paste into a chat with Claude or a mentor. Pure, so the log page can build it
+ * paste into a chat with an AI assistant or a mentor. Pure, so the log page can build it
  * in the browser.
  */
 
@@ -32,6 +32,6 @@ export function formatCheckIn(c: CheckInFields): string {
     `Stuck on: ${oneLine(c.stuck) || "nothing"}`,
     `Next week's goal: ${oneLine(c.nextGoal) || "-"}`,
   ];
-  if (c.question.trim()) lines.push(`Question for Claude: ${oneLine(c.question)}`);
+  if (c.question.trim()) lines.push(`Question: ${oneLine(c.question)}`);
   return lines.join("\n");
 }

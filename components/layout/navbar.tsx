@@ -72,7 +72,7 @@ export async function Navbar() {
                 {/* The spoken name starts with the visible rank, so voice control users can say what they see */}
                 <Button variant="ghost" size="sm" aria-label={rank ? `${rank.label}, account menu` : "Account menu"} className="gap-2 pl-1.5">
                   <span
-                    className="flex size-6 items-center justify-center rounded-sm bg-accent text-[0.625rem] font-bold"
+                    className="flex size-6 items-center justify-center rounded-sm bg-accent text-xs font-bold"
                     aria-hidden="true"
                   >
                     {initials}

@@ -94,7 +94,7 @@
 - slug: drills-300
   name: Exercise Champion
   description: Pass 300 drills
-  icon: Trophy
+  icon: Hammer
   category: Learning
   tier: platinum
   xp: 400
@@ -149,7 +149,7 @@
     modules: [python-basics, collections-and-control-flow, functions-and-modules, pythonic-stdlib, oop, errors-files-context, testing-pytest, iterators-generators-decorators, typing-pydantic, tooling-packaging, data-model-internals, concurrency, performance]
 - slug: belt-black
   name: Python Master
-  description: Earn the black belt, 1st dan - every Python checkpoint, advanced topics held at 80%, three capstones approved
+  description: "Earn the black belt, 1st dan: every Python checkpoint, advanced topics held at 80%, three capstones approved"
   icon: Medal
   category: Belts
   tier: legendary
@@ -209,7 +209,7 @@
 - { slug: capstone-make-it-fast, name: Speed Demon, description: Get the Make it fast capstone approved, icon: Zap, category: Capstones, tier: gold, xp: 125, criteria: { kind: capstone, module: performance } }
 - { slug: capstone-api-client, name: API Architect, description: Get the API client library capstone approved, icon: Link, category: Capstones, tier: platinum, xp: 150, criteria: { kind: capstone, module: http-apis } }
 - { slug: capstone-webhook-service, name: Service Builder, description: Get the Webhook-ready service capstone approved, icon: Send, category: Capstones, tier: platinum, xp: 150, criteria: { kind: capstone, module: fastapi } }
-- { slug: capstone-job-tracker, name: Black Belt Grading, description: Pass the black belt grading project, icon: Crown, category: Capstones, tier: legendary, xp: 300, criteria: { kind: capstone, module: data-and-databases } }
+- { slug: capstone-job-tracker, name: Black Belt Grading, description: Pass the black belt grading project, icon: Briefcase, category: Capstones, tier: legendary, xp: 300, criteria: { kind: capstone, module: data-and-databases } }
 
 # Streaks
 - { slug: streak-7, name: Consistent Learner, description: Practise 7 days in a row, icon: Flame, category: Streaks, tier: bronze, xp: 50, criteria: { kind: streak, days: 7 } }

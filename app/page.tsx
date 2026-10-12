@@ -258,7 +258,7 @@ export default async function LandingPage() {
                       ] as const
                     ).map(([lang, code, id], i) => (
                       <div key={lang} className={i === 1 ? "sm:border-l sm:border-border" : undefined}>
-                        <span className="block px-4 pt-2 text-[0.6875rem] font-semibold text-muted-foreground sm:hidden">
+                        <span className="block px-4 pt-2 text-xs font-semibold text-muted-foreground sm:hidden">
                           {lang}
                         </span>
                         <pre

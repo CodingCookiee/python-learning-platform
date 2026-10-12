@@ -36,7 +36,10 @@ const CARDS = [
   },
 ] as const;
 
-/** The landing page's "Who it's for": three readers, each with their own way in */
+/**
+ * The landing page's "Who it's for": three readers, each with their own way in. Ruled rows like
+ * the syllabus below it, not a row of boxed cards: reader, what they get, their way in
+ */
 export function WhoItsFor() {
   return (
     <section aria-labelledby="who-heading" className="border-t border-border px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
@@ -44,12 +47,15 @@ export function WhoItsFor() {
         <h2 id="who-heading" className="font-condensed text-5xl leading-none font-extrabold tracking-[-0.02em] sm:text-6xl">
           Who it&apos;s for
         </h2>
-        <ul className="mt-12 grid gap-6 lg:grid-cols-3">
+        <ul className="mt-12 flex flex-col border-b border-border">
           {CARDS.map((card) => (
-            <li key={card.title} className="flex flex-col gap-4 rounded-md border border-border bg-sheet p-6">
+            <li
+              key={card.title}
+              className="grid gap-4 border-t border-border py-8 md:grid-cols-[14rem_minmax(0,1fr)] md:gap-x-10 lg:grid-cols-[16rem_minmax(0,1fr)_15rem]"
+            >
               <h3 className="font-condensed text-3xl leading-none font-extrabold tracking-[-0.01em]">{card.title}</h3>
-              <p className="leading-relaxed text-muted-foreground">{card.text}</p>
-              <div className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-3 pt-2">
+              <p className="max-w-[62ch] leading-relaxed text-muted-foreground">{card.text}</p>
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-3 md:col-start-2 lg:col-start-auto lg:flex-col lg:items-start">
                 <Button asChild>
                   <Link href={card.action.href}>
                     {card.action.label}

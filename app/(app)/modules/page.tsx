@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import { RankCard } from "@/components/brand/rank-card";
@@ -78,10 +77,7 @@ export default async function ModulesPage() {
   const userId = session?.user?.id;
   if (!userId) redirect("/auth/signin");
 
-  const [tracks, learner] = await Promise.all([
-    getCurriculumState(userId),
-    prisma.user.findUnique({ where: { id: userId }, select: { experience: true } }),
-  ]);
+  const tracks = await getCurriculumState(userId);
   const rank = rankFromTracks(tracks, await blackBeltIfDue(userId, tracks));
   const start = tracks.find((t) => t.slug === START_TRACK);
   const python = tracks.find((t) => t.slug === PYTHON_TRACK);
@@ -107,6 +103,8 @@ export default async function ModulesPage() {
               <p className="max-w-2xl text-muted-foreground">
                 Sixteen Python modules from white belt to black belt, then eight AI automation modules
                 for the dan grades. Each module you pass puts a stripe on your belt; modules open in order.
+                Kyu grades count down, from 16 kyu to 1 kyu; the black belt is 1st dan, and dan grades
+                count up from there.
               </p>
             </div>
             <p className="font-condensed tabular leading-none">
@@ -131,9 +129,6 @@ export default async function ModulesPage() {
                   Before the white belt
                 </h2>
                 <p className="text-sm text-muted-foreground">{start.summary}</p>
-                {learner?.experience !== "new" && (
-                  <p className="text-sm font-medium">Never programmed? Start here; it&apos;s optional.</p>
-                )}
               </div>
               <ol className="flex flex-col">
                 {start.modules.map((m) => (

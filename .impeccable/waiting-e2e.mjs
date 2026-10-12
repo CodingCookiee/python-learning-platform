@@ -965,6 +965,94 @@ async function hardenChecks() {
   step("axe", { lesson: await (async () => { await go(`/lessons/${lessonId}`, 6000); return axe(); })(), dashboard: await (async () => { await go("/dashboard", 6000); return axe(); })() });
 }
 
+/** Which elements shift as the drill page loads (critique: CLS 0.20 on desktop) */
+async function clsProbe() {
+  const drillId = db("drill-id", "hello-pylearn");
+  const { result: probe } = await send("Page.addScriptToEvaluateOnNewDocument", {
+    source: `window.__shifts = []; try { new PerformanceObserver((list) => { for (const e of list.getEntries()) { if (e.hadRecentInput) continue; window.__shifts.push({ t: Math.round(e.startTime), value: Math.round(e.value * 1000) / 1000, sources: (e.sources || []).map((s) => { const n = s.node; const d = n && n.nodeType === 1 ? n.tagName.toLowerCase() + (n.id ? "#" + n.id : "") + "." + String(n.className && n.className.baseVal === undefined ? n.className : "").split(" ").filter(Boolean).slice(0, 4).join(".") + " :: " + (n.textContent || "").trim().replace(/\\s+/g, " ").slice(0, 50) : String(n && n.nodeName); return { node: d, from: [Math.round(s.previousRect.y), Math.round(s.previousRect.height)], to: [Math.round(s.currentRect.y), Math.round(s.currentRect.height)] }; }) }); } }).observe({ type: "layout-shift", buffered: true }); } catch {}`,
+  });
+  for (const vp of [{ width: 1440, height: 900, mobile: false }, { width: 390, height: 844, mobile: true }]) {
+    await send("Emulation.setDeviceMetricsOverride", { ...vp, deviceScaleFactor: 1 });
+    await go(`/exercises/${drillId}`, 9000);
+    const shifts = await ev(`window.__shifts`);
+    const total = (shifts ?? []).reduce((s, e) => s + e.value, 0);
+    step(`layout shifts at ${vp.width}`, { total: Math.round(total * 1000) / 1000, shifts });
+  }
+  await send("Page.removeScriptToEvaluateOnNewDocument", { identifier: probe.identifier });
+  await send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
+}
+
+/** A first pass on a phone: the seal is pressed into the strip's corner, clear of the text */
+async function sealOnPhone() {
+  const drillId = db("drill-id", "io-parse-line-item");
+  await send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
+  await go(`/exercises/${drillId}`, 7000);
+  await ev(`[...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Code")?.click()`);
+  await sleep(800);
+  await setSolution(drillId);
+  await ev(`document.querySelector("[data-quest-target=run-tests]").click()`);
+  const passed = await waitFor(`/Drill passed|Lesson finished/.test(${BANNER}) && !/Saving|Adding/.test(${BANNER})`, 180);
+  await dismissCelebrations(6);
+  await ev(`[...document.querySelectorAll("div")].find((d) => d.className.includes("bg-accent/55"))?.scrollIntoView({ block: "center" })`);
+  await sleep(1500);
+  await shot("seal-phone.png");
+  const overlap = await ev(`(() => {
+    const strip = [...document.querySelectorAll("div")].find((d) => d.className.includes("bg-accent/55"));
+    const seal = strip?.querySelector("[role=img]");
+    const text = strip?.querySelector("p");
+    if (!seal || !text) return "no seal or text";
+    const a = seal.getBoundingClientRect(), b = text.getBoundingClientRect();
+    const hit = !(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom);
+    return { seal: [Math.round(a.left), Math.round(a.top), Math.round(a.width), Math.round(a.height)], title: [Math.round(b.left), Math.round(b.top), Math.round(b.width), Math.round(b.height)], overlapsTitle: hit, stripRight: Math.round(strip.getBoundingClientRect().right) };
+  })()`);
+  step("seal on a phone", { passed, overlap });
+  await send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
+}
+
+/** Phase 3: the dashboard's one slot for what to do next */
+async function dashboardChecks() {
+  const SLOT = `document.querySelector("main section[aria-labelledby=next-heading], main section[aria-labelledby=quest-offer-heading]")`;
+  await go("/dashboard", 7000);
+  const first = await ev(`(() => ({ heading: document.querySelector("main h1")?.innerText, slot: ${SLOT}?.innerText.split("\\n").filter(Boolean).slice(0, 4).join(" | "), primaries: [...document.querySelectorAll("main a, main button")].filter((el) => getComputedStyle(el).backgroundColor === getComputedStyle(document.querySelector("[data-slot=button]:not([data-variant])") ?? document.body).backgroundColor).length, rankButton: !![...document.querySelectorAll("main section[aria-label^='Your rank'] a")].find((a) => /Start stripe|Continue/.test(a.textContent)) }))()`);
+  await shot("dash-quest-offer.png");
+  // Decline the quest: the band takes the slot with the next lesson
+  await clickText("button", "No thanks");
+  await waitFor(`!!document.querySelector("main section[aria-labelledby=next-heading]")`, 40);
+  await sleep(1500);
+  const band = await ev(`document.querySelector("main section[aria-labelledby=next-heading]")?.innerText.split("\\n").filter(Boolean).join(" | ")`);
+  const bandLink = await ev(`document.querySelector("main section[aria-labelledby=next-heading] a")?.getAttribute("href")`);
+  await shot("dash-band.png");
+  step("dashboard slot", { first, band, bandLink, axe: await axe() });
+  await send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
+  await go("/dashboard", 7000);
+  const fold = await ev(`(() => { const a = document.querySelector("main section[aria-labelledby=next-heading] a"); const r = a?.getBoundingClientRect(); return r ? { top: Math.round(r.top), bottom: Math.round(r.bottom), aboveFold: r.bottom <= innerHeight } : null; })()`);
+  await shot("dash-band-phone.png");
+  step("dashboard on a phone", { fold });
+  await send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
+}
+
+/** Phase 4: achievements with real unlocks (three modules passed: the yellow belt and module patches) */
+async function achievementChecks() {
+  const unlocked = db("pass-modules", EMAIL, "3");
+  await go("/achievements", 7000);
+  const summary = await ev(`(() => {
+    const t = document.querySelector("main")?.innerText ?? "";
+    return {
+      count: (t.match(/(\\d+)\\s*\\/\\s*(\\d+)/) ?? [""])[0],
+      closest: [...document.querySelectorAll("section[aria-labelledby=closest-heading] li")].map((li) => li.innerText.split("\\n").filter(Boolean).join(" | ")),
+      sections: [...document.querySelectorAll("main section[aria-labelledby^=cat-] h2")].map((h) => h.textContent + ": " + h.closest("section").querySelector(".tabular")?.textContent),
+      belts: [...document.querySelectorAll("section[aria-labelledby=cat-Belts] li")].map((li) => li.innerText.split("\\n")[0]),
+    };
+  })()`);
+  // Open the Belts section's folded list, as a learner would
+  await ev(`document.querySelector("section[aria-labelledby=cat-Belts] details summary")?.click()`);
+  await sleep(600);
+  await ev(`document.querySelector("section[aria-labelledby=cat-Belts]")?.scrollIntoView({ block: "start" })`);
+  await sleep(400);
+  await shot("ach-belts.png");
+  step("achievements", { unlocked, summary, axe: await axe() });
+}
+
 try {
   await signIn();
   if (process.env.ONLY === "probe") {
@@ -1001,6 +1089,10 @@ try {
   if (process.env.ONLY?.split(",").includes("clipboard")) await clipboardLock();
   if (process.env.ONLY?.split(",").includes("examiner")) await examinerAi();
   if (process.env.ONLY?.split(",").includes("harden")) await hardenChecks();
+  if (process.env.ONLY?.split(",").includes("cls")) await clsProbe();
+  if (process.env.ONLY?.split(",").includes("seal")) await sealOnPhone();
+  if (process.env.ONLY?.split(",").includes("dash")) await dashboardChecks();
+  if (process.env.ONLY?.split(",").includes("ach")) await achievementChecks();
 } catch (e) {
   if (e !== "done") report.push({ step: "crashed", error: String(e && e.stack || e) });
 } finally {

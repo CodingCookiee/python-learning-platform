@@ -12,7 +12,8 @@ export const GET = withAuth(async (_req: NextRequest, context: AuthContext) => {
     const [allAchievements, userAchievements] = await Promise.all([
       prisma.achievement.findMany({
         where: { archivedAt: null },
-        orderBy: [{ category: "asc" }, { name: "asc" }],
+        // The syllabus order the content gives them, not alphabetical
+        orderBy: { order: "asc" },
       }),
       prisma.userAchievement.findMany({
         where: { userId: context.userId, achievement: { archivedAt: null } },

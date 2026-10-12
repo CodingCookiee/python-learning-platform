@@ -283,6 +283,29 @@
   );
 }
 
+/* A code line running past the edge: the right edge fades while there's more to scroll to. Tied to
+   the element's own scroll position, so a block that fits never fades (the timeline is inactive and
+   the cue stays at 0); browsers without scroll timelines show the plain scrollbar */
+@property --scroll-cue {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@keyframes scroll-cue {
+  0%,
+  92% {
+    --scroll-cue: 2.5rem;
+  }
+  100% {
+    --scroll-cue: 0px;
+  }
+}
+@utility scroll-cue {
+  mask-image: linear-gradient(to right, #000 calc(100% - var(--scroll-cue)), transparent);
+  animation: scroll-cue linear both;
+  animation-timeline: scroll(self inline);
+}
+
 /* Signature motion: a stripe of tape pressed onto the rank bar */
 @keyframes tape-on {
   from {

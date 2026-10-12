@@ -116,7 +116,7 @@ export function SyllabusProgress({
                       <span className={cn("font-semibold", locked && "text-muted-foreground")}>
                         {m.title}
                         {m.state === "current" && (
-                          <span className="ml-2 align-middle text-xs font-semibold text-primary">
+                          <span className="ml-2 inline-block rounded-t-[2px] bg-highlight px-2 py-0.5 align-middle text-xs font-semibold whitespace-nowrap text-highlight-foreground">
                             Next stripe
                           </span>
                         )}

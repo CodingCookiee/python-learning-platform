@@ -198,6 +198,97 @@ export function met(criteria: AchievementCriteria, stats: LearnerStats): boolean
   }
 }
 
+/**
+ * How far along an achievement is: what's done of what it takes, and the unit to say it in ("3 of 5
+ * lessons"). Null for the all-or-nothing ones (a capstone, a quest, the black belt), which have no
+ * honest partial count.
+ */
+export function progress(criteria: AchievementCriteria, stats: LearnerStats): { done: number; of: number; unit: string } | null {
+  const of = (done: number, total: number, unit: string) => ({ done: Math.min(done, total), of: total, unit });
+  switch (criteria.kind) {
+    case "lessons":
+      return of(stats.lessons, criteria.count, "lessons");
+    case "drills":
+      return of(stats.drills, criteria.count, "drills");
+    case "modules":
+      return of(criteria.modules.filter((slug) => stats.passedModules.has(slug)).length, criteria.modules.length, "modules");
+    case "streak":
+      return of(stats.streak, criteria.days, "days in a row");
+    case "xp":
+      return of(stats.xp, criteria.amount, "XP");
+    case "module-lessons":
+      return of(stats.lessonsByModule.get(criteria.module) ?? 0, criteria.count, "lessons");
+    case "drill-type":
+      return of(stats.passedByType.get(criteria.type) ?? 0, criteria.count, `${criteria.type} drills`);
+    case "capstone":
+    case "black-belt":
+    case "quest":
+      return null;
+  }
+}
+
+/** Which ladder an achievement is a rung of: same kind, same subject, different targets */
+function ladder(criteria: AchievementCriteria): string {
+  switch (criteria.kind) {
+    case "module-lessons":
+      return `module-lessons:${criteria.module}`;
+    case "drill-type":
+      return `drill-type:${criteria.type}`;
+    case "modules":
+    case "capstone":
+    case "quest":
+      // Each is its own goal (a belt, a module, a project), not a rung
+      return JSON.stringify(criteria);
+    default:
+      return criteria.kind;
+  }
+}
+
+export interface BoardAchievement {
+  id: string;
+  slug: string | null;
+  name: string;
+  description: string;
+  icon: string;
+  category: string;
+  tier: string;
+  xpReward: number;
+  unlockedAt: string | null;
+  progress: { done: number; of: number; unit: string } | null;
+  /** Achievements on one ladder share it ("drills", "streak", "module-lessons:start"): the nearest rung is the one to show */
+  family: string;
+}
+
+/** Every live achievement in the syllabus's own order, each with whether it's earned and how close it is */
+export async function getAchievementBoard(userId: string): Promise<BoardAchievement[]> {
+  const [all, earned, stats] = await Promise.all([
+    prisma.achievement.findMany({ where: { archivedAt: null }, orderBy: { order: "asc" } }),
+    prisma.userAchievement.findMany({
+      where: { userId, achievement: { archivedAt: null } },
+      select: { achievementId: true, unlockedAt: true },
+    }),
+    learnerStats(userId),
+  ]);
+  const unlockedAt = new Map(earned.map((e) => [e.achievementId, e.unlockedAt.toISOString()]));
+  return all.map((a) => {
+    const criteria = parseCriteria(a.criteria);
+    return {
+      id: a.id,
+      slug: a.slug,
+      name: a.name,
+      description: a.description,
+      icon: a.icon,
+      category: a.category,
+      tier: a.tier,
+      xpReward: a.xpReward,
+      unlockedAt: unlockedAt.get(a.id) ?? null,
+      progress: criteria ? progress(criteria, stats) : null,
+      // The belts are one ladder too: the next belt is the one to chase
+      family: a.category === "Belts" ? "belts" : criteria ? ladder(criteria) : a.id,
+    };
+  });
+}
+
 function parseCriteria(text: string): AchievementCriteria | null {
   try {
     const parsed = achievementCriteriaSchema.safeParse(JSON.parse(text));

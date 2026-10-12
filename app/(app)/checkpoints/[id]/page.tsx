@@ -63,7 +63,7 @@ export default async function CheckpointPage({ params }: PageProps) {
 
         <FadeIn delay={0.03}>
           <header className="flex flex-col gap-4 border-b border-border pb-8">
-            <p className="text-sm font-semibold text-primary">
+            <p className="text-sm font-semibold text-muted-foreground">
               {attempt.placement ? "Placement checkpoint" : "Module checkpoint"}
             </p>
             <h1 className="font-condensed text-5xl leading-[0.95] font-extrabold tracking-[-0.02em]">

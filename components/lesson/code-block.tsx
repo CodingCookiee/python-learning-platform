@@ -198,7 +198,7 @@ export function CodeBlock({
         />
       ) : (
         // Focusable so a long line can be scrolled from the keyboard
-        <pre tabIndex={0} className="overflow-x-auto px-4 py-3 font-mono text-[0.875rem] leading-6 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring">
+        <pre tabIndex={0} className="scroll-cue overflow-x-auto px-4 py-3 font-mono text-[0.875rem] leading-6 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring">
           {children}
         </pre>
       )}

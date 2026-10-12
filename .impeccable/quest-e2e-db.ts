@@ -49,6 +49,22 @@ async function main() {
       data: lesson.exercises.slice(0, -1).map((e) => ({ userId: user.id, exerciseId: e.id, code: "", passed: true, testResults: "[]" })),
     });
     console.log(last.id);
+  } else if (command === "pass-modules") {
+    // The first N Python modules passed as placement checkpoints, then the real unlock check: belts,
+    // module patches and the rest land as they would
+    const { checkAndUnlockAchievements } = await import("@/lib/achievements");
+    const user = await prisma.user.findUniqueOrThrow({ where: { email: args[0]! }, select: { id: true } });
+    const modules = await prisma.module.findMany({
+      where: { archivedAt: null, track: { slug: "python" } },
+      orderBy: { order: "asc" },
+      take: Number(args[1] ?? 3),
+      select: { id: true },
+    });
+    await prisma.checkpointAttempt.createMany({
+      data: modules.map((m) => ({ userId: user.id, moduleId: m.id, exerciseIds: [], passedIds: [], placement: true, score: 1, passed: true, submittedAt: new Date() })),
+    });
+    const unlocked = await checkAndUnlockAchievements(user.id);
+    console.log(unlocked.map((a) => a.slug).join(","));
   } else if (command === "lesson-id") {
     console.log((await prisma.lesson.findFirstOrThrow({ where: { slug: args[0]!, archivedAt: null }, select: { id: true } })).id);
   } else if (command === "expire-checkpoints") {

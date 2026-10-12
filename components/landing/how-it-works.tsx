@@ -2,11 +2,11 @@ import { Check } from "lucide-react";
 import { BeltBand, DanBand } from "@/components/brand/belt";
 import { Seal } from "@/components/brand/seal";
 
-/** "You just tried this": straw yellow, the colour of something just earned */
+/** Points at the Try it sandbox above, which lets a visitor do this step for real */
 function TriedTag() {
   return (
-    <span className="w-fit rounded-sm bg-highlight px-1.5 py-0.5 text-[0.6875rem] font-semibold text-highlight-foreground">
-      You just tried this
+    <span className="w-fit rounded-sm border border-(--keyline)/40 px-1.5 py-0.5 text-xs font-semibold text-muted-foreground">
+      In the Try it above
     </span>
   );
 }
@@ -85,7 +85,7 @@ export function HowItWorks() {
           </h2>
           <p className="font-condensed text-2xl font-bold">Rank is earned, not clicked.</p>
           <p className="text-lg leading-relaxed text-muted-foreground">
-            You&apos;ve just done the first three steps. Here&apos;s the whole path.
+            The Try it above is the first three steps. Here&apos;s the whole path.
           </p>
         </div>
 

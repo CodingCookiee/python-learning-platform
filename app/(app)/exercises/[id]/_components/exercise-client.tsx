@@ -141,7 +141,8 @@ function TestList({ drill, check }: { drill: DrillData; check: CheckState }) {
               ) : row.passed === false ? (
                 <X className="size-4 text-destructive" />
               ) : (
-                <span className="size-3 rounded-[2px] border border-(--keyline)/45" />
+                // Not run yet: a hairline, not a box (a box reads as a checkbox to tick)
+                <span className="h-px w-2.5 bg-(--keyline)/55" />
               )}
             </span>
             <span className="min-w-0 flex-1">
@@ -361,6 +362,20 @@ function TestResults({ result, onExplain }: { result: TestRunResult; onExplain?:
   const passed = result.tests.filter((t) => t.passed).length;
   const total = result.tests.length;
   const all = passed === total;
+  // Every test passed: one line here (the pass strip below celebrates it, and the task's test list
+  // ticks each one); the rows stay a click away
+  if (all && open === null) {
+    return (
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 rounded-md border border-success/35 bg-success/6 px-4 py-3">
+        <p className="font-condensed tabular text-lg font-bold text-success-ink">
+          All {total} {total === 1 ? "test" : "tests"} passed
+        </p>
+        <button type="button" onClick={() => setOpen(-1)} className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground">
+          Show tests
+        </button>
+      </div>
+    );
+  }
   return (
     <div className={cn("rounded-md border p-4", all ? "border-success/35 bg-success/6" : "border-border bg-sheet")}>
       <p className={cn("font-condensed tabular text-lg font-bold", all ? "text-success-ink" : "text-foreground")}>
@@ -383,7 +398,7 @@ function TestResults({ result, onExplain }: { result: TestRunResult; onExplain?:
                     {t.hidden && <span className="ml-2 text-xs font-normal text-muted-foreground">hidden</span>}
                   </p>
                   {t.message && (
-                    <p className="mt-0.5 font-mono text-[0.8125rem] leading-5 wrap-break-word whitespace-pre-wrap text-destructive">
+                    <p className="mt-0.5 font-mono text-[0.8125rem] leading-5 wrap-break-word whitespace-pre-wrap text-foreground/85">
                       {t.message}
                     </p>
                   )}
@@ -867,8 +882,10 @@ export function ExerciseClient({
   };
   // Predict drills show the real output only once solved or after enough tries, and never in an exam
   const canRunPredict = !isPredict || (!exam && (solved || solution !== null));
-  // Programs always read input; other drills get the box once their code calls input()
-  const showInput = !isPredict && (drill.type === "program" || /\binput\(/.test(code));
+  // The box for Run's input appears once the code calls input() (in any of its files), and stays
+  // while it holds something
+  const readsInput = /\binput\(/.test(code) || (multi && Object.values(files).some((f) => /\binput\(/.test(f)));
+  const showInput = !isPredict && (readsInput || stdin !== "");
 
   const workspace = (
     <div className="flex flex-col gap-4">
@@ -988,7 +1005,6 @@ export function ExerciseClient({
             rows={3}
             spellCheck={false}
             className="font-mono text-sm"
-            placeholder={"Raza\n3"}
           />
         </label>
       )}
@@ -1125,7 +1141,7 @@ export function ExerciseClient({
               {finished ? "See the result" : "Back to the checkpoint"}
             </WaitLink>
           )}
-          {finished?.passed ? <Seal label="Passed" detail="Checkpoint" animate className="hidden shrink-0 sm:inline-flex" /> : null}
+          {finished?.passed ? <Seal label="Passed" detail="Checkpoint" animate className="shrink-0" /> : null}
         </div>
       )}
 
@@ -1151,8 +1167,14 @@ export function ExerciseClient({
       )}
 
       {allPassed && verdict !== false && mode.kind === "practice" && (
-        <div className="flex items-center gap-5 rounded-md border border-border bg-accent/55 px-5 py-4">
-          <div className="min-w-0 flex-1">
+        // The seal is pressed into the strip at every width: in its corner on phones, beside it on wider screens
+        <div
+          className={cn(
+            "relative flex flex-wrap items-center gap-x-5 gap-y-3 rounded-md border border-border bg-accent/55 px-5 py-4",
+            xpGained && "max-sm:pt-6"
+          )}
+        >
+          <div className={cn("min-w-0 flex-1 basis-56", xpGained && "max-sm:pr-20")}>
             <p className="font-semibold">
               {lessonDone ? "Lesson finished" : "Drill passed"}
               {xpGained ? <span className="font-condensed tabular text-primary-ink"> · +{xpGained} XP</span> : null}
@@ -1164,9 +1186,9 @@ export function ExerciseClient({
                   ? lessonDone.next
                     ? `${drill.lesson.title} is complete. Next: ${lessonDone.next.title}.`
                     : `${drill.lesson.title} is complete: that was the module's last lesson, so its checkpoint is open.`
-                  : drill.next
-                    ? "On to the next one."
-                    : "That's the last drill in this lesson."}
+                  : `Drill ${drill.position.index + 1} of ${drill.position.total} in ${drill.lesson.title}. ${
+                      drill.next ? "On to the next one." : "That was the last one."
+                    }`}
             </div>
           </div>
           {lessonDone ? (
@@ -1188,7 +1210,14 @@ export function ExerciseClient({
               Back to the lesson
             </WaitLink>
           )}
-          {xpGained ? <Seal label="Passed" detail="Drill" animate className="hidden shrink-0 sm:inline-flex" /> : null}
+          {xpGained ? (
+            <Seal
+              label="Passed"
+              detail={lessonDone ? "Lesson" : "Drill"}
+              animate
+              className="shrink-0 max-sm:absolute max-sm:top-2 max-sm:right-3 max-sm:origin-top-right max-sm:scale-75"
+            />
+          ) : null}
         </div>
       )}
 
@@ -1322,7 +1351,7 @@ export function ExerciseClient({
             onClick={() => setMobilePane(pane)}
             className={cn(
               "rounded-sm px-3 py-1.5 text-sm font-medium transition-colors",
-              mobilePane === pane ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"
+              mobilePane === pane ? "bg-background ring-1 ring-border" : "text-muted-foreground hover:text-foreground"
             )}
           >
             {pane === "task" ? "Task" : isPredict ? "Answer" : "Code"}

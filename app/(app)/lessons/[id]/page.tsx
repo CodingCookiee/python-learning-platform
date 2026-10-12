@@ -147,47 +147,49 @@ export default async function LessonPage({ params }: PageProps) {
             </aside>
 
             <article className="flex min-w-0 flex-col gap-10">
-              <header className="flex max-w-[70ch] flex-col gap-4 border-b border-border pb-8">
-                <h1 className="font-condensed text-4xl leading-[0.98] font-extrabold tracking-[-0.02em] sm:text-5xl">
-                  {lesson.title}
-                </h1>
-                {lesson.description && (
-                  <p className="text-lg leading-relaxed text-muted-foreground">
-                    {lesson.description}
-                  </p>
-                )}
-                <p className="font-condensed tabular flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                  <span>
-                    Lesson {lesson.index + 1} of {lesson.lessons.length}
-                  </span>
-                  <span>~{lesson.estimatedTime} min</span>
-                  {lesson.drills.length > 0 && (
+              <LessonWorkspace
+                lessonId={lesson.id}
+                heading={
+                  <>
+                    <h1 className="font-condensed text-4xl leading-[0.98] font-extrabold tracking-[-0.02em] sm:text-5xl">
+                      {lesson.title}
+                    </h1>
+                    {lesson.description && (
+                      <p className="text-lg leading-relaxed text-muted-foreground">{lesson.description}</p>
+                    )}
+                  </>
+                }
+                meta={
+                  <p className="font-condensed tabular flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                     <span>
-                      {lesson.drills.length} {lesson.drills.length === 1 ? "drill" : "drills"}
+                      Lesson {lesson.index + 1} of {lesson.lessons.length}
                     </span>
-                  )}
-                  {lesson.completed && (
-                    <span className="inline-flex items-center gap-1 font-sans font-semibold text-success">
-                      <Check className="size-4" aria-hidden="true" />
-                      Finished
-                    </span>
-                  )}
-                </p>
-              </header>
-
-              {!lesson.moduleUnlocked && (
-                <div className="flex max-w-[70ch] items-start gap-3 rounded-md border border-dashed border-border bg-sheet p-5">
-                  <LockedMark className="mt-0.5 size-5 text-muted-foreground" />
-                  <div className="flex flex-col gap-1">
-                    <p className="font-semibold">Not open yet</p>
-                    <p className="text-sm text-muted-foreground">
-                      Pass the earlier modules to open this one. You can still read ahead.
-                    </p>
+                    <span>~{lesson.estimatedTime} min</span>
+                    {lesson.drills.length > 0 && (
+                      <span>
+                        {lesson.drills.length} {lesson.drills.length === 1 ? "drill" : "drills"}
+                      </span>
+                    )}
+                    {lesson.completed && (
+                      <span className="inline-flex items-center gap-1 font-sans font-semibold text-success">
+                        <Check className="size-4" aria-hidden="true" />
+                        Finished
+                      </span>
+                    )}
+                  </p>
+                }
+              >
+                {!lesson.moduleUnlocked && (
+                  <div className="mb-10 flex max-w-[70ch] items-start gap-3 rounded-md border border-dashed border-border bg-sheet p-5">
+                    <LockedMark className="mt-0.5 size-5 text-muted-foreground" />
+                    <div className="flex flex-col gap-1">
+                      <p className="font-semibold">Not open yet</p>
+                      <p className="text-sm text-muted-foreground">
+                        Pass the earlier modules to open this one. You can still read ahead.
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )}
-
-              <LessonWorkspace lessonId={lesson.id}>
+                )}
                 <LessonContent content={lesson.content} />
               </LessonWorkspace>
 

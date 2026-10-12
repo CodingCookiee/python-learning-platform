@@ -30,7 +30,7 @@ export function Seal({
           {label}
         </span>
         {detail && (
-          <span className="font-condensed mt-1 text-[0.625rem] leading-none font-semibold tracking-[0.08em] uppercase">
+          <span className="font-condensed mt-1 text-xs leading-none font-semibold tracking-[0.08em] uppercase">
             {detail}
           </span>
         )}

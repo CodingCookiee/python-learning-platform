@@ -57,7 +57,7 @@ interface Job {
   started?: boolean;
 }
 
-const WORKER_URL = "/workers/python-worker.mjs?v=314.0.7-6";
+const WORKER_URL = "/workers/python-worker.mjs?v=314.0.7-7";
 /** Time allowed for downloading a drill's packages (pandas, mypy…) before its code starts */
 const PACKAGE_LOAD_MS = 120_000;
 

@@ -130,6 +130,36 @@ def _short_repr(value: object) -> str:
     return text if len(text) <= MAX_REPR else text[: MAX_REPR - 1] + "…"
 
 
+def _as_lines(value: object) -> list[str] | None:
+    """Printed output as lines: a list of strings (`.lines`) or the text itself; None for anything else."""
+    if isinstance(value, str):
+        return value.split("\n") if value else []
+    if isinstance(value, (list, tuple)) and all(isinstance(line, str) for line in value):
+        return list(value)
+    return None
+
+
+def _printed_vs_expected(printed: object, expected: object) -> str | None:
+    """'Your program printed:' and 'Expected:' as the lines themselves, the way a learner reads output.
+
+    None when the values aren't printed lines, or when they differ only in spaces (plain lines would
+    hide that, so the repr form, which shows the quotes, explains it better)."""
+    got, want = _as_lines(printed), _as_lines(expected)
+    if got is None or want is None:
+        return None
+    if [line.strip() for line in got] == [line.strip() for line in want]:
+        return None
+
+    def block(lines: list[str]) -> str:
+        shown = lines[:12]
+        text = "\n".join(f"  {line}" if line else "  (a blank line)" for line in shown)
+        if len(lines) > len(shown):
+            text += f"\n  … and {len(lines) - len(shown)} more lines"
+        return text if lines else "  (nothing)"
+
+    return f"Your program printed:\n{block(got)}\nExpected:\n{block(want)}"
+
+
 class _NoInput:
     """input() when a run has no stdin: explain instead of hanging."""
 
@@ -347,7 +377,8 @@ async def _explain_assertion(exc: AssertionError, tests_tree: ast.Module) -> str
             return f"Expected {left_src} {op} {right_src}"
         subject, verb = _subject(test.left)
         if op == "==":
-            return f"{subject} {verb} {_short_repr(left)}, expected {_short_repr(right)}"
+            lines = _printed_vs_expected(left, right) if verb == "printed" else None
+            return lines or f"{subject} {verb} {_short_repr(left)}, expected {_short_repr(right)}"
         if op == "!=":
             return f"{subject} {verb} {_short_repr(left)}, which it shouldn't be"
         if op in ("in", "not in"):
@@ -372,7 +403,8 @@ def _assert_fail(left, right, op: str, left_src: str, right_src: str, kind: str,
     else:
         subject, verb = left_src, "is"
     if op == "==":
-        text = f"{subject} {verb} {_short_repr(left)}, expected {_short_repr(right)}"
+        lines = _printed_vs_expected(left, right) if kind == "program" else None
+        text = lines or f"{subject} {verb} {_short_repr(left)}, expected {_short_repr(right)}"
     elif op == "!=":
         text = f"{subject} {verb} {_short_repr(left)}, which it shouldn't be"
     elif op in ("in", "not in"):

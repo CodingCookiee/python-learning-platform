@@ -96,15 +96,24 @@ export default async function ReviewPage() {
               ))}
             </ol>
           ) : (
-            <div className="flex items-start gap-3 rounded-md border border-dashed border-border p-5 text-muted-foreground">
-              <Repeat className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
-              <p>
-                {overLimit
-                  ? `That's today's ${queue.dailyLimit}. The rest wait until tomorrow; spacing is the point.`
-                  : queue.deckSize === 0
-                    ? "Nothing to review yet. Core and stretch drills you solve join your deck and come back the next day."
-                    : "Nothing due right now. Come back tomorrow."}
-              </p>
+            <div className="flex items-start gap-3 rounded-md border border-dashed border-border p-5">
+              <Repeat className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <div className="flex flex-col items-start gap-3">
+                <p className="text-muted-foreground">
+                  {overLimit
+                    ? `That's today's ${queue.dailyLimit}. The rest wait until tomorrow; spacing is the point.`
+                    : queue.deckSize === 0
+                      ? "Nothing to review yet. Core and stretch drills you solve join your deck and come back the next day."
+                      : "Nothing due right now; the next reviews are in the week ahead below."}
+                </p>
+                {/* Not a dead end: the dashboard's next band holds the next lesson, drill or checkpoint */}
+                <Button asChild variant="outline" size="sm">
+                  <Link href="/dashboard">
+                    Your next step
+                    <ArrowRight data-icon="inline-end" aria-hidden="true" />
+                  </Link>
+                </Button>
+              </div>
             </div>
           )}
         </FadeIn>

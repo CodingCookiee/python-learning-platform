@@ -17,7 +17,7 @@ const FIELDS: Array<{ key: Exclude<keyof Fields, "hours">; label: string; hint: 
   { key: "learned", label: "Learned", hint: "One or two key ideas, in your own words. That's what makes it stick.", rows: 2 },
   { key: "stuck", label: "Stuck on", hint: "A specific problem, or leave it empty for “nothing”.", rows: 2 },
   { key: "nextGoal", label: "Next week's goal", hint: "One concrete deliverable.", rows: 2 },
-  { key: "question", label: "Question for Claude", hint: "Optional.", rows: 2 },
+  { key: "question", label: "A question to ask", hint: "Optional: for your AI assistant or mentor.", rows: 2 },
 ];
 
 export function CopyCheckIn({ text, label = "Copy check-in" }: { text: string; label?: string }) {
@@ -154,7 +154,7 @@ export function CheckInForm({ initial }: { initial: LogWeek }) {
           {text}
         </pre>
         <p className="text-sm text-muted-foreground">
-          The roadmap&apos;s weekly check-in format. Paste it into a chat with Claude at the start of the week for a plan,
+          The roadmap&apos;s weekly check-in format. Paste it into a chat with your AI assistant at the start of the week for a plan,
           or send it to a mentor.
         </p>
       </aside>

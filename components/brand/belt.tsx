@@ -14,6 +14,7 @@ export function BeltBand({
   faded = 0,
   className,
   barPosition = "end",
+  compact = false,
 }: {
   belt: BeltKey;
   slots?: number;
@@ -24,6 +25,8 @@ export function BeltBand({
   faded?: number;
   className?: string;
   barPosition?: "end" | "none";
+  /** Tighter stripes, for small emblems that must hold all of them (eight dan stripes in 56px) */
+  compact?: boolean;
 }) {
   const barColor = belt === "black" ? "var(--seal)" : "var(--belt-black)";
   const style = {
@@ -42,7 +45,7 @@ export function BeltBand({
     >
       {barPosition === "end" && slots > 0 && (
         <div
-          className="flex h-full items-stretch gap-0.75 px-1.25 py-0.75"
+          className={cn("flex h-full items-stretch", compact ? "gap-0.5 px-1 py-0.5" : "gap-0.75 px-1.25 py-0.75")}
           style={{ backgroundColor: barColor }}
           aria-hidden="true"
         >
@@ -50,7 +53,7 @@ export function BeltBand({
             <span
               key={i}
               className={cn(
-                "w-1.25",
+                compact ? "w-1" : "w-1.25",
                 i < filled ? (i === fresh ? "bg-highlight" : "bg-tape") : "bg-transparent",
                 i < filled && i >= filled - faded && "opacity-35",
                 i === fresh && "animate-tape-on"

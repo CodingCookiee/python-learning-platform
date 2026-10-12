@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { achievementCriteriaSchema, achievementSchema } from "@/lib/content/schema";
 import { readFileSync } from "node:fs";
 import { parse as parseYaml } from "yaml";
-import { met, type LearnerStats } from "@/lib/achievements";
+import { met, progress, type LearnerStats } from "@/lib/achievements";
 
 const stats = (over: Partial<LearnerStats> = {}): LearnerStats => ({
   lessons: 0,
@@ -60,5 +60,21 @@ describe("achievements.yaml", () => {
     const list = parseYaml(readFileSync("content/achievements.yaml", "utf8")) as unknown[];
     const broken = list.filter((item) => !achievementSchema.safeParse(item).success);
     expect(broken).toEqual([]);
+  });
+});
+
+describe("achievement progress", () => {
+  it("counts toward the countable criteria, never past the target", () => {
+    expect(progress({ kind: "lessons", count: 5 }, stats({ lessons: 3 }))).toEqual({ done: 3, of: 5, unit: "lessons" });
+    expect(progress({ kind: "lessons", count: 5 }, stats({ lessons: 9 }))).toEqual({ done: 5, of: 5, unit: "lessons" });
+    expect(progress({ kind: "streak", days: 7 }, stats({ streak: 2 }))).toEqual({ done: 2, of: 7, unit: "days in a row" });
+    expect(progress({ kind: "modules", modules: ["a", "b", "c"] }, stats({ passedModules: new Set(["b"]) }))).toEqual({ done: 1, of: 3, unit: "modules" });
+    expect(progress({ kind: "drill-type", type: "fix", count: 4 }, stats({ passedByType: new Map([["fix", 1]]) }))).toEqual({ done: 1, of: 4, unit: "fix drills" });
+  });
+
+  it("has no partial count for the all-or-nothing ones", () => {
+    expect(progress({ kind: "black-belt" }, stats())).toBeNull();
+    expect(progress({ kind: "capstone", module: "oop" }, stats())).toBeNull();
+    expect(progress({ kind: "quest", quest: "first-session" }, stats())).toBeNull();
   });
 });

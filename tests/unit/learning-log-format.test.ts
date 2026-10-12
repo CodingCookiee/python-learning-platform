@@ -26,7 +26,7 @@ describe("the weekly check-in (roadmap section 07)", () => {
   });
 
   it("adds the question only when there is one", () => {
-    expect(formatCheckIn({ ...base, question: "Why is super() needed?" })).toMatch(/\nQuestion for Claude: Why is super\(\) needed\?$/);
+    expect(formatCheckIn({ ...base, question: "Why is super() needed?" })).toMatch(/\nQuestion: Why is super\(\) needed\?$/);
   });
 
   it("fills the gaps rather than leaving fields blank", () => {

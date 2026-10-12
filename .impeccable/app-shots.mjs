@@ -70,7 +70,7 @@ async function shot(key, path, { vp = "desktop", mode = "light", note = "", befo
     await before();
     await sleep(800);
   }
-  await ev(`window.scrollTo(0, 0)`);
+  if (full) await ev(`window.scrollTo(0, 0)`);
   await sleep(300);
   const at = await ev("location.pathname + location.search");
   const file = `${key}-${vp}${mode === "dark" ? "-dark" : ""}.png`;
@@ -118,6 +118,7 @@ try {
   await waitFor(`location.pathname === "/dashboard"`, 60);
   await sleep(2000);
 
+  const only = process.env.PAGES ? new Set(process.env.PAGES.split(",")) : null;
   const pages = [
     ["dashboard", "/dashboard", "Dashboard: rank, streak, this week, quest offer"],
     ["syllabus", "/modules", "Syllabus: belts and modules"],
@@ -130,7 +131,7 @@ try {
     ["profile", "/profile", "Profile and record"],
     ["settings", "/settings", "Settings, including the AI key"],
   ];
-  for (const [key, path, note] of pages) {
+  for (const [key, path, note] of pages.filter(([key]) => !only || only.has(key))) {
     await shot(key, path, { note });
     await shot(key, path, { vp: "mobile", note: `${note}, phone` });
   }
@@ -152,6 +153,18 @@ try {
       await sleep(600);
     }
   } });
+
+  await shot("drill-passed", `/exercises/${drill}`, { vp: "mobile", note: "Drill after a passing run, phone (the Code pane, where the pass strip is)", before: async () => {
+    await ev(`[...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Code")?.click()`);
+    await sleep(800);
+    await runWith(solution)();
+    for (let i = 0; i < 6; i++) {
+      await ev(`[...document.querySelectorAll("[role=dialog] button")].find((b) => /Keep training|Close|Continue/i.test(b.textContent))?.click()`);
+      await sleep(600);
+    }
+    // Scroll the pass strip into view for the shot
+    await ev(`[...document.querySelectorAll("div")].find((d) => d.className.includes("bg-accent/55"))?.scrollIntoView({ block: "center" })`);
+  }, full: false });
 
   // Dark theme on the core surfaces
   await theme("dark");

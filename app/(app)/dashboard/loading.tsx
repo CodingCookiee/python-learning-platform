@@ -10,6 +10,8 @@ export default function DashboardLoading() {
           <Skeleton className="h-12 w-2/3 max-w-md" />
           <Skeleton className="h-5 w-full max-w-xl" />
         </div>
+        {/* The next band */}
+        <Skeleton className="h-28 w-full sm:h-24" />
         <SkeletonRankCard />
         <div className="grid gap-x-10 border-y border-border md:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (

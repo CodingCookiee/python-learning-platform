@@ -398,7 +398,7 @@ export function QuestPanel() {
                 <span
                   aria-hidden="true"
                   className={cn(
-                    "flex size-5 shrink-0 items-center justify-center border text-[0.6875rem] font-bold tabular",
+                    "flex size-5 shrink-0 items-center justify-center border text-xs font-bold tabular",
                     s.done
                       ? "border-primary bg-primary text-primary-foreground"
                       : current

@@ -54,7 +54,23 @@ function readOpen(): boolean {
   }
 }
 
-export function LessonWorkspace({ lessonId, children }: { lessonId: string; children: React.ReactNode }) {
+/**
+ * The lesson's header, text and scratchpad. The scratchpad toggle sits on the header's meta line
+ * (lesson count, time, drills) rather than on a row of its own above the text.
+ */
+export function LessonWorkspace({
+  lessonId,
+  heading,
+  meta,
+  children,
+}: {
+  lessonId: string;
+  /** The title and description */
+  heading: React.ReactNode;
+  /** The meta line the toggle shares */
+  meta: React.ReactNode;
+  children: React.ReactNode;
+}) {
   // null until the learner toggles it: then the remembered choice (read after hydration) applies
   const [chosen, setOpen] = React.useState<boolean | null>(null);
   const remembered = React.useSyncExternalStore(
@@ -146,19 +162,23 @@ export function LessonWorkspace({ lessonId, children }: { lessonId: string; chil
     <ScratchpadContext.Provider value={scratchpad}>
       <div className={cn("grid min-w-0 gap-8", open && "xl:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]")}>
         <div ref={lessonRef} className="min-w-0">
-          <div className="mb-6 flex justify-end">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => toggle(!open)}
-              aria-expanded={open}
-              aria-controls={open ? "scratchpad" : undefined}
-              data-quest-target={open ? undefined : "scratchpad"}
-            >
-              {open ? <PanelRightClose aria-hidden="true" /> : <PanelRightOpen aria-hidden="true" />}
-              {open ? "Close scratchpad" : "Open scratchpad"}
-            </Button>
-          </div>
+          <header className="mb-10 flex max-w-[70ch] flex-col gap-4 border-b border-border pb-8">
+            {heading}
+            <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+              {meta}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => toggle(!open)}
+                aria-expanded={open}
+                aria-controls={open ? "scratchpad" : undefined}
+                data-quest-target={open ? undefined : "scratchpad"}
+              >
+                {open ? <PanelRightClose aria-hidden="true" /> : <PanelRightOpen aria-hidden="true" />}
+                {open ? "Close scratchpad" : "Open scratchpad"}
+              </Button>
+            </div>
+          </header>
           {children}
         </div>
 

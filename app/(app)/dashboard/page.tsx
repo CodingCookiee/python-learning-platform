@@ -16,7 +16,7 @@ import { QuestOffer } from "@/components/quest/quest-offer";
 import { XpProgressBar } from "@/components/gamification/xp-progress-bar";
 import { StreakCalendar } from "@/components/gamification/streak-calendar";
 import { MilestoneTracker } from "@/components/gamification/milestone-tracker";
-import { ArrowRight, Check, Repeat } from "lucide-react";
+import { Check } from "lucide-react";
 import { SealMark } from "@/components/brand/marks";
 import { AchievementPatch } from "@/components/gamification/achievement-badge";
 import { tierStyle } from "@/lib/achievement-tier";
@@ -28,6 +28,8 @@ import { SkillMap } from "@/components/mastery/skill-map";
 import { getSkillMap } from "@/lib/skill-map";
 import { countDueReviews } from "@/lib/review";
 import { getPace, startOfWeek } from "@/lib/pacing";
+import { getNextStep } from "@/lib/next-step";
+import { NextBand } from "@/components/dashboard/next-band";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -272,6 +274,17 @@ export default async function DashboardPage() {
   const suggestPlacement = dbUser.experience !== "new" && current && current.lessonsDone === 0 && !current.checkpointDue;
   const questOffer = questCard(quest);
   const weekPct = Math.min(100, (pace.hoursThisWeek / pace.weeklyHours) * 100);
+  // One slot at the top for the one thing to do next: due reviews and a running checkpoint come
+  // first, then the quest offer, then the beginner on-ramp, then the exact next lesson or drill
+  const next = await getNextStep(dbUser.id, syllabus, reviewsDue);
+  const slot =
+    next.kind === "reviews" || next.kind === "checkpoint-open"
+      ? "next"
+      : questOffer
+        ? "quest"
+        : showOnRamp && onRamp
+          ? "onramp"
+          : "next";
 
   if (!data) {
     return (
@@ -292,6 +305,8 @@ export default async function DashboardPage() {
   const recentLessons = recentActivity.lessons.slice(0, 6);
   const recentAchievements = achievements.unlocked.slice(0, 4);
   const passedCount = syllabus.filter((m) => m.state === "passed").length;
+  // Nothing done yet: a first visit isn't a return
+  const firstVisit = completion.lessons.completed === 0 && completion.exercises.completed === 0;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
@@ -299,7 +314,8 @@ export default async function DashboardPage() {
         <FadeIn>
           <header className="flex flex-col gap-2">
             <h1 className="font-condensed text-5xl leading-none font-extrabold tracking-[-0.02em]">
-              Welcome back{user.name ? `, ${user.name.split(" ")[0]}` : ""}.
+              {firstVisit ? "Welcome" : "Welcome back"}
+              {user.name ? `, ${user.name.split(" ")[0]}` : ""}.
             </h1>
             <p className="text-muted-foreground">
               {passedCount} of {syllabus.length} modules passed. One lesson a day keeps the streak
@@ -308,21 +324,21 @@ export default async function DashboardPage() {
           </header>
         </FadeIn>
 
-        {/* The first-session quest: offered once to learners who never had it, resumable when skipped midway */}
-        {questOffer && (
-          <FadeIn delay={0.02}>
+        {/* The one thing to do next. The first-session quest (offered once to learners who never had
+            it, resumable when skipped midway) and the beginner on-ramp take this slot when they apply */}
+        <FadeIn delay={0.02}>
+          {slot === "quest" && questOffer ? (
             <QuestOffer kind={questOffer} done={quest?.completed.length ?? 0} />
-          </FadeIn>
-        )}
-        {showOnRamp && onRamp && (
-          <FadeIn delay={0.03}>
+          ) : slot === "onramp" && onRamp ? (
             <OnRampCard onRamp={onRamp} />
-          </FadeIn>
-        )}
+          ) : (
+            <NextBand next={next} />
+          )}
+        </FadeIn>
         <FadeIn delay={0.04}>
           {/* The quest's last step points at the belt, the streak and the XP in turn */}
           <div data-quest-target="belt">
-            <RankCard rank={rank} />
+            <RankCard rank={rank} showAction={false} />
           </div>
         </FadeIn>
 
@@ -412,25 +428,6 @@ export default async function DashboardPage() {
           </section>
         </FadeIn>
 
-        {reviewsDue > 0 && (
-          <FadeIn delay={0.07}>
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-3 rounded-md border border-border bg-accent/45 px-5 py-4">
-              <Repeat className="size-5 shrink-0 text-primary" aria-hidden="true" />
-              <p className="min-w-0 flex-1">
-                <span className="font-semibold">
-                  {reviewsDue} {reviewsDue === 1 ? "drill is" : "drills are"} due for review.
-                </span>{" "}
-                <span className="text-muted-foreground">Solve them again from memory to keep them.</span>
-              </p>
-              <Button asChild>
-                <Link href="/review">
-                  Review now
-                  <ArrowRight data-icon="inline-end" aria-hidden="true" />
-                </Link>
-              </Button>
-            </div>
-          </FadeIn>
-        )}
 
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
           <FadeIn delay={0.08}>

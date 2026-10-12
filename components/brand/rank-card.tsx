@@ -73,10 +73,13 @@ function BlackBeltGrading({ status }: { status: BlackBeltStatus }) {
 export function RankCard({
   rank,
   showLadder = true,
+  showAction = true,
   className,
 }: {
   rank: LearnerRank;
   showLadder?: boolean;
+  /** The "Start stripe" button; off on the dashboard, whose next band already says where to go */
+  showAction?: boolean;
   className?: string;
 }) {
   const next = rank.nextModule;
@@ -124,12 +127,14 @@ export function RankCard({
                   {next.lessonsDone} of {next.lessonsTotal} lessons done
                 </span>
               </p>
-              <Button asChild>
-                <Link href={`/modules/${next.id}`}>
-                  {next.lessonsDone > 0 ? "Continue" : `Start stripe ${nextStripe}`}
-                  <ArrowRight data-icon="inline-end" aria-hidden="true" />
-                </Link>
-              </Button>
+              {showAction && (
+                <Button asChild>
+                  <Link href={`/modules/${next.id}`}>
+                    {next.lessonsDone > 0 ? "Continue" : `Start stripe ${nextStripe}`}
+                    <ArrowRight data-icon="inline-end" aria-hidden="true" />
+                  </Link>
+                </Button>
+              )}
             </div>
           ) : rank.blackBeltPending ? (
             <BlackBeltGrading status={rank.blackBeltPending} />

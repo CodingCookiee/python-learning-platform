@@ -15,7 +15,13 @@ export function PageLoading({
   children: React.ReactNode;
 }) {
   return (
-    <div role="status" aria-busy="true" className={cn("mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8", className)}>
+    // At least a screen tall (less the header), so the footer stays below the fold while a page
+    // streams in, instead of showing under a short skeleton and jumping away when the page arrives
+    <div
+      role="status"
+      aria-busy="true"
+      className={cn("mx-auto min-h-[calc(100dvh-4rem)] max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8", className)}
+    >
       <span className="sr-only">{label}…</span>
       <div aria-hidden="true">{children}</div>
     </div>

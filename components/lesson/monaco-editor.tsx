@@ -259,7 +259,9 @@ export function PythonEditor({
         </div>
       )}
 
-      <div className="overflow-hidden rounded-md border border-border">
+      {/* The editor's height is held before Monaco's code arrives (it's loaded lazily and renders
+          nothing until then), so the run buttons and results below don't jump when it appears */}
+      <div className="overflow-hidden rounded-md border border-border" style={{ height: `calc(${editorHeight} + 2px)` }}>
         <MonacoEditor
           height={editorHeight}
           defaultLanguage={language}
