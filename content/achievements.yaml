@@ -173,10 +173,10 @@
 - { slug: module-functions, name: Function Expert, description: Pass Functions and modules, icon: Braces, category: Modules, tier: bronze, xp: 50, criteria: { kind: modules, modules: [functions-and-modules] } }
 - { slug: module-stdlib, name: Pythonista, description: Pass Pythonic idioms and the standard library, icon: Sparkles, category: Modules, tier: silver, xp: 75, criteria: { kind: modules, modules: [pythonic-stdlib] } }
 - { slug: module-oop, name: OOP Master, description: Pass Object-oriented Python, icon: Blocks, category: Modules, tier: silver, xp: 75, criteria: { kind: modules, modules: [oop] } }
-- { slug: module-errors-files, name: File Handler, description: Pass Errors, files and context managers, icon: FileStack, category: Modules, tier: silver, xp: 75, criteria: { kind: modules, modules: [errors-files-context] } }
+- { slug: module-errors-files, name: File Handler, description: "Pass Errors, files and context managers", icon: FileStack, category: Modules, tier: silver, xp: 75, criteria: { kind: modules, modules: [errors-files-context] } }
 - { slug: module-pytest, name: Test Ninja, description: Pass Testing with pytest, icon: TestTube, category: Modules, tier: silver, xp: 75, criteria: { kind: modules, modules: [testing-pytest] } }
-- { slug: module-generators, name: Python Sorcerer, description: Pass Iterators, generators and decorators, icon: Repeat, category: Modules, tier: gold, xp: 100, criteria: { kind: modules, modules: [iterators-generators-decorators] } }
-- { slug: module-typing, name: Type Guardian, description: Pass Types, Protocols and Pydantic, icon: Shield, category: Modules, tier: gold, xp: 100, criteria: { kind: modules, modules: [typing-pydantic] } }
+- { slug: module-generators, name: Python Sorcerer, description: "Pass Iterators, generators and decorators", icon: Repeat, category: Modules, tier: gold, xp: 100, criteria: { kind: modules, modules: [iterators-generators-decorators] } }
+- { slug: module-typing, name: Type Guardian, description: "Pass Types, Protocols and Pydantic", icon: Shield, category: Modules, tier: gold, xp: 100, criteria: { kind: modules, modules: [typing-pydantic] } }
 - { slug: module-tooling, name: Package Pro, description: Pass Tooling and packaging, icon: Package, category: Modules, tier: gold, xp: 100, criteria: { kind: modules, modules: [tooling-packaging] } }
 - { slug: module-internals, name: Under the Hood, description: Pass Data model and internals, icon: Cog, category: Modules, tier: gold, xp: 125, criteria: { kind: modules, modules: [data-model-internals] } }
 - { slug: module-concurrency, name: Async Wizard, description: "Pass Concurrency: asyncio, threads and processes", icon: Timer, category: Modules, tier: gold, xp: 125, criteria: { kind: modules, modules: [concurrency] } }
@@ -217,6 +217,6 @@
 - { slug: streak-100, name: Unstoppable, description: Practise 100 days in a row, icon: Flame, category: Streaks, tier: platinum, xp: 500, criteria: { kind: streak, days: 100 } }
 
 # Experience
-- { slug: xp-1000, name: XP Collector, description: Earn 1,000 XP, icon: Zap, category: Experience, tier: bronze, xp: 0, criteria: { kind: xp, amount: 1000 } }
-- { slug: xp-5000, name: XP Hoarder, description: Earn 5,000 XP, icon: Zap, category: Experience, tier: gold, xp: 0, criteria: { kind: xp, amount: 5000 } }
-- { slug: xp-15000, name: XP Legend, description: Earn 15,000 XP, icon: Zap, category: Experience, tier: legendary, xp: 0, criteria: { kind: xp, amount: 15000 } }
+- { slug: xp-1000, name: XP Collector, description: "Earn 1,000 XP", icon: Zap, category: Experience, tier: bronze, xp: 0, criteria: { kind: xp, amount: 1000 } }
+- { slug: xp-5000, name: XP Hoarder, description: "Earn 5,000 XP", icon: Zap, category: Experience, tier: gold, xp: 0, criteria: { kind: xp, amount: 5000 } }
+- { slug: xp-15000, name: XP Legend, description: "Earn 15,000 XP", icon: Zap, category: Experience, tier: legendary, xp: 0, criteria: { kind: xp, amount: 15000 } }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { combinedSource, decodeDraft, encodeDraft, filesForRun, parseDrillFiles } from "@/lib/drill-files";
+import { combinedSource, decodeDraft, encodeDraft, filesForRun, parseDrillFiles, testNameFromLiteral } from "@/lib/drill-files";
 
 const defs = parseDrillFiles([
   { path: "pricing.py", editable: true, starter: "STARTER", solution: "SOLUTION" },
@@ -39,5 +39,13 @@ describe("multi-file drills", () => {
     expect(encodeDraft("just code")).toBe("just code");
     expect(decodeDraft("just code")).toBeNull();
     expect(decodeDraft('{"__multi": broken')).toBeNull();
+  });
+});
+
+describe("test names", () => {
+  it("read a Python string literal's escaped quotes as plain quotes", () => {
+    expect(testNameFromLiteral(String.raw`Prints \"Let's train.\" second`)).toBe(`Prints "Let's train." second`);
+    expect(testNameFromLiteral(String.raw`a backslash: ` + "\\" + "\\")).toBe("a backslash: " + "\\");
+    expect(testNameFromLiteral("plain name")).toBe("plain name");
   });
 });

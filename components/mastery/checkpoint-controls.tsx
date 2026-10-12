@@ -68,6 +68,31 @@ function formatClock(ms: number): string {
   return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${sec}` : `${m}:${sec}`;
 }
 
+/**
+ * What a checkpoint clock says to screen readers: once on crossing 15, 5 and 1 minute left, and at
+ * time up (the visible clock only turns red under 5 minutes). Derived from the time left, so the
+ * live region changes, and speaks, only when a threshold passes.
+ */
+export function ClockAnnouncement({ left }: { left: number | null }) {
+  const text =
+    left === null
+      ? ""
+      : left === 0
+        ? "Time's up. The checkpoint is being marked."
+        : left <= 60_000
+          ? "1 minute left in the checkpoint."
+          : left <= 5 * 60_000
+            ? "5 minutes left in the checkpoint."
+            : left <= 15 * 60_000
+              ? "15 minutes left in the checkpoint."
+              : "";
+  return (
+    <span role="status" className="sr-only">
+      {text}
+    </span>
+  );
+}
+
 /** How often a clock at zero asks the server again to close the attempt */
 const REFRESH_AT_ZERO_MS = 5000;
 
@@ -113,6 +138,7 @@ export function CheckpointClock({ deadline, className }: { deadline: string; cla
         <Clock className="size-4" aria-hidden="true" />
       )}
       {left === null ? "…" : left === 0 ? "Time’s up: marking your checkpoint…" : `${formatClock(left)} left`}
+      <ClockAnnouncement left={left} />
     </span>
   );
 }

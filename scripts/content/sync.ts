@@ -20,6 +20,7 @@ import { Prisma, PrismaClient } from "../../lib/generated/prisma/client";
 import { loadContent } from "../../lib/content/load";
 import { beltForModule, ordinal } from "../../lib/ranks";
 import type { ContentExercise } from "../../lib/content/schema";
+import { testNameFromLiteral } from "../../lib/drill-files";
 
 dotenv.config({ quiet: true });
 
@@ -38,7 +39,7 @@ export function parseTestNames(tests: string): Array<{ name: string; hidden: boo
   for (let i = 0; i < lines.length; i++) {
     const m = /^@(test|hidden)(?:\(\s*(?:(["'])(.*?)\2)?\s*\))?\s*$/.exec(lines[i]!.trim());
     if (!m) continue;
-    let name = m[3];
+    let name = m[3] ? testNameFromLiteral(m[3]) : m[3];
     if (!name) {
       const def = lines.slice(i + 1).find((l) => /^\s*(async\s+)?def\s/.test(l));
       const fn = def ? /def\s+(\w+)/.exec(def)?.[1] ?? "" : "";

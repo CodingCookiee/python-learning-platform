@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { achievementCriteriaSchema } from "@/lib/content/schema";
+import { achievementCriteriaSchema, achievementSchema } from "@/lib/content/schema";
+import { readFileSync } from "node:fs";
+import { parse as parseYaml } from "yaml";
 import { met, type LearnerStats } from "@/lib/achievements";
 
 const stats = (over: Partial<LearnerStats> = {}): LearnerStats => ({
@@ -42,5 +44,21 @@ describe("achievement criteria", () => {
   it("leave the existing criteria as they were", () => {
     expect(met({ kind: "lessons", count: 1 }, stats({ lessons: 1 }))).toBe(true);
     expect(met({ kind: "modules", modules: ["python-basics"] }, stats())).toBe(false);
+  });
+});
+
+describe("achievements.yaml", () => {
+  const entry = { slug: "xp-1000", name: "XP Collector", description: "Earn 1,000 XP", icon: "Zap", category: "Experience", tier: "bronze", xp: 0, criteria: { kind: "xp", amount: 1000 } };
+
+  it("rejects an entry whose unquoted comma split a value into a stray key", () => {
+    // What { description: Earn 1,000 XP } parses to
+    expect(achievementSchema.safeParse({ ...entry, description: "Earn 1", "000 XP": null }).success).toBe(false);
+    expect(achievementSchema.safeParse(entry).success).toBe(true);
+  });
+
+  it("has no split entries", () => {
+    const list = parseYaml(readFileSync("content/achievements.yaml", "utf8")) as unknown[];
+    const broken = list.filter((item) => !achievementSchema.safeParse(item).success);
+    expect(broken).toEqual([]);
   });
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { MotionConfig } from "framer-motion";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 
 type ThemeProviderProps = Parameters<typeof NextThemesProvider>[0];
@@ -17,7 +18,9 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
       storageKey="app-theme"
       {...props}
     >
-      {children}
+      {/* Every framer-motion animation follows the learner's reduced-motion setting: movement goes,
+          fades stay (globals.css does the same for CSS animations) */}
+      <MotionConfig reducedMotion="user">{children}</MotionConfig>
     </NextThemesProvider>
   );
 }

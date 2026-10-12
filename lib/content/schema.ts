@@ -190,7 +190,10 @@ export const achievementSchema = z.object({
   tier: z.enum(["bronze", "silver", "gold", "platinum", "legendary"]),
   xp: z.number().int().min(0).default(0),
   criteria: achievementCriteriaSchema,
-});
+})
+  // No other keys. achievements.yaml writes each entry as a { flow mapping }, where an unquoted
+  // comma ends the value: "description: Earn 1,000 XP" saves "Earn 1" plus a stray "000 XP" key
+  .strict();
 
 export type AchievementCriteria = z.infer<typeof achievementCriteriaSchema>;
 export type ContentAchievement = z.infer<typeof achievementSchema>;

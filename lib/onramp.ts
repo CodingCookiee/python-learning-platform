@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { START_TRACK } from "@/lib/curriculum-state";
+import { PYTHON_TRACK, START_TRACK } from "@/lib/curriculum-state";
 
 /**
  * The beginner on-ramp ("Start here", the Start track's one module): where a learner is in it,
@@ -93,4 +93,22 @@ export async function getOnRamp(userId: string): Promise<OnRamp | null> {
     finished,
     showOnDashboard: !finished && (started || user?.experience === "new"),
   };
+}
+
+/**
+ * For a lesson in the Start on-ramp: module 1's page (where the white belt ceremony sends the learner)
+ * and the on-ramp's lesson count, for the ceremony's belt; otherwise null
+ */
+export async function onRampHandOver(moduleId: string): Promise<{ nextHref: string; lessons: number } | null> {
+  const learningModule = await prisma.module.findUnique({
+    where: { id: moduleId },
+    select: { track: { select: { slug: true } }, _count: { select: { lessons: { where: { archivedAt: null } } } } },
+  });
+  if (learningModule?.track?.slug !== START_TRACK) return null;
+  const firstPython = await prisma.module.findFirst({
+    where: { archivedAt: null, track: { slug: PYTHON_TRACK } },
+    orderBy: { order: "asc" },
+    select: { id: true },
+  });
+  return { nextHref: firstPython ? `/modules/${firstPython.id}` : "/modules", lessons: learningModule._count.lessons };
 }

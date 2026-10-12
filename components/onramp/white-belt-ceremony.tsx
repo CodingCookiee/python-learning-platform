@@ -9,6 +9,9 @@ import { ConfettiEffect } from "@/components/animations";
 import { Seal } from "@/components/brand/seal";
 import { BeltTying } from "@/components/brand/belt-tying";
 
+/** The achievement that finishing the on-ramp earns, and that this ceremony celebrates */
+export const WHITE_BELT_TIED = "white-belt-tied";
+
 /**
  * Shown once, when finishing the last on-ramp lesson earns White Belt Tied: the end of
  * "Start here" and the hand-over to module 1.

@@ -66,3 +66,9 @@ export function decodeDraft(code: string): MultiDraft | null {
     return null;
   }
 }
+
+
+/** A test's name as written in a Python string literal (@test("Prints \"hi\"")), as a learner reads it */
+export function testNameFromLiteral(literal: string): string {
+  return literal.replace(/\\(["'\\])/g, "$1");
+}

@@ -99,8 +99,18 @@ async function dismissCelebrations(tries = 20) {
 const STATUS = `document.querySelector("[data-quest-target=run-tests]")?.closest("div")?.querySelector(".ml-auto")?.innerText ?? ""`;
 const BUTTON = `document.querySelector("[data-quest-target=run-tests]")?.innerText ?? ""`;
 const BANNER = `[...document.querySelectorAll("div")].find((d) => d.className.includes("bg-accent/55"))?.innerText ?? ""`;
+const PREDICT_BOX = `document.querySelector("textarea[placeholder^='Type the output']")`;
+/** Type into the predict box (a controlled textarea) */
+const typeAnswer = (text) => ev(`(() => { const el = ${PREDICT_BOX}; Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set.call(el, ${JSON.stringify(text)}); el.dispatchEvent(new Event("input", { bubbles: true })); })()`);
 async function setSolution(drillId) {
   const drill = JSON.parse(db("drill", drillId));
+  if (drill.type === "predict") {
+    // The answer is what the code prints: run it here (trusted repo content), isolated
+    const output = execSync("python -I -", { input: drill.solution, encoding: "utf8" }).replace(/\r/g, "").replace(/\n$/, "");
+    await waitFor(`!!${PREDICT_BOX}`, 60);
+    await typeAnswer(output);
+    return;
+  }
   await waitFor(`!!window.monaco?.editor?.getEditors?.().length`, 60);
   await ev(`(() => { const ed = window.monaco.editor.getEditors().find((e) => !e.getOption(window.monaco.editor.EditorOption.readOnly)); ed.setValue(${JSON.stringify(drill.solution)}); })()`);
 }
@@ -866,6 +876,95 @@ async function examinerAi() {
   }
 }
 
+/** Phase 1 of the 2026-10-12 critique: progress that tells the truth, and the accessibility commitments */
+async function hardenChecks() {
+  const lessonSlug = "running-python";
+  const lessonId = db("lesson-id", lessonSlug);
+  const lastDrill = db("pass-all-but-last", EMAIL, lessonSlug);
+
+  // The lesson page before the last drill: progress toward completing it, no locked button
+  await go(`/lessons/${lessonId}`, 6000);
+  await waitFor(`!document.querySelector("main [role=status][aria-busy=true]") && !!document.querySelector("main h1")`, 40);
+  await shot("harden-lesson-before.png");
+  const lessonBefore = await ev(`(() => { const t = document.querySelector("main")?.innerText ?? ""; return { progress: (t.match(/\\d+ of \\d+ required drills? passed/) ?? [""])[0], line: (t.match(/Pass the last required drill[^\\n]*|Pass (its|the remaining) [^\\n]*/) ?? [""])[0], lockedButton: /Finish earlier lessons first|Mark lesson complete/.test(t) }; })()`);
+  const quizLive = await ev(`!!document.querySelector("section [aria-live=polite]")`);
+  const navCurrent = await ev(`[...document.querySelectorAll("header nav a[aria-current=page]")].map((a) => a.textContent.trim())`);
+  step("lesson before its last drill", { lessonBefore, quizLive, navCurrent });
+
+  // Pass the last drill: the strip says the lesson is finished and leads to the next one
+  await go(`/exercises/${lastDrill}`, 7000);
+  await waitFor(`!!window.monaco?.editor?.getEditors?.().length`, 60);
+  await sleep(1000);
+  await shot("harden-drill-loaded.png");
+  const editorLabel = await ev(`document.querySelector("[aria-label^='Your code for'], [aria-label^='The code for']")?.getAttribute("aria-label") ?? "none"`);
+  const legend = await ev(`[...document.querySelectorAll("p")].find((p) => p.innerText.includes("leaves the editor"))?.innerText ?? "none (read-only code)"`);
+  await setSolution(lastDrill);
+  await ev(`document.querySelector("[data-quest-target=run-tests]").click()`);
+  const finished = await waitFor(`/Lesson finished|Drill passed/.test(${BANNER})`, 120);
+  const savingFrom = Date.now();
+  await waitFor(`/Lesson finished/.test(${BANNER}) || (!/Saving|Adding|Still saving/.test(${BANNER}) && /Drill passed/.test(${BANNER}))`, 180);
+  const saveMs = Date.now() - savingFrom;
+  await sleep(1500);
+  const strip = await ev(`${BANNER}`);
+  const nextLink = await ev(`[...document.querySelectorAll("div")].find((d) => d.className.includes("bg-accent/55"))?.querySelector("a")?.innerText.trim()`);
+  await shot("harden-lesson-finished.png");
+  const celebrated = await dismissCelebrations(6);
+  step("passing the last drill finishes the lesson", { editorLabel, legend, finished, saveMs, strip: strip?.split("\\n").slice(0, 3).join(" | "), nextLink, celebrated: celebrated.filter((c) => c.startsWith("clicked")).length });
+
+  // The lesson page now says Finished; the dashboard counts it, and the first day's streak
+  await go(`/lessons/${lessonId}`, 6000);
+  const lessonAfter = await ev(`(document.querySelector("main header")?.innerText ?? "").includes("Finished")`);
+  await go("/dashboard", 6000);
+  const dash = await ev(`(() => { const t = document.querySelector("main")?.innerText ?? ""; return { streak: (t.match(/(\\d+)\\s*days? in a row/) ?? [""])[0], lessons: (t.match(/Lessons finished\\s*(\\d+)/) ?? [""])[0] }; })()`);
+  const navDash = await ev(`[...document.querySelectorAll("header nav a[aria-current=page]")].map((a) => a.textContent.trim())`);
+  // The first Tab lands on the skip link
+  await send("Input.dispatchKeyEvent", { type: "keyDown", key: "Tab", code: "Tab", windowsVirtualKeyCode: 9 });
+  await send("Input.dispatchKeyEvent", { type: "keyUp", key: "Tab", code: "Tab", windowsVirtualKeyCode: 9 });
+  await sleep(300);
+  const firstTab = await ev(`document.activeElement?.textContent?.trim()`);
+  step("lesson and dashboard after", { lessonAfter, dash, navDash, firstTab });
+
+  // "solved earlier" when the run on screen fails a solved drill
+  await go(`/exercises/${lastDrill}`, 7000);
+  await waitFor(`!!${PREDICT_BOX} || !!window.monaco?.editor?.getEditors?.().length`, 60);
+  if (await ev(`!!${PREDICT_BOX}`)) await typeAnswer("not the output");
+  else await ev(`window.monaco.editor.getEditors().find((e) => !e.getOption(window.monaco.editor.EditorOption.readOnly)).setValue("print('not yet')")`);
+  await ev(`document.querySelector("[data-quest-target=run-tests]").click()`);
+  await waitFor(`/attempts?/.test(${STATUS}) && !document.querySelector("[data-quest-target=run-tests][aria-busy=true]")`, 90);
+  await sleep(2500);
+  step("a failing run on a solved drill", { status: await ev(STATUS) });
+
+  // Achievements: the full descriptions
+  await go("/achievements", 6000);
+  const ach = await ev(`(() => { const t = document.querySelector("main")?.innerText ?? ""; return ["Earn 1,000 XP", "Pass Errors, files and context managers", "Pass Types, Protocols and Pydantic"].map((s) => s + ": " + t.includes(s)); })()`);
+  step("achievement copy", { ach });
+
+  // Phone width: the drill renders without a hydration error
+  await send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
+  issues.length = 0;
+  await go(`/exercises/${lastDrill}`, 7000);
+  const phoneErrors = issues.filter((i) => /418|hydrat/i.test(i));
+  await send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
+  step("drill on a phone", { hydrationErrors: phoneErrors.length });
+
+  // The checkpoint clock speaks at 15, 5 and 1 minute left: a fast clock puts it about 10 minutes from the end
+  const moduleId = db("module-id", "1");
+  await go(`/modules/${moduleId}`, 6000);
+  await ev(`[...document.querySelectorAll("button")].find((b) => /checkpoint|Test out/i.test(b.textContent))?.click()`);
+  await waitFor(`location.pathname.startsWith("/checkpoints/")`, 40);
+  await sleep(2000);
+  const attempt = await ev("location.pathname");
+  const deadlineIn = await ev(`(() => { const m = (document.querySelector("main")?.innerText ?? "").match(/(\\d+):(\\d\\d):(\\d\\d) left|(\\d+):(\\d\\d) left/); if (!m) return null; return m[1] ? (+m[1] * 3600 + +m[2] * 60 + +m[3]) * 1000 : (+m[4] * 60 + +m[5]) * 1000; })()`);
+  const skewMs = deadlineIn ? deadlineIn - 10 * 60_000 : 0;
+  const { result: skew } = await send("Page.addScriptToEvaluateOnNewDocument", { source: `(() => { const real = Date.now.bind(Date); Date.now = () => real() + ${skewMs}; })();` });
+  await go(attempt, 5000);
+  const spoken = await ev(`[...document.querySelectorAll("main [role=status].sr-only, main .sr-only[role=status]")].map((s) => s.textContent.trim()).filter(Boolean)`);
+  await send("Page.removeScriptToEvaluateOnNewDocument", { identifier: skew.identifier });
+  step("checkpoint clock", { deadlineIn, spoken });
+
+  step("axe", { lesson: await (async () => { await go(`/lessons/${lessonId}`, 6000); return axe(); })(), dashboard: await (async () => { await go("/dashboard", 6000); return axe(); })() });
+}
+
 try {
   await signIn();
   if (process.env.ONLY === "probe") {
@@ -901,6 +1000,7 @@ try {
   if (process.env.ONLY?.split(",").includes("fixes")) await fixes();
   if (process.env.ONLY?.split(",").includes("clipboard")) await clipboardLock();
   if (process.env.ONLY?.split(",").includes("examiner")) await examinerAi();
+  if (process.env.ONLY?.split(",").includes("harden")) await hardenChecks();
 } catch (e) {
   if (e !== "done") report.push({ step: "crashed", error: String(e && e.stack || e) });
 } finally {

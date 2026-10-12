@@ -97,14 +97,17 @@ export function QuizCheck({ source }: { source: string }) {
             );
           })}
         </ul>
-        {answered && (
-          <p aria-live="polite" className="text-[0.9375rem] leading-relaxed">
-            <span className={cn("font-semibold", correct ? "text-success" : "text-destructive")}>
-              {correct ? "Right." : "Not quite."}
-            </span>{" "}
-            <InlineCode text={quiz.explain} />
-          </p>
-        )}
+        {/* Mounted before the answer, so screen readers hear the verdict when it appears */}
+        <div aria-live="polite">
+          {answered && (
+            <p className="text-base leading-relaxed">
+              <span className={cn("font-semibold", correct ? "text-success" : "text-destructive")}>
+                {correct ? "Right." : "Not quite."}
+              </span>{" "}
+              <InlineCode text={quiz.explain} />
+            </p>
+          )}
+        </div>
       </div>
     </section>
   );

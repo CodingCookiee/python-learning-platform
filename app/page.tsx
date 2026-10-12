@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { BeltBand } from "@/components/brand/belt";
 import { Hero } from "@/components/landing/hero";
 import { SiteFooter, SiteHeader } from "@/components/landing/site-chrome";
+import { SkipLink } from "@/components/layout/skip-link";
 import { HowItWorks } from "@/components/landing/how-it-works";
 import { WhoItsFor } from "@/components/landing/who-its-for";
 import { Faq, faqItems, faqJsonLd } from "@/components/landing/faq";
@@ -89,9 +90,10 @@ export default async function LandingPage() {
 
   return (
     <div className="flex min-h-full flex-col">
+      <SkipLink href="#content">Skip to the content</SkipLink>
       <SiteHeader />
 
-      <main className="flex-1">
+      <main id="content" tabIndex={-1} className="flex-1 focus:outline-none">
         <Hero moduleCount={modules.length} lessonCount={lessonCount} />
 
         <HowItWorks />

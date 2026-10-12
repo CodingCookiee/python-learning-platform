@@ -3,7 +3,7 @@ import { getSequentialModuleUnlockMap } from "@/lib/module-access";
 import { openAttemptForDrill } from "@/lib/checkpoint";
 import { getReviewState } from "@/lib/review";
 import { checkpointDeadline } from "@/lib/mastery-rules";
-import { decodeDraft, parseDrillFiles } from "@/lib/drill-files";
+import { decodeDraft, parseDrillFiles, testNameFromLiteral } from "@/lib/drill-files";
 
 /** Attempts after which the reference solution can be revealed without solving */
 export const SOLUTION_AFTER_ATTEMPTS = 3;
@@ -160,9 +160,10 @@ export async function getDrillForUser(
     files: fileDefs.map(({ path, editable, starter }) => ({ path, editable, starter })),
     solutionFiles: showSolution && fileDefs.length > 0 ? Object.fromEntries(fileDefs.filter((f) => f.editable).map((f) => [f.path, f.solution])) : null,
     hints: mode.kind === "checkpoint" ? [] : parseJsonArray<string>(exercise.hints).map(String),
-    testList: parseJsonArray<{ name: string; hidden: boolean }>(exercise.testCases).filter(
-      (t) => typeof t?.name === "string"
-    ),
+    // Names synced before testNameFromLiteral kept their escapes; read them the same way
+    testList: parseJsonArray<{ name: string; hidden: boolean }>(exercise.testCases)
+      .filter((t) => typeof t?.name === "string")
+      .map((t) => ({ ...t, name: testNameFromLiteral(t.name) })),
     solution: showSolution ? exercise.solution : null,
     lesson: { id: exercise.lesson.id, title: exercise.lesson.title },
     module: exercise.lesson.module,

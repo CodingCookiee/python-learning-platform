@@ -36,6 +36,19 @@ async function main() {
       data: lesson.exercises.map((e) => ({ userId: user.id, exerciseId: e.id, code: "", passed: true, testResults: "[]" })),
     });
     console.log("passed");
+  } else if (command === "pass-all-but-last") {
+    // Every required drill of a lesson passed except the last, whose id is printed: passing it in
+    // the browser should complete the lesson
+    const user = await prisma.user.findUniqueOrThrow({ where: { email: args[0]! }, select: { id: true } });
+    const lesson = await prisma.lesson.findFirstOrThrow({
+      where: { slug: args[1]!, archivedAt: null },
+      select: { exercises: { where: { archivedAt: null, required: true }, orderBy: { order: "asc" }, select: { id: true } } },
+    });
+    const last = lesson.exercises.at(-1)!;
+    await prisma.exerciseSubmission.createMany({
+      data: lesson.exercises.slice(0, -1).map((e) => ({ userId: user.id, exerciseId: e.id, code: "", passed: true, testResults: "[]" })),
+    });
+    console.log(last.id);
   } else if (command === "lesson-id") {
     console.log((await prisma.lesson.findFirstOrThrow({ where: { slug: args[0]!, archivedAt: null }, select: { id: true } })).id);
   } else if (command === "expire-checkpoints") {

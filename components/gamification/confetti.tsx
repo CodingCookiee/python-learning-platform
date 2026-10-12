@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import { useEffect, useRef } from "react";
@@ -48,7 +48,9 @@ export function Confetti({
   const startTimeRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!active) return;
+    // A burst of moving particles is exactly what reduced motion asks to leave out; the pass is
+    // still celebrated by the seal, the XP and the toasts
+    if (!active || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;

@@ -74,7 +74,19 @@ export interface PythonEditorProps {
   lockClipboard?: boolean;
   /** Told each time the lock stops a copy, cut, paste or drop, so the page can say why */
   onClipboardBlocked?: () => void;
+  /** What screen readers call the editor ("Your code for Hello, pylearn") */
+  ariaLabel?: string;
+  /** Show the keys under the editor: run, indent, and how to leave it with the keyboard */
+  keyLegend?: boolean;
 }
+
+const PHONE_QUERY = "(max-width: 767px)";
+const subscribePhone = (onChange: () => void) => {
+  const mq = window.matchMedia(PHONE_QUERY);
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+};
+const subscribeNothing = () => () => {};
 
 /** Clipboard events the lock stops before the editor sees them (it listens to the same ones) */
 const CLIPBOARD_EVENTS = ["paste", "copy", "cut", "drop"] as const;
@@ -99,22 +111,17 @@ export function PythonEditor({
   className,
   lockClipboard = false,
   onClipboardBlocked,
+  ariaLabel = "Python code editor",
+  keyLegend = false,
 }: PythonEditorProps) {
   const { resolvedTheme } = useTheme();
   const monacoTheme = resolvedTheme === "dark" ? MONACO_THEME.dark : MONACO_THEME.light;
 
-  // Lazy init avoids calling setState synchronously inside an effect
-  const [isMobile, setIsMobile] = React.useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return window.matchMedia("(max-width: 767px)").matches;
-  });
-  React.useEffect(() => {
-    const mq = window.matchMedia("(max-width: 767px)");
-    // Only subscribe to changes -- initial value set in lazy useState above
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
+  // A phone-sized screen: read from the media query after hydration (the server renders the wide
+  // layout, so reading it during the first render made the phone's markup disagree with the server's)
+  const isMobile = React.useSyncExternalStore(subscribePhone, () => window.matchMedia(PHONE_QUERY).matches, () => false);
+  // The keys people press: Ctrl on Windows and Linux; on a Mac, Cmd to run and Ctrl+Shift+M for focus
+  const isMac = React.useSyncExternalStore(subscribeNothing, () => /Mac|iPhone|iPad/.test(navigator.platform), () => false);
 
   const saveTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   // The Ctrl+Enter action is registered once at mount; read the latest handler through a ref
@@ -282,6 +289,7 @@ export function PythonEditor({
             tabSize: 4,
             insertSpaces: true,
             readOnly,
+            ariaLabel,
             // Mobile: reduce UI chrome
             folding: !isMobile,
             lineDecorationsWidth: isMobile ? 0 : 10,
@@ -303,6 +311,22 @@ export function PythonEditor({
           }}
         />
       </div>
+      {keyLegend && !readOnly && !isMobile && (
+        // Tab indents inside the editor, so leaving it by keyboard needs a key worth showing
+        <p className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+          {onRun && (
+            <span>
+              <kbd className="font-mono">{isMac ? "⌘" : "Ctrl"}+Enter</kbd> runs the tests
+            </span>
+          )}
+          <span>
+            <kbd className="font-mono">Tab</kbd> indents
+          </span>
+          <span>
+            <kbd className="font-mono">{isMac ? "⌃⇧M" : "Ctrl+M"}</kbd> then <kbd className="font-mono">Tab</kbd> leaves the editor
+          </span>
+        </p>
+      )}
     </div>
   );
 }

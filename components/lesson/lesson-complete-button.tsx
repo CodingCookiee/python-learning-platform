@@ -8,12 +8,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { AchievementNotificationQueue } from "@/components/gamification";
-import { WhiteBeltCeremony } from "@/components/onramp/white-belt-ceremony";
+import { WHITE_BELT_TIED, WhiteBeltCeremony } from "@/components/onramp/white-belt-ceremony";
 import type { UnlockedAchievement } from "@/lib/achievements";
 import { PendingLine } from "@/components/ui/pending-line";
 
-/** Finishing the Start on-ramp's last lesson earns this, and plays the white belt ceremony */
-const WHITE_BELT_TIED = "white-belt-tied";
 
 export interface LessonCompleteButtonProps {
   lessonId: string;

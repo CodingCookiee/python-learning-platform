@@ -1,7 +1,7 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
 interface ConfettiPiece {
   id: number;
@@ -45,6 +45,8 @@ interface ConfettiEffectProps {
 export function ConfettiEffect({ onComplete }: ConfettiEffectProps) {
   const [pieces] = React.useState<ConfettiPiece[]>(() => generatePieces(60));
   const [visible, setVisible] = React.useState(true);
+  // Reduced motion: no falling pieces (frozen ones would just be litter on the dialog)
+  const reduceMotion = useReducedMotion();
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
@@ -56,7 +58,7 @@ export function ConfettiEffect({ onComplete }: ConfettiEffectProps) {
 
   return (
     <AnimatePresence>
-      {visible && (
+      {visible && !reduceMotion && (
         <motion.div
           className="pointer-events-none fixed inset-0 z-50 overflow-hidden"
           initial={{ opacity: 1 }}

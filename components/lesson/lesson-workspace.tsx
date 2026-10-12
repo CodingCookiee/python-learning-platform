@@ -181,7 +181,7 @@ export function LessonWorkspace({ lessonId, children }: { lessonId: string; chil
               </Button>
             </div>
             <div className="min-h-0 flex-1 overflow-hidden">
-              <PythonEditor key={editorKey} value={code} onChange={update} storageKey={`scratch-${lessonId}`} onRun={() => void run()} height="min(40dvh, 380px)" />
+              <PythonEditor key={editorKey} value={code} onChange={update} storageKey={`scratch-${lessonId}`} onRun={() => void run()} height="min(40dvh, 380px)" ariaLabel="Scratchpad code" />
             </div>
             {running ? (
               <RunPending pythonText={pythonText} className="px-3 py-2" />

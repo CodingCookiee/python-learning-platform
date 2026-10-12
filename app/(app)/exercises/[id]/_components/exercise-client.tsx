@@ -37,6 +37,8 @@ import {
 } from "@/lib/python-runtime";
 import type { UnlockedAchievement } from "@/lib/achievements";
 import { QUEST_BADGE, questRefresh } from "@/lib/quest-steps";
+import { WHITE_BELT_TIED, WhiteBeltCeremony } from "@/components/onramp/white-belt-ceremony";
+import { ClockAnnouncement } from "@/components/mastery/checkpoint-controls";
 import type { DrillData, DrillMode, DrillType } from "@/lib/drills";
 import { cn } from "@/lib/utils";
 import { TutorPanel, type TutorHandle } from "@/components/tutor/tutor-panel";
@@ -240,6 +242,7 @@ function ModeBanner({ mode, progress }: { mode: DrillMode; progress: { passedCou
       >
         <Clock className="size-3.5" aria-hidden="true" />
         {left === null ? "…" : left === 0 ? "Time’s up" : `${formatClock(left)} left`}
+        <ClockAnnouncement left={left} />
       </span>
       <p className="basis-full text-muted-foreground">
         No hints, no reference solution, and no copy and paste: type your answer. Run the tests as often as you like.
@@ -455,6 +458,16 @@ interface SubmitResponse {
     | { passedCount: number; total: number; finished: { score: number; passed: boolean } | null }
     | { error: string }
     | null;
+  /** This pass was the lesson's last required drill: the lesson is now complete */
+  lesson?: LessonDone | null;
+}
+
+interface LessonDone {
+  xpGained: number;
+  next: { id: string; title: string } | null;
+  moduleId: string;
+  /** On-ramp lessons: where the white belt ceremony sends the learner, and the on-ramp's size */
+  onRamp: { nextHref: string; lessons: number } | null;
 }
 
 const EDITOR_KEY: Record<DrillMode["kind"], (drill: DrillData) => string> = {
@@ -609,6 +622,9 @@ export function ExerciseClient({
   const [achievements, setAchievements] = React.useState<UnlockedAchievement[]>([]);
   const [confetti, setConfetti] = React.useState(false);
   const [levelUp, setLevelUp] = React.useState<number | null>(null);
+  // The pass that finished the lesson (and, on the on-ramp's last lesson, the white belt ceremony)
+  const [lessonDone, setLessonDone] = React.useState<LessonDone | null>(null);
+  const [ceremony, setCeremony] = React.useState<UnlockedAchievement | null>(null);
   const [reviewOutcome, setReviewOutcome] = React.useState<SubmitResponse["review"]>(null);
   const [progress, setProgress] = React.useState<{ passedCount: number; total: number } | null>(null);
   const [finished, setFinished] = React.useState<{ score: number; passed: boolean } | null>(null);
@@ -642,14 +658,15 @@ export function ExerciseClient({
   const loading = runtimeStatus === "loading";
 
   React.useEffect(() => {
-    if (!pendingHref || saving || saveError || achievements.length > 0 || levelUp !== null) return;
+    // The ceremony is its own way on (to module 1), so a held link waits for it to close
+    if (!pendingHref || saving || saveError || achievements.length > 0 || levelUp !== null || ceremony) return;
     // A moment to see the XP land before the page moves on
     const timer = window.setTimeout(() => {
       startNavigation();
       router.push(pendingHref);
     }, xpGained ? 900 : 0);
     return () => window.clearTimeout(timer);
-  }, [pendingHref, saving, saveError, achievements.length, levelUp, xpGained, router]);
+  }, [pendingHref, saving, saveError, achievements.length, levelUp, xpGained, ceremony, router]);
 
   async function record(passed: boolean, submitted: string, summary: unknown) {
     setSaving({ passed });
@@ -678,9 +695,13 @@ export function ExerciseClient({
       }
       const data = (await res.json()) as SubmitResponse;
       setVerdict(data.submission.passed);
+      const lessonXp = data.lesson?.xpGained ?? 0;
       setAnnouncement(
-        data.submission.passed ? (data.xpGained > 0 ? `Saved: plus ${data.xpGained} XP.` : "Saved.") : "Attempt saved."
+        data.submission.passed
+          ? `${data.xpGained + lessonXp > 0 ? `Saved: plus ${data.xpGained + lessonXp} XP.` : "Saved."}${data.lesson ? " Lesson finished." : ""}`
+          : "Attempt saved."
       );
+      if (data.lesson) setLessonDone(data.lesson);
       // Saved, but with something to read first (the server overruled the browser, or the checkpoint
       // closed): a link followed during the save stays put rather than moving past the message
       if (data.gradingDisagreed) {
@@ -703,13 +724,16 @@ export function ExerciseClient({
       if (data.submission.passed) setSolved(true);
       if (data.solution) setSolution(data.solution);
       if (data.solutionFiles) setSolutionFiles(data.solutionFiles);
-      if (data.xpGained > 0) {
-        setXpGained(data.xpGained);
+      if (data.xpGained + lessonXp > 0) {
+        setXpGained(data.xpGained + lessonXp);
         setConfetti(true);
         setTimeout(() => setConfetti(false), 3200);
       }
+      // Finishing the on-ramp plays the white belt ceremony instead of a toast
+      const tied = data.lesson?.onRamp ? data.achievements.find((a) => a.slug === WHITE_BELT_TIED) : undefined;
+      if (tied) setCeremony(tied);
       // Ready to Train is celebrated by the quest's farewell, which the refresh below brings up
-      const unlocked = data.achievements.filter((a) => a.slug !== QUEST_BADGE);
+      const unlocked = data.achievements.filter((a) => a.slug !== QUEST_BADGE && a !== tied);
       if (unlocked.length > 0) setAchievements(unlocked);
       if (data.levelUp && data.newLevel) setLevelUp(data.newLevel);
       if (data.submission.passed) questRefresh();
@@ -861,6 +885,7 @@ export function ExerciseClient({
               height="260px"
               lockClipboard={lockClipboard}
               onClipboardBlocked={codeBlocked}
+              ariaLabel={`The code for ${drill.title} (read-only)`}
             />
           </div>
           <label className="flex flex-col gap-2">
@@ -923,6 +948,8 @@ export function ExerciseClient({
               height="420px"
               lockClipboard={lockClipboard}
               onClipboardBlocked={codeBlocked}
+              ariaLabel={multi ? `${drill.mainFile}: your code for ${drill.title}` : `Your code for ${drill.title}`}
+              keyLegend
             />
           </div>
           {drill.files.map((def) => (
@@ -940,6 +967,8 @@ export function ExerciseClient({
                 height="420px"
                 lockClipboard={lockClipboard}
                 onClipboardBlocked={codeBlocked}
+                ariaLabel={def.editable ? `${def.path}: your code for ${drill.title}` : `${def.path} (read-only)`}
+                keyLegend={def.editable}
               />
             </div>
           ))}
@@ -1021,7 +1050,8 @@ export function ExerciseClient({
           ) : busy === "check" ? (
             <PendingLine key="tests" className="text-xs" delayMs={700} lines={["Running your tests…"]} still="Some tests take a few seconds." />
           ) : exam ? null : (
-            `${attempts} ${attempts === 1 ? "attempt" : "attempts"}${solved ? " · solved" : ""}${draftSaved ? " · draft saved" : ""}`
+            // "solved earlier" while the run on screen fails, so the line never contradicts the results
+            `${attempts} ${attempts === 1 ? "attempt" : "attempts"}${solved ? (check.kind !== "idle" && !allPassed ? " · solved earlier" : " · solved") : ""}${draftSaved ? " · draft saved" : ""}`
           )}
         </div>
       </div>
@@ -1124,13 +1154,31 @@ export function ExerciseClient({
         <div className="flex items-center gap-5 rounded-md border border-border bg-accent/55 px-5 py-4">
           <div className="min-w-0 flex-1">
             <p className="font-semibold">
-              Drill passed{xpGained ? <span className="font-condensed tabular text-primary-ink"> · +{xpGained} XP</span> : null}
+              {lessonDone ? "Lesson finished" : "Drill passed"}
+              {xpGained ? <span className="font-condensed tabular text-primary-ink"> · +{xpGained} XP</span> : null}
             </p>
             <div className="mt-0.5 text-sm text-muted-foreground">
-              {saving ? saveLine(true) : drill.next ? "On to the next one." : "That's the last drill in this lesson."}
+              {saving
+                ? saveLine(true)
+                : lessonDone
+                  ? lessonDone.next
+                    ? `${drill.lesson.title} is complete. Next: ${lessonDone.next.title}.`
+                    : `${drill.lesson.title} is complete: that was the module's last lesson, so its checkpoint is open.`
+                  : drill.next
+                    ? "On to the next one."
+                    : "That's the last drill in this lesson."}
             </div>
           </div>
-          {drill.next ? (
+          {lessonDone ? (
+            <WaitLink
+              href={lessonDone.next ? `/lessons/${lessonDone.next.id}` : `/modules/${lessonDone.moduleId}#checkpoint-heading`}
+              pending={pendingHref}
+              onClick={guard}
+            >
+              {lessonDone.next ? "Next lesson" : "To the checkpoint"}
+              <ArrowRight aria-hidden="true" />
+            </WaitLink>
+          ) : drill.next ? (
             <WaitLink href={`/exercises/${drill.next.id}`} pending={pendingHref} onClick={guard}>
               Next drill
               <ArrowRight aria-hidden="true" />
@@ -1185,6 +1233,7 @@ export function ExerciseClient({
                 onChange={() => {}}
                 readOnly
                 height="300px"
+                ariaLabel="The reference solution (read-only)"
               />
             </div>
           )}
@@ -1251,6 +1300,17 @@ export function ExerciseClient({
       </div>
       {levelUp !== null && <LevelUpNotification level={levelUp} onDismiss={() => setLevelUp(null)} />}
       {achievements.length > 0 && <AchievementNotificationQueue achievements={achievements} onDone={() => setAchievements([])} />}
+      {ceremony && lessonDone?.onRamp && (
+        <WhiteBeltCeremony
+          open
+          onOpenChange={(open) => {
+            if (!open) setCeremony(null);
+          }}
+          xp={ceremony.xpReward}
+          lessons={lessonDone.onRamp.lessons}
+          nextHref={lessonDone.onRamp.nextHref}
+        />
+      )}
 
       {/* One copy of the task and the workspace: side by side on wide screens, switched on phones */}
       <div className="mb-4 grid grid-cols-2 gap-1 rounded-md bg-muted p-1 lg:hidden" role="group" aria-label="Show">

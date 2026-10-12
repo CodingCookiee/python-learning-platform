@@ -15,6 +15,7 @@ import { addToReview, recordReview, type ReviewOutcome } from "@/lib/review";
 import { REVIEW_XP } from "@/lib/mastery-rules";
 import { gradeOnServer, isServerGrading } from "@/lib/grading/server";
 import { combinedSource, filesForRun, parseDrillFiles } from "@/lib/drill-files";
+import { completeLessonAfterPass } from "@/lib/lesson-complete";
 import { z } from "zod";
 import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 
@@ -134,6 +135,14 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
       achievements.push(...(await recordDrillPass(userId, exercise)));
     }
 
+    // Passing the lesson's last required drill is what completes the lesson (in order, as on the
+    // lesson page); its XP and achievements come back with this pass
+    const finishedLesson = passed && mode === "practice" ? await completeLessonAfterPass(userId, exercise.lessonId) : null;
+    if (finishedLesson) achievements.push(...finishedLesson.achievements);
+    const lessonDone = finishedLesson
+      ? { xpGained: finishedLesson.xpGained, next: finishedLesson.next, moduleId: finishedLesson.moduleId, onRamp: finishedLesson.onRamp }
+      : null;
+
     const userAfter = await prisma.user.findUnique({ where: { id: userId }, select: { level: true } });
     const newLevel = userAfter?.level ?? oldLevel;
 
@@ -157,6 +166,7 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
       },
       xpGained: xpGained + (finished?.xpGained ?? 0),
       newlySolved: firstSolve,
+      lesson: lessonDone,
       achievements,
       levelUp: newLevel > oldLevel,
       newLevel,

@@ -92,7 +92,9 @@ export async function updateStreak(userId: string): Promise<number> {
 
   const last = new Date(streak.lastActivityDate);
   last.setHours(0, 0, 0, 0);
-  if (last.getTime() === today.getTime()) return streak.currentStreak;
+  // Already counted today. A streak still at 0 hasn't counted anything yet: sign-up creates it with
+  // today's date, and the first day of practice must count
+  if (last.getTime() === today.getTime() && streak.currentStreak > 0) return streak.currentStreak;
 
   const next = last.getTime() === yesterday.getTime() ? streak.currentStreak + 1 : 1;
   await prisma.streak.update({

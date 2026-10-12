@@ -16,10 +16,12 @@ import { isAdmin } from "@/lib/api-auth";
 import { getLearnerRank } from "@/lib/learner-rank";
 import { SearchBar } from "@/components/layout/search-bar";
 import { MobileMenu } from "@/components/layout/mobile-menu";
+import { NavLinks } from "@/components/layout/nav-links";
 
 const APP_LINKS = [
   { href: "/dashboard", label: "Dashboard" },
-  { href: "/modules", label: "Syllabus" },
+  // Lessons, drills, checkpoints and capstones are all part of the syllabus
+  { href: "/modules", label: "Syllabus", also: ["/lessons", "/exercises", "/checkpoints", "/projects"] },
   { href: "/review", label: "Review" },
   { href: "/log", label: "Log" },
   { href: "/achievements", label: "Achievements" },
@@ -55,11 +57,7 @@ export async function Navbar() {
 
           {user && (
             <nav aria-label="Main" className="hidden items-center gap-6 text-sm md:flex">
-              {APP_LINKS.map((l) => (
-                <Link key={l.href} href={l.href} className="text-muted-foreground hover:text-foreground">
-                  {l.label}
-                </Link>
-              ))}
+              <NavLinks links={APP_LINKS} />
             </nav>
           )}
         </div>
