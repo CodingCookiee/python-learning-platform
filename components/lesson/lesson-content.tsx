@@ -10,7 +10,7 @@ import rehypeRaw from "rehype-raw";
 import rehypeHighlight from "rehype-highlight";
 import { ChevronDown, Info, Lightbulb, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { CodeBlock, RunnableExamples } from "@/components/lesson/code-block";
+import { CodeBlock, CopyableCode, RunnableExamples } from "@/components/lesson/code-block";
 import { QuizCheck } from "@/components/lesson/quiz-check";
 import remarkPylearn from "@/components/lesson/remark-pylearn";
 
@@ -60,6 +60,8 @@ export interface LessonContentProps {
   className?: string;
   /** False for drill prompts and hints: examples are shown, not run */
   runnable?: boolean;
+  /** False for checkpoint prompts: code blocks have no Copy button */
+  copyable?: boolean;
   /** False keeps the table of contents above the text, for pages with their own sidebar */
   sideToc?: boolean;
 }
@@ -332,7 +334,7 @@ const components: Components = {
 
 // LessonContent
 
-export function LessonContent({ content, className, runnable = true, sideToc = true }: LessonContentProps) {
+export function LessonContent({ content, className, runnable = true, copyable = true, sideToc = true }: LessonContentProps) {
   // The page renders the lesson title; drop a leading markdown h1 that repeats it
   content = content.replace(/^\s*#\s+[^\n]*\n+/, "");
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
@@ -383,13 +385,15 @@ export function LessonContent({ content, className, runnable = true, sideToc = t
           </details>
         )}
         <RunnableExamples.Provider value={runnable}>
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm, remarkPylearn]}
-            rehypePlugins={[rehypeRaw, [rehypeHighlight, { detect: true }]]}
-            components={components}
-          >
-            {content}
-          </ReactMarkdown>
+          <CopyableCode.Provider value={copyable}>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm, remarkPylearn]}
+              rehypePlugins={[rehypeRaw, [rehypeHighlight, { detect: true }]]}
+              components={components}
+            >
+              {content}
+            </ReactMarkdown>
+          </CopyableCode.Provider>
         </RunnableExamples.Provider>
       </div>
       {hasToc && !narrow && (

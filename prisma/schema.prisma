@@ -331,17 +331,20 @@ model ReviewItem {
 }
 
 model ProjectSubmission {
-  id           String    @id @default(cuid())
-  userId       String
-  projectId    String
-  files        String    @db.Text
-  status       String
-  feedback     String?   @db.Text
+  id                   String    @id @default(cuid())
+  userId               String
+  projectId            String
+  files                String    @db.Text
+  status               String
+  feedback             String?   @db.Text
   /// A rubric review by the learner's own AI key (lib/ai/reviewer.ts); the examiner still decides
-  aiReview     Json?
-  aiReviewedAt DateTime?
-  submittedAt  DateTime  @default(now())
-  evaluatedAt  DateTime?
+  aiReview             Json?
+  aiReviewedAt         DateTime?
+  /// The examiner's own AI review while grading (lib/ai/review-submission.ts): advice, kept apart from the learner's
+  examinerAiReview     Json?
+  examinerAiReviewedAt DateTime?
+  submittedAt          DateTime  @default(now())
+  evaluatedAt          DateTime?
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)

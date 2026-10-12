@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { decryptSecret, encryptSecret } from "@/lib/crypto";
 import { guardReply, tutorSystemPrompt, tutorUserTurn } from "@/lib/ai/tutor";
-import { decodeUploads, parseReview, reviewerUserTurn, selectFiles } from "@/lib/ai/reviewer";
+import { decodeUploads, draftFeedback, matchCriteria, parseReview, reviewerUserTurn, selectFiles, type AiReview } from "@/lib/ai/reviewer";
 
 describe("encrypting learners' keys", () => {
   it("round-trips, and the stored form hides the key", () => {
@@ -145,5 +145,42 @@ describe("the capstone reviewer", () => {
   it("rejects replies that aren't a review", () => {
     expect(parseReview('{"summary": 1}', ["c1"])).toBeNull();
     expect(parseReview("Looks fine to me", ["c1"])).toBeNull();
+  });
+});
+
+describe("the examiner's AI assistant", () => {
+  const review: AiReview = {
+    summary: "Mostly there.",
+    verdict: "needs-work",
+    criteria: [
+      { criterion: "Handles a missing file.", met: "partly", evidence: "main.py catches it but exits 0." },
+      { criterion: "Has tests", met: "yes", evidence: "tests/test_cli.py" },
+    ],
+    security: ["The token is hard-coded in config.py."],
+    nextSteps: ["Exit with a non-zero code on errors", "Read the token from the environment"],
+  };
+
+  it("matches the review's verdicts to the checklist by the criterion's text, whatever the order", () => {
+    expect(matchCriteria(["Has tests", "handles a missing file"], review)).toEqual(["yes", "partly"]);
+  });
+
+  it("falls back to position when the review answered every criterion in order, and says null otherwise", () => {
+    // Reworded criteria, same count: matched in order
+    expect(matchCriteria(["Missing files are handled", "Tests exist"], review)).toEqual(["partly", "yes"]);
+    // A third criterion the review never judged
+    expect(matchCriteria(["Has tests", "Logs to a file", "Ships a README"], review)).toEqual(["yes", null, null]);
+  });
+
+  it("drafts feedback: the summary, what's still to do with its evidence, security, then next steps", () => {
+    const draft = draftFeedback(review);
+    expect(draft.startsWith("Mostly there.")).toBe(true);
+    expect(draft).toContain("Still to do:\n- Handles a missing file.: main.py catches it but exits 0.");
+    expect(draft).not.toContain("Has tests");
+    expect(draft).toContain("Security:\n- The token is hard-coded in config.py.");
+    expect(draft).toContain("Next steps:\n1. Exit with a non-zero code on errors\n2. Read the token from the environment");
+  });
+
+  it("drafts only the summary when everything is met and there's nothing else to say", () => {
+    expect(draftFeedback({ ...review, criteria: [review.criteria[1]!], security: [], nextSteps: [] })).toBe("Mostly there.");
   });
 });

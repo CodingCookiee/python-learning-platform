@@ -1,10 +1,13 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { AiReviewBody } from "@/components/projects/ai-review-panel";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { LoadingButton } from "@/components/ui/loading-button";
+import { PendingLine } from "@/components/ui/pending-line";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
@@ -15,13 +18,142 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Spinner } from "@/components/animations";
-import { Check, ExternalLink, FileText } from "lucide-react";
+import { Check, ExternalLink, FileText, ListChecks, PenLine, Sparkles } from "lucide-react";
 import { Seal } from "@/components/brand/seal";
 import { SealMark } from "@/components/brand/marks";
+import { draftFeedback, matchCriteria } from "@/lib/ai/reviewer";
+import { cn } from "@/lib/utils";
 import type { SubmissionDetail } from "../page";
 
 interface EvaluateClientProps {
   submission: SubmissionDetail;
+  /** The examiner has an AI key in Settings, so "Review with AI" can run */
+  aiReady: boolean;
+}
+
+type ExaminerReview = NonNullable<SubmissionDetail["examinerAiReview"]>;
+
+/**
+ * The examiner's AI assistant: a review of this submission on the examiner's own key, checking the
+ * code against each criterion. It can tick the checklist and draft the feedback; it never grades.
+ */
+function ExaminerAiReview({
+  submissionId,
+  aiReady,
+  initialReview,
+  initialReviewedAt,
+  onTick,
+  onDraft,
+}: {
+  submissionId: string;
+  aiReady: boolean;
+  initialReview: ExaminerReview | null;
+  initialReviewedAt: string | null;
+  /** Tick the checklist from the review; says what it did */
+  onTick: (review: ExaminerReview) => string;
+  /** Draft the feedback from the review; says what it did */
+  onDraft: (review: ExaminerReview) => string;
+}) {
+  const [review, setReview] = React.useState(initialReview);
+  const [reviewedAt, setReviewedAt] = React.useState(initialReviewedAt);
+  const [busy, setBusy] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [applied, setApplied] = React.useState("");
+
+  async function run() {
+    setBusy(true);
+    setError(null);
+    setApplied("");
+    try {
+      const res = await fetch(`/api/admin/projects/submissions/${submissionId}/ai-review`, { method: "POST" });
+      const data = (await res.json().catch(() => ({}))) as { review?: ExaminerReview; reviewedAt?: string; error?: string };
+      if (!res.ok || !data.review) setError(data.error ?? "The review failed.");
+      else {
+        setReview(data.review);
+        setReviewedAt(data.reviewedAt ?? null);
+      }
+    } catch {
+      setError("We couldn't reach the server.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section aria-labelledby="examiner-ai-heading" className="flex flex-col gap-4 border-b border-border p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 id="examiner-ai-heading" className="font-semibold">
+          Grade with AI <span className="font-normal text-muted-foreground">(on your key; you decide)</span>
+        </h2>
+        {aiReady && (
+          <LoadingButton
+            variant={review ? "outline" : "default"}
+            size="sm"
+            onClick={() => void run()}
+            loading={busy}
+            loadingText="Reviewing…"
+            icon={<Sparkles aria-hidden="true" />}
+          >
+            {review ? "Review again" : "Review with AI"}
+          </LoadingButton>
+        )}
+      </div>
+      {!aiReady ? (
+        <p className="text-sm text-muted-foreground">
+          Add your own AI key in{" "}
+          <Link href="/settings" className="font-medium text-primary underline">
+            Settings
+          </Link>{" "}
+          to have the AI check the code against each criterion, tick the checklist and draft your feedback. You still approve
+          it or send it back.
+        </p>
+      ) : (
+        !review &&
+        !busy && (
+          <p className="text-sm text-muted-foreground">
+            The AI reads the code against each criterion and cites its evidence. It can tick the checklist and draft your
+            feedback; you check both and decide.
+          </p>
+        )
+      )}
+      {busy && (
+        <PendingLine
+          shimmer
+          icon={<Sparkles className="size-4 shrink-0 text-primary motion-safe:animate-pulse" aria-hidden="true" />}
+          lines={["Reading the submission…", "Checking it against each criterion…", "Writing the review…"]}
+          stepMs={7000}
+          stillAfterMs={25_000}
+          slowAfterMs={70_000}
+          still="Still reviewing: a careful review takes up to a minute."
+          slow="Some models take up to two minutes. It's still working."
+        />
+      )}
+      {error && (
+        <p role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      )}
+      {review && (
+        // The last review stays readable but steps back while a new one is written
+        <div className={cn("flex flex-col gap-4 transition-opacity", busy && "opacity-50")}>
+          <AiReviewBody review={review} reviewedAt={reviewedAt} forExaminer />
+          <div className="flex flex-wrap items-center gap-2">
+            <Button size="sm" variant="outline" disabled={busy} onClick={() => setApplied(onTick(review))}>
+              <ListChecks aria-hidden="true" />
+              Tick the checklist from it
+            </Button>
+            <Button size="sm" variant="outline" disabled={busy} onClick={() => setApplied(onDraft(review))}>
+              <PenLine aria-hidden="true" />
+              Draft feedback from it
+            </Button>
+          </div>
+        </div>
+      )}
+      <p role="status" className={cn("text-sm text-muted-foreground", !applied && "sr-only")}>
+        {applied}
+      </p>
+    </section>
+  );
 }
 
 type Decision = "approved" | "rejected";
@@ -46,7 +178,7 @@ function hasDownloadableContent(file: { content?: string }): boolean {
   return typeof file.content === "string" && file.content.length > 0;
 }
 
-export function EvaluateClient({ submission }: EvaluateClientProps) {
+export function EvaluateClient({ submission, aiReady }: EvaluateClientProps) {
   const router = useRouter();
 
   const [checklist, setChecklist] = React.useState<Record<string, boolean>>(() =>
@@ -66,6 +198,26 @@ export function EvaluateClient({ submission }: EvaluateClientProps) {
 
   function toggleCriterion(key: string) {
     setChecklist((prev) => ({ ...prev, [key]: !prev[key] }));
+  }
+
+  // From the examiner's AI review: met criteria ticked, the rest unticked, any it didn't judge left alone
+  function tickFromReview(review: ExaminerReview): string {
+    const verdicts = matchCriteria(submission.project.successCriteria, review);
+    setChecklist((prev) => ({
+      ...prev,
+      ...Object.fromEntries(verdicts.flatMap((v, i) => (v === null ? [] : [[`criterion_${i}`, v === "yes"]]))),
+    }));
+    const met = verdicts.filter((v) => v === "yes").length;
+    const unjudged = verdicts.filter((v) => v === null).length;
+    return `Ticked the ${met} of ${verdicts.length} criteria the AI found met${
+      unjudged > 0 ? `; it didn't judge ${unjudged}, so those are as you left them` : ""
+    }. Check each one before you decide.`;
+  }
+
+  function draftFromReview(review: ExaminerReview): string {
+    const draft = draftFeedback(review);
+    setFeedback((prev) => (prev.trim() ? `${prev.trimEnd()}\n\n${draft}` : draft));
+    return "Drafted the feedback below from the review. Edit it before you send it.";
   }
 
   function handleDecisionClick(decision: Decision) {
@@ -254,6 +406,15 @@ export function EvaluateClient({ submission }: EvaluateClientProps) {
           </section>
         )}
 
+        <ExaminerAiReview
+          submissionId={submission.id}
+          aiReady={aiReady}
+          initialReview={submission.examinerAiReview}
+          initialReviewedAt={submission.examinerAiReviewedAt}
+          onTick={tickFromReview}
+          onDraft={draftFromReview}
+        />
+
         <section aria-labelledby="criteria-heading" className="flex flex-col gap-4 border-b border-border p-6">
           <div className="flex items-baseline justify-between gap-4">
             <h2 id="criteria-heading" className="text-lg font-semibold">
@@ -305,7 +466,7 @@ export function EvaluateClient({ submission }: EvaluateClientProps) {
             placeholder="What works, what to change, and what to try next. At least 20 characters."
             value={feedback}
             onChange={(e) => setFeedback(e.target.value)}
-            rows={5}
+            rows={8}
             aria-label="Feedback for the learner"
           />
           <div className="flex flex-wrap items-center justify-between gap-2 text-sm">

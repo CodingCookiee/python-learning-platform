@@ -38,6 +38,9 @@ export interface SubmissionDetail {
   };
   aiReview: (AiReview & { model?: string; files?: number }) | null;
   aiReviewedAt: string | null;
+  /** The examiner's own AI review, run while grading (on the examiner's key) */
+  examinerAiReview: (AiReview & { model?: string; files?: number }) | null;
+  examinerAiReviewedAt: string | null;
   ci: { repo: string; status: string; verifiedAt: string | null; runUrl: string | null; passed: number; total: number } | null;
 }
 
@@ -52,6 +55,8 @@ async function getSubmissionDetail(submissionId: string): Promise<SubmissionDeta
       userId: true,
       aiReview: true,
       aiReviewedAt: true,
+      examinerAiReview: true,
+      examinerAiReviewedAt: true,
       project: {
         select: {
           id: true,
@@ -90,6 +95,10 @@ async function getSubmissionDetail(submissionId: string): Promise<SubmissionDeta
       ? (submission.aiReview as SubmissionDetail["aiReview"])
       : null,
     aiReviewedAt: submission.aiReviewedAt?.toISOString() ?? null,
+    examinerAiReview: reviewSchema.safeParse(submission.examinerAiReview).success
+      ? (submission.examinerAiReview as SubmissionDetail["examinerAiReview"])
+      : null,
+    examinerAiReviewedAt: submission.examinerAiReviewedAt?.toISOString() ?? null,
     ci: ci
       ? {
           repo: ci.repo,
@@ -137,6 +146,8 @@ export default async function AdminEvaluatePage({ params }: PageProps) {
   if (!submission) notFound();
 
   if (submission.status !== "pending") redirect("/admin/projects");
+  // The examiner's AI review runs on their own key, like learners' (Settings)
+  const examinerKey = await prisma.aiCredential.findUnique({ where: { userId: dbUser.id }, select: { id: true } });
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
@@ -161,7 +172,7 @@ export default async function AdminEvaluatePage({ params }: PageProps) {
         </FadeIn>
 
         <FadeIn delay={0.1}>
-          <EvaluateClient submission={submission} />
+          <EvaluateClient submission={submission} aiReady={examinerKey !== null} />
         </FadeIn>
       </StaggerContainer>
     </div>

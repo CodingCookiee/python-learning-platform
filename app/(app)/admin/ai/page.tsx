@@ -17,6 +17,7 @@ const FEATURE: Record<string, string> = {
   tutor: "Drill tutor",
   explain: "Explain this error",
   review: "Capstone review",
+  grade: "Capstone grading (examiner)",
   test: "Key test",
 };
 

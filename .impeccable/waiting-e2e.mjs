@@ -1,5 +1,6 @@
 // Dev-only: the app's waiting states, for real in the browser (docs/superpowers/plans/2026-10-08-waiting-states-plan.md).
-//   BASE=http://localhost:3010 [ONLY=phase3,phase4,signedout,fixes] node .impeccable/waiting-e2e.mjs
+//   BASE=http://localhost:3010 [ONLY=phase3,phase4,signedout,fixes,clipboard,examiner] node .impeccable/waiting-e2e.mjs
+// (ONLY=clipboard: the checkpoint clipboard lock, not a waiting state, but the same harness)
 // Slow steps are made visible by holding the browser's requests back (Fetch interception), and a
 // dropped connection is simulated by failing one. A throwaway learner, deleted at the end.
 import { execSync, spawn } from "node:child_process";
@@ -687,6 +688,184 @@ async function clockAhead() {
   });
 }
 
+/** Checkpoint drills lock the clipboard (2026-10-12): real pastes, drops and copies, then a practice drill as the control */
+async function clipboardLock() {
+  const SENTINEL = "print('PASTED FROM OUTSIDE')";
+  const granted = await send("Browser.grantPermissions", { permissions: ["clipboardReadWrite", "clipboardSanitizedWrite"], origin: BASE });
+  const setClipboard = (text) => ev(`navigator.clipboard.writeText(${JSON.stringify(text)}).then(() => true, (e) => String(e))`);
+  const readClipboard = () => ev(`navigator.clipboard.readText().then((t) => t, (e) => "ERR " + e)`);
+  const EDITOR = `window.monaco.editor.getEditors().find((e) => !e.getOption(window.monaco.editor.EditorOption.readOnly))`;
+  const key = async (keyName, code, vk, commands, modifiers = 2) => {
+    await send("Input.dispatchKeyEvent", { type: "rawKeyDown", modifiers, key: keyName, code, windowsVirtualKeyCode: vk, commands });
+    await send("Input.dispatchKeyEvent", { type: "keyUp", modifiers, key: keyName, code, windowsVirtualKeyCode: vk });
+  };
+  const pasteKeys = () => key("v", "KeyV", 86, ["paste"]);
+  const copyKeys = () => key("c", "KeyC", 67, ["copy"]);
+  const notes = () => ev(`[...document.querySelectorAll("p[role=status]")].map((p) => p.innerText.trim()).filter((t) => t.includes("Copy and paste are off")).length`);
+
+  // A checkpoint, and one of its code drills
+  const moduleId = db("module-id", "1");
+  await go(`/modules/${moduleId}`, 6000);
+  await ev(`[...document.querySelectorAll("button")].find((b) => /checkpoint|Test out/i.test(b.textContent))?.click()`);
+  await waitFor(`location.pathname.startsWith("/checkpoints/")`, 40);
+  await sleep(2500);
+  const drills = await ev(`[...new Set([...document.querySelectorAll("main a[href^='/exercises/']")].map((a) => a.getAttribute("href")))]`);
+  let codeDrill = null;
+  let predictDrill = null;
+  for (const href of drills ?? []) {
+    await go(href, 6000);
+    const predict = await ev(`document.body.innerText.includes("What does it print?")`);
+    if (predict && !predictDrill) predictDrill = href;
+    if (!predict && !codeDrill) codeDrill = href;
+    if (codeDrill && predictDrill) break;
+  }
+  step("checkpoint drills found", { granted: granted.error?.message ?? "ok", drills: drills?.length, codeDrill, predictDrill });
+
+  // 1. The code editor: Ctrl+V, Monaco's own Paste command, a real drag and drop, then typing still works
+  await go(codeDrill, 7000);
+  await waitFor(`!!${EDITOR}`, 40);
+  const banner = await ev(`document.body.innerText.includes("no copy and paste")`);
+  const before = await ev(`${EDITOR}.getValue()`);
+  const clipboardSet = await setClipboard(SENTINEL);
+  await ev(`${EDITOR}.focus()`);
+  await pasteKeys();
+  await sleep(500);
+  const afterKeys = await ev(`${EDITOR}.getValue()`);
+  await ev(`${EDITOR}.focus(); ${EDITOR}.getAction("editor.action.clipboardPasteAction").run()`);
+  await sleep(1200);
+  const afterCommand = await ev(`${EDITOR}.getValue()`);
+  const box = await ev(`(() => { const r = document.querySelector(".monaco-editor .view-lines").getBoundingClientRect(); return { x: r.x + 40, y: r.y + 20 }; })()`);
+  const drag = { items: [{ mimeType: "text/plain", data: SENTINEL }], dragOperationsMask: 1 };
+  for (const type of ["dragEnter", "dragOver", "drop"]) await send("Input.dispatchDragEvent", { type, x: box.x, y: box.y, data: drag });
+  await sleep(500);
+  const afterDrop = await ev(`${EDITOR}.getValue()`);
+  await ev(`${EDITOR}.focus()`);
+  await send("Input.insertText", { text: "typed_by_hand = 1" });
+  await sleep(300);
+  const typed = await ev(`${EDITOR}.getValue().includes("typed_by_hand = 1")`);
+  // Copy out of the editor: select everything, Ctrl+C; the clipboard should still hold the sentinel
+  await ev(`(() => { const e = ${EDITOR}; e.focus(); e.setSelection(e.getModel().getFullModelRange()); })()`);
+  await copyKeys();
+  await sleep(400);
+  const clipboardAfterEditorCopy = await readClipboard();
+  const codeNote = await notes();
+  await shot("clipboard-code.png");
+  step("checkpoint code editor", {
+    banner,
+    clipboardSet,
+    pastedByKeys: afterKeys !== before,
+    pastedByMonacoCommand: afterCommand.includes("PASTED"),
+    pastedByDrop: afterDrop.includes("PASTED"),
+    typingWorks: typed,
+    copiedOut: clipboardAfterEditorCopy !== SENTINEL,
+    noteShown: codeNote,
+  });
+
+  // 2. The task: not selectable, no Copy buttons, and a copy of it is stopped
+  const userSelect = await ev(`getComputedStyle(document.querySelector("main h1").closest(".flex.flex-col.gap-6")).userSelect`);
+  const copyButtons = await ev(`document.querySelectorAll("main button[aria-label='Copy code']").length`);
+  await ev(`(() => { const p = document.querySelector("main h1").closest(".flex.flex-col.gap-6"); const s = getSelection(); s.removeAllRanges(); const r = document.createRange(); r.selectNodeContents(p); s.addRange(r); })()`);
+  await copyKeys();
+  await sleep(400);
+  step("checkpoint task", { userSelect, copyButtons, copiedOut: (await readClipboard()) !== SENTINEL, notesShown: await notes() });
+
+  // 3. A predict drill's answer box, if the draw has one
+  if (predictDrill) {
+    await go(predictDrill, 6000);
+    const BOX = `document.querySelector("textarea[placeholder^='Type the output']")`;
+    await setClipboard(SENTINEL);
+    await ev(`${BOX}.focus()`);
+    await pasteKeys();
+    await sleep(400);
+    step("checkpoint predict box", { pasted: await ev(`${BOX}.value.includes("PASTED")`), noteShown: await notes() });
+  } else step("checkpoint predict box", { skipped: "this draw had no predict drill" });
+
+  // 4. Control: a practice drill still pastes and copies normally
+  const practice = db("drill-id", "hello-pylearn");
+  await go(`/exercises/${practice}`, 7000);
+  await waitFor(`!!${EDITOR}`, 40);
+  await setClipboard(SENTINEL);
+  await ev(`${EDITOR}.focus()`);
+  await pasteKeys();
+  await sleep(500);
+  const practicePasted = await ev(`${EDITOR}.getValue().includes("PASTED")`);
+  await ev(`(() => { const e = ${EDITOR}; e.focus(); e.setSelection(e.getModel().getFullModelRange()); })()`);
+  await setClipboard("nothing yet");
+  await copyKeys();
+  await sleep(400);
+  step("practice drill (control)", {
+    pastes: practicePasted,
+    copies: (await readClipboard()).includes("PASTED"),
+    banner: await ev(`document.body.innerText.includes("no copy and paste")`),
+    copyButtonsInPrompt: await ev(`document.querySelectorAll("main button[aria-label='Copy code']").length`),
+  });
+}
+
+/** The examiner grades with AI (2026-10-12): the review runs, then ticks the checklist and drafts feedback; nothing is approved */
+async function examinerAi() {
+  const EXAMINER = `examiner-${Date.now()}@example.invalid`;
+  const LEARNER = `graded-${Date.now()}@example.invalid`;
+  try {
+    db("existing", LEARNER);
+    const submissionId = db("capstone-submission", LEARNER);
+    db("examiner", EXAMINER);
+    await send("Network.clearBrowserCookies");
+    await go("/auth/signin", 5000);
+    await fill("#email", EXAMINER);
+    await fill("#password", PASSWORD);
+    await clickText("button[type=submit]", "Sign in");
+    await waitFor(`location.pathname === "/dashboard"`, 60);
+    await go(`/admin/projects/${submissionId}/evaluate`, 7000);
+    const SECTION = `document.querySelector("section[aria-labelledby=examiner-ai-heading]")`;
+    const before = await ev(`${SECTION}?.innerText.split("\\n").filter(Boolean).slice(0, 3).join(" | ") ?? "no section"`);
+    const criteria = await ev(`document.querySelectorAll("section[aria-labelledby=criteria-heading] li").length`);
+    const titles = await ev(`[...document.querySelectorAll("section[aria-labelledby=criteria-heading] li")].map((li) => li.innerText.trim())`);
+
+    // The review: held to watch its lines, then answered with a crafted review (no provider is called)
+    await intercept("*/ai-review*");
+    await clickText("button", "Review with AI");
+    const pending = await watch(`${SECTION}?.innerText`, 3000, 150);
+    await shot("examiner-reviewing.png");
+    const review = {
+      summary: "A first step: the script runs, but the brief isn't built yet.",
+      verdict: "needs-work",
+      model: "claude-opus-5-5",
+      files: 1,
+      criteria: titles.map((criterion, i) => ({ criterion, met: i === 0 ? "yes" : "no", evidence: "main.py only prints a greeting." })),
+      security: [],
+      nextSteps: ["Build the command-line interface the brief asks for"],
+    };
+    await fulfill({ review, reviewedAt: new Date().toISOString() });
+    await stopIntercepting();
+    await sleep(800);
+    const shown = await ev(`${SECTION}?.innerText.includes("Some criteria don't look met")`);
+
+    // It fills things in; the examiner decides
+    await clickText("button", "Tick the checklist from it");
+    await sleep(300);
+    const metCount = await ev(`document.querySelector("section[aria-labelledby=criteria-heading]")?.innerText.match(/(\\d+) of (\\d+) met/)?.[0]`);
+    const tickNote = await ev(`${SECTION}?.querySelector("[role=status]")?.innerText`);
+    await clickText("button", "Draft feedback from it");
+    await sleep(300);
+    const feedback = await ev(`document.querySelector("textarea[aria-label='Feedback for the learner']")?.value`);
+    await shot("examiner-applied.png");
+    const status = db("submission-status", submissionId);
+    step("examiner grades with AI", {
+      before,
+      criteria,
+      pending: pending.filter((l) => /…|Reviewing/.test(l)),
+      shown,
+      metCount,
+      tickNote,
+      feedbackDrafted: feedback?.startsWith(review.summary) && feedback.includes("Next steps:"),
+      stillPending: status,
+      axe: await axe(),
+    });
+  } finally {
+    report.push({ step: "examiner cleanup", result: db("cleanup", EXAMINER, LEARNER) });
+  }
+}
+
 try {
   await signIn();
   if (process.env.ONLY === "probe") {
@@ -720,6 +899,8 @@ try {
   if (want("phase4")) await phase4();
   if (want("signedout")) await signedOut();
   if (process.env.ONLY?.split(",").includes("fixes")) await fixes();
+  if (process.env.ONLY?.split(",").includes("clipboard")) await clipboardLock();
+  if (process.env.ONLY?.split(",").includes("examiner")) await examinerAi();
 } catch (e) {
   if (e !== "done") report.push({ step: "crashed", error: String(e && e.stack || e) });
 } finally {

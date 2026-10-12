@@ -241,10 +241,35 @@ function ModeBanner({ mode, progress }: { mode: DrillMode; progress: { passedCou
         <Clock className="size-3.5" aria-hidden="true" />
         {left === null ? "…" : left === 0 ? "Time’s up" : `${formatClock(left)} left`}
       </span>
-      <p className="basis-full text-muted-foreground">No hints and no reference solution. Run the tests as often as you like.</p>
+      <p className="basis-full text-muted-foreground">
+        No hints, no reference solution, and no copy and paste: type your answer. Run the tests as often as you like.
+      </p>
     </div>
   );
 }
+
+/**
+ * Checkpoints lock the clipboard (the drill can't be copied out, nor an answer pasted in); this says
+ * so where the learner tried. Mounted from the start so screen readers hear it when it appears.
+ */
+function ClipboardNote({ shown }: { shown: boolean }) {
+  return (
+    <p role="status" className={cn("flex items-center gap-2 text-sm text-muted-foreground", !shown && "sr-only")}>
+      {shown && (
+        <>
+          <Lock className="size-4 shrink-0" aria-hidden="true" />
+          Copy and paste are off in checkpoints. Type your answer.
+        </>
+      )}
+    </p>
+  );
+}
+
+/** Stop a clipboard event on a locked element, and say why */
+const blockClipboard = (onBlocked: () => void) => (event: React.SyntheticEvent) => {
+  event.preventDefault();
+  onBlocked();
+};
 
 function PromptPanel({
   drill,
@@ -252,17 +277,27 @@ function PromptPanel({
   hintsUsed,
   onRevealHint,
   progress,
+  clipboardNote,
+  onClipboardBlocked,
 }: {
   drill: DrillData;
   check: CheckState;
   hintsUsed: number;
   onRevealHint: () => void;
   progress: { passedCount: number; total: number } | null;
+  /** A copy was stopped here: say why */
+  clipboardNote: boolean;
+  onClipboardBlocked: () => void;
 }) {
   const inCheckpoint = drill.mode.kind === "checkpoint";
+  // Checkpoints: the task can't be selected or copied out (to paste into another tool)
+  const lock = inCheckpoint
+    ? { onCopy: blockClipboard(onClipboardBlocked), onCut: blockClipboard(onClipboardBlocked) }
+    : {};
   return (
-    <div className="flex flex-col gap-6">
+    <div className={cn("flex flex-col gap-6", inCheckpoint && "select-none")} {...lock}>
       <ModeBanner mode={drill.mode} progress={progress} />
+      {inCheckpoint && <ClipboardNote shown={clipboardNote} />}
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="outline" className="text-muted-foreground">
@@ -295,7 +330,7 @@ function PromptPanel({
         )}
       </div>
 
-      <LessonContent content={drill.instructions} runnable={false} className="[&_p]:text-base" />
+      <LessonContent content={drill.instructions} runnable={false} copyable={!inCheckpoint} className="[&_p]:text-base" />
       {drill.type !== "predict" && <TestList drill={drill} check={check} />}
       <Hints hints={drill.hints} used={hintsUsed} onReveal={onRevealHint} />
     </div>
@@ -593,6 +628,11 @@ export function ExerciseClient({
   // Asking the tutor in a review counts as help, like a hint
   const tutorUsedRef = React.useRef(false);
   const tutorOn = mode.kind !== "checkpoint";
+  // Checkpoints lock the clipboard: the answer is typed, not pasted in, and the drill isn't copied out.
+  // The note shows where the learner last tried (the task, or the code)
+  const lockClipboard = mode.kind === "checkpoint";
+  const [clipboardNote, setClipboardNote] = React.useState<"task" | "code" | null>(null);
+  const codeBlocked = () => setClipboardNote("code");
   const explain: Explain = tutorOn && aiReady ? (error) => tutorRef.current?.explain(errorText(error)) : null;
 
   React.useEffect(() => {
@@ -814,13 +854,26 @@ export function ExerciseClient({
             <p className="border-b border-border bg-sheet px-4 py-1.5 text-xs font-semibold text-muted-foreground">
               The code
             </p>
-            <PythonEditor value={drill.starterCode} onChange={() => {}} readOnly height="260px" />
+            <PythonEditor
+              value={drill.starterCode}
+              onChange={() => {}}
+              readOnly
+              height="260px"
+              lockClipboard={lockClipboard}
+              onClipboardBlocked={codeBlocked}
+            />
           </div>
           <label className="flex flex-col gap-2">
             <span className="text-sm font-semibold">What does it print?</span>
             <Textarea
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
+              {...(lockClipboard && {
+                onPaste: blockClipboard(codeBlocked),
+                onDrop: blockClipboard(codeBlocked),
+                onCopy: blockClipboard(codeBlocked),
+                onCut: blockClipboard(codeBlocked),
+              })}
               onKeyDown={(e) => {
                 if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
                   e.preventDefault();
@@ -868,6 +921,8 @@ export function ExerciseClient({
               valueSavedAt={drill.draft?.savedAt ?? null}
               onRun={() => void runCheck()}
               height="420px"
+              lockClipboard={lockClipboard}
+              onClipboardBlocked={codeBlocked}
             />
           </div>
           {drill.files.map((def) => (
@@ -883,11 +938,14 @@ export function ExerciseClient({
                 valueSavedAt={drill.draft?.savedAt ?? null}
                 onRun={() => void runCheck()}
                 height="420px"
+                lockClipboard={lockClipboard}
+                onClipboardBlocked={codeBlocked}
               />
             </div>
           ))}
         </div>
       )}
+      {lockClipboard && <ClipboardNote shown={clipboardNote === "code"} />}
 
       {showInput && (
         <label className="flex flex-col gap-1.5">
@@ -1181,6 +1239,8 @@ export function ExerciseClient({
       hintsUsed={hintsUsed}
       onRevealHint={() => setHintsUsed((n) => Math.min(n + 1, drill.hints.length))}
       progress={progress}
+      clipboardNote={clipboardNote === "task"}
+      onClipboardBlocked={() => setClipboardNote("task")}
     />
   );
 

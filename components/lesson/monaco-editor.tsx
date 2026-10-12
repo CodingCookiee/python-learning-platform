@@ -70,7 +70,16 @@ export interface PythonEditorProps {
   /** Monaco language id; a multi-file drill's data files pass their own (see languageFor) */
   language?: string;
   className?: string;
+  /** Checkpoints: nothing pasted or dropped in, nothing copied or cut out (the answer is typed) */
+  lockClipboard?: boolean;
+  /** Told each time the lock stops a copy, cut, paste or drop, so the page can say why */
+  onClipboardBlocked?: () => void;
 }
+
+/** Clipboard events the lock stops before the editor sees them (it listens to the same ones) */
+const CLIPBOARD_EVENTS = ["paste", "copy", "cut", "drop"] as const;
+/** Text arriving by paste or drop, as the browser announces it before inserting */
+const PASTED_INPUT = /^insertFrom(Paste|Drop)|^deleteByCut$/;
 
 /** The Monaco language for a drill file's path. TOML has no built-in mode; ini is close. */
 export function languageFor(path: string): string {
@@ -88,6 +97,8 @@ export function PythonEditor({
   onRun,
   language = "python",
   className,
+  lockClipboard = false,
+  onClipboardBlocked,
 }: PythonEditorProps) {
   const { resolvedTheme } = useTheme();
   const monacoTheme = resolvedTheme === "dark" ? MONACO_THEME.dark : MONACO_THEME.light;
@@ -108,9 +119,38 @@ export function PythonEditor({
   const saveTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   // The Ctrl+Enter action is registered once at mount; read the latest handler through a ref
   const onRunRef = React.useRef(onRun);
+  const onBlockedRef = React.useRef(onClipboardBlocked);
   React.useEffect(() => {
     onRunRef.current = onRun;
+    onBlockedRef.current = onClipboardBlocked;
   });
+
+  // The clipboard lock, at the DOM: capture-phase listeners on the wrapper run before the editor's
+  // own (on its hidden input inside), so a stopped paste, drop, copy or cut never reaches it. This
+  // covers the keyboard, the browser's right-click menu, long-press on phones and drag and drop.
+  const wrapperRef = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (!lockClipboard || !wrapper) return;
+    const block = (event: Event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      onBlockedRef.current?.();
+    };
+    const blockPastedInput = (event: Event) => {
+      if (PASTED_INPUT.test((event as InputEvent).inputType)) block(event);
+    };
+    for (const type of CLIPBOARD_EVENTS) wrapper.addEventListener(type, block, true);
+    wrapper.addEventListener("beforeinput", blockPastedInput, true);
+    return () => {
+      for (const type of CLIPBOARD_EVENTS) wrapper.removeEventListener(type, block, true);
+      wrapper.removeEventListener("beforeinput", blockPastedInput, true);
+    };
+  }, [lockClipboard]);
+  const lockRef = React.useRef(lockClipboard);
+  React.useEffect(() => {
+    lockRef.current = lockClipboard;
+  }, [lockClipboard]);
 
   const [initialValue] = React.useState<string>(() => {
     if (storageKey && typeof window !== "undefined") {
@@ -150,6 +190,14 @@ export function PythonEditor({
     // Code restored from localStorage is what's on screen, so it's what the parent must run
     if (initialValue !== value) onChange(initialValue);
     setSynced(true);
+
+    // The clipboard lock's backstop: Monaco's own Paste command (its command palette) reads the
+    // clipboard directly and inserts the text without a paste event, so take that text back out
+    editor.onDidPaste((event) => {
+      if (!lockRef.current) return;
+      editor.executeEdits("clipboard-lock", [{ range: event.range, text: "" }]);
+      onBlockedRef.current?.();
+    });
 
     // Keyboard shortcut to run code
     if (onRun) {
@@ -193,7 +241,7 @@ export function PythonEditor({
   const editorHeight = isMobile ? "260px" : height;
 
   return (
-    <div className={cn("flex flex-col gap-0", className)}>
+    <div ref={wrapperRef} className={cn("flex flex-col gap-0", className)}>
       {/* Mobile hint for complex exercises */}
       {isMobile && !readOnly && (
         <div className="flex items-center gap-2 rounded-t-md border-x border-t border-border bg-accent/50 px-3 py-1.5">
@@ -246,6 +294,12 @@ export function PythonEditor({
             wordWrap: isMobile ? "on" : "off",
             quickSuggestions: !isMobile,
             suggestOnTriggerCharacters: !isMobile,
+            // Locked: no Cut/Copy/Paste menu, and no dropping or paste-as from Monaco itself
+            ...(lockClipboard && {
+              contextmenu: false,
+              dropIntoEditor: { enabled: false },
+              pasteAs: { enabled: false },
+            }),
           }}
         />
       </div>

@@ -16,15 +16,30 @@ const MET = {
   no: { Icon: X, label: "Not yet", className: "text-destructive" },
 } as const;
 
-export function AiReviewBody({ review, reviewedAt }: { review: StoredReview; reviewedAt: string | null }) {
+export function AiReviewBody({
+  review,
+  reviewedAt,
+  forExaminer = false,
+}: {
+  review: StoredReview;
+  reviewedAt: string | null;
+  /** Worded for the examiner grading it, not the learner preparing it */
+  forExaminer?: boolean;
+}) {
+  const verdict =
+    review.verdict === "ready"
+      ? forExaminer
+        ? "Every criterion looks met"
+        : "Looks ready for the examiner"
+      : forExaminer
+        ? "Some criteria don't look met"
+        : "Needs more work";
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <span className={cn("font-semibold", review.verdict === "ready" ? "text-success" : "text-foreground")}>
-          {review.verdict === "ready" ? "Looks ready for the examiner" : "Needs more work"}
-        </span>
+        <span className={cn("font-semibold", review.verdict === "ready" ? "text-success" : "text-foreground")}>{verdict}</span>
         <span className="text-xs text-muted-foreground">
-          {[review.model, review.files ? `${review.files} files read` : null, reviewedAt ? new Date(reviewedAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : null]
+          {[review.model, review.files ? `${review.files} ${review.files === 1 ? "file" : "files"} read` : null, reviewedAt ? new Date(reviewedAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : null]
             .filter(Boolean)
             .join(" · ")}
         </span>

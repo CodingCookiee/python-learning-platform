@@ -5,6 +5,7 @@
 //   npx tsx .impeccable/quest-e2e-db.ts expire-checkpoints <email>   the learner's open checkpoints run out of time on the server
 //   npx tsx .impeccable/quest-e2e-db.ts fresh <email> <name>      a verified 16+ account, not onboarded yet
 //   npx tsx .impeccable/quest-e2e-db.ts existing <email>        an onboarded developer from before the quest, one fix drill passed
+//   npx tsx .impeccable/quest-e2e-db.ts examiner <email> / capstone-submission <learnerEmail>   a throwaway admin with a dummy AI key; a pending submission to grade
 //   npx tsx .impeccable/quest-e2e-db.ts tutor <email>           an onboarded learner with a dummy AI key (the page's tutor shows; tests intercept /api/tutor, no provider is called)
 //   npx tsx .impeccable/quest-e2e-db.ts tour <email>            an onboarded learner on the quest's step 5 (the dashboard tour)
 //   npx tsx .impeccable/quest-e2e-db.ts quest <email>           the account's quest row
@@ -96,6 +97,35 @@ async function main() {
     // Not a real key: it only makes the tutor panel appear; the run-through answers /api/tutor itself
     await saveCredential(user.id, { provider: "anthropic", model: "claude-opus-5-5", apiKey: "dummy-key-for-ui-test" });
     console.log("created");
+  } else if (command === "examiner") {
+    // A throwaway examiner (admin role) with a dummy AI key: the run-through answers the AI review itself.
+    // Deleted by cleanup like any test account; the real admin account is never used
+    const user = await prisma.user.create({
+      data: {
+        email: args[0]!,
+        name: "Test Examiner",
+        role: "ADMIN",
+        password: await hash("E2e-Quest-2026", 12),
+        emailVerified: new Date(),
+        ageConfirmedAt: new Date(),
+        onboardedAt: new Date(),
+        experience: "python",
+        goal: "python",
+      },
+    });
+    await saveCredential(user.id, { provider: "anthropic", model: "claude-opus-5-5", apiKey: "dummy-key-for-ui-test" });
+    console.log("created");
+  } else if (command === "capstone-submission") {
+    // A pending capstone submission from this learner, for the examiner to grade: one small uploaded file
+    const user = await prisma.user.findUniqueOrThrow({ where: { email: args[0]! }, select: { id: true } });
+    const project = await prisma.project.findFirstOrThrow({ where: { archivedAt: null }, orderBy: { createdAt: "asc" }, select: { id: true } });
+    const files = [{ name: "main.py", size: 15, type: "text/x-python", content: Buffer.from("print('hello')\n").toString("base64") }];
+    const submission = await prisma.projectSubmission.create({
+      data: { userId: user.id, projectId: project.id, status: "pending", files: JSON.stringify({ type: "files", files, notes: "My first try." }) },
+    });
+    console.log(submission.id);
+  } else if (command === "submission-status") {
+    console.log((await prisma.projectSubmission.findUniqueOrThrow({ where: { id: args[0]! }, select: { status: true } })).status);
   } else if (command === "tour") {
     // An onboarded learner whose quest is on step 5, the dashboard tour
     await prisma.user.create({

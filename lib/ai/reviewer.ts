@@ -3,8 +3,9 @@ import { z } from "zod";
 /**
  * The capstone reviewer: reads a submission (uploaded files, or a public GitHub
  * repo) against the capstone's requirements and grading criteria, and returns a
- * structured review. It runs on the learner's own key and is advice for them and
- * the examiner; the examiner still approves or asks for changes.
+ * structured review. It runs on the learner's own key (advice for them and the
+ * examiner) or on the examiner's while grading (lib/ai/review-submission.ts); either
+ * way the examiner still approves or asks for changes.
  */
 
 export const reviewSchema = z.object({
@@ -164,4 +165,27 @@ export function parseReview(text: string, criteria: string[]): AiReview | null {
   } catch {
     return null;
   }
+}
+
+const sameCriterion = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
+/**
+ * The review's verdict on each of the capstone's criteria, for the examiner's checklist: matched by
+ * the criterion's text, or by position when the review answered every criterion in order. Null
+ * where the review doesn't say.
+ */
+export function matchCriteria(criteria: string[], review: AiReview): Array<"yes" | "partly" | "no" | null> {
+  const byText = new Map(review.criteria.map((c) => [sameCriterion(c.criterion), c.met]));
+  const inOrder = review.criteria.length === criteria.length;
+  return criteria.map((c, i) => byText.get(sameCriterion(c)) ?? (inOrder ? review.criteria[i]!.met : null));
+}
+
+/** Feedback for the learner drafted from a review: the examiner edits it before sending */
+export function draftFeedback(review: AiReview): string {
+  const parts = [review.summary.trim()];
+  const open = review.criteria.filter((c) => c.met !== "yes");
+  if (open.length > 0) parts.push(["Still to do:", ...open.map((c) => `- ${c.criterion}: ${c.evidence}`)].join("\n"));
+  if (review.security.length > 0) parts.push(["Security:", ...review.security.map((s) => `- ${s}`)].join("\n"));
+  if (review.nextSteps.length > 0) parts.push(["Next steps:", ...review.nextSteps.map((s, i) => `${i + 1}. ${s}`)].join("\n"));
+  return parts.filter(Boolean).join("\n\n");
 }

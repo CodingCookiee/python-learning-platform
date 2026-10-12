@@ -27,6 +27,8 @@ export const LIMITS = {
   labVerify: { limit: 30, windowSec: 60 * 60 },
   projectSubmit: { limit: 10, windowSec: 60 * 60 },
   aiReview: { limit: 6, windowSec: 60 * 60 },
+  // The examiner grades many learners' work, so more than one learner's own reviews
+  examinerReview: { limit: 30, windowSec: 60 * 60 },
   draftSave: { limit: 120, windowSec: 60 * 60 },
   questEvent: { limit: 60, windowSec: 10 * 60 },
 } as const;

@@ -116,7 +116,8 @@ export function SignUpForm({ start }: { start?: string }) {
       ))}
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="ageConfirmed" className="flex items-start gap-3 text-sm leading-relaxed">
+        {/* Wraps its checkbox, which labels it (an htmlFor as well reads as a second label) */}
+        <label className="flex items-start gap-3 text-sm leading-relaxed">
           <input
             id="ageConfirmed"
             type="checkbox"

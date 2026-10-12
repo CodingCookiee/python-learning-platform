@@ -74,6 +74,9 @@ function buildExampleHarness(code: string): string {
  */
 export const RunnableExamples = React.createContext(true);
 
+/** Whether code blocks in this subtree get a Copy button. Checkpoint prompts turn it off. */
+export const CopyableCode = React.createContext(true);
+
 export function CodeBlock({
   code,
   language,
@@ -88,6 +91,7 @@ export function CodeBlock({
   children: React.ReactNode;
 }) {
   const examplesRunnable = React.useContext(RunnableExamples);
+  const copyable = React.useContext(CopyableCode);
   const scratchpad = React.useContext(ScratchpadContext);
   const runnable = examplesRunnable && language === "python" && !norun && isBrowserRunnable(code);
   const { run, text: pythonText } = usePyodide();
@@ -164,14 +168,16 @@ export function CodeBlock({
               </Button>
             </>
           )}
-          <Button
-            variant="ghost"
-            size="icon-xs"
-            onClick={() => void copy()}
-            aria-label={copied ? "Copied" : "Copy code"}
-          >
-            {copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
-          </Button>
+          {copyable && (
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              onClick={() => void copy()}
+              aria-label={copied ? "Copied" : "Copy code"}
+            >
+              {copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
+            </Button>
+          )}
         </span>
       </div>
 

@@ -85,7 +85,7 @@ export type MeteredResult =
  */
 export async function callWithLearnerKey(
   userId: string,
-  feature: "tutor" | "explain" | "test" | "review",
+  feature: "tutor" | "explain" | "test" | "review" | "grade",
   req: Omit<CompleteRequest, "provider" | "apiKey" | "model">,
   extra: { exerciseId?: string } = {}
 ): Promise<MeteredResult> {
