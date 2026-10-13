@@ -3,8 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "node scripts/check-malware-signatures.mjs && next dev",
+    "build": "node scripts/check-malware-signatures.mjs && next build",
+    "check:malware": "node scripts/check-malware-signatures.mjs",
+    "prepare": "git config core.hooksPath .githooks || true",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",

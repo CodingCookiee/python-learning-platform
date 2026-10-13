@@ -1,0 +1,24 @@
+#!/bin/sh
+#
+# Blocks a commit that would introduce the config-file infector.
+#
+# This exists because the real infection here arrived inside an ordinary
+# commit on 9 Oct 2026 and nobody noticed. A check that only runs in CI would
+# also have caught it, but only after it was pushed and already executing on
+# the committer's machine.
+#
+# Enable (once per clone):  git config core.hooksPath .githooks
+# npm install does this for you via the "prepare" script.
+
+staged=$(git diff --cached --name-only --diff-filter=ACM)
+[ -z "$staged" ] && exit 0
+
+# Pass the staged paths through; the checker ignores anything unscannable.
+echo "$staged" | tr '\n' '\0' | xargs -0 node scripts/check-malware-signatures.mjs || {
+  echo ""
+  echo "  Commit blocked. If you believe this is wrong, do NOT use --no-verify"
+  echo "  before checking the file by hand — this payload hides behind padding"
+  echo "  far off the right edge of the editor."
+  echo ""
+  exit 1
+}
