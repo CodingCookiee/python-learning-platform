@@ -497,6 +497,7 @@ Each milestone is shippable and leaves the app better than before.
   - **Counts:** the lesson count is the Python syllabus's (the landing's 108), and the profile says the black belt takes three capstones instead of showing "/24".
   - **Phone drills:** the task is folded in above the editor until the first run.
   - **Quest pill:** square-cut, with a float shadow.
+- **SEO (2026-10-13):** the landing page carries schema.org data next to its FAQ: the Organization, the WebSite and two free online Courses, with modules and hours read from the content (`lib/landing/structured-data.ts`). Its public data is cached for an hour (`getLandingData`, `unstable_cache`), so a visit no longer waits on six database queries. The audit (squirrelscan plus a manual review) found no indexing blockers. The open item needs the owner: an About page and a Contact page (`.impeccable/review/seo/localhost-audit/`, a local folder that isn't committed).
 - **Certificates (2026-10-13):** two credentials a learner claims and shares: the black belt in Python, and the AI automation track's 9th dan ([spec](superpowers/specs/2026-10-12-certificates-design.md), [plan](superpowers/plans/2026-10-13-certificates-plan.md)).
   - **Eligibility:** checked on the server every time (`lib/certificates.ts`, `lib/certificate-eligibility.ts`): the black-belt rule, or every automation module passed.
   - **Claiming:** the learner confirms the printed name in a dialog with a live preview (`POST /api/certificates`), from the profile or the dashboard's band.

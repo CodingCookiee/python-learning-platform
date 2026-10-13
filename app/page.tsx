@@ -7,7 +7,6 @@ import javascript from "highlight.js/lib/languages/javascript";
 import python from "highlight.js/lib/languages/python";
 import { ArrowRight } from "lucide-react";
 import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { BeltBand } from "@/components/brand/belt";
 import { Hero } from "@/components/landing/hero";
@@ -16,7 +15,7 @@ import { SkipLink } from "@/components/layout/skip-link";
 import { HowItWorks } from "@/components/landing/how-it-works";
 import { WhoItsFor } from "@/components/landing/who-its-for";
 import { Faq, faqItems, faqJsonLd } from "@/components/landing/faq";
-import { getCourseHours } from "@/lib/landing/facts";
+import { getLandingData } from "@/lib/landing/facts";
 import { siteJsonLd } from "@/lib/landing/structured-data";
 import { publicOrigin } from "@/lib/public-origin";
 import { BELTS, DAN_TRACK, beltForModule, kyuRange, ordinal } from "@/lib/ranks";
@@ -62,35 +61,7 @@ export default async function LandingPage() {
   const session = await auth();
   if (session?.user) redirect("/dashboard");
 
-  const [modules, lessonCount, achievements, achievementCount, hours, automationModules] = await Promise.all([
-    prisma.module.findMany({
-      where: { archivedAt: null, track: { slug: "python", archivedAt: null } },
-      orderBy: { order: "asc" },
-      select: {
-        id: true,
-        order: true,
-        title: true,
-        duration: true,
-        _count: { select: { lessons: { where: { archivedAt: null } } } },
-      },
-    }),
-    prisma.lesson.count({
-      where: { archivedAt: null, module: { archivedAt: null, track: { slug: "python", archivedAt: null } } },
-    }),
-    prisma.achievement.findMany({
-      where: { archivedAt: null, tier: { in: ["Bronze", "Silver", "Gold"] } },
-      orderBy: { xpReward: "asc" },
-      select: { name: true, description: true },
-      take: 3,
-    }),
-    prisma.achievement.count({ where: { archivedAt: null } }),
-    getCourseHours(),
-    prisma.module.findMany({
-      where: { archivedAt: null, track: { slug: "automation", archivedAt: null } },
-      orderBy: { order: "asc" },
-      select: { title: true },
-    }),
-  ]);
+  const { modules, lessonCount, achievements, achievementCount, hours, automationModules } = await getLandingData();
   const faq = faqItems(hours);
   const site = siteJsonLd(publicOrigin(), {
     python: { modules: modules.map((m) => m.title), hours: hours.python },

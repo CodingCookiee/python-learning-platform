@@ -39,7 +39,19 @@ ws.addEventListener("message", (e) => {
   else if (m.method === "Runtime.consoleAPICalled" && m.params.type === "error") issues.push(m.params.args.map((a) => a.value ?? a.description).join(" ").slice(0, 300));
   else if (m.method === "Runtime.exceptionThrown") issues.push("EXC " + m.params.exceptionDetails.text + " " + (m.params.exceptionDetails.exception?.description ?? "").slice(0, 200));
 });
-const send = (method, params = {}) => new Promise((res) => { const i = ++id; pending.set(i, res); ws.send(JSON.stringify({ id: i, method, params })); });
+// A call Chrome never answers gives up after a minute (empty result) rather than stalling the run
+const send = (method, params = {}) =>
+  new Promise((res) => {
+    const i = ++id;
+    pending.set(i, res);
+    ws.send(JSON.stringify({ id: i, method, params }));
+    setTimeout(() => {
+      if (!pending.has(i)) return;
+      pending.delete(i);
+      issues.push(`${method} timed out`);
+      res({ result: {} });
+    }, 60_000);
+  });
 const ev = async (expression) => (await send("Runtime.evaluate", { expression, awaitPromise: true, returnByValue: true })).result?.result?.value;
 await send("Page.enable");
 await send("Runtime.enable");

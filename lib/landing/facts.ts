@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -45,3 +46,45 @@ export function paceLine(hours: number, perWeek: number): string {
           : `roughly ${years === 1 ? "a year" : `${WORDS[years] ?? years} years`}`;
   return `${span} at ${perWeek} ${perWeek === 1 ? "hour" : "hours"} a week`;
 }
+
+/**
+ * Everything the landing page reads from the database, cached for an hour: it's the same for every
+ * visitor and only changes with a content sync, so visits don't each wait on six queries (the slow
+ * first byte an SEO crawl flagged). A sync shows within the hour.
+ */
+export const getLandingData = unstable_cache(
+  async () => {
+    const [modules, lessonCount, achievements, achievementCount, hours, automationModules] = await Promise.all([
+      prisma.module.findMany({
+        where: { archivedAt: null, track: { slug: "python", archivedAt: null } },
+        orderBy: { order: "asc" },
+        select: {
+          id: true,
+          order: true,
+          title: true,
+          duration: true,
+          _count: { select: { lessons: { where: { archivedAt: null } } } },
+        },
+      }),
+      prisma.lesson.count({
+        where: { archivedAt: null, module: { archivedAt: null, track: { slug: "python", archivedAt: null } } },
+      }),
+      prisma.achievement.findMany({
+        where: { archivedAt: null, tier: { in: ["Bronze", "Silver", "Gold"] } },
+        orderBy: { xpReward: "asc" },
+        select: { name: true, description: true },
+        take: 3,
+      }),
+      prisma.achievement.count({ where: { archivedAt: null } }),
+      getCourseHours(),
+      prisma.module.findMany({
+        where: { archivedAt: null, track: { slug: "automation", archivedAt: null } },
+        orderBy: { order: "asc" },
+        select: { title: true },
+      }),
+    ]);
+    return { modules, lessonCount, achievements, achievementCount, hours, automationModules };
+  },
+  ["landing-data"],
+  { revalidate: 3600, tags: ["content"] }
+);
