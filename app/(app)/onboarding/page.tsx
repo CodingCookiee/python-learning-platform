@@ -14,7 +14,8 @@ export default async function OnboardingPage() {
     where: { id: session.user.id },
     select: { name: true, onboardedAt: true, ageConfirmedAt: true, experience: true, goal: true, weeklyHours: true },
   });
-  if (!user) redirect("/auth/signin");
+  // Signed in as an account that no longer exists: clear the stale session (else a redirect loop)
+  if (!user) redirect("/auth/session-ended");
 
   const first = !user.onboardedAt;
   return (

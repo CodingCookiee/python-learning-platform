@@ -249,7 +249,8 @@ export default async function DashboardPage() {
     where: { email: session?.user?.email ?? "" },
     select: { id: true, onboardedAt: true, experience: true },
   });
-  if (!dbUser) redirect("/auth/signin");
+  // Signed in as an account that no longer exists: clear the stale session (else a redirect loop)
+  if (!dbUser) redirect("/auth/session-ended");
   // First visit: three questions before the first lesson
   if (!dbUser.onboardedAt) redirect("/onboarding");
 

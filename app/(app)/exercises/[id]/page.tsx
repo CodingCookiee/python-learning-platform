@@ -25,7 +25,8 @@ export default async function ExercisePage({ params, searchParams }: PageProps) 
 
   const [{ id }, query] = await Promise.all([params, searchParams]);
   const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { id: true } });
-  if (!user) redirect("/auth/signin");
+  // Signed in as an account that no longer exists: clear the stale session (else a redirect loop)
+  if (!user) redirect("/auth/session-ended");
 
   const [drill, aiKeys] = await Promise.all([
     getDrillForUser(id, user.id, query.review ? "review" : "practice"),

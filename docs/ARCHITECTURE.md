@@ -489,6 +489,7 @@ Each milestone is shippable and leaves the app better than before.
   - **The sensei:** redrawn as line art.
   - **Faster saves:** the save that finishes a lesson runs one achievement check, not three. A pass that isn't a lesson's last drill skips loading the lesson. A check that unlocks something refreshes only the XP. A lesson-finishing pass went from 162 database queries to 58.
   - **Grading:** the examiner can read a submitted text file on the grading screen.
+  - **Stale sessions:** a session cookie for an account that no longer exists used to loop between /auth/signin (the proxy sends signed-in visitors to the dashboard) and the pages (no such user, back to sign-in). Pages that find no user now go to `/auth/session-ended`, which clears the session cookie and shows sign-in.
   - **Run in a drill:** when a run prints nothing because the code only defines a function, it says so, names the function and shows how to print a call to it, instead of an empty Output box.
 - **The second critique's priorities (2026-10-13, after a re-run that scored 30/40, up from 28):**
   - **Dashboard:** it always leads with the next step (reviews due, a running grading, a certificate to claim, the on-ramp, or the next lesson or drill). The quest offer is a slim row under it.

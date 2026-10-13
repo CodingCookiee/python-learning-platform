@@ -136,7 +136,8 @@ export default async function AdminEvaluatePage({ params }: PageProps) {
     where: { email: session.user.email },
     select: { id: true },
   });
-  if (!dbUser) redirect("/auth/signin");
+  // Signed in as an account that no longer exists: clear the stale session (else a redirect loop)
+  if (!dbUser) redirect("/auth/session-ended");
 
   const admin = await isAdmin(dbUser.id);
   if (!admin) redirect("/");

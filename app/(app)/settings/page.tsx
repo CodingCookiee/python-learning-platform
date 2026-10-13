@@ -18,7 +18,8 @@ export default async function SettingsPage() {
     where: { email: session.user.email },
     select: { id: true, name: true, email: true, password: true },
   });
-  if (!user) redirect("/auth/signin");
+  // Signed in as an account that no longer exists: clear the stale session (else a redirect loop)
+  if (!user) redirect("/auth/session-ended");
   const [credential, usage] = await Promise.all([getCredentialSummary(user.id), getUsageSummary(user.id)]);
 
   return (

@@ -18,7 +18,8 @@ export default async function ContentManagementPage() {
     where: { email: session.user.email },
     select: { id: true },
   });
-  if (!user) redirect("/auth/signin");
+  // Signed in as an account that no longer exists: clear the stale session (else a redirect loop)
+  if (!user) redirect("/auth/session-ended");
   const admin = await isAdmin(user.id);
   if (!admin) redirect("/dashboard");
 
