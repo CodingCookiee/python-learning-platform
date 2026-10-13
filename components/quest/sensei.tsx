@@ -3,9 +3,10 @@ import { cn } from "@/lib/utils";
 export type SenseiMood = "calm" | "pleased";
 
 /**
- * The quest's guide: a sensei drawn like the belt knot (square cuts, miter joins, keyline edges,
- * flat token fills), so it reads in both themes. A jade gi, a black belt, a topknot. Calm for the
- * steps; pleased (eyes closed in a smile, head tilted, straw-yellow sparks) for the farewell.
+ * The quest's guide, drawn as printed line art: keyline edges and flat token fills, so it reads in
+ * both themes. The gi and the black belt's knot are cut like the logo; the head is round with
+ * ink-line features (no pixel squares, so it isn't an 8-bit sprite in a printed syllabus). Calm for
+ * the steps; pleased (eyes closed in a smile, head tilted, straw-yellow sparks) for the farewell.
  * Decorative by default: the speech bubble beside it carries the words. `head` crops to the head,
  * for the minimised pill.
  */
@@ -50,40 +51,50 @@ export function Sensei({
       </g>
 
       <g transform={pleased ? "rotate(-5 32 34)" : undefined}>
-        <g stroke="var(--keyline)" strokeWidth="1.5" strokeLinejoin="miter">
-          {/* topknot, head, hair */}
-          <rect x="29" y="4" width="6" height="5.5" fill="var(--belt-black)" />
-          <path d="M24 9 H40 L44 13 V26 L37 33 H27 L20 26 V13 Z" fill="var(--belt-white)" />
-          <path d="M20 16 V13 L24 9 H40 L44 13 V16 Z" fill="var(--belt-black)" />
+        <g stroke="var(--keyline)" strokeWidth="1.5">
+          {/* topknot, head, then the hair as a cap over the crown */}
+          <circle cx="32" cy="8" r="3.5" fill="var(--belt-black)" />
+          <circle cx="32" cy="21.5" r="11.5" fill="var(--belt-white)" />
+          <path
+            d="M20.6 20 A11.5 11.5 0 0 1 43.4 20 C36.5 16.6 27.5 16.6 20.6 20 Z"
+            fill="var(--belt-black)"
+            strokeLinejoin="round"
+          />
         </g>
         {/* the face, inked in belt black so it holds on the light skin in both themes */}
-        <g stroke="var(--belt-black)" strokeWidth="1.5" strokeLinecap="square" strokeLinejoin="miter" fill="none">
-          <path d={pleased ? "M25 18.5 H29.5 M34.5 18.5 H39" : "M25 19 H29.5 M34.5 19 H39"} />
+        <g stroke="var(--belt-black)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none">
           {pleased ? (
             <>
-              <path d="M25.5 23.5 L27.5 21.5 L29.5 23.5" />
-              <path d="M34.5 23.5 L36.5 21.5 L38.5 23.5" />
+              <path d="M25.4 25 Q27.4 22.5 29.4 25" />
+              <path d="M34.6 25 Q36.6 22.5 38.6 25" />
             </>
           ) : (
-            <path d="M29.5 28 L30.5 28.75 H33.5 L34.5 28" />
+            <path d="M29.4 28.8 Q32 30.8 34.6 28.8" />
           )}
         </g>
         {pleased ? (
-          <path d="M28.5 26.75 H35.5 L34 29.75 H30 Z" fill="var(--belt-black)" />
+          <path
+            d="M28.8 28 Q32 32.6 35.2 28 Z"
+            fill="var(--belt-black)"
+            stroke="var(--belt-black)"
+            strokeWidth="1"
+            strokeLinejoin="round"
+          />
         ) : (
           <g fill="var(--belt-black)">
-            <rect x="26.25" y="21.25" width="2.5" height="2.5" />
-            <rect x="35.25" y="21.25" width="2.5" height="2.5" />
+            <circle cx="27.5" cy="24.2" r="1.45" />
+            <circle cx="36.5" cy="24.2" r="1.45" />
           </g>
         )}
       </g>
 
       {pleased && (
-        // Straw yellow is the colour of something just earned (a fresh stripe)
-        <g fill="var(--highlight)" stroke="var(--keyline)" strokeWidth="1" strokeLinejoin="miter">
-          <rect x="49" y="7" width="5" height="5" transform="rotate(45 51.5 9.5)" />
-          <rect x="53.5" y="17" width="3.5" height="3.5" transform="rotate(45 55.25 18.75)" />
-          <rect x="9" y="12" width="3.5" height="3.5" transform="rotate(45 10.75 13.75)" />
+        // Straw yellow is the colour of something just earned (a fresh stripe): three strokes fanning
+        // out from the head
+        <g fill="var(--highlight)" stroke="var(--keyline)" strokeWidth="1">
+          <rect x="42.4" y="4" width="3" height="6.5" rx="1.5" transform="rotate(40 43.9 7.3)" />
+          <rect x="48.4" y="13.45" width="3" height="6.5" rx="1.5" transform="rotate(75 49.9 16.7)" />
+          <rect x="16.3" y="6.35" width="3" height="6.5" rx="1.5" transform="rotate(-50 17.8 9.6)" />
         </g>
       )}
     </svg>

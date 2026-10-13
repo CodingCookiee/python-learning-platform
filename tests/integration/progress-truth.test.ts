@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { prisma } from "@/lib/prisma";
-import { updateStreak } from "@/lib/achievements";
+import { calculateLevel, checkAndUnlockAchievements, updateStreak } from "@/lib/achievements";
 import { completeLessonAfterPass, LESSON_XP } from "@/lib/lesson-complete";
 import { makeLearner } from "./helpers";
 
@@ -65,5 +65,26 @@ describe("finishing a lesson by passing its drills", () => {
     // Passing again (or another drill in it) earns nothing more
     expect(await completeLessonAfterPass(learner.user.id, lesson.id)).toBeNull();
     expect((await prisma.user.findUniqueOrThrow({ where: { id: learner.user.id } })).xp).toBe(xpAfter);
+  });
+});
+
+describe("one achievement check", () => {
+  it("unlocks an XP achievement that another unlock's XP reaches, in the same check", async () => {
+    const chained = await makeLearner("xp-chain");
+    try {
+      // 5 XP short of 1,000, with a lesson done: First Steps (+10 XP) takes it over the line
+      await prisma.user.update({ where: { id: chained.user.id }, data: { xp: 995 } });
+      const lesson = await prisma.lesson.findFirstOrThrow({ where: { archivedAt: null }, select: { id: true } });
+      await prisma.progress.create({ data: { userId: chained.user.id, lessonId: lesson.id, completed: true, completedAt: new Date() } });
+
+      const slugs = (await checkAndUnlockAchievements(chained.user.id)).map((a) => a.slug);
+      expect(slugs).toEqual(expect.arrayContaining(["first-lesson", "xp-1000"]));
+      const user = await prisma.user.findUniqueOrThrow({ where: { id: chained.user.id }, select: { xp: true, level: true } });
+      expect(user.level).toBe(calculateLevel(user.xp));
+      // Checking again finds nothing new
+      expect(await checkAndUnlockAchievements(chained.user.id)).toEqual([]);
+    } finally {
+      await chained.cleanup();
+    }
   });
 });

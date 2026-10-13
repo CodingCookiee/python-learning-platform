@@ -134,7 +134,19 @@ export function CodeBlock({
         <span className="ml-auto flex items-center gap-1">
           {runnable && (
             <>
-              {editing ? (
+              {/* Edit: in the lesson's scratchpad (a full editor with its own Run) where there is one,
+                  so each block carries Edit, Run and Copy rather than two ways to edit */}
+              {scratchpad ? (
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  onClick={() => scratchpad.load(code)}
+                  aria-label="Edit this example in the scratchpad"
+                >
+                  <SquareTerminal aria-hidden="true" />
+                  Edit
+                </Button>
+              ) : editing ? (
                 <Button
                   variant="ghost"
                   size="xs"
@@ -150,12 +162,6 @@ export function CodeBlock({
                 <Button variant="ghost" size="xs" onClick={() => setEditing(true)}>
                   <Pencil aria-hidden="true" />
                   Edit
-                </Button>
-              )}
-              {scratchpad && (
-                <Button variant="ghost" size="xs" onClick={() => scratchpad.load(editing ? draft : code)} title="Open this example in the scratchpad">
-                  <SquareTerminal aria-hidden="true" />
-                  <span className="hidden sm:inline">Scratchpad</span>
                 </Button>
               )}
               <Button size="xs" onClick={() => void execute()} aria-busy={busy} className="min-w-20" data-quest-target="run-example">

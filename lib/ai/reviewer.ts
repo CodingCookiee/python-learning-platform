@@ -34,10 +34,12 @@ const SKIP_DIR = /(^|\/)(\.git|\.venv|venv|__pycache__|node_modules|\.mypy_cache
 const MAX_FILE_CHARS = 40_000;
 const MAX_TOTAL_CHARS = 150_000;
 
-function wanted(path: string): boolean {
+/** Source and text a person (or the reviewer) can read: code, config, docs; not build output or binaries */
+export function isReadableSource(path: string): boolean {
   const base = path.split("/").pop() ?? path;
   return !SKIP_DIR.test(path) && (TEXT_EXT.test(path) || /^(Dockerfile|Makefile|README)$/i.test(base));
 }
+const wanted = isReadableSource;
 
 /** Keep the text files, in a sensible order, within the size budget */
 export function selectFiles(files: SourceFile[]): { files: SourceFile[]; skipped: number } {

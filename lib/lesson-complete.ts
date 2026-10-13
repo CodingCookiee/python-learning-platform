@@ -21,13 +21,25 @@ export interface LessonCompletion {
   milestone: Awaited<ReturnType<typeof checkMilestone>> | null;
 }
 
+interface CompleteOptions {
+  /**
+   * False when the caller checks achievements itself once everything is recorded (the drill submit
+   * route): a check evaluates every achievement from fresh stats, and it's the slow part.
+   */
+  checkAchievements?: boolean;
+}
+
 /**
  * Record a lesson as complete and award what finishing it earns: its XP, achievements, the day's
  * streak and any milestone. Completing twice changes nothing and earns nothing. The caller checks
  * the lesson rules first (getLessonForUser's canComplete): the "Mark lesson complete" route for
  * lessons without required drills, and the drill submit route when the last required drill passes.
  */
-export async function completeLesson(userId: string, lessonId: string): Promise<LessonCompletion> {
+export async function completeLesson(
+  userId: string,
+  lessonId: string,
+  { checkAchievements = true }: CompleteOptions = {}
+): Promise<LessonCompletion> {
   const existing = await prisma.progress.findUnique({
     where: { userId_lessonId: { userId, lessonId } },
     select: { completed: true },
@@ -41,13 +53,12 @@ export async function completeLesson(userId: string, lessonId: string): Promise<
   });
   await prisma.user.update({ where: { id: userId }, data: { xp: { increment: LESSON_XP } } });
   await updateUserLevel(userId);
+  await updateStreak(userId, { checkAchievements: false });
   await invalidateUserCache(userId);
 
-  const achievements = await checkAndUnlockAchievements(userId, { type: "lesson_complete", lessonId });
-  await updateStreak(userId);
-  // XP achievements after all the XP is in
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { xp: true } });
-  if (user) achievements.push(...(await checkAndUnlockAchievements(userId, { type: "xp_update", totalXp: user.xp })));
+  // One check once the lesson, its XP and the streak are all in: it covers lesson, XP and streak
+  // achievements alike (and re-checks after its own XP)
+  const achievements = checkAchievements ? await checkAndUnlockAchievements(userId, { type: "lesson_complete", lessonId }) : [];
   const milestone = await checkMilestone(userId);
   return { firstCompletion: true, xpGained: LESSON_XP, achievements, milestone };
 }
@@ -66,10 +77,25 @@ export interface LessonFinishedByPass extends LessonCompletion {
  * isn't finished by this pass: drills still to go, earlier lessons open, no required drills (those
  * lessons have a button), or already complete.
  */
-export async function completeLessonAfterPass(userId: string, lessonId: string): Promise<LessonFinishedByPass | null> {
+export async function completeLessonAfterPass(
+  userId: string,
+  lessonId: string,
+  options: CompleteOptions = {}
+): Promise<LessonFinishedByPass | null> {
+  // Most passes aren't a lesson's last required drill: settle that with one small query before
+  // loading the whole lesson for its ordering rule
+  const [progress, required] = await Promise.all([
+    prisma.progress.findUnique({ where: { userId_lessonId: { userId, lessonId } }, select: { completed: true } }),
+    prisma.exercise.findMany({
+      where: { lessonId, archivedAt: null, required: true },
+      select: { submissions: { where: { userId, passed: true }, select: { id: true }, take: 1 } },
+    }),
+  ]);
+  if (progress?.completed || required.length === 0 || required.some((d) => d.submissions.length === 0)) return null;
+
   const lesson = await getLessonForUser(lessonId, userId);
   if (!lesson || lesson.completed || !lesson.canComplete || !lesson.drills.some((d) => d.required)) return null;
-  const done = await completeLesson(userId, lesson.id);
+  const done = await completeLesson(userId, lesson.id, options);
   if (!done.firstCompletion) return null;
   return {
     ...done,

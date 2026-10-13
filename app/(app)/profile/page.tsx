@@ -14,8 +14,13 @@ import { Check } from "lucide-react";
 import { RankCard } from "@/components/brand/rank-card";
 import { AchievementPatch } from "@/components/gamification/achievement-badge";
 import { SealMark } from "@/components/brand/marks";
-import { getLearnerRank } from "@/lib/learner-rank";
+import { rankFromTracks } from "@/lib/learner-rank";
+import { getCurriculumState } from "@/lib/curriculum-state";
+import { blackBeltIfDue } from "@/lib/black-belt";
 import { tierStyle } from "@/lib/achievement-tier";
+import { getCertificateStates } from "@/lib/certificates";
+import { publicOrigin } from "@/lib/public-origin";
+import { CertificatesSection } from "@/components/certificates/certificates-section";
 
 export const metadata: Metadata = { title: "Profile" };
 
@@ -94,7 +99,10 @@ export default async function ProfilePage() {
   if (!data) redirect("/dashboard");
 
   const { user, streak, completion, recentActivity, achievements } = data;
-  const rank = await getLearnerRank(user.id);
+  // One read of the curriculum for the rank and the certificates
+  const tracks = await getCurriculumState(user.id);
+  const [blackBelt, certificates] = await Promise.all([blackBeltIfDue(user.id, tracks), getCertificateStates(user.id, tracks)]);
+  const rank = rankFromTracks(tracks, blackBelt);
   const initials = initialsFor(user.name, user.email);
   const recentAchievements = achievements.unlocked.slice(0, 6);
   const recentLessons = recentActivity.lessons.slice(0, 6);
@@ -115,6 +123,10 @@ export default async function ProfilePage() {
 
         <FadeIn delay={0.04}>
           <RankCard rank={rank} />
+        </FadeIn>
+
+        <FadeIn delay={0.06}>
+          <CertificatesSection states={certificates} defaultName={user.name ?? ""} origin={publicOrigin()} />
         </FadeIn>
 
         {/* Training record: ruled facts, not stat cards */}

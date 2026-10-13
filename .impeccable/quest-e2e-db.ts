@@ -9,6 +9,8 @@
 //   npx tsx .impeccable/quest-e2e-db.ts tutor <email>           an onboarded learner with a dummy AI key (the page's tutor shows; tests intercept /api/tutor, no provider is called)
 //   npx tsx .impeccable/quest-e2e-db.ts tour <email>            an onboarded learner on the quest's step 5 (the dashboard tour)
 //   npx tsx .impeccable/quest-e2e-db.ts quest <email>           the account's quest row
+//   npx tsx .impeccable/quest-e2e-db.ts certificate-ready <email>   every Python and automation module passed: the automation certificate is earned
+//   npx tsx .impeccable/quest-e2e-db.ts certificate-issue <email> <python|automation> <name>   a certificate issued directly (prints its code)
 //   npx tsx .impeccable/quest-e2e-db.ts cleanup <email>...
 import "dotenv/config";
 import { hash } from "bcryptjs";
@@ -65,6 +67,27 @@ async function main() {
     });
     const unlocked = await checkAndUnlockAchievements(user.id);
     console.log(unlocked.map((a) => a.slug).join(","));
+  } else if (command === "certificate-ready") {
+    // Every Python and AI automation module passed (placement checkpoints): the automation certificate
+    // is earned. No capstones, so not the black belt
+    const user = await prisma.user.findUniqueOrThrow({ where: { email: args[0]! }, select: { id: true } });
+    const modules = await prisma.module.findMany({
+      where: { archivedAt: null, track: { slug: { in: ["python", "automation"] } } },
+      select: { id: true },
+    });
+    await prisma.checkpointAttempt.createMany({
+      data: modules.map((m) => ({ userId: user.id, moduleId: m.id, exerciseIds: [], passedIds: [], placement: true, score: 1, passed: true, submittedAt: new Date() })),
+    });
+    console.log(`passed ${modules.length}`);
+  } else if (command === "certificate-issue") {
+    // A certificate issued straight into the database (no eligibility check), to look at a design
+    const { newCertificateCode } = await import("@/lib/certificate-rules");
+    const user = await prisma.user.findUniqueOrThrow({ where: { email: args[0]! }, select: { id: true } });
+    const track = args[1] === "automation" ? "automation" : "python";
+    const cert = await prisma.certificate.create({
+      data: { userId: user.id, track, name: args.slice(2).join(" ") || "Test Learner", code: newCertificateCode(track) },
+    });
+    console.log(cert.code);
   } else if (command === "lesson-id") {
     console.log((await prisma.lesson.findFirstOrThrow({ where: { slug: args[0]!, archivedAt: null }, select: { id: true } })).id);
   } else if (command === "expire-checkpoints") {

@@ -2,6 +2,9 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { NextStep } from "@/lib/next-step";
+import { SealMark } from "@/components/brand/marks";
+import { ClaimCertificate } from "@/components/certificates/claim-certificate";
+import { CERTIFICATE, type CertificateTrack } from "@/lib/certificate-rules";
 
 /** What the band says for each kind of next step: a heading, a line of context, and the one action */
 function content(next: Exclude<NextStep, { kind: "none" }>): { title: string; detail: string; action: string; href: string } {
@@ -68,6 +71,30 @@ export function NextBand({ next }: { next: NextStep }) {
           <ArrowRight data-icon="inline-end" aria-hidden="true" />
         </Link>
       </Button>
+    </section>
+  );
+}
+
+/**
+ * The band when a certificate is earned and not yet claimed: the claim takes the top of the
+ * dashboard (after reviews due and a running checkpoint), since it's a moment, not a chore
+ */
+export function CertificateBand({ track, defaultName, origin }: { track: CertificateTrack; defaultName: string; origin: string }) {
+  return (
+    <section
+      aria-labelledby="next-heading"
+      className="flex flex-col gap-5 rounded-md border border-border bg-sheet p-6 sm:flex-row sm:items-center sm:gap-8"
+    >
+      <SealMark className="hidden size-10 shrink-0 text-primary sm:block" />
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+        <h2 id="next-heading" className="font-condensed text-2xl leading-tight font-extrabold tracking-[-0.01em] text-balance">
+          Your certificate is ready: {CERTIFICATE[track].title}
+        </h2>
+        <p className="max-w-2xl text-[0.9875rem] leading-relaxed text-muted-foreground">
+          You&apos;ve earned it. Claim it for a page anyone can check, a PDF to keep and an image to share.
+        </p>
+      </div>
+      <ClaimCertificate track={track} defaultName={defaultName} origin={origin} size="lg" />
     </section>
   );
 }

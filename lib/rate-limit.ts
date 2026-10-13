@@ -31,6 +31,8 @@ export const LIMITS = {
   examinerReview: { limit: 30, windowSec: 60 * 60 },
   draftSave: { limit: 120, windowSec: 60 * 60 },
   questEvent: { limit: 60, windowSec: 10 * 60 },
+  // Claiming a certificate, fixing its printed name, withdrawing or restoring it
+  certificateClaim: { limit: 20, windowSec: 60 * 60 },
 } as const;
 
 export type LimitName = keyof typeof LIMITS;

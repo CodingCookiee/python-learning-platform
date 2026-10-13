@@ -136,6 +136,14 @@ try {
     await shot(key, path, { vp: "mobile", note: `${note}, phone` });
   }
 
+  // A certificate's page, as its holder sees it (issued directly for the look; the claim flow is checked
+  // in waiting-e2e.mjs), and the profile listing it
+  if (!only || only.has("certificate")) {
+    const certCode = db("certificate-issue", LEARNER, "automation", "Grace", "Hopper");
+    await shot("certificate", `/certificates/${certCode}`, { note: "A certificate's public page (holder view): the A4 sheet, the holder's controls" });
+    await shot("certificate", `/certificates/${certCode}`, { vp: "mobile", note: "Certificate page, phone (the sheet stacks)" });
+  }
+
   // The drill after a run: one passing (the reference solution), one failing (the starter)
   const solution = JSON.parse(db("drill", drill)).solution;
   const runWith = (code) => async () => {

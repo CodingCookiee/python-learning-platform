@@ -192,6 +192,45 @@
   --sidebar-ring: oklch(0.8 0.12 156);
 }
 
+/* A document that is always paper (a certificate): the daylight tokens it draws with, in either
+   theme, and printed with its colours */
+.paper {
+  --background: oklch(0.972 0.012 145);
+  --foreground: oklch(0.27 0.035 162);
+  --sheet: oklch(0.99 0.006 145);
+  --muted-foreground: oklch(0.45 0.035 160);
+  --primary: oklch(0.52 0.11 162);
+  --highlight: oklch(0.88 0.12 95);
+  --seal: oklch(0.52 0.11 162);
+  --seal-ink: color-mix(in oklch, var(--seal) 90%, var(--foreground));
+  --border: oklch(0.875 0.022 148);
+  --belt-black: oklch(0.3 0.03 162);
+  --belt-black-mark: oklch(0.3 0.03 162);
+  --tape: oklch(0.985 0.008 100);
+  --keyline: oklch(0.4 0.035 162);
+  color: var(--foreground);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+/* Printing a certificate: one A4 landscape page, the sheet edge to edge, nothing else */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 0;
+  }
+  html:has([data-certificate-print]),
+  html:has([data-certificate-print]) body {
+    margin: 0;
+    background: #fff;
+  }
+  [data-certificate-print] {
+    width: 297mm;
+    height: 210mm;
+    break-inside: avoid;
+  }
+}
+
 /* Jade and success as text on a tinted ground (a pass banner): a tenth of the ink mixed in keeps
    them past 4.5:1 there, a touch deeper in light, a touch brighter in dark. One rule for both
    themes: the class that switches them sits on <html> with these. */

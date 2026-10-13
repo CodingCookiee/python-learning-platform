@@ -77,7 +77,12 @@ export async function unlockAchievement(userId: string, achievementName: string)
 
 // Streaks
 
-export async function updateStreak(userId: string): Promise<number> {
+/**
+ * Count today's activity toward the streak. It unlocks any streak patch it earns, unless the caller
+ * checks achievements itself straight after (`checkAchievements: false`): each check evaluates every
+ * achievement from fresh stats, so one at the end of a request is enough.
+ */
+export async function updateStreak(userId: string, { checkAchievements = true } = {}): Promise<number> {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const yesterday = new Date(today);
@@ -86,7 +91,7 @@ export async function updateStreak(userId: string): Promise<number> {
   const streak = await prisma.streak.findUnique({ where: { userId } });
   if (!streak) {
     await prisma.streak.create({ data: { userId, currentStreak: 1, longestStreak: 1, lastActivityDate: today } });
-    await checkAndUnlockAchievements(userId, { type: "streak_update", streakDays: 1 });
+    if (checkAchievements) await checkAndUnlockAchievements(userId, { type: "streak_update", streakDays: 1 });
     return 1;
   }
 
@@ -101,7 +106,7 @@ export async function updateStreak(userId: string): Promise<number> {
     where: { userId },
     data: { currentStreak: next, longestStreak: Math.max(next, streak.longestStreak), lastActivityDate: today },
   });
-  await checkAndUnlockAchievements(userId, { type: "streak_update", streakDays: next });
+  if (checkAchievements) await checkAndUnlockAchievements(userId, { type: "streak_update", streakDays: next });
   return next;
 }
 
@@ -309,17 +314,21 @@ export async function checkAndUnlockAchievements(
   void event;
   try {
     const unlocked: UnlockedAchievement[] = [];
-    for (let pass = 0; pass < 2; pass++) {
-      const candidates = await prisma.achievement.findMany({
-        where: { archivedAt: null, users: { none: { userId } } },
-        orderBy: { order: "asc" },
-      });
-      if (candidates.length === 0) break;
-      const stats = await learnerStats(userId);
+    let remaining = await prisma.achievement.findMany({
+      where: { archivedAt: null, users: { none: { userId } } },
+      orderBy: { order: "asc" },
+    });
+    if (remaining.length === 0) return unlocked;
+    let stats = await learnerStats(userId);
+    for (let pass = 0; pass < 2 && remaining.length > 0; pass++) {
+      const notYet: typeof remaining = [];
       let any = false;
-      for (const a of candidates) {
+      for (const a of remaining) {
         const criteria = parseCriteria(a.criteria);
-        if (!criteria || !met(criteria, stats)) continue;
+        if (!criteria || !met(criteria, stats)) {
+          notYet.push(a);
+          continue;
+        }
         const result = await unlock(userId, a);
         if (result) {
           unlocked.push(result);
@@ -327,7 +336,13 @@ export async function checkAndUnlockAchievements(
         }
       }
       if (!any) break;
-      await updateUserLevel(userId);
+      remaining = notYet;
+      // An unlock changes only the learner's XP (and level); nothing else the criteria read, so the
+      // re-check takes the new XP rather than gathering every stat again
+      const user = await prisma.user.findUnique({ where: { id: userId }, select: { xp: true } });
+      const xp = user?.xp ?? stats.xp;
+      await prisma.user.update({ where: { id: userId }, data: { level: calculateLevel(xp) } });
+      stats = { ...stats, xp };
     }
     return unlocked;
   } catch (error) {

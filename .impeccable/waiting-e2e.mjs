@@ -1053,6 +1053,270 @@ async function achievementChecks() {
   step("achievements", { unlocked, summary, axe: await axe() });
 }
 
+/** A screenshot of one element (with a margin), wherever it sits on the page */
+async function shotOf(selector, name, margin = 12) {
+  const box = await ev(`(() => { const el = ${selector}; if (!el) return null; el.scrollIntoView({ block: "center" }); const r = el.getBoundingClientRect(); return { x: Math.max(0, r.x - ${margin}), y: Math.max(0, r.y + scrollY - ${margin}), width: r.width + ${margin * 2}, height: r.height + ${margin * 2} }; })()`);
+  if (!box) return false;
+  await sleep(300);
+  const img = await send("Page.captureScreenshot", { format: "png", clip: { ...box, scale: 1 }, captureBeyondViewport: true });
+  writeFileSync(new URL(name, OUT), Buffer.from(img.result.data, "base64"));
+  return true;
+}
+
+/** Start recording what a screen reader would hear: each live region's text whenever it changes */
+const LISTEN = `(() => {
+  window.__heard = [];
+  const last = new Map();
+  const scan = (record) => {
+    for (const reg of document.querySelectorAll("main [aria-live]:not([aria-live=off]), main [role=status], main [role=alert]")) {
+      const t = (reg.innerText || "").trim().replace(/\\s+/g, " ");
+      if (record && t && last.get(reg) !== t) window.__heard.push(t.slice(0, 180));
+      last.set(reg, t);
+    }
+  };
+  scan(false);
+  new MutationObserver(() => scan(true)).observe(document.querySelector("main"), { subtree: true, childList: true, characterData: true });
+  return true;
+})()`;
+
+/** The 2026-10-13 deferred items, as the learner: one voice for results, Edit in the scratchpad, hand-in from a drill, the sensei, the AI default */
+async function deferredLearner() {
+  // What a screen reader hears on a failing run, then a passing one
+  const drillId = db("drill-id", "hello-pylearn");
+  await go(`/exercises/${drillId}`, 7000);
+  await waitFor(`!!window.monaco?.editor?.getEditors?.().length`, 60);
+  await sleep(800);
+  await ev(LISTEN);
+  await ev(`(() => { const ed = window.monaco.editor.getEditors().find((e) => !e.getOption(window.monaco.editor.EditorOption.readOnly)); ed.setValue("print('not yet')"); })()`);
+  await ev(`document.querySelector("[data-quest-target=run-tests]").click()`);
+  await waitFor(`window.__heard.some((t) => t === "Attempt saved.")`, 120);
+  const failing = await ev(`window.__heard.splice(0)`);
+  await setSolution(drillId);
+  await ev(`document.querySelector("[data-quest-target=run-tests]").click()`);
+  await waitFor(`window.__heard.some((t) => t.startsWith("Saved"))`, 120);
+  await sleep(1500);
+  const passing = await ev(`window.__heard.splice(0)`);
+  await dismissCelebrations(6);
+  const resultsLive = await ev(`!!document.querySelector("main [aria-live] [data-quest-target], main [aria-live] ul")`);
+  step("one voice for results", { failing, passing, resultsBlockIsLive: resultsLive });
+
+  // The lesson's code blocks: Edit, Run, Copy; Edit opens the example in the scratchpad
+  const lessonId = db("lesson-id", "running-python");
+  await go(`/lessons/${lessonId}`, 6000);
+  const BLOCK = `[...document.querySelectorAll("main div.my-6")].find((d) => d.querySelector("[data-quest-target=run-example]"))`;
+  const controls = await ev(`[...(${BLOCK})?.querySelectorAll("button") ?? []].map((b) => b.getAttribute("aria-label") || b.innerText.trim())`);
+  const example = await ev(`(${BLOCK})?.querySelector("pre")?.innerText.trim()`);
+  await shotOf(BLOCK, "deferred-code-block.png");
+  await ev(`(${BLOCK})?.querySelector("button[aria-label^='Edit this example']")?.click()`);
+  await waitFor(`!!document.querySelector("#scratchpad") && window.monaco?.editor?.getEditors?.().some((e) => document.querySelector("#scratchpad")?.contains(e.getDomNode()))`, 60);
+  await sleep(800);
+  const inScratchpad = await ev(`window.monaco.editor.getEditors().find((e) => document.querySelector("#scratchpad")?.contains(e.getDomNode()))?.getValue().trim()`);
+  await shot("deferred-scratchpad.png");
+  // Close the pane again, so later lessons open without it
+  await ev(`document.querySelector("#scratchpad button[aria-label='Close scratchpad']")?.click()`);
+  step("lesson code blocks", { controls, editLoadsScratchpad: inScratchpad === example, axe: await axe() });
+
+  // The AI default for a learner without a key
+  await go("/settings", 6000);
+  const model = await ev(`document.querySelector("[role=radiogroup][aria-label=Model] [aria-checked=true]")?.innerText.replace(/\\s+/g, " ").trim()`);
+  step("AI default model", { model });
+
+  // The sensei on the dashboard's quest offer, light and dark
+  await go("/dashboard", 6000);
+  const OFFER = `document.querySelector("main svg[data-mood]")?.closest("section, div.rounded-md, div")`;
+  await shotOf(`document.querySelector("main svg[data-mood]")?.parentElement?.parentElement`, "deferred-sensei-offer.png", 16);
+  await send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-color-scheme", value: "dark" }] });
+  await ev(`(() => { try { localStorage.setItem("theme", "dark"); } catch {} })()`);
+  await go("/dashboard", 6000);
+  await shotOf(`document.querySelector("main svg[data-mood]")?.parentElement?.parentElement`, "deferred-sensei-offer-dark.png", 16);
+  await ev(`(() => { try { localStorage.setItem("theme", "light"); } catch {} })()`);
+  await send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-color-scheme", value: "light" }] });
+  step("sensei", { drawn: await ev(`!!${OFFER}`) });
+
+  // Hand in from inside a checkpoint drill
+  const moduleId = db("module-id", "1");
+  await go(`/modules/${moduleId}`, 6000);
+  await ev(`[...document.querySelectorAll("button")].find((b) => /checkpoint|Test out/i.test(b.textContent))?.click()`);
+  await waitFor(`location.pathname.startsWith("/checkpoints/")`, 40);
+  await sleep(2500);
+  const attemptPath = await ev("location.pathname");
+  const cpDrill = await ev(`document.querySelector("main a[href^='/exercises/']")?.getAttribute("href")`);
+  await go(cpDrill, 7000);
+  const BANNER_CP = `[...document.querySelectorAll("main div")].find((d) => d.className.includes("bg-primary/6"))`;
+  const bannerBefore = await ev(`(${BANNER_CP})?.innerText.replace(/\\s+/g, " ").trim()`);
+  await shotOf(BANNER_CP, "deferred-handin-banner.png");
+  await ev(`[...(${BANNER_CP})?.querySelectorAll("button") ?? []].find((b) => b.textContent.trim() === "Hand in")?.click()`);
+  await sleep(500);
+  const confirm = await ev(`(${BANNER_CP})?.innerText.replace(/\\s+/g, " ").trim()`);
+  await shotOf(BANNER_CP, "deferred-handin-confirm.png");
+  const axeConfirm = await axe();
+  await ev(`[...(${BANNER_CP})?.querySelectorAll("button") ?? []].find((b) => b.textContent.trim() === "Hand in")?.click()`);
+  const landed = await waitFor(`location.pathname === ${JSON.stringify(attemptPath)}`, 60);
+  await sleep(2500);
+  const result = await ev(`document.querySelector("main")?.innerText.split("\\n").filter(Boolean).slice(0, 8).join(" | ")`);
+  await shot("deferred-handin-result.png");
+  step("hand in from a checkpoint drill", { bannerBefore, confirm, axeConfirm, landed, result });
+}
+
+/** As an examiner: a submitted file read on the grading screen */
+async function deferredExaminer() {
+  const EXAMINER = `examiner-${Date.now()}@example.invalid`;
+  const LEARNER = `graded-${Date.now()}@example.invalid`;
+  try {
+    db("existing", LEARNER);
+    const submissionId = db("capstone-submission", LEARNER);
+    db("examiner", EXAMINER);
+    await send("Network.clearBrowserCookies");
+    await go("/auth/signin", 5000);
+    await fill("#email", EXAMINER);
+    await fill("#password", PASSWORD);
+    await clickText("button[type=submit]", "Sign in");
+    await waitFor(`location.pathname === "/dashboard"`, 60);
+    await go(`/admin/projects/${submissionId}/evaluate`, 7000);
+    const WORK = `document.querySelector("section[aria-labelledby=work-heading]")`;
+    const before = await ev(`[...(${WORK})?.querySelectorAll("button, a") ?? []].map((b) => b.innerText.trim())`);
+    await clickText("section[aria-labelledby=work-heading] button", "View");
+    await sleep(400);
+    const shown = await ev(`(${WORK})?.querySelector("pre")?.innerText`);
+    const expanded = await ev(`(${WORK})?.querySelector("button[aria-expanded]")?.getAttribute("aria-expanded")`);
+    await shotOf(WORK, "deferred-examiner-view.png");
+    step("examiner reads a submitted file", { before, shown, expanded, axe: await axe() });
+  } finally {
+    report.push({ step: "examiner cleanup", result: db("cleanup", EXAMINER, LEARNER) });
+  }
+}
+
+/** Certificates (2026-10-13): claim, the page, print, the image, the holder's controls, withdraw */
+async function certificateChecks() {
+  db("certificate-ready", EMAIL);
+
+  // The dashboard leads with the claim
+  await go("/dashboard", 7000);
+  const band = await ev(`document.querySelector("section[aria-labelledby=next-heading]")?.innerText.replace(/\\s+/g, " ").trim()`);
+  await shotOf(`document.querySelector("section[aria-labelledby=next-heading]")`, "cert-dashboard-band.png");
+
+  // The profile: one to claim, one with what's left
+  const profileFrom = Date.now();
+  await go("/profile", 1000);
+  const SECTION = `document.querySelector("section[aria-labelledby=certificates-heading]")`;
+  await waitFor(`!!${SECTION}`, 80);
+  const profileMs = Date.now() - profileFrom;
+  await sleep(800);
+  const rows = await ev(`[...(${SECTION})?.querySelectorAll("li") ?? []].map((li) => li.innerText.replace(/\\s+/g, " ").trim())`);
+  await shotOf(SECTION, "cert-profile.png");
+
+  // The claim dialog: the preview follows the name
+  await ev(`[...(${SECTION})?.querySelectorAll("button") ?? []].find((b) => b.textContent.includes("Claim your certificate"))?.click()`);
+  await waitFor(`!!document.querySelector("[role=dialog] #claim-name")`, 20);
+  await sleep(500);
+  await fill("#claim-name", "  Grace   Hopper ");
+  await sleep(400);
+  const preview = await ev(`document.querySelector("[role=dialog] article")?.innerText.includes("Grace Hopper")`);
+  const focusInDialog = await ev(`!!document.activeElement?.closest("[role=dialog]")`);
+  await shot("cert-claim-dialog.png");
+  const axeDialog = await axe();
+  await ev(`[...document.querySelectorAll("[role=dialog] button[type=submit]")].find((b) => b.textContent.includes("Issue my certificate"))?.click()`);
+  await sleep(700);
+  await shot("cert-claim-stamped.png");
+  const landed = await waitFor(`location.pathname.startsWith("/certificates/PL-AI-")`, 40);
+  await sleep(2500);
+  const code = await ev(`location.pathname.split("/").pop()`);
+  const page = await ev(`(() => ({
+    title: document.title,
+    robots: document.querySelector("meta[name=robots]")?.content,
+    ogImage: document.querySelector("meta[property='og:image']")?.content,
+    h1: document.querySelector("h1")?.textContent,
+    sheet: document.querySelector("article[data-certificate-print]")?.innerText.replace(/\\s+/g, " ").trim(),
+    line: [...document.querySelectorAll("main p")].find((p) => p.textContent.startsWith("Issued by pylearn"))?.textContent,
+    controls: [...document.querySelectorAll("section[aria-labelledby=holder-heading] button, section[aria-labelledby=holder-heading] a")].map((b) => b.innerText.trim()),
+  }))()`);
+  await shot("cert-page-desktop.png");
+  step("claim a certificate", { band, profileMs, rows, preview, focusInDialog, axeDialog, landed, code, page, axe: await axe() });
+
+  // Print: one A4 landscape page
+  const pdf = await send("Page.printToPDF", { preferCSSPageSize: true, printBackground: true });
+  const bytes = Buffer.from(pdf.result.data, "base64");
+  writeFileSync(new URL("cert-print.pdf", OUT), bytes);
+  const text = bytes.toString("latin1");
+  const pages = (text.match(/\/Type\s*\/Page[^s]/g) ?? []).length;
+  const mediaBox = text.match(/\/MediaBox\s*\[([^\]]+)\]/)?.[1]?.trim();
+  step("print", { pages, mediaBox });
+
+  // The image, as a link preview fetches it (no cookies)
+  const png = await fetch(`${BASE}/certificates/${code}/image`);
+  const pngBytes = Buffer.from(await png.arrayBuffer());
+  writeFileSync(new URL("cert-image.png", OUT), pngBytes);
+  const isPng = pngBytes.length > 24 && pngBytes.toString("latin1", 1, 4) === "PNG";
+  step("image", { status: png.status, type: png.headers.get("content-type"), kb: Math.round(pngBytes.length / 1024), width: isPng ? pngBytes.readUInt32BE(16) : null, height: isPng ? pngBytes.readUInt32BE(20) : null });
+
+  // On a phone: stacked, readable, no sideways scroll
+  await send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
+  await go(`/certificates/${code}`, 5000);
+  const phone = await ev(`({ overflow: document.documentElement.scrollWidth > innerWidth, statementPx: parseFloat(getComputedStyle([...document.querySelectorAll("article p")].find((p) => p.textContent.startsWith("passed all"))).fontSize) })`);
+  const { result: m } = await send("Page.getLayoutMetrics");
+  await send("Page.captureScreenshot", { format: "png", clip: { x: 0, y: 0, width: 390, height: Math.min(m.cssContentSize.height, 3000), scale: 1 }, captureBeyondViewport: true }).then((img) =>
+    writeFileSync(new URL("cert-page-phone.png", OUT), Buffer.from(img.result.data, "base64"))
+  );
+  step("on a phone", { ...phone, axe: await axe() });
+  await send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
+
+  // Dark theme: the page follows it, the certificate stays paper
+  await ev(`(() => { try { localStorage.setItem("theme", "dark"); } catch {} })()`);
+  await go(`/certificates/${code}`, 5000);
+  await shot("cert-page-dark.png");
+  const darkSheet = await ev(`getComputedStyle(document.querySelector("article[data-certificate-print] > div")).backgroundColor`);
+  await ev(`(() => { try { localStorage.setItem("theme", "light"); } catch {} })()`);
+
+  // The holder fixes the printed name
+  await go(`/certificates/${code}`, 5000);
+  await fill("#certificate-name", "Grace Brewster Hopper");
+  await ev(`[...document.querySelectorAll("section[aria-labelledby=holder-heading] button[type=submit]")][0]?.click()`);
+  const renamed = await waitFor(`document.querySelector("article[data-certificate-print]")?.innerText.includes("Grace Brewster Hopper")`, 30);
+  // Let the refresh that brought the new name settle before the next change
+  await sleep(2000);
+
+  // Withdraw: visitors get the neutral 404, the holder still sees it
+  const HOLDER = `[...document.querySelectorAll("section[aria-labelledby=holder-heading] button")]`;
+  await ev(`${HOLDER}.find((b) => b.textContent.trim() === "Withdraw the public page")?.click()`);
+  const confirmShown = await waitFor(`document.body.innerText.includes("Withdraw it?")`, 20);
+  await shotOf(`document.querySelector("section[aria-labelledby=holder-heading]")`, "cert-withdraw-confirm.png");
+  // A loading button holds both its labels ("Withdraw the page" and "Withdrawing…")
+  await ev(`${HOLDER}.find((b) => b.textContent.trim().startsWith("Withdraw the page"))?.click()`);
+  const withdrawnShown = await waitFor(`document.body.innerText.includes("Restore the public page")`, 80);
+  await sleep(1000);
+  const holderSees = await ev(`document.querySelector("main > p[role=status]")?.innerText.replace(/\\s+/g, " ").trim()`);
+  await shot("cert-withdrawn-holder.png");
+  const visitor = await fetch(`${BASE}/certificates/${code}`);
+  const visitorBody = await visitor.text();
+  const visitorImage = await fetch(`${BASE}/certificates/${code}/image`);
+  // Restore
+  await ev(`${HOLDER}.find((b) => b.textContent.includes("Restore the public page"))?.click()`);
+  const restoredShown = await waitFor(`document.body.innerText.includes("Withdraw the public page")`, 80);
+  const restored = await fetch(`${BASE}/certificates/${code}`);
+  step("holder controls", {
+    darkSheet,
+    renamed,
+    confirmShown,
+    withdrawnShown,
+    restoredShown,
+    holderSees,
+    visitorStatus: visitor.status,
+    visitorSaysNoCertificate: visitorBody.includes("No certificate here"),
+    visitorSeesName: visitorBody.includes("Grace Brewster Hopper"),
+    visitorImageStatus: visitorImage.status,
+    restoredStatus: restored.status,
+    unknownStatus: (await fetch(`${BASE}/certificates/PL-PY-0000-0000`)).status,
+  });
+
+  // The Python certificate's design (issued directly; the black belt itself isn't set up here)
+  const pyCode = db("certificate-issue", EMAIL, "python", "Ada", "King", "Lovelace");
+  await go(`/certificates/${pyCode}`, 5000);
+  await shot("cert-python-desktop.png");
+  const py = await fetch(`${BASE}/certificates/${pyCode}/image`);
+  writeFileSync(new URL("cert-python-image.png", OUT), Buffer.from(await py.arrayBuffer()));
+  step("python certificate", { status: py.status, axe: await axe() });
+}
+
 try {
   await signIn();
   if (process.env.ONLY === "probe") {
@@ -1093,6 +1357,13 @@ try {
   if (process.env.ONLY?.split(",").includes("seal")) await sealOnPhone();
   if (process.env.ONLY?.split(",").includes("dash")) await dashboardChecks();
   if (process.env.ONLY?.split(",").includes("ach")) await achievementChecks();
+  if (process.env.ONLY?.split(",").includes("certificates")) await certificateChecks();
+  if (process.env.ONLY?.split(",").includes("deferred")) {
+    await deferredLearner();
+    // Its timing of the save that finishes a lesson (18 s before 2026-10-13's single achievement check)
+    await hardenChecks();
+    await deferredExaminer();
+  }
 } catch (e) {
   if (e !== "done") report.push({ step: "crashed", error: String(e && e.stack || e) });
 } finally {

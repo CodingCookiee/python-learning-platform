@@ -143,8 +143,21 @@ export function CheckpointClock({ deadline, className }: { deadline: string; cla
   );
 }
 
-/** Close the attempt now; unpassed drills count as failed. */
-export function HandInButton({ attemptId, allPassed }: { attemptId: string; allPassed: boolean }) {
+/**
+ * Close the attempt now; unpassed drills count as failed. On the checkpoint page the marked result
+ * comes in by refresh; from inside one of its drills, `href` is where to go to see it.
+ */
+export function HandInButton({
+  attemptId,
+  allPassed,
+  href,
+  size = "default",
+}: {
+  attemptId: string;
+  allPassed: boolean;
+  href?: string;
+  size?: "default" | "sm";
+}) {
   const router = useRouter();
   const [confirming, setConfirming] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
@@ -164,7 +177,7 @@ export function HandInButton({ attemptId, allPassed }: { attemptId: string; allP
         setBusy(false);
         return;
       }
-      startRefresh(() => router.refresh());
+      startRefresh(() => (href ? router.push(href) : router.refresh()));
     } catch {
       setError("We couldn't reach the server. Try again in a moment.");
       setBusy(false);
@@ -177,12 +190,18 @@ export function HandInButton({ attemptId, allPassed }: { attemptId: string; allP
       <div className="flex flex-col items-start gap-2">
         <div className="flex flex-wrap items-center gap-3">
           {!allPassed && <span className="text-sm">Hand in now? Drills you haven’t passed count as failed.</span>}
-          <Button onClick={() => void handIn()} aria-busy={working} aria-disabled={working} className={cn(working && "cursor-progress")}>
+          <Button
+            size={size}
+            onClick={() => void handIn()}
+            aria-busy={working}
+            aria-disabled={working}
+            className={cn(working && "cursor-progress")}
+          >
             {working && <LoaderCircle className="animate-spin" aria-hidden="true" />}
             {working ? "Marking your checkpoint…" : "Hand in"}
           </Button>
           {!allPassed && (
-            <Button variant="ghost" onClick={() => setConfirming(false)} disabled={working}>
+            <Button size={size} variant="ghost" onClick={() => setConfirming(false)} disabled={working}>
               Keep going
             </Button>
           )}
@@ -196,7 +215,7 @@ export function HandInButton({ attemptId, allPassed }: { attemptId: string; allP
     );
   }
   return (
-    <Button variant="outline" onClick={() => setConfirming(true)}>
+    <Button size={size} variant="outline" onClick={() => setConfirming(true)}>
       Hand in
     </Button>
   );

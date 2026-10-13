@@ -60,6 +60,7 @@ model User {
   learningLog         LearningLogEntry[]
   ciLinks             CiLink[]
   quests              QuestProgress[]
+  certificates        Certificate[]
 
   @@map("users")
 }
@@ -547,4 +548,26 @@ model QuestProgress {
 
   @@unique([userId, quest])
   @@map("quest_progress")
+}
+
+/// A certificate the learner claimed (docs/superpowers/specs/2026-10-12-certificates-design.md):
+/// the black belt in Python, or the AI automation track's 9th dan. Its public page lives at
+/// /certificates/{code}; nothing is public until the learner claims it.
+model Certificate {
+  id          String    @id @default(cuid())
+  /// Public ID printed on the certificate and used in its URL: PL-PY-XXXX-XXXX or PL-AI-XXXX-XXXX
+  code        String    @unique
+  userId      String
+  /// "python" | "automation"
+  track       String
+  /// The name printed, as the learner confirmed it when claiming
+  name        String
+  issuedAt    DateTime  @default(now())
+  /// Set while the holder has withdrawn the public page
+  withdrawnAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, track])
+  @@map("certificates")
 }

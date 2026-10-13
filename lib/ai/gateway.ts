@@ -22,9 +22,9 @@ export interface ModelSuggestion {
 /** Suggested models per provider, most capable first; the learner can type any model their key can use */
 export const MODEL_SUGGESTIONS: Record<Provider, ModelSuggestion[]> = {
   anthropic: [
-    { id: "claude-opus-5-5", name: "Claude Opus 5.5", note: "The most capable. Costs the most per call." },
-    { id: "claude-sonnet-5", name: "Claude Sonnet 5", note: "Strong and quicker, for less." },
-    { id: "claude-haiku-4-5-20251001", name: "Claude Haiku 4.5", note: "The fastest and cheapest." },
+    { id: "claude-opus-5-5", name: "Claude Opus 5.5", note: "The most capable, at twice Sonnet's price per call." },
+    { id: "claude-sonnet-5-5", name: "Claude Sonnet 5.5", note: "Recommended: strong tutoring at half Opus's price." },
+    { id: "claude-haiku-5-5", name: "Claude Haiku 5.5", note: "The fastest and by far the cheapest; lighter on hard questions." },
   ],
   openai: [
     { id: "gpt-5", name: "GPT-5", note: "The most capable. Costs the most per call." },
@@ -36,8 +36,12 @@ export const MODEL_SUGGESTIONS: Record<Provider, ModelSuggestion[]> = {
   ],
 };
 
+/**
+ * What a new key starts on: the learner pays for every call, so a capable mid-priced model rather
+ * than the most expensive one. They can pick another in Settings
+ */
 export const DEFAULT_MODEL: Record<Provider, string> = {
-  anthropic: "claude-opus-5-5",
+  anthropic: "claude-sonnet-5-5",
   openai: "gpt-5-mini",
   gemini: "gemini-3.8-flash",
 };
@@ -113,7 +117,9 @@ async function anthropic(req: CompleteRequest): Promise<CompleteResult> {
     { "x-api-key": req.apiKey, "anthropic-version": "2023-06-01" },
     {
       model: req.model,
-      max_tokens: req.maxTokens,
+      // Current Claude models think adaptively, and thinking counts toward this ceiling, so leave
+      // them room as for the other providers (a ceiling, not a cost)
+      max_tokens: req.maxTokens * 3,
       // The drill context is the same across a conversation, so cache it
       system: [{ type: "text", text: req.system, cache_control: { type: "ephemeral" } }],
       messages: req.messages,

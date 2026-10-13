@@ -128,17 +128,20 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
       await prisma.user.update({ where: { id: userId }, data: { xp: { increment: xpGained } } });
       await updateUserLevel(userId);
     }
-    if (passed) {
-      await updateStreak(userId);
-      achievements.push(...(await checkAndUnlockAchievements(userId, { type: "exercise_pass", exerciseId })));
-      // The first-session quest's drill steps; never fails the submission
-      achievements.push(...(await recordDrillPass(userId, exercise)));
-    }
+    if (passed) await updateStreak(userId, { checkAchievements: false });
 
     // Passing the lesson's last required drill is what completes the lesson (in order, as on the
-    // lesson page); its XP and achievements come back with this pass
-    const finishedLesson = passed && mode === "practice" ? await completeLessonAfterPass(userId, exercise.lessonId) : null;
-    if (finishedLesson) achievements.push(...finishedLesson.achievements);
+    // lesson page); its XP comes back with this pass
+    const finishedLesson =
+      passed && mode === "practice" ? await completeLessonAfterPass(userId, exercise.lessonId, { checkAchievements: false }) : null;
+
+    if (passed) {
+      // The first-session quest's drill steps; never fails the submission
+      achievements.push(...(await recordDrillPass(userId, exercise)));
+      // One achievement check once the pass, its XP, the streak and any finished lesson are all
+      // recorded: each check evaluates every achievement from fresh stats, so more would only repeat it
+      achievements.push(...(await checkAndUnlockAchievements(userId, { type: "exercise_pass", exerciseId })));
+    }
     const lessonDone = finishedLesson
       ? { xpGained: finishedLesson.xpGained, next: finishedLesson.next, moduleId: finishedLesson.moduleId, onRamp: finishedLesson.onRamp }
       : null;

@@ -38,7 +38,7 @@ import {
 import type { UnlockedAchievement } from "@/lib/achievements";
 import { QUEST_BADGE, questRefresh } from "@/lib/quest-steps";
 import { WHITE_BELT_TIED, WhiteBeltCeremony } from "@/components/onramp/white-belt-ceremony";
-import { ClockAnnouncement } from "@/components/mastery/checkpoint-controls";
+import { ClockAnnouncement, HandInButton } from "@/components/mastery/checkpoint-controls";
 import type { DrillData, DrillMode, DrillType } from "@/lib/drills";
 import { cn } from "@/lib/utils";
 import { TutorPanel, type TutorHandle } from "@/components/tutor/tutor-panel";
@@ -212,7 +212,16 @@ function formatClock(ms: number): string {
   return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${sec}` : `${m}:${sec}`;
 }
 
-function ModeBanner({ mode, progress }: { mode: DrillMode; progress: { passedCount: number; total: number } | null }) {
+function ModeBanner({
+  mode,
+  progress,
+  closed,
+}: {
+  mode: DrillMode;
+  progress: { passedCount: number; total: number } | null;
+  /** The checkpoint closed during this visit (every drill passed): the pass strip says so */
+  closed: boolean;
+}) {
   const left = useCountdown(mode.kind === "checkpoint" ? mode.deadline : null);
   if (mode.kind === "practice") return null;
   if (mode.kind === "review") {
@@ -248,6 +257,17 @@ function ModeBanner({ mode, progress }: { mode: DrillMode; progress: { passedCou
       <p className="basis-full text-muted-foreground">
         No hints, no reference solution, and no copy and paste: type your answer. Run the tests as often as you like.
       </p>
+      {/* Done before the clock is: hand in from here, without going back to the checkpoint page */}
+      {!closed && left !== 0 && (
+        <div className="mt-2 basis-full">
+          <HandInButton
+            attemptId={mode.attemptId}
+            allPassed={done.passedCount === done.total}
+            href={`/checkpoints/${mode.attemptId}`}
+            size="sm"
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -281,6 +301,7 @@ function PromptPanel({
   hintsUsed,
   onRevealHint,
   progress,
+  checkpointClosed,
   clipboardNote,
   onClipboardBlocked,
 }: {
@@ -289,6 +310,8 @@ function PromptPanel({
   hintsUsed: number;
   onRevealHint: () => void;
   progress: { passedCount: number; total: number } | null;
+  /** The checkpoint closed during this visit */
+  checkpointClosed: boolean;
   /** A copy was stopped here: say why */
   clipboardNote: boolean;
   onClipboardBlocked: () => void;
@@ -300,7 +323,7 @@ function PromptPanel({
     : {};
   return (
     <div className={cn("flex flex-col gap-6", inCheckpoint && "select-none")} {...lock}>
-      <ModeBanner mode={drill.mode} progress={progress} />
+      <ModeBanner mode={drill.mode} progress={progress} closed={checkpointClosed} />
       {inCheckpoint && <ClipboardNote shown={clipboardNote} />}
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
@@ -516,6 +539,31 @@ function describeCheck(check: CheckState, run: RunResult | null, answer: string)
     if (run.error) parts.push(errorText(run.error));
   }
   return parts.length ? parts.join("\n") : undefined;
+}
+
+/** An error as one spoken sentence: its type, where, and what it says (no traceback) */
+function spokenError(error: PyError): string {
+  return `${error.type}${error.line ? ` on line ${error.line}` : ""}: ${error.message}`;
+}
+
+/**
+ * What a screen reader hears when a test run finishes: the outcome in a sentence, with the failing
+ * tests named. The results themselves stay on the page to read in full; they aren't a live region, so
+ * the outcome is said once rather than as the whole block of rows and messages.
+ */
+function spokenTests(result: TestRunResult): string {
+  if (result.status === "timeout") return "The tests timed out.";
+  if (result.status === "error" && result.error) {
+    return result.phase === "tests" ? "The drill's tests couldn't run." : `Your code raised an error. ${spokenError(result.error)}`;
+  }
+  const failed = result.tests.filter((t) => !t.passed);
+  if (failed.length === 0) return `All ${result.tests.length} ${result.tests.length === 1 ? "test" : "tests"} passed.`;
+  return `${result.tests.length - failed.length} of ${result.tests.length} tests passed. Failed: ${failed.map((t) => t.name).join("; ")}.`;
+}
+
+function spokenRun(result: RunResult): string {
+  if (result.error) return `Ran, with an error. ${spokenError(result.error)}`;
+  return result.stdout.trim() ? "Ran. The output is below the buttons." : "Ran. It printed nothing.";
 }
 
 /**
@@ -780,13 +828,13 @@ export function ExerciseClient({
         });
         const actual = real.stdout;
         const correct = real.status === "ok" && normaliseOutput(answer) === normaliseOutput(actual);
-        setCheck({
-          kind: "predict",
-          correct,
-          wrongLine: correct ? null : firstDifferentLine(actual, answer),
-          actual,
-          error: real.error,
-        });
+        const wrongLine = correct ? null : firstDifferentLine(actual, answer);
+        setCheck({ kind: "predict", correct, wrongLine, actual, error: real.error });
+        setAnnouncement(
+          correct
+            ? "Correct: that's exactly what it prints."
+            : `Not quite.${wrongLine ? ` Line ${wrongLine} of your answer doesn't match.` : ""}`
+        );
         attempt = { passed: correct, submitted: answer, summary: { kind: "predict", correct } };
       } else {
         const submitted = codeRef.current;
@@ -800,6 +848,7 @@ export function ExerciseClient({
           mainName: drill.mainFile,
         });
         setCheck({ kind: "tests", result });
+        setAnnouncement(spokenTests(result));
         // The drill's own tests failing to load isn't the learner's attempt
         if (!(result.status === "error" && result.phase === "tests")) {
           attempt = {
@@ -820,6 +869,7 @@ export function ExerciseClient({
     if (busyRef.current) return;
     busyRef.current = true;
     setBusy("run");
+    setAnnouncement("");
     try {
       const lines = stdin.length > 0 ? stdin.replace(/\r\n/g, "\n").replace(/\n$/, "").split("\n") : null;
       const result = await getPythonRuntime().run(isPredict ? drill.starterCode : codeRef.current, {
@@ -829,6 +879,7 @@ export function ExerciseClient({
         files: multi ? filesRef.current : undefined,
       });
       setRunResult(result);
+      setAnnouncement(spokenRun(result));
     } finally {
       busyRef.current = false;
       setBusy(null);
@@ -1072,7 +1123,8 @@ export function ExerciseClient({
         </div>
       </div>
 
-      <div aria-live="polite" className={cn("flex flex-col gap-4 transition-opacity", busy && "opacity-60")}>
+      {/* Not a live region: the announcement below says each outcome once, in a sentence */}
+      <div className={cn("flex flex-col gap-4 transition-opacity", busy && "opacity-60")}>
         {check.kind === "tests" && <TestResults result={check.result} onExplain={explain} />}
         {check.kind === "predict" &&
           (check.correct ? (
@@ -1093,7 +1145,9 @@ export function ExerciseClient({
         {saving && !saving.passed && saveLine(false, false)}
         {saveError && (
           <div className="flex flex-wrap items-center gap-3">
-            <p className="text-sm text-destructive">{saveError}</p>
+            <p role="alert" className="text-sm text-destructive">
+              {saveError}
+            </p>
             {retry && (
               <Button size="sm" variant="outline" onClick={() => void record(retry.passed, retry.submitted, retry.summary)}>
                 <RotateCcw aria-hidden="true" />
@@ -1103,7 +1157,8 @@ export function ExerciseClient({
           </div>
         )}
       </div>
-      <p className="sr-only" aria-live="polite">
+      {/* The drill's one voice for outcomes: the run's result, then whether it saved */}
+      <p className="sr-only" aria-live="polite" aria-atomic="true">
         {announcement}
       </p>
 
@@ -1317,6 +1372,7 @@ export function ExerciseClient({
       hintsUsed={hintsUsed}
       onRevealHint={() => setHintsUsed((n) => Math.min(n + 1, drill.hints.length))}
       progress={progress}
+      checkpointClosed={finished !== null}
       clipboardNote={clipboardNote === "task"}
       onClipboardBlocked={() => setClipboardNote("task")}
     />

@@ -18,10 +18,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Spinner } from "@/components/animations";
-import { Check, ExternalLink, FileText, ListChecks, PenLine, Sparkles } from "lucide-react";
+import { Check, ChevronDown, ExternalLink, FileText, ListChecks, PenLine, Sparkles } from "lucide-react";
 import { Seal } from "@/components/brand/seal";
 import { SealMark } from "@/components/brand/marks";
-import { draftFeedback, matchCriteria } from "@/lib/ai/reviewer";
+import { draftFeedback, isReadableSource, matchCriteria } from "@/lib/ai/reviewer";
 import { cn } from "@/lib/utils";
 import type { SubmissionDetail } from "../page";
 
@@ -178,6 +178,77 @@ function hasDownloadableContent(file: { content?: string }): boolean {
   return typeof file.content === "string" && file.content.length > 0;
 }
 
+/** Larger files are downloaded rather than shown on the page */
+const VIEW_MAX_BYTES = 200_000;
+
+/**
+ * A submitted file's text, for reading on the page: source and text files only (the AI reviewer's own
+ * rule), valid UTF-8, under the size cap. Null otherwise; the file can still be downloaded.
+ */
+function fileText(file: { name: string; size: number; content?: string }): string | null {
+  if (!file.content || file.size > VIEW_MAX_BYTES || !isReadableSource(file.name)) return null;
+  try {
+    const bytes = Uint8Array.from(atob(file.content), (c) => c.charCodeAt(0));
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    return null;
+  }
+}
+
+/** One submitted file: its name and size, View (text files, shown inline) and Download */
+function SubmittedFile({
+  file,
+  href,
+}: {
+  file: { name: string; size: number; type: string; content?: string };
+  href: string;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const text = fileText(file);
+  const panelId = React.useId();
+  return (
+    <li className="border-b border-border py-2.5">
+      <div className="flex items-center justify-between gap-3">
+        <span className="flex min-w-0 items-center gap-2">
+          <FileText className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <span className="truncate font-mono text-sm">{file.name}</span>
+        </span>
+        <span className="flex shrink-0 items-center gap-2">
+          <span className="font-condensed tabular text-sm text-muted-foreground">{formatFileSize(file.size)}</span>
+          {text !== null && (
+            <Button size="xs" variant="ghost" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-controls={panelId}>
+              <ChevronDown className={cn("transition-transform", open && "rotate-180")} aria-hidden="true" />
+              {open ? "Hide" : "View"}
+            </Button>
+          )}
+          {hasDownloadableContent(file) ? (
+            <Button size="xs" variant="outline" asChild>
+              <a href={href} download={file.name} target="_blank" rel="noopener noreferrer">
+                Download
+              </a>
+            </Button>
+          ) : (
+            <span className="text-sm text-muted-foreground" title="The file content wasn't stored with this submission">
+              Not stored
+            </span>
+          )}
+        </span>
+      </div>
+      {open && text !== null && (
+        // Focusable so a long file scrolls from the keyboard; read-only, as submitted
+        <pre
+          id={panelId}
+          tabIndex={0}
+          aria-label={`${file.name}, as submitted`}
+          className="scroll-cue mt-2.5 max-h-[32rem] overflow-auto rounded-sm border border-border bg-background px-4 py-3 font-mono text-[0.8125rem] leading-6 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
+        >
+          {text || <span className="text-muted-foreground">(empty file)</span>}
+        </pre>
+      )}
+    </li>
+  );
+}
+
 export function EvaluateClient({ submission, aiReady }: EvaluateClientProps) {
   const router = useRouter();
 
@@ -311,33 +382,7 @@ export function EvaluateClient({ submission, aiReady }: EvaluateClientProps) {
           ) : filesPayload.files && filesPayload.files.length > 0 ? (
             <ul className="flex flex-col border-t border-border">
               {filesPayload.files.map((file, i) => (
-                <li key={i} className="flex items-center justify-between gap-3 border-b border-border py-2.5">
-                  <span className="flex min-w-0 items-center gap-2">
-                    <FileText className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                    <span className="truncate font-mono text-sm">{file.name}</span>
-                  </span>
-                  <span className="flex shrink-0 items-center gap-3">
-                    <span className="font-condensed tabular text-sm text-muted-foreground">
-                      {formatFileSize(file.size)}
-                    </span>
-                    {hasDownloadableContent(file) ? (
-                      <Button size="xs" variant="outline" asChild>
-                        <a
-                          href={`/api/admin/projects/submissions/${submission.id}/file/${i}`}
-                          download={file.name}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          Download
-                        </a>
-                      </Button>
-                    ) : (
-                      <span className="text-sm text-muted-foreground" title="The file content wasn't stored with this submission">
-                        Not stored
-                      </span>
-                    )}
-                  </span>
-                </li>
+                <SubmittedFile key={i} file={file} href={`/api/admin/projects/submissions/${submission.id}/file/${i}`} />
               ))}
             </ul>
           ) : (
