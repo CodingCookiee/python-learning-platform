@@ -17,6 +17,8 @@ import { HowItWorks } from "@/components/landing/how-it-works";
 import { WhoItsFor } from "@/components/landing/who-its-for";
 import { Faq, faqItems, faqJsonLd } from "@/components/landing/faq";
 import { getCourseHours } from "@/lib/landing/facts";
+import { siteJsonLd } from "@/lib/landing/structured-data";
+import { publicOrigin } from "@/lib/public-origin";
 import { BELTS, DAN_TRACK, beltForModule, kyuRange, ordinal } from "@/lib/ranks";
 
 hljs.registerLanguage("javascript", javascript);
@@ -60,7 +62,7 @@ export default async function LandingPage() {
   const session = await auth();
   if (session?.user) redirect("/dashboard");
 
-  const [modules, lessonCount, achievements, achievementCount, hours] = await Promise.all([
+  const [modules, lessonCount, achievements, achievementCount, hours, automationModules] = await Promise.all([
     prisma.module.findMany({
       where: { archivedAt: null, track: { slug: "python", archivedAt: null } },
       orderBy: { order: "asc" },
@@ -83,8 +85,17 @@ export default async function LandingPage() {
     }),
     prisma.achievement.count({ where: { archivedAt: null } }),
     getCourseHours(),
+    prisma.module.findMany({
+      where: { archivedAt: null, track: { slug: "automation", archivedAt: null } },
+      orderBy: { order: "asc" },
+      select: { title: true },
+    }),
   ]);
   const faq = faqItems(hours);
+  const site = siteJsonLd(publicOrigin(), {
+    python: { modules: modules.map((m) => m.title), hours: hours.python },
+    automation: { modules: automationModules.map((m) => m.title), hours: hours.automation },
+  });
   // Structured data is inert, but it carries the request's nonce like every other script on the page
   const nonce = (await headers()).get("x-nonce") ?? undefined;
 
@@ -349,6 +360,12 @@ export default async function LandingPage() {
           nonce={nonce}
           // JSON in a script element: escape "<" so no answer can close the tag
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(faq)).replace(/</g, "\\u003c") }}
+        />
+        {/* Who runs the site and the two courses it teaches, as schema.org data (lib/landing/structured-data.ts) */}
+        <script
+          type="application/ld+json"
+          nonce={nonce}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(site).replace(/</g, "\\u003c") }}
         />
 
         {/* ── Close ─────────────────────────────────────────────────── */}
