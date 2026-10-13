@@ -265,8 +265,8 @@ async function phase2() {
   const moduleId = db("module-id", "1");
   await go(`/modules/${moduleId}`, 6000);
   await intercept("*/api/checkpoints");
-  const startLabel = await ev(`[...document.querySelectorAll("button")].find((b) => /checkpoint|Test out/i.test(b.textContent))?.textContent`);
-  await ev(`[...document.querySelectorAll("button")].find((b) => /checkpoint|Test out/i.test(b.textContent))?.click()`);
+  const startLabel = await ev(`[...document.querySelectorAll("button")].find((b) => /grading|checkpoint|Test out/i.test(b.textContent))?.textContent`);
+  await ev(`[...document.querySelectorAll("button")].find((b) => /grading|checkpoint|Test out/i.test(b.textContent))?.click()`);
   await sleep(1200);
   const drawing = await ev(`[...document.querySelectorAll("button[aria-busy=true]")].map((b) => b.innerText).join(" | ")`);
   await shot("p2-3-drawing.png");
@@ -670,7 +670,7 @@ async function fixes() {
 async function clockAhead() {
   const moduleId = db("module-id", "1");
   await go(`/modules/${moduleId}`, 6000);
-  await ev(`[...document.querySelectorAll("button")].find((b) => /checkpoint|Test out/i.test(b.textContent))?.click()`);
+  await ev(`[...document.querySelectorAll("button")].find((b) => /grading|checkpoint|Test out/i.test(b.textContent))?.click()`);
   await waitFor(`location.pathname.startsWith("/checkpoints/")`, 40);
   const attempt = await ev("location.pathname");
   // This computer's clock six hours fast, from the next page load on
@@ -678,14 +678,14 @@ async function clockAhead() {
     source: "(() => { const real = Date.now.bind(Date); Date.now = () => real() + 6 * 3600_000; })();",
   });
   await go(attempt, 5000);
-  const clock = await ev(`document.querySelector("main")?.innerText.includes("Time\\u2019s up: marking your checkpoint")`);
+  const clock = await ev(`document.querySelector("main")?.innerText.includes("Time\\u2019s up: marking your grading")`);
   requests.length = 0;
   await sleep(16000);
   const refreshes = requests.filter((u) => u.includes(attempt)).length;
   const expired = db("expire-checkpoints", EMAIL);
   const expiredAt = Date.now();
   requests.length = 0;
-  const closed = await waitFor(`!document.querySelector("main")?.innerText.includes("marking your checkpoint") && /Try a fresh set|fresh set of drills|try a fresh set|Back to the module/.test(document.querySelector("main")?.innerText ?? "")`, 60);
+  const closed = await waitFor(`!document.querySelector("main")?.innerText.includes("marking your grading") && /Try a fresh set|fresh set of drills|try a fresh set|Back to the module/.test(document.querySelector("main")?.innerText ?? "")`, 60);
   await send("Page.removeScriptToEvaluateOnNewDocument", { identifier: skew.identifier });
   step("clock ahead of the server", {
     clock,
@@ -716,7 +716,7 @@ async function clipboardLock() {
   // A checkpoint, and one of its code drills
   const moduleId = db("module-id", "1");
   await go(`/modules/${moduleId}`, 6000);
-  await ev(`[...document.querySelectorAll("button")].find((b) => /checkpoint|Test out/i.test(b.textContent))?.click()`);
+  await ev(`[...document.querySelectorAll("button")].find((b) => /grading|checkpoint|Test out/i.test(b.textContent))?.click()`);
   await waitFor(`location.pathname.startsWith("/checkpoints/")`, 40);
   await sleep(2500);
   const drills = await ev(`[...new Set([...document.querySelectorAll("main a[href^='/exercises/']")].map((a) => a.getAttribute("href")))]`);
@@ -950,7 +950,7 @@ async function hardenChecks() {
   // The checkpoint clock speaks at 15, 5 and 1 minute left: a fast clock puts it about 10 minutes from the end
   const moduleId = db("module-id", "1");
   await go(`/modules/${moduleId}`, 6000);
-  await ev(`[...document.querySelectorAll("button")].find((b) => /checkpoint|Test out/i.test(b.textContent))?.click()`);
+  await ev(`[...document.querySelectorAll("button")].find((b) => /grading|checkpoint|Test out/i.test(b.textContent))?.click()`);
   await waitFor(`location.pathname.startsWith("/checkpoints/")`, 40);
   await sleep(2000);
   const attempt = await ev("location.pathname");
@@ -1136,7 +1136,7 @@ async function deferredLearner() {
   // Hand in from inside a checkpoint drill
   const moduleId = db("module-id", "1");
   await go(`/modules/${moduleId}`, 6000);
-  await ev(`[...document.querySelectorAll("button")].find((b) => /checkpoint|Test out/i.test(b.textContent))?.click()`);
+  await ev(`[...document.querySelectorAll("button")].find((b) => /grading|checkpoint|Test out/i.test(b.textContent))?.click()`);
   await waitFor(`location.pathname.startsWith("/checkpoints/")`, 40);
   await sleep(2500);
   const attemptPath = await ev("location.pathname");
@@ -1317,6 +1317,76 @@ async function certificateChecks() {
   step("python certificate", { status: py.status, axe: await axe() });
 }
 
+/** The 2026-10-13 critique's priority issues: Continue first, an honest skill map, a confirmed start, one name, the phone task */
+async function critiquePriorities() {
+  // Dashboard: the next step leads; the quest offer is a slim row under it
+  await go("/dashboard", 7000);
+  await waitFor(`!!document.querySelector("section[aria-labelledby=next-heading]")`, 40);
+  const dash = await ev(`(() => {
+    const next = document.querySelector("section[aria-labelledby=next-heading]");
+    const quest = document.querySelector("section[aria-labelledby=quest-offer-heading]");
+    const skills = document.querySelector("section[aria-labelledby=skills-heading]");
+    return {
+      next: next?.innerText.replace(/\\s+/g, " ").trim(),
+      questBelowNext: !!(next && quest && (next.compareDocumentPosition(quest) & Node.DOCUMENT_POSITION_FOLLOWING)),
+      nextAboveFold: next ? next.querySelector("a,button")?.getBoundingClientRect().bottom < innerHeight : false,
+      lessonsStat: [...document.querySelectorAll("dt")].find((d) => d.textContent.includes("lessons finished"))?.parentElement?.innerText.replace(/\\s+/g, " "),
+      skills: skills?.innerText.replace(/\\s+/g, " ").slice(0, 300),
+      lowerNone: /\\bnone \\d+%/.test(skills?.innerText ?? ""),
+    };
+  })()`);
+  await shot("prio-dashboard.png");
+  await send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
+  await go("/dashboard", 6000);
+  await waitFor(`!!document.querySelector("section[aria-labelledby=next-heading]")`, 40);
+  const phoneNextAboveFold = await ev(`(document.querySelector("section[aria-labelledby=next-heading] a, section[aria-labelledby=next-heading] button")?.getBoundingClientRect().bottom ?? 9999) < innerHeight`);
+  await shot("prio-dashboard-phone.png");
+  await send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
+  step("dashboard leads with the next step", { ...dash, phoneNextAboveFold, axe: await axe() });
+
+  // Profile: counts in the Python syllabus, capstones without "of 24"
+  await go("/profile", 1000);
+  await waitFor(`!!document.querySelector("section[aria-labelledby=record-heading]")`, 80);
+  const record = await ev(`document.querySelector("section[aria-labelledby=record-heading]")?.innerText.replace(/\\s+/g, " ")`);
+  step("profile counts", { record });
+
+  // The module's grading: one name, and a confirmation before the clock starts
+  const moduleId = db("module-id", "1");
+  await go(`/modules/${moduleId}`, 7000);
+  const SECTION = `document.querySelector("section[aria-labelledby=checkpoint-heading]")`;
+  const before = await ev(`${SECTION}?.innerText.replace(/\\s+/g, " ")`);
+  await ev(`[...(${SECTION})?.querySelectorAll("button") ?? []].find((b) => /Test out|Take the grading/.test(b.textContent))?.click()`);
+  await sleep(500);
+  const confirm = await ev(`${SECTION}?.querySelector("[role=group]")?.innerText.replace(/\\s+/g, " ")`);
+  const focused = await ev(`document.activeElement?.textContent?.trim()`);
+  await shotOf(SECTION, "prio-grading-confirm.png");
+  const axeConfirm = await axe();
+  const stillOnModule = await ev(`location.pathname.startsWith("/modules/")`);
+  await ev(`[...(${SECTION})?.querySelectorAll("button") ?? []].find((b) => b.textContent.trim() === "Not now")?.click()`);
+  await sleep(400);
+  const backToButton = await ev(`!${SECTION}?.querySelector("[role=group]") && [...(${SECTION})?.querySelectorAll("button") ?? []].some((b) => /Test out|Take the grading/.test(b.textContent))`);
+  step("grading start is confirmed", { before, confirm, focused, axeConfirm, stillOnModule, backToButton });
+
+  // The phone drill: the task folded in above the editor, open until the first run
+  const drillId = db("drill-id", "hello-pylearn");
+  await send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
+  await go(`/exercises/${drillId}`, 7000);
+  await ev(`[...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Code")?.click()`);
+  await waitFor(`!!window.monaco?.editor?.getEditors?.().length`, 60);
+  await sleep(800);
+  const peek = await ev(`(() => { const d = [...document.querySelectorAll("details")].find((x) => x.querySelector("summary")?.textContent === "The task"); return d ? { open: d.open, visible: d.getBoundingClientRect().height > 0, text: d.innerText.replace(/\\s+/g, " ").slice(0, 160) } : null; })()`);
+  await shot("prio-phone-drill.png");
+  await ev(`document.querySelector("[data-quest-target=run-tests]").click()`);
+  await waitFor(`!document.querySelector("[data-quest-target=run-tests][aria-busy=true]") && /tests passed|test passed/.test(document.querySelector("main")?.innerText ?? "")`, 120);
+  await sleep(1500);
+  const peekAfterRun = await ev(`[...document.querySelectorAll("details")].find((x) => x.querySelector("summary")?.textContent === "The task")?.open`);
+  await shot("prio-phone-drill-after.png");
+  await send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
+  await go(`/exercises/${drillId}`, 6000);
+  const peekOnDesktop = await ev(`(() => { const d = [...document.querySelectorAll("details")].find((x) => x.querySelector("summary")?.textContent === "The task"); return d ? d.getBoundingClientRect().height : null; })()`);
+  step("phone drill task", { peek, peekAfterRun, peekHeightOnDesktop: peekOnDesktop, axe: await axe() });
+}
+
 try {
   await signIn();
   if (process.env.ONLY === "probe") {
@@ -1358,6 +1428,7 @@ try {
   if (process.env.ONLY?.split(",").includes("dash")) await dashboardChecks();
   if (process.env.ONLY?.split(",").includes("ach")) await achievementChecks();
   if (process.env.ONLY?.split(",").includes("certificates")) await certificateChecks();
+  if (process.env.ONLY?.split(",").includes("priorities")) await critiquePriorities();
   if (process.env.ONLY?.split(",").includes("deferred")) {
     await deferredLearner();
     // Its timing of the save that finishes a lesson (18 s before 2026-10-13's single achievement check)

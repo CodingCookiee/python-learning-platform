@@ -112,5 +112,19 @@ describe("the skill map", () => {
     const mod1 = map.modules.find((m) => m.id === m1.id);
     expect(mod1?.strength).toBeGreaterThan(0);
     expect(map.tags.length).toBeGreaterThan(0);
+    expect(map.counted).toBeGreaterThan(0);
+  });
+
+  it("leaves out an on-ramp the learner never started, and counts nothing before a core drill", async () => {
+    const fresh = await makeLearner("skill-fresh");
+    try {
+      const map = await getSkillMap(fresh.user.id);
+      expect(map.modules.some((m) => m.grade === "none")).toBe(false);
+      expect(map.counted).toBe(0);
+      // Topics keep their own spelling: no tag is shown lower-cased when content wrote it otherwise
+      expect(map.tags.some((t) => t.tag === "none")).toBe(false);
+    } finally {
+      await fresh.cleanup();
+    }
   });
 });

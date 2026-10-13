@@ -65,7 +65,7 @@ async function currentPhase(userId: string): Promise<{ phase: string; nextGoal: 
   });
   const nextGoal = nextLesson
     ? `Finish "${nextLesson.title}" and keep going through ${current.title}`
-    : `Pass the ${current.title} checkpoint`;
+    : `Pass the ${current.title} grading`;
   return { phase, nextGoal };
 }
 
@@ -114,7 +114,7 @@ async function draftFor(userId: string, weekOf: Date): Promise<Omit<LogWeek, "we
   const built: string[] = [];
   if (lessons.length) built.push(`Lessons: ${list(lessons.map((l) => l.lesson.title))}`);
   if (checkpoints.length) {
-    built.push(`Passed the ${list(checkpoints.map((c) => c.module.title))} checkpoint${checkpoints.length > 1 ? "s" : ""}`);
+    built.push(`Passed the ${list(checkpoints.map((c) => c.module.title))} grading${checkpoints.length > 1 ? "s" : ""}`);
   }
   if (capstones.length) built.push(`Submitted the capstone: ${list(capstones.map((c) => c.project.title))}`);
   if (labs.length) {

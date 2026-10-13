@@ -23,7 +23,7 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
     await invalidateUserCache(context.userId);
     return NextResponse.json({ attemptId: result.attemptId });
   } catch (error) {
-    console.error("Error starting checkpoint:", error);
-    return NextResponse.json({ error: "Failed to start the checkpoint" }, { status: 500 });
+    console.error("Error starting grading:", error);
+    return NextResponse.json({ error: "Failed to start the grading" }, { status: 500 });
   }
 });

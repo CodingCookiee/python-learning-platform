@@ -5,21 +5,29 @@ import { useRouter } from "next/navigation";
 import { startNavigation } from "@/components/layout/navigation-progress";
 import { ArrowRight, Clock, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CHECKPOINT_RETRY_MINUTES } from "@/lib/mastery-rules";
 import { cn } from "@/lib/utils";
 
-/** Start the module's checkpoint (or resume the open one) and go to it. */
+/**
+ * Start the module's grading (or resume the open one) and go to it. A timed sitting with a cooldown
+ * after a miss isn't started by a curious click: the first press says what it is (drills, minutes,
+ * pass mark, the rules, that the clock doesn't pause) and the clock starts on the second.
+ */
 export function StartCheckpointButton({
   moduleId,
   label,
+  terms,
   variant = "default",
   size,
 }: {
   moduleId: string;
   label: string;
+  terms: { drills: number; minutes: number; passMark: number };
   variant?: "default" | "outline";
   size?: "lg";
 }) {
   const router = useRouter();
+  const [confirming, setConfirming] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -35,27 +43,54 @@ export function StartCheckpointButton({
       });
       const data = (await res.json().catch(() => ({}))) as { attemptId?: string; error?: string };
       if (!res.ok || !data.attemptId) {
-        setError(data.error ?? "Couldn’t start the checkpoint.");
+        setError(data.error ?? "Couldn’t start the grading.");
         setBusy(false);
         return;
       }
       startNavigation();
       router.push(`/checkpoints/${data.attemptId}`);
     } catch {
-      setError("Couldn’t start the checkpoint.");
+      setError("Couldn’t start the grading.");
       setBusy(false);
     }
   }
 
-  return (
-    <div className="flex flex-col items-start gap-2">
-      <Button onClick={() => void start()} variant={variant} size={size} aria-busy={busy} className={cn(busy && "cursor-progress")}>
-        {busy ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : null}
-        {/* A one-off that moves on to the checkpoint: the label simply says what's happening */}
-        {busy ? "Drawing your drills…" : label}
-        {!busy && <ArrowRight data-icon="inline-end" aria-hidden="true" />}
+  if (!confirming) {
+    return (
+      <Button onClick={() => setConfirming(true)} variant={variant} size={size}>
+        {label}
+        <ArrowRight data-icon="inline-end" aria-hidden="true" />
       </Button>
-      {error && <p className="text-sm text-destructive">{error}</p>}
+    );
+  }
+  return (
+    <div role="group" aria-labelledby={`start-${moduleId}`} className="flex max-w-xl flex-col items-start gap-3 rounded-md border border-border bg-sheet p-4">
+      <p id={`start-${moduleId}`} className="font-semibold">
+        <span className="font-condensed tabular">
+          {terms.drills} drills · {terms.minutes} minutes · {Math.round(terms.passMark * 100)}% to pass
+        </span>
+      </p>
+      <p className="text-sm leading-relaxed text-muted-foreground">
+        No hints, no reference solution, and no copy and paste. The clock starts when you press Start and doesn&apos;t
+        pause, so begin when you have the time. If you don&apos;t pass, a fresh set is ready {CHECKPOINT_RETRY_MINUTES}{" "}
+        minutes later.
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {/* Focus lands here, so the keyboard is where the decision is */}
+        <Button autoFocus onClick={() => void start()} aria-busy={busy} className={cn(busy && "cursor-progress")}>
+          {busy ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <Clock aria-hidden="true" />}
+          {/* A one-off that moves on to the grading: the label simply says what's happening */}
+          {busy ? "Drawing your drills…" : "Start the clock"}
+        </Button>
+        <Button variant="ghost" onClick={() => setConfirming(false)} disabled={busy}>
+          Not now
+        </Button>
+      </div>
+      {error && (
+        <p role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      )}
     </div>
   );
 }
@@ -78,13 +113,13 @@ export function ClockAnnouncement({ left }: { left: number | null }) {
     left === null
       ? ""
       : left === 0
-        ? "Time's up. The checkpoint is being marked."
+        ? "Time's up. The grading is being marked."
         : left <= 60_000
-          ? "1 minute left in the checkpoint."
+          ? "1 minute left in the grading."
           : left <= 5 * 60_000
-            ? "5 minutes left in the checkpoint."
+            ? "5 minutes left in the grading."
             : left <= 15 * 60_000
-              ? "15 minutes left in the checkpoint."
+              ? "15 minutes left in the grading."
               : "";
   return (
     <span role="status" className="sr-only">
@@ -137,7 +172,7 @@ export function CheckpointClock({ deadline, className }: { deadline: string; cla
       ) : (
         <Clock className="size-4" aria-hidden="true" />
       )}
-      {left === null ? "…" : left === 0 ? "Time’s up: marking your checkpoint…" : `${formatClock(left)} left`}
+      {left === null ? "…" : left === 0 ? "Time’s up: marking your grading…" : `${formatClock(left)} left`}
       <ClockAnnouncement left={left} />
     </span>
   );
@@ -198,7 +233,7 @@ export function HandInButton({
             className={cn(working && "cursor-progress")}
           >
             {working && <LoaderCircle className="animate-spin" aria-hidden="true" />}
-            {working ? "Marking your checkpoint…" : "Hand in"}
+            {working ? "Marking your grading…" : "Hand in"}
           </Button>
           {!allPassed && (
             <Button size={size} variant="ghost" onClick={() => setConfirming(false)} disabled={working}>

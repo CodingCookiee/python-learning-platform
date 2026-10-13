@@ -68,9 +68,9 @@ export const SENSEI = {
   welcome: "Welcome to the mat. I'll show you how training works here: five short steps, about fifteen minutes.",
   /** Step 5 on the dashboard: the pointer moves through these in turn, then "Got it" */
   tour: [
-    { target: "belt", pointer: "Your belt", line: "Your belt is your rank. Pass a module's checkpoint to earn a stripe; earn every stripe and the next belt is yours." },
+    { target: "belt", pointer: "Your belt", line: "Your belt is your rank. Pass a module's grading to earn a stripe; earn every stripe and the next belt is yours." },
     { target: "streak", pointer: "Your streak", line: "Your streak counts the days in a row you've trained. A few minutes a day keeps it going." },
-    { target: "xp", pointer: "Your XP", line: "XP is the work you put in: every lesson and drill adds to it. Rank only comes from checkpoints." },
+    { target: "xp", pointer: "Your XP", line: "XP is the work you put in: every lesson and drill adds to it. Rank only comes from gradings." },
   ],
   skip: { title: "Skip the quest?", line: "You can pick it up again from your dashboard, and the steps you've done are kept." },
   offer: {

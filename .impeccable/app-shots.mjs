@@ -185,7 +185,7 @@ try {
   await viewport("desktop");
   await send("Page.navigate", { url: BASE + `/modules/${moduleId}` });
   await sleep(6000);
-  await ev(`[...document.querySelectorAll("button")].find((b) => /checkpoint|Test out/i.test(b.textContent))?.click()`);
+  await ev(`[...document.querySelectorAll("button")].find((b) => /grading|checkpoint|Test out/i.test(b.textContent))?.click()`);
   await waitFor(`location.pathname.startsWith("/checkpoints/")`, 40);
   await sleep(2500);
   const checkpoint = await ev("location.pathname");

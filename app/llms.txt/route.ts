@@ -63,7 +63,7 @@ ${AUTOMATION.map((t, i) => `- A${i + 1}. ${t}`).join("\n")}
 ## How it works
 
 - Each lesson ends in drills graded in the browser with real Python (Pyodide).
-- Each module ends in a checkpoint grading and a capstone project, tested automatically in the learner's own GitHub repository and reviewed by an examiner.
+- Each module ends in a grading and a capstone project, tested automatically in the learner's own GitHub repository and reviewed by an examiner.
 - AI lessons are provider-neutral (Anthropic, OpenAI); the optional AI tutor runs on the learner's own API key (Anthropic, OpenAI or Google).
 `;
   return new Response(body, { headers: { "content-type": "text/plain; charset=utf-8" } });

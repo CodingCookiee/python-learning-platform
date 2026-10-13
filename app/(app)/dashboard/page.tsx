@@ -276,23 +276,21 @@ export default async function DashboardPage() {
   const suggestPlacement = dbUser.experience !== "new" && current && current.lessonsDone === 0 && !current.checkpointDue;
   const questOffer = questCard(quest);
   const weekPct = Math.min(100, (pace.hoursThisWeek / pace.weeklyHours) * 100);
-  // One slot at the top for the one thing to do next: due reviews and a running checkpoint come
-  // first, then the quest offer, then the beginner on-ramp, then the exact next lesson or drill
+  // One slot at the top for the one thing to do next: due reviews and a running grading come first,
+  // then a certificate to claim, then the beginner on-ramp, then the exact next lesson or drill. The
+  // quest offer is never in it: a slim row underneath, so Continue is always at the top
   const [next, claimable] = await Promise.all([
     getNextStep(dbUser.id, syllabus, reviewsDue),
     claimableCertificate(dbUser.id, rank.modulesPassed),
   ]);
-  // A certificate earned and not yet claimed comes next, after anything with a clock on it
   const slot =
     next.kind === "reviews" || next.kind === "checkpoint-open"
       ? "next"
       : claimable
         ? "certificate"
-        : questOffer
-          ? "quest"
-          : showOnRamp && onRamp
-            ? "onramp"
-            : "next";
+        : showOnRamp && onRamp
+          ? "onramp"
+          : "next";
 
   if (!data) {
     return (
@@ -313,6 +311,7 @@ export default async function DashboardPage() {
   const recentLessons = recentActivity.lessons.slice(0, 6);
   const recentAchievements = achievements.unlocked.slice(0, 4);
   const passedCount = syllabus.filter((m) => m.state === "passed").length;
+  const pythonLessons = syllabus.reduce((n, m) => ({ done: n.done + m.lessonsDone, total: n.total + m.lessonsTotal }), { done: 0, total: 0 });
   // Nothing done yet: a first visit isn't a return
   const firstVisit = completion.lessons.completed === 0 && completion.exercises.completed === 0;
 
@@ -325,7 +324,7 @@ export default async function DashboardPage() {
               {firstVisit ? "Welcome" : "Welcome back"}
               {user.name ? `, ${user.name.split(" ")[0]}` : ""}.
             </h1>
-            <p className="text-muted-foreground">
+            <p className="max-w-2xl text-muted-foreground">
               {passedCount} of {syllabus.length} modules passed. One lesson a day keeps the streak
               and the stripes coming.
             </p>
@@ -333,17 +332,16 @@ export default async function DashboardPage() {
         </FadeIn>
 
         {/* The one thing to do next. The first-session quest (offered once to learners who never had
-            it, resumable when skipped midway) and the beginner on-ramp take this slot when they apply */}
-        <FadeIn delay={0.02}>
+            it, resumable when skipped midway) sits under it as a slim row */}
+        <FadeIn delay={0.02} className="flex flex-col gap-4">
           {slot === "certificate" && claimable ? (
             <CertificateBand track={claimable} defaultName={user.name ?? ""} origin={publicOrigin()} />
-          ) : slot === "quest" && questOffer ? (
-            <QuestOffer kind={questOffer} done={quest?.completed.length ?? 0} />
           ) : slot === "onramp" && onRamp ? (
             <OnRampCard onRamp={onRamp} />
           ) : (
             <NextBand next={next} />
           )}
+          {questOffer && <QuestOffer kind={questOffer} done={quest?.completed.length ?? 0} />}
         </FadeIn>
         <FadeIn delay={0.04}>
           {/* The quest's last step points at the belt, the streak and the XP in turn */}
@@ -370,12 +368,13 @@ export default async function DashboardPage() {
               </dd>
             </div>
             <div className="flex flex-col gap-3 py-5">
-              <dt className="text-sm text-muted-foreground">Lessons finished</dt>
+              {/* Counted in the Python syllabus, the same 108 the landing page names, not every track at once */}
+              <dt className="text-sm text-muted-foreground">Python lessons finished</dt>
               <dd className="font-condensed tabular leading-none">
                 <span className="text-3xl font-extrabold">
-                  <AnimatedNumber value={completion.lessons.completed} />
+                  <AnimatedNumber value={pythonLessons.done} />
                 </span>
-                <span className="text-lg font-bold text-muted-foreground"> / {completion.lessons.total}</span>
+                <span className="text-lg font-bold text-muted-foreground"> / {pythonLessons.total}</span>
               </dd>
             </div>
           </dl>
@@ -399,7 +398,7 @@ export default async function DashboardPage() {
               <span className="h-2 overflow-hidden rounded-[2px] bg-muted" aria-hidden="true">
                 <span className="block h-full bg-primary" style={{ width: `${weekPct}%` }} />
               </span>
-              <p className="text-xs text-muted-foreground">Estimated from lessons, drills, reviews and checkpoints this week.</p>
+              <p className="text-xs text-muted-foreground">Estimated from lessons, drills, reviews and gradings this week.</p>
               <Link href="/log" className="w-fit text-sm font-medium text-primary underline">
                 {checkIn ? "This week's check-in is saved" : "Write this week's check-in"}
               </Link>
@@ -429,7 +428,7 @@ export default async function DashboardPage() {
                   {" "}
                   Already comfortable with <span className="font-semibold text-foreground">{current.title}</span>?{" "}
                   <Link href={`/modules/${current.id}#checkpoint-heading`} className="font-medium text-primary underline">
-                    Test out with its checkpoint
+                    Test out with its grading
                   </Link>
                   .
                 </>

@@ -41,7 +41,7 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
     const drill = await getDrillForUser(exerciseId, context.userId);
     if (!drill) return NextResponse.json({ error: "Exercise not found" }, { status: 404 });
     if (drill.mode.kind === "checkpoint") {
-      return NextResponse.json({ error: "The tutor is off during a checkpoint." }, { status: 403 });
+      return NextResponse.json({ error: "The tutor is off during a grading." }, { status: 403 });
     }
     const { solution } = await prisma.exercise.findUniqueOrThrow({ where: { id: exerciseId }, select: { solution: true } });
 

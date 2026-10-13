@@ -30,7 +30,7 @@ function BlackBeltGrading({ status }: { status: BlackBeltStatus }) {
       </p>
       <ul className="flex flex-col gap-2 text-sm" role="list">
         <Requirement done={status.checkpoints.passed === status.checkpoints.total}>
-          All {status.checkpoints.total} checkpoints passed
+          All {status.checkpoints.total} gradings passed
         </Requirement>
         <Requirement done={status.topicsMet === status.topics.length}>
           Advanced topics held at 80%:{" "}

@@ -295,7 +295,8 @@ export function QuestPanel() {
           onClick={expand}
           aria-label={`Open the quest: step ${position} of ${total}, ${step.title}`}
           className={cn(
-            "fixed right-4 bottom-4 z-42 inline-flex items-center gap-2 rounded-full border border-border bg-card py-1 pr-3.5 pl-1.5 text-sm font-semibold shadow-overlay transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+            // Square cut and a float shadow (DESIGN.md): it hovers over the page but isn't modal
+            "fixed right-4 bottom-4 z-42 inline-flex items-center gap-2 rounded-sm border border-border bg-card py-1 pr-3.5 pl-1.5 text-sm font-semibold shadow-float transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
             // Out of the scratchpad's way: above its bottom sheet, or beside its column on wide screens
             scratchpadOpen && (xl ? "right-auto left-4" : "top-20 bottom-auto")
           )}

@@ -34,5 +34,5 @@ export async function checkpointMetadata(attemptId: string): Promise<Metadata> {
     where: { id: attemptId },
     select: { module: { select: { title: true } } },
   });
-  return { title: attempt ? `Checkpoint: ${attempt.module.title}` : "Checkpoint" };
+  return { title: attempt ? `Grading: ${attempt.module.title}` : "Grading" };
 }

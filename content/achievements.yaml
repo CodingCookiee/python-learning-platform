@@ -149,7 +149,7 @@
     modules: [python-basics, collections-and-control-flow, functions-and-modules, pythonic-stdlib, oop, errors-files-context, testing-pytest, iterators-generators-decorators, typing-pydantic, tooling-packaging, data-model-internals, concurrency, performance]
 - slug: belt-black
   name: Python Master
-  description: "Earn the black belt, 1st dan: every Python checkpoint, advanced topics held at 80%, three capstones approved"
+  description: "Earn the black belt, 1st dan: every Python module graded, advanced topics held at 80%, three capstones approved"
   icon: Medal
   category: Belts
   tier: legendary

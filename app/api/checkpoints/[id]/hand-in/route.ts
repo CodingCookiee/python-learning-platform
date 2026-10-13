@@ -11,11 +11,11 @@ export const POST = withAuth(async (_req: NextRequest, context: AuthContext<{ id
   try {
     const { id } = await context.params;
     const result = await handInCheckpoint(context.userId, id);
-    if (!result) return NextResponse.json({ error: "Checkpoint not found" }, { status: 404 });
+    if (!result) return NextResponse.json({ error: "Grading not found" }, { status: 404 });
     await invalidateUserCache(context.userId);
     return NextResponse.json(result);
   } catch (error) {
-    console.error("Error handing in checkpoint:", error);
-    return NextResponse.json({ error: "Failed to hand in the checkpoint" }, { status: 500 });
+    console.error("Error handing in grading:", error);
+    return NextResponse.json({ error: "Failed to hand in the grading" }, { status: 500 });
   }
 });

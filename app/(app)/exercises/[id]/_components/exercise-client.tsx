@@ -240,7 +240,7 @@ function ModeBanner({
   const done = progress ?? { passedCount: mode.passedCount, total: mode.total };
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-md border border-primary/30 bg-primary/6 px-4 py-3 text-sm">
-      <span className="font-semibold">Checkpoint</span>
+      <span className="font-semibold">Grading</span>
       <span className="font-condensed tabular text-muted-foreground">
         {done.passedCount} of {done.total} passed
       </span>
@@ -282,7 +282,7 @@ function ClipboardNote({ shown }: { shown: boolean }) {
       {shown && (
         <>
           <Lock className="size-4 shrink-0" aria-hidden="true" />
-          Copy and paste are off in checkpoints. Type your answer.
+          Copy and paste are off in gradings. Type your answer.
         </>
       )}
     </p>
@@ -347,7 +347,7 @@ function PromptPanel({
         {drill.position.total > 1 && drill.mode.kind !== "review" && (
           <p className="font-condensed tabular text-sm text-muted-foreground">
             Drill {drill.position.index + 1} of {drill.position.total}{" "}
-            {inCheckpoint ? "in the checkpoint" : `in ${drill.lesson.title}`}
+            {inCheckpoint ? "in the grading" : `in ${drill.lesson.title}`}
           </p>
         )}
         {drill.mode.kind === "review" && (
@@ -711,6 +711,14 @@ export function ExerciseClient({
   // The note shows where the learner last tried (the task, or the code)
   const lockClipboard = mode.kind === "checkpoint";
   const [clipboardNote, setClipboardNote] = React.useState<"task" | "code" | null>(null);
+  // The phone's folded task above the editor: open until the first run's results are in
+  const [taskPeekOpen, setTaskPeekOpen] = React.useState(true);
+  const taskPeekFolded = React.useRef(false);
+  const foldTaskPeek = () => {
+    if (taskPeekFolded.current) return;
+    taskPeekFolded.current = true;
+    setTaskPeekOpen(false);
+  };
   const codeBlocked = () => setClipboardNote("code");
   const explain: Explain = tutorOn && aiReady ? (error) => tutorRef.current?.explain(errorText(error)) : null;
 
@@ -830,6 +838,7 @@ export function ExerciseClient({
         const correct = real.status === "ok" && normaliseOutput(answer) === normaliseOutput(actual);
         const wrongLine = correct ? null : firstDifferentLine(actual, answer);
         setCheck({ kind: "predict", correct, wrongLine, actual, error: real.error });
+        foldTaskPeek();
         setAnnouncement(
           correct
             ? "Correct: that's exactly what it prints."
@@ -849,6 +858,7 @@ export function ExerciseClient({
         });
         setCheck({ kind: "tests", result });
         setAnnouncement(spokenTests(result));
+        foldTaskPeek();
         // The drill's own tests failing to load isn't the learner's attempt
         if (!(result.status === "error" && result.phase === "tests")) {
           attempt = {
@@ -880,6 +890,7 @@ export function ExerciseClient({
       });
       setRunResult(result);
       setAnnouncement(spokenRun(result));
+      foldTaskPeek();
     } finally {
       busyRef.current = false;
       setBusy(null);
@@ -912,7 +923,7 @@ export function ExerciseClient({
           mode.kind === "review"
             ? "Scheduling your next review…"
             : mode.kind === "checkpoint"
-              ? "Updating your checkpoint…"
+              ? "Updating your grading…"
               : "Adding your XP…",
         ]
       : ["Saving this attempt…", ...(serverGrading ? ["Re-running your tests on our server…"] : [])];
@@ -1166,7 +1177,7 @@ export function ExerciseClient({
         <div className="flex flex-wrap items-center gap-5 rounded-md border border-border bg-accent/55 px-5 py-4">
           <div className="min-w-0 flex-1">
             <p className="font-semibold">
-              {finished ? (finished.passed ? "Checkpoint passed" : "Checkpoint closed") : "Drill passed"}
+              {finished ? (finished.passed ? "Grading passed" : "Grading closed") : "Drill passed"}
               {xpGained ? <span className="font-condensed tabular text-primary-ink"> · +{xpGained} XP</span> : null}
             </p>
             <div className="mt-0.5 text-sm text-muted-foreground">
@@ -1193,10 +1204,10 @@ export function ExerciseClient({
               onClick={guard}
               variant={finished ? "default" : "outline"}
             >
-              {finished ? "See the result" : "Back to the checkpoint"}
+              {finished ? "See the result" : "Back to the grading"}
             </WaitLink>
           )}
-          {finished?.passed ? <Seal label="Passed" detail="Checkpoint" animate className="shrink-0" /> : null}
+          {finished?.passed ? <Seal label="Passed" detail="Grading" animate className="shrink-0" /> : null}
         </div>
       )}
 
@@ -1240,7 +1251,7 @@ export function ExerciseClient({
                 : lessonDone
                   ? lessonDone.next
                     ? `${drill.lesson.title} is complete. Next: ${lessonDone.next.title}.`
-                    : `${drill.lesson.title} is complete: that was the module's last lesson, so its checkpoint is open.`
+                    : `${drill.lesson.title} is complete: that was the module's last lesson, so its grading is open.`
                   : `Drill ${drill.position.index + 1} of ${drill.position.total} in ${drill.lesson.title}. ${
                       drill.next ? "On to the next one." : "That was the last one."
                     }`}
@@ -1252,7 +1263,7 @@ export function ExerciseClient({
               pending={pendingHref}
               onClick={guard}
             >
-              {lessonDone.next ? "Next lesson" : "To the checkpoint"}
+              {lessonDone.next ? "Next lesson" : "To the grading"}
               <ArrowRight aria-hidden="true" />
             </WaitLink>
           ) : drill.next ? (
@@ -1418,7 +1429,22 @@ export function ExerciseClient({
         <div className={cn("lg:sticky lg:top-24 lg:block lg:max-h-[calc(100dvh-8rem)] lg:self-start lg:overflow-y-auto lg:pr-1", mobilePane !== "task" && "hidden")}>
           {prompt}
         </div>
-        <div className={cn("lg:block", mobilePane !== "code" && "hidden")}>{workspace}</div>
+        <div className={cn("lg:block", mobilePane !== "code" && "hidden")}>
+          {/* Phones only: the task is a pane away, so it's folded in above the editor too (open until the
+              first run), keeping the expected output in reach while typing */}
+          <details
+            open={taskPeekOpen}
+            onToggle={(event) => setTaskPeekOpen(event.currentTarget.open)}
+            className={cn("mb-4 rounded-md border border-border bg-sheet lg:hidden", lockClipboard && "select-none")}
+            {...(lockClipboard ? { onCopy: blockClipboard(codeBlocked), onCut: blockClipboard(codeBlocked) } : {})}
+          >
+            <summary className="cursor-pointer px-4 py-2.5 text-sm font-semibold">The task</summary>
+            <div className="max-h-72 overflow-y-auto border-t border-border px-4 py-3">
+              <LessonContent content={drill.instructions} runnable={false} copyable={!lockClipboard} className="[&_p]:text-sm" />
+            </div>
+          </details>
+          {workspace}
+        </div>
       </div>
     </>
   );

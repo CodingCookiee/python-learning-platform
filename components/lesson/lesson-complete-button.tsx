@@ -199,7 +199,7 @@ export function LessonCompleteButton({
         {isLoading && <PendingLine delayMs={600} lines={["Saving your progress…", "Adding your XP…"]} still="Still saving: the server is taking a moment." />}
         {moveTo && (
           <PendingLine
-            lines={[nextLessonId ? "Taking you to the next lesson…" : "Taking you to the module's checkpoint…"]}
+            lines={[nextLessonId ? "Taking you to the next lesson…" : "Taking you to the module's grading…"]}
             still="Still loading the page…"
           />
         )}
@@ -217,7 +217,7 @@ export function LessonCompleteButton({
             >
               {nextLessonId
                 ? "Lesson complete. You can come back to it any time."
-                : "Lesson complete. That was the last lesson in this module; its checkpoint is open."}
+                : "Lesson complete. That was the last lesson in this module; its grading is open."}
             </motion.p>
           )}
           {status === "error" && (

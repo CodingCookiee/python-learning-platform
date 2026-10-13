@@ -240,9 +240,9 @@ export async function startCheckpoint(userId: string, moduleId: string): Promise
     case "open":
       return { ok: true, attemptId: summary.openAttemptId! };
     case "none":
-      return { ok: false, status: 409, error: "This module has no checkpoint; finishing its lessons passes it." };
+      return { ok: false, status: 409, error: "This module has no grading; finishing its lessons passes it." };
     case "passed":
-      return { ok: false, status: 409, error: "You've already passed this checkpoint." };
+      return { ok: false, status: 409, error: "You've already passed this grading." };
     case "locked":
       return { ok: false, status: 403, error: "Pass the earlier modules first." };
     case "cooldown":
@@ -250,7 +250,7 @@ export async function startCheckpoint(userId: string, moduleId: string): Promise
   }
 
   const data = await modulePool(moduleId);
-  if (!data || data.pick === 0) return { ok: false, status: 409, error: "This module has no checkpoint." };
+  if (!data || data.pick === 0) return { ok: false, status: 409, error: "This module has no grading." };
   const drawn = drawCheckpoint(data.pool, data.pick);
   const attempt = await prisma.checkpointAttempt.create({
     data: {
@@ -335,12 +335,12 @@ export async function recordCheckpointRun(
 ): Promise<CheckpointSubmitResult> {
   const attempt = await prisma.checkpointAttempt.findFirst({ where: { id: attemptId, userId } });
   if (!attempt || !attempt.exerciseIds.includes(exerciseId)) {
-    return { ok: false, status: 404, error: "That drill isn't part of this checkpoint." };
+    return { ok: false, status: 404, error: "That drill isn't part of this grading." };
   }
-  if (attempt.submittedAt) return { ok: false, status: 409, error: "This checkpoint has already been handed in." };
+  if (attempt.submittedAt) return { ok: false, status: 409, error: "This grading has already been handed in." };
   if (checkpointDeadline(attempt.startedAt, attempt.exerciseIds.length).getTime() <= Date.now()) {
     await finish(attempt.id, userId);
-    return { ok: false, status: 409, error: "Time's up on this checkpoint." };
+    return { ok: false, status: 409, error: "Time's up on this grading." };
   }
 
   let passedIds = attempt.passedIds;

@@ -26,7 +26,7 @@ function ModuleStatus({ m }: { m: SyllabusModule }) {
     return (
       <span className="inline-flex items-center gap-1.5 text-sm font-semibold whitespace-nowrap text-primary">
         <SealMark className="size-4" />
-        Checkpoint due
+        Grading due
       </span>
     );
   }

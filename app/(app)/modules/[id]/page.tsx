@@ -26,12 +26,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 function CheckpointSection({ moduleId, summary }: { moduleId: string; summary: CheckpointSummary }) {
   const terms = `${summary.pick} drills from this module, ${summary.minutes} minutes, pass ${Math.round(summary.passMark * 100)}%`;
   const best = summary.bestScore !== null ? `Best so far: ${Math.round(summary.bestScore * 100)}%.` : null;
+  const startTerms = { drills: summary.pick, minutes: summary.minutes, passMark: summary.passMark };
   let body: React.ReactNode;
   switch (summary.status) {
     case "passed":
       body = (
         <p className="text-muted-foreground">
-          {summary.passedPlacement ? "Passed as a placement test. " : "Passed. "}
+          {summary.passedPlacement ? "Passed by testing out. " : "Passed. "}
           {best}
         </p>
       );
@@ -42,10 +43,10 @@ function CheckpointSection({ moduleId, summary }: { moduleId: string; summary: C
     case "open":
       body = (
         <div className="flex flex-col items-start gap-3">
-          <p className="text-muted-foreground">You have a checkpoint in progress. The clock is running.</p>
+          <p className="text-muted-foreground">You have a grading in progress. The clock is running.</p>
           <Button asChild>
             <Link href={`/checkpoints/${summary.openAttemptId}`}>
-              Resume the checkpoint
+              Resume the grading
               <ArrowRight data-icon="inline-end" aria-hidden="true" />
             </Link>
           </Button>
@@ -65,10 +66,10 @@ function CheckpointSection({ moduleId, summary }: { moduleId: string; summary: C
       body = (
         <div className="flex flex-col items-start gap-3">
           <p className="text-muted-foreground">
-            Every lesson is done. The checkpoint is what passes the module: {terms}. Each drill starts blank, with no
+            Every lesson is done. The grading is what passes the module: {terms}. Each drill starts blank, with no
             hints and no reference solution. {best}
           </p>
-          <StartCheckpointButton moduleId={moduleId} label="Take the checkpoint" />
+          <StartCheckpointButton moduleId={moduleId} label="Take the grading" terms={startTerms} />
         </div>
       );
       break;
@@ -76,10 +77,10 @@ function CheckpointSection({ moduleId, summary }: { moduleId: string; summary: C
       body = (
         <div className="flex flex-col items-start gap-3">
           <p className="text-muted-foreground">
-            It opens once the lessons are done: {terms}. Already know this material? Take it now as a placement test;
+            It opens once the lessons are done: {terms}. Already know this material? Take it now to test out;
             passing it passes the module without the lessons. {best}
           </p>
-          <StartCheckpointButton moduleId={moduleId} label="Test out" variant="outline" />
+          <StartCheckpointButton moduleId={moduleId} label="Test out" terms={startTerms} variant="outline" />
         </div>
       );
       break;
@@ -89,7 +90,7 @@ function CheckpointSection({ moduleId, summary }: { moduleId: string; summary: C
   return (
     <section aria-labelledby="checkpoint-heading" className="flex max-w-3xl flex-col gap-3">
       <h2 id="checkpoint-heading" className="text-xl font-semibold">
-        Checkpoint
+        Grading
       </h2>
       {body}
     </section>
@@ -310,16 +311,21 @@ export default async function ModuleDetailPage({ params }: PageProps) {
                           ? "passed · tested out"
                           : "passed"
                         : lessonsComplete
-                          ? "lessons done · checkpoint due"
+                          ? "lessons done · grading due"
                           : "lessons done"}
                     </span>
                   </p>
                   {checkpointReady ? (
-                    <StartCheckpointButton moduleId={learningModule.id} label="Take the checkpoint" size="lg" />
+                    <StartCheckpointButton
+                      moduleId={learningModule.id}
+                      label="Take the grading"
+                      terms={{ drills: checkpoint!.pick, minutes: checkpoint!.minutes, passMark: checkpoint!.passMark }}
+                      size="lg"
+                    />
                   ) : checkpoint?.status === "open" ? (
                     <Button asChild size="lg">
                       <Link href={`/checkpoints/${checkpoint.openAttemptId}`}>
-                        Resume the checkpoint
+                        Resume the grading
                         <ArrowRight data-icon="inline-end" aria-hidden="true" />
                       </Link>
                     </Button>

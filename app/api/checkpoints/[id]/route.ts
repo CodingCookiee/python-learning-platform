@@ -7,10 +7,10 @@ export const GET = withAuth(async (_req: NextRequest, context: AuthContext<{ id:
   try {
     const { id } = await context.params;
     const attempt = await getCheckpointAttempt(context.userId, id);
-    if (!attempt) return NextResponse.json({ error: "Checkpoint not found" }, { status: 404 });
+    if (!attempt) return NextResponse.json({ error: "Grading not found" }, { status: 404 });
     return NextResponse.json(attempt);
   } catch (error) {
-    console.error("Error fetching checkpoint:", error);
-    return NextResponse.json({ error: "Failed to fetch the checkpoint" }, { status: 500 });
+    console.error("Error fetching grading:", error);
+    return NextResponse.json({ error: "Failed to fetch the grading" }, { status: 500 });
   }
 });

@@ -15,7 +15,7 @@ import { RankCard } from "@/components/brand/rank-card";
 import { AchievementPatch } from "@/components/gamification/achievement-badge";
 import { SealMark } from "@/components/brand/marks";
 import { rankFromTracks } from "@/lib/learner-rank";
-import { getCurriculumState } from "@/lib/curriculum-state";
+import { getCurriculumState, PYTHON_TRACK } from "@/lib/curriculum-state";
 import { blackBeltIfDue } from "@/lib/black-belt";
 import { tierStyle } from "@/lib/achievement-tier";
 import { getCertificateStates } from "@/lib/certificates";
@@ -103,6 +103,8 @@ export default async function ProfilePage() {
   const tracks = await getCurriculumState(user.id);
   const [blackBelt, certificates] = await Promise.all([blackBeltIfDue(user.id, tracks), getCertificateStates(user.id, tracks)]);
   const rank = rankFromTracks(tracks, blackBelt);
+  const pythonModules = tracks.find((t) => t.slug === PYTHON_TRACK)?.modules ?? [];
+  const pythonLessons = pythonModules.reduce((n, m) => ({ done: n.done + m.lessonsDone, total: n.total + m.lessonsTotal }), { done: 0, total: 0 });
   const initials = initialsFor(user.name, user.email);
   const recentAchievements = achievements.unlocked.slice(0, 6);
   const recentLessons = recentActivity.lessons.slice(0, 6);
@@ -152,18 +154,19 @@ export default async function ProfilePage() {
                 </dd>
               </div>
               <div className="flex items-end justify-between gap-4 border-b border-border py-5">
-                <dt className="text-sm text-muted-foreground">Lessons finished</dt>
+                <dt className="text-sm text-muted-foreground">Python lessons finished</dt>
                 <dd className="font-condensed tabular leading-none">
-                  <span className="text-3xl font-extrabold">{completion.lessons.completed}</span>
-                  <span className="text-lg font-bold text-muted-foreground"> / {completion.lessons.total}</span>
+                  <span className="text-3xl font-extrabold">{pythonLessons.done}</span>
+                  <span className="text-lg font-bold text-muted-foreground"> / {pythonLessons.total}</span>
                 </dd>
               </div>
+              {/* Not "of 24": the black belt asks for three, and every capstone is optional practice beyond */}
               <div className="flex items-end justify-between gap-4 border-b border-border py-5">
-                <dt className="text-sm text-muted-foreground">Capstone projects approved</dt>
-                <dd className="font-condensed tabular leading-none">
-                  <span className="text-3xl font-extrabold">{completion.projects.completed}</span>
-                  <span className="text-lg font-bold text-muted-foreground"> / {completion.projects.total}</span>
-                </dd>
+                <dt className="flex flex-col gap-0.5 text-sm text-muted-foreground">
+                  Capstone projects approved
+                  <span className="text-xs">The black belt takes three Python capstones.</span>
+                </dt>
+                <dd className="font-condensed tabular text-3xl leading-none font-extrabold">{completion.projects.completed}</dd>
               </div>
             </dl>
           </section>

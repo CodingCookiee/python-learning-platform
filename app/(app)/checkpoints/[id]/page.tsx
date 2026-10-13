@@ -56,7 +56,7 @@ export default async function CheckpointPage({ params }: PageProps) {
               { label: "Home", href: "/" },
               { label: "Syllabus", href: "/modules" },
               { label: attempt.module.title, href: `/modules/${attempt.module.id}` },
-              { label: "Checkpoint" },
+              { label: "Grading" },
             ]}
           />
         </FadeIn>
@@ -64,7 +64,7 @@ export default async function CheckpointPage({ params }: PageProps) {
         <FadeIn delay={0.03}>
           <header className="flex flex-col gap-4 border-b border-border pb-8">
             <p className="text-sm font-semibold text-muted-foreground">
-              {attempt.placement ? "Placement checkpoint" : "Module checkpoint"}
+              {attempt.placement ? "Grading, taken to test out" : "Module grading"}
             </p>
             <h1 className="font-condensed text-5xl leading-[0.95] font-extrabold tracking-[-0.02em]">
               {attempt.module.title}
@@ -95,7 +95,7 @@ export default async function CheckpointPage({ params }: PageProps) {
                   {Math.round((attempt.score ?? 0) * 100)}%
                 </span>
               )}
-              {!open && attempt.passed && <Seal label="Passed" detail="Checkpoint" className="ml-auto" />}
+              {!open && attempt.passed && <Seal label="Passed" detail="Grading" className="ml-auto" />}
             </div>
           </header>
         </FadeIn>
@@ -214,7 +214,11 @@ export default async function CheckpointPage({ params }: PageProps) {
               </p>
             )}
             {!open && !attempt.passed && (summary?.status === "ready" || summary?.status === "placement") && (
-              <StartCheckpointButton moduleId={attempt.module.id} label="Try a fresh set" />
+              <StartCheckpointButton
+                moduleId={attempt.module.id}
+                label="Try a fresh set"
+                terms={{ drills: summary.pick, minutes: summary.minutes, passMark: summary.passMark }}
+              />
             )}
             <Button asChild variant="outline">
               <Link href={`/modules/${attempt.module.id}`}>Back to the module</Link>

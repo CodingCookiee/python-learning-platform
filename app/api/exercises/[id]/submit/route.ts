@@ -78,7 +78,7 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
     const attempt = await openAttemptForDrill(userId, exerciseId);
     const mode = attempt ? "checkpoint" : validation.data.mode;
     if (mode === "checkpoint" && !attempt) {
-      return NextResponse.json({ error: "This checkpoint is closed." }, { status: 409 });
+      return NextResponse.json({ error: "This grading is closed." }, { status: 409 });
     }
 
     const [previousPractice, alreadyPassed, userBefore] = await Promise.all([

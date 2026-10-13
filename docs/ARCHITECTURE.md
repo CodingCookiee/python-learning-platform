@@ -489,6 +489,14 @@ Each milestone is shippable and leaves the app better than before.
   - **The sensei:** redrawn as line art.
   - **Faster saves:** the save that finishes a lesson runs one achievement check, not three. A pass that isn't a lesson's last drill skips loading the lesson. A check that unlocks something refreshes only the XP. A lesson-finishing pass went from 162 database queries to 58.
   - **Grading:** the examiner can read a submitted text file on the grading screen.
+- **The second critique's priorities (2026-10-13, after a re-run that scored 30/40, up from 28):**
+  - **Dashboard:** it always leads with the next step (reviews due, a running grading, a certificate to claim, the on-ramp, or the next lesson or drill). The quest offer is a slim row under it.
+  - **Skill map:** shows topics in their own spelling and leaves out an on-ramp the learner never started. Until a core or stretch drill is solved it says how it fills rather than showing empty bars.
+  - **Starting a grading:** confirmed first. The confirmation states the drills, minutes, pass mark and rules, that the clock doesn't pause, and the retry wait.
+  - **One name:** learners now see one name for the module exam, "grading" ("test out" as a verb). The code, routes and content keys keep `checkpoint`.
+  - **Counts:** the lesson count is the Python syllabus's (the landing's 108), and the profile says the black belt takes three capstones instead of showing "/24".
+  - **Phone drills:** the task is folded in above the editor until the first run.
+  - **Quest pill:** square-cut, with a float shadow.
 - **Certificates (2026-10-13):** two credentials a learner claims and shares: the black belt in Python, and the AI automation track's 9th dan ([spec](superpowers/specs/2026-10-12-certificates-design.md), [plan](superpowers/plans/2026-10-13-certificates-plan.md)).
   - **Eligibility:** checked on the server every time (`lib/certificates.ts`, `lib/certificate-eligibility.ts`): the black-belt rule, or every automation module passed.
   - **Claiming:** the learner confirms the printed name in a dialog with a live preview (`POST /api/certificates`), from the profile or the dashboard's band.

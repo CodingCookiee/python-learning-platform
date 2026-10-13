@@ -27,7 +27,7 @@ const EXPERIENCE: Array<{ value: Experience; title: string; detail: string }> = 
     title: "I code in another language",
     detail: "JavaScript, Java, Go… The “Coming from JavaScript” notes are for you, and you can test out of early modules.",
   },
-  { value: "python", title: "I already write Python", detail: "Test out of what you know with each module's checkpoint, and train the rest." },
+  { value: "python", title: "I already write Python", detail: "Test out of what you know with each module's grading, and train the rest." },
 ];
 
 const GOALS: Array<{ value: Goal; title: string; detail: string }> = [

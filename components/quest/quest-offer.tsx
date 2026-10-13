@@ -11,7 +11,9 @@ import { questRefresh, SENSEI } from "@/lib/quest-steps";
 /**
  * The dashboard's way into the quest for learners who didn't get it at onboarding: "offer" for
  * those with no quest yet (Start, or No thanks for good), "resume" for a skipped quest with steps
- * done. Either way the panel picks the quest up as soon as the request returns.
+ * done. Either way the panel picks the quest up as soon as the request returns. A slim row under the
+ * dashboard's next step, never in its place (2026-10-13 critique: a returning learner needs Continue
+ * at the top).
  */
 export function QuestOffer({ kind, done = 0 }: { kind: "offer" | "resume"; done?: number }) {
   const router = useRouter();
@@ -42,14 +44,14 @@ export function QuestOffer({ kind, done = 0 }: { kind: "offer" | "resume"; done?
   return (
     <section
       aria-labelledby="quest-offer-heading"
-      className="flex flex-col gap-4 rounded-md border border-border bg-sheet p-6 sm:flex-row sm:items-center sm:gap-6"
+      className="flex flex-col gap-3 border-y border-border py-4 sm:flex-row sm:items-center sm:gap-5"
     >
-      <Sensei className="hidden h-18 w-16 sm:block" />
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <h2 id="quest-offer-heading" className="font-condensed text-2xl leading-none font-extrabold tracking-[-0.01em]">
+      <Sensei head className="hidden size-10 sm:block" />
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <h2 id="quest-offer-heading" className="font-semibold">
           {title}
         </h2>
-        <p className="leading-relaxed text-muted-foreground">{line}</p>
+        <p className="max-w-[65ch] text-sm leading-relaxed text-muted-foreground">{line}</p>
         {failed && (
           <p role="alert" className="text-sm text-destructive">
             That didn&apos;t go through. Try again in a moment.
@@ -64,7 +66,10 @@ export function QuestOffer({ kind, done = 0 }: { kind: "offer" | "resume"; done?
         />
       ) : (
         <div className="flex shrink-0 flex-wrap gap-2">
+          {/* Outline: the band above holds the page's one primary action */}
           <LoadingButton
+            variant="outline"
+            size="sm"
             onClick={() => void send(kind === "offer" ? "start" : "resume")}
             loading={busy === "go"}
             loadingText={kind === "offer" ? "Starting…" : "Resuming…"}
@@ -76,7 +81,7 @@ export function QuestOffer({ kind, done = 0 }: { kind: "offer" | "resume"; done?
             </span>
           </LoadingButton>
           {kind === "offer" && (
-            <LoadingButton variant="ghost" onClick={() => void send("skip")} loading={busy === "decline"} loadingText="Saving…" disabled={busy === "go"}>
+            <LoadingButton variant="ghost" size="sm" onClick={() => void send("skip")} loading={busy === "decline"} loadingText="Saving…" disabled={busy === "go"}>
               No thanks
             </LoadingButton>
           )}

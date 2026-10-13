@@ -9,10 +9,19 @@ function pct(strength: number) {
 
 /**
  * How firmly each open module and its common topics are held. Solving a drill
- * fills 40% of it; surviving spaced reviews fills the rest.
+ * fills 40% of it; surviving spaced reviews fills the rest. Warm-ups and predict drills don't
+ * count, so until one that does is solved the map says so rather than showing empty bars.
  */
 export function SkillMap({ map }: { map: SkillMapData }) {
   if (map.modules.length === 0) return null;
+  if (map.counted === 0) {
+    return (
+      <p className="max-w-[65ch] rounded-md border border-dashed border-border p-5 text-sm leading-relaxed text-muted-foreground">
+        The map fills from your first core or stretch drill: solving one fills 40% of its topics, and each review it
+        survives fills more. Warm-ups and predict drills are practice and don&apos;t count here.
+      </p>
+    );
+  }
   return (
     <div className="grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
       <ol className="flex flex-col border-t border-border">
@@ -45,8 +54,8 @@ export function SkillMap({ map }: { map: SkillMapData }) {
       {map.tags.length > 0 && (
         <div className="flex flex-col gap-3">
           <p className="text-sm text-muted-foreground">
-            Topics across your open modules, strongest first. Solving a drill fills 40%; each review it survives fills
-            more.
+            Topics across your open modules, strongest first. Solving a core or stretch drill fills 40%; each review it
+            survives fills more. Warm-ups don&apos;t count.
           </p>
           <ul className="flex flex-wrap gap-2" role="list">
             {map.tags.map((t) => (

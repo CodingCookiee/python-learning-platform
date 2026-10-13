@@ -30,6 +30,8 @@ export interface SkillTag {
 export interface SkillMap {
   modules: SkillModule[];
   tags: SkillTag[];
+  /** Drills solved that count toward the map (core and stretch); until there's one, every bar is empty */
+  counted: number;
 }
 
 /** A topic needs this many drills in the open modules to appear */
@@ -40,9 +42,13 @@ const mean = (xs: number[]) => (xs.length === 0 ? 0 : xs.reduce((a, b) => a + b,
 
 export async function getSkillMap(userId: string): Promise<SkillMap> {
   const tracks = await getCurriculumState(userId);
-  const open = tracks.flatMap((t) => t.modules.filter((m) => m.unlocked).map((m) => ({ m, t })));
+  // The on-ramp (a track with no grade) only once the learner has started it: a developer who
+  // skipped it shouldn't see "Start here" at 0% among their topics
+  const open = tracks.flatMap((t) =>
+    t.modules.filter((m) => m.unlocked && (t.grade !== "none" || m.lessonsDone > 0)).map((m) => ({ m, t }))
+  );
   const moduleIds = open.map((o) => o.m.id);
-  if (moduleIds.length === 0) return { modules: [], tags: [] };
+  if (moduleIds.length === 0) return { modules: [], tags: [], counted: 0 };
 
   const [drills, solved, reviews] = await Promise.all([
     prisma.exercise.findMany({
@@ -61,16 +67,27 @@ export async function getSkillMap(userId: string): Promise<SkillMap> {
 
   const byModule = new Map<string, number[]>();
   const byTag = new Map<string, number[]>();
+  /** Each topic as content first wrote it ("None", not "none") */
+  const tagLabel = new Map<string, string>();
   const solvedByModule = new Map<string, number>();
+  let counted = 0;
   for (const d of drills) {
     if (!reviewEligible(d)) continue;
     const isSolved = solvedIds.has(d.id);
     const strength = drillStrength(isSolved, stages.get(d.id) ?? null);
     const mid = d.lesson.moduleId;
     byModule.set(mid, [...(byModule.get(mid) ?? []), strength]);
-    if (isSolved) solvedByModule.set(mid, (solvedByModule.get(mid) ?? 0) + 1);
-    // Tags are free-form in content; fold case so "Decimal" and "decimal" meet
-    for (const tag of new Set(d.tags.map((t) => t.toLowerCase()))) byTag.set(tag, [...(byTag.get(tag) ?? []), strength]);
+    if (isSolved) {
+      solvedByModule.set(mid, (solvedByModule.get(mid) ?? 0) + 1);
+      counted++;
+    }
+    // Tags are free-form in content; fold case to match so "Decimal" and "decimal" meet, but show
+    // the first spelling (Python's None stays None)
+    for (const tag of new Set(d.tags)) {
+      const key = tag.toLowerCase();
+      if (!tagLabel.has(key)) tagLabel.set(key, tag);
+      byTag.set(key, [...(byTag.get(key) ?? []), strength]);
+    }
   }
 
   const modules: SkillModule[] = open
@@ -91,8 +108,8 @@ export async function getSkillMap(userId: string): Promise<SkillMap> {
     .filter(([, xs]) => xs.length >= MIN_TAG_DRILLS)
     .sort((a, b) => b[1].length - a[1].length)
     .slice(0, MAX_TAGS)
-    .map(([tag, xs]) => ({ tag, strength: mean(xs), drills: xs.length }))
+    .map(([key, xs]) => ({ tag: tagLabel.get(key) ?? key, strength: mean(xs), drills: xs.length }))
     .sort((a, b) => b.strength - a.strength || b.drills - a.drills);
 
-  return { modules, tags };
+  return { modules, tags, counted };
 }

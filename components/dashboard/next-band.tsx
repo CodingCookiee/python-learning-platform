@@ -18,16 +18,16 @@ function content(next: Exclude<NextStep, { kind: "none" }>): { title: string; de
       };
     case "checkpoint-open":
       return {
-        title: `Module ${next.moduleOrder}'s checkpoint is open`,
+        title: `Module ${next.moduleOrder}'s grading is open`,
         detail: `${next.moduleTitle}: its clock is still running, so finish what you can and hand it in.`,
-        action: "Resume the checkpoint",
+        action: "Resume the grading",
         href: `/checkpoints/${next.attemptId}`,
       };
     case "checkpoint-due":
       return {
-        title: `Module ${next.moduleOrder}'s checkpoint`,
-        detail: `Every lesson in ${next.moduleTitle} is done. Pass the checkpoint for your next stripe: ${next.drills} drills, with ${next.minutes} minutes on the clock once you start.`,
-        action: "Go to the checkpoint",
+        title: `Module ${next.moduleOrder}'s grading`,
+        detail: `Every lesson in ${next.moduleTitle} is done. Pass the grading for your next stripe: ${next.drills} drills, with ${next.minutes} minutes on the clock once you start.`,
+        action: "Go to the grading",
         href: `/modules/${next.moduleId}#checkpoint-heading`,
       };
     case "drill":

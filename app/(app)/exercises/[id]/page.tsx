@@ -35,7 +35,7 @@ export default async function ExercisePage({ params, searchParams }: PageProps) 
 
   const trail =
     drill.mode.kind === "checkpoint"
-      ? [{ label: "Checkpoint", href: `/checkpoints/${drill.mode.attemptId}` }]
+      ? [{ label: "Grading", href: `/checkpoints/${drill.mode.attemptId}` }]
       : drill.mode.kind === "review"
         ? [{ label: "Review", href: "/review" }]
         : [{ label: drill.lesson.title, href: `/lessons/${drill.lesson.id}` }];

@@ -13,7 +13,7 @@ import type { LogWeek } from "@/lib/learning-log";
 type Fields = Pick<LogWeek, "hours" | "built" | "learned" | "stuck" | "nextGoal" | "question">;
 
 const FIELDS: Array<{ key: Exclude<keyof Fields, "hours">; label: string; hint: string; rows: number }> = [
-  { key: "built", label: "Built or finished", hint: "One to three lines: lessons, checkpoints, capstones, labs.", rows: 3 },
+  { key: "built", label: "Built or finished", hint: "One to three lines: lessons, gradings, capstones, labs.", rows: 3 },
   { key: "learned", label: "Learned", hint: "One or two key ideas, in your own words. That's what makes it stick.", rows: 2 },
   { key: "stuck", label: "Stuck on", hint: "A specific problem, or leave it empty for “nothing”.", rows: 2 },
   { key: "nextGoal", label: "Next week's goal", hint: "One concrete deliverable.", rows: 2 },
@@ -113,7 +113,7 @@ export function CheckInForm({ initial }: { initial: LogWeek }) {
             onChange={(e) => set("hours", Number(e.target.value))}
             className="font-condensed tabular w-28 text-lg font-bold"
           />
-          <p className="text-sm text-muted-foreground">Estimated from your lessons, drills, reviews and checkpoints. Add time spent elsewhere.</p>
+          <p className="text-sm text-muted-foreground">Estimated from your lessons, drills, reviews and gradings. Add time spent elsewhere.</p>
         </div>
         {FIELDS.map((f) => (
           <div key={f.key} className="flex flex-col gap-2">
