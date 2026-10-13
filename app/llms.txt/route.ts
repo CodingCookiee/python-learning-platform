@@ -46,6 +46,8 @@ Everything is free. Lessons and drills need a free account; the pages below are 
 - [Home](${origin}/): try a line of Python in the browser, how it works, who it's for, the syllabus, Python next to JavaScript, and questions (cost, time, what you need)
 - [Create an account](${origin}/auth/signup): start at the white belt
 - [Sign in](${origin}/auth/signin)
+- [About](${origin}/about): how gradings, capstones, the black belt and certificates work, and how to check a certificate
+- [Contact](${origin}/contact): how to reach pylearn
 - [Privacy policy](${origin}/privacy): what is stored, who handles it, and how to delete it
 
 ## Start here (optional on-ramp, about 4 hours, no grade)

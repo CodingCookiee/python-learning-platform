@@ -467,7 +467,37 @@ function PrintedOutput({ text, label = "Printed" }: { text: string; label?: stri
   );
 }
 
-function RunOutput({ result, onExplain }: { result: RunResult; onExplain?: Explain }) {
+/** The functions a piece of code defines at the top level, in order */
+function definedFunctions(code: string): string[] {
+  return [...code.matchAll(/^def\s+([A-Za-z_]\w*)\s*\(/gm)].map((m) => m[1]!);
+}
+
+/**
+ * Run printed nothing because the code only defines functions (most drills ask for one): say so, and
+ * show how to see a result, rather than an empty box that reads as "Run is broken"
+ */
+function NothingPrinted({ functions }: { functions: string[] }) {
+  const name = functions[0]!;
+  return (
+    <div className="rounded-md border border-border bg-sheet px-4 py-3 text-sm leading-relaxed">
+      <p className="font-semibold">It ran, and printed nothing.</p>
+      <p className="mt-1 text-muted-foreground">
+        Your code defines <code className="font-mono text-foreground">{name}()</code>
+        {functions.length > 1 ? ` and ${functions.length - 1} more` : ""}, and defining a function doesn&apos;t run
+        it. To see what it gives back, add a line below it that calls it and prints the result, with values of your
+        own:
+      </p>
+      <pre className="mt-2 font-mono text-[0.8125rem] text-foreground">print({name}(…))</pre>
+      <p className="mt-2 text-muted-foreground">Run tests checks it against the drill&apos;s cases either way.</p>
+    </div>
+  );
+}
+
+function RunOutput({ result, code, onExplain }: { result: RunResult; code: string; onExplain?: Explain }) {
+  const functions = definedFunctions(code);
+  if (!result.error && !result.stdout.trim() && !result.stderr && functions.length > 0) {
+    return <NothingPrinted functions={functions} />;
+  }
   return (
     <div className="flex flex-col gap-3">
       {(result.stdout || !result.error) && <PrintedOutput text={result.stdout} label="Output" />}
@@ -561,9 +591,12 @@ function spokenTests(result: TestRunResult): string {
   return `${result.tests.length - failed.length} of ${result.tests.length} tests passed. Failed: ${failed.map((t) => t.name).join("; ")}.`;
 }
 
-function spokenRun(result: RunResult): string {
+function spokenRun(result: RunResult, functions: string[] = []): string {
   if (result.error) return `Ran, with an error. ${spokenError(result.error)}`;
-  return result.stdout.trim() ? "Ran. The output is below the buttons." : "Ran. It printed nothing.";
+  if (result.stdout.trim()) return "Ran. The output is below the buttons.";
+  return functions.length > 0
+    ? `Ran, and printed nothing: your code defines ${functions[0]}, and defining a function doesn't run it. Add a line that prints a call to it to see its result.`
+    : "Ran. It printed nothing.";
 }
 
 /**
@@ -675,6 +708,8 @@ export function ExerciseClient({
   const [busy, setBusy] = React.useState<"check" | "run" | null>(null);
   const [check, setCheck] = React.useState<CheckState>({ kind: "idle" });
   const [runResult, setRunResult] = React.useState<RunResult | null>(null);
+  /** The code that Run ran, so its output can say what the code defined */
+  const [ranCode, setRanCode] = React.useState("");
   const [attempts, setAttempts] = React.useState(drill.stats.attempts);
   const [solved, setSolved] = React.useState(drill.stats.solved);
   const [solution, setSolution] = React.useState(drill.solution);
@@ -882,14 +917,16 @@ export function ExerciseClient({
     setAnnouncement("");
     try {
       const lines = stdin.length > 0 ? stdin.replace(/\r\n/g, "\n").replace(/\n$/, "").split("\n") : null;
-      const result = await getPythonRuntime().run(isPredict ? drill.starterCode : codeRef.current, {
+      const source = isPredict ? drill.starterCode : codeRef.current;
+      const result = await getPythonRuntime().run(source, {
         stdin: lines,
         packages: drill.packages,
         timeoutMs: drill.timeoutMs + 1000,
         files: multi ? filesRef.current : undefined,
       });
+      setRanCode(source);
       setRunResult(result);
-      setAnnouncement(spokenRun(result));
+      setAnnouncement(spokenRun(result, definedFunctions(source)));
       foldTaskPeek();
     } finally {
       busyRef.current = false;
@@ -1152,7 +1189,7 @@ export function ExerciseClient({
               </p>
             </div>
           ))}
-        {runResult && <RunOutput result={runResult} onExplain={explain} />}
+        {runResult && <RunOutput result={runResult} code={ranCode} onExplain={explain} />}
         {saving && !saving.passed && saveLine(false, false)}
         {saveError && (
           <div className="flex flex-wrap items-center gap-3">

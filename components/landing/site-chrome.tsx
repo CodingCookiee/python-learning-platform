@@ -56,6 +56,12 @@ export function SiteFooter() {
           <Link href="/auth/signup" className="text-muted-foreground hover:text-foreground">
             Create account
           </Link>
+          <Link href="/about" className="text-muted-foreground hover:text-foreground">
+            About
+          </Link>
+          <Link href="/contact" className="text-muted-foreground hover:text-foreground">
+            Contact
+          </Link>
           <Link href="/privacy" className="text-muted-foreground hover:text-foreground">
             Privacy
           </Link>
