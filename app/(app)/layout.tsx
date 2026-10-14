@@ -5,6 +5,7 @@ import { StreakPing } from "@/components/gamification/streak-ping";
 import { ToastProvider } from "@/components/ui/toast";
 import { QuestPanel } from "@/components/quest/quest-panel";
 import { SkipLink } from "@/components/layout/skip-link";
+import { HashScroll } from "@/components/layout/hash-scroll";
 
 export default function AppLayout({
   children,
@@ -16,6 +17,8 @@ export default function AppLayout({
       <div className="flex min-h-dvh flex-col">
         {/* Silent client component: pings streak endpoint once per browser session */}
         <StreakPing />
+        {/* A link to a #section of another page lands on it once the page has streamed in */}
+        <HashScroll />
         {/* Past the eight stops of the header, straight to the page */}
         <SkipLink href="#content">Skip to the content</SkipLink>
         <Navbar />

@@ -107,6 +107,8 @@ These need your accounts, so they couldn't be tested here.
   - a regenerated Prisma client replaces the dev cache;
   - **Refresh public pages** shows a sync straight away.
 
+- **End-to-end tests:** a Playwright suite (13 tests, `npm run build && npm run test:e2e`) and an `e2e` CI job. Writing it found two bugs, both fixed: links to a section of another page opened at the top, and the landing page's code samples weren't reachable by keyboard.
+
 ## 6. Smaller things noticed on the way
 
 - [ ] **Landing height on phones:** folding the automation modules took it from about 11,100 px to 10,800. A real cut would need folding each belt's module list on phones too, or a shorter section.

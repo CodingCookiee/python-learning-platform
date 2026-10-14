@@ -261,8 +261,10 @@ export default async function LandingPage() {
                         <span className="block px-4 pt-2 text-xs font-semibold text-muted-foreground sm:hidden">
                           {lang}
                         </span>
+                        {/* Focusable: on narrower desktops a long line scrolls sideways, and the keyboard must reach it */}
                         <pre
-                          className="hljs overflow-x-auto px-4 pt-1.5 pb-3 font-mono text-[0.8125rem] leading-6 whitespace-pre-wrap sm:whitespace-pre"
+                          tabIndex={0}
+                          className="hljs overflow-x-auto px-4 pt-1.5 pb-3 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring font-mono text-[0.8125rem] leading-6 whitespace-pre-wrap sm:whitespace-pre"
                           dangerouslySetInnerHTML={{ __html: highlight(code, id) }}
                         />
                       </div>
