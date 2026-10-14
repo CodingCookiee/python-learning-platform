@@ -91,7 +91,11 @@ export default async function CertificatePage({ params }: Params) {
 
         {/* The same facts as one plain line, to read or copy, under the sheet */}
         <p className="text-sm text-muted-foreground print:hidden">
-          Issued by pylearn to {c.name} on {issued} · ID <span className="font-mono">{c.code}</span> · {url}
+          Issued by pylearn to {c.name} on {issued} · ID{" "}
+          <span translate="no" className="font-mono">
+            {c.code}
+          </span>{" "}
+          · <span translate="no">{url}</span>
         </p>
 
         {holder && (

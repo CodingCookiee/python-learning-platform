@@ -115,6 +115,7 @@ export function HolderControls({
         <div className="flex flex-wrap gap-2">
           <Input
             id="certificate-name"
+            name="name"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             maxLength={NAME_MAX}

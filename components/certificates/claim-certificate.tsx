@@ -106,6 +106,7 @@ export function ClaimCertificate({
               <Label htmlFor="claim-name">Name to print</Label>
               <Input
                 id="claim-name"
+                name="name"
                 value={draft}
                 onChange={(e) => {
                   setDraft(e.target.value);
@@ -113,7 +114,7 @@ export function ClaimCertificate({
                 }}
                 maxLength={NAME_MAX}
                 autoComplete="name"
-                aria-describedby="claim-name-note"
+                aria-describedby={error ? "claim-name-note claim-name-error" : "claim-name-note"}
                 aria-invalid={error ? true : undefined}
                 disabled={busy}
               />
@@ -121,7 +122,7 @@ export function ClaimCertificate({
                 Use the name you&apos;d put on a CV.
               </p>
               {error && (
-                <p role="alert" className="text-sm text-destructive">
+                <p id="claim-name-error" role="alert" className="text-sm text-destructive">
                   {error}
                 </p>
               )}

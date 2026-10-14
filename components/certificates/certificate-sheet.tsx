@@ -53,7 +53,7 @@ export function CertificateSheet({
           <header className="flex flex-col gap-3 border-b border-(--keyline)/25 pb-5 @2xl:gap-[1.3cqw] @2xl:pb-[2.2cqw]">
             <span className="flex items-center gap-2 @2xl:gap-[0.8cqw]">
               <BeltKnot belt="black" className="size-7 @2xl:size-[3cqw]" />
-              <span className="font-semicondensed text-xl leading-none font-bold tracking-[-0.03em] @2xl:text-[2.1cqw]">pylearn</span>
+              <span translate="no" className="font-semicondensed text-xl leading-none font-bold tracking-[-0.03em] @2xl:text-[2.1cqw]">pylearn</span>
             </span>
             <Title className="font-condensed text-3xl leading-[0.95] font-extrabold tracking-[-0.02em] @2xl:text-[4.2cqw]">
               {words.title}
@@ -84,9 +84,9 @@ export function CertificateSheet({
               </p>
               <p>
                 <span className="text-muted-foreground">ID </span>
-                <span className="font-mono">{code}</span>
+                <span translate="no" className="font-mono">{code}</span>
               </p>
-              <p className="font-mono break-all text-muted-foreground">{url}</p>
+              <p translate="no" className="font-mono break-all text-muted-foreground">{url}</p>
             </div>
             {stamp !== "none" && <CertificateSeal detail={words.seal} animate={stamp === "animate"} />}
           </footer>
