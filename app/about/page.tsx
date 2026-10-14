@@ -11,7 +11,7 @@ import { publicOrigin } from "@/lib/public-origin";
 export const metadata: Metadata = {
   title: "About pylearn: how gradings, capstones and certificates work",
   description:
-    "What pylearn is, how rank is earned through timed gradings, how capstone projects are examined, what the black belt takes, and how anyone can verify a pylearn certificate.",
+    "How pylearn works: rank earned through timed gradings, capstones read by an examiner, what the black belt takes, and how to verify a pylearn certificate.",
   alternates: { canonical: "/about" },
 };
 

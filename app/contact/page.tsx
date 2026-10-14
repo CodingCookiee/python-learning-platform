@@ -8,7 +8,7 @@ import { publicOrigin } from "@/lib/public-origin";
 export const metadata: Metadata = {
   title: "Contact pylearn: accounts, lessons and certificates",
   description:
-    "How to reach pylearn about your account, a mistake in a lesson or drill, a capstone, a certificate, or your data, and what to include so it can be answered quickly.",
+    "How to reach pylearn about your account, a lesson or drill mistake, a capstone, a certificate or your data, and what to include for a quick answer.",
   alternates: { canonical: "/contact" },
 };
 

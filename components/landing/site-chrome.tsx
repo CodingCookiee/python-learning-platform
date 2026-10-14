@@ -27,7 +27,9 @@ export function SiteHeader() {
         <div className="flex items-center gap-1 sm:gap-2">
           <ThemeToggle />
           <Button variant="ghost" size="sm" asChild>
-            <Link href="/auth/signin">Sign in</Link>
+            <Link href="/auth/signin">
+              Sign in<span className="sr-only"> to your account</span>
+            </Link>
           </Button>
           <Button size="sm" asChild>
             <Link href="/auth/signup">
