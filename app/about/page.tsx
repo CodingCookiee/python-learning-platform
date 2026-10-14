@@ -4,9 +4,11 @@ import { headers } from "next/headers";
 import { SiteFooter, SiteHeader } from "@/components/landing/site-chrome";
 import { SkipLink } from "@/components/layout/skip-link";
 import { getLandingData } from "@/lib/landing/facts";
+import { Faq, faqItems } from "@/components/landing/faq";
 import { BLACK_BELT } from "@/lib/black-belt";
 import { CHECKPOINT_MINUTES_PER_DRILL, CHECKPOINT_RETRY_MINUTES, REVIEW_INTERVALS } from "@/lib/mastery-rules";
 import { publicOrigin } from "@/lib/public-origin";
+import { PROFILE_LINKS } from "@/lib/landing/structured-data";
 
 export const metadata: Metadata = {
   title: "About pylearn: how gradings, capstones and certificates work",
@@ -162,11 +164,25 @@ export default async function AboutPage() {
           </p>
         </Section>
 
-        <Section id="contact" title="Questions">
+        <Faq items={faqItems(hours)} compact />
+
+        <Section id="contact" title="More help">
           <p>
-            For anything else, see the <Link href="/#faq" className="font-medium text-primary underline">common questions</Link>,
+            For anything else, see the <a href="#faq" className="font-medium text-primary underline">common questions</a> above,
             or <Link href="/contact" className="font-medium text-primary underline">contact pylearn</Link>. What pylearn
             keeps about you is in the <Link href="/privacy" className="font-medium text-primary underline">privacy policy</Link>.
+          </p>
+          <p>
+            pylearn is also on{" "}
+            {PROFILE_LINKS.map((p, i) => (
+              <span key={p.href}>
+                {i > 0 && (i === PROFILE_LINKS.length - 1 ? " and " : ", ")}
+                <a href={p.href} rel="me noopener" className="font-medium text-primary underline">
+                  {p.label}
+                </a>
+              </span>
+            ))}
+            .
           </p>
         </Section>
         <script

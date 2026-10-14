@@ -62,8 +62,35 @@ export function faqJsonLd(items: FaqItem[]) {
   };
 }
 
-/** The landing page's FAQ: native disclosure widgets, no JavaScript needed */
-export function Faq({ items }: { items: FaqItem[] }) {
+/**
+ * The FAQ: native disclosure widgets, no JavaScript needed. A full-width band on the landing page;
+ * `compact` sits in a reading column (the About page, which signed-in learners can reach: the landing
+ * page sends them to their dashboard)
+ */
+export function Faq({ items, compact = false }: { items: FaqItem[]; compact?: boolean }) {
+  if (compact) {
+    return (
+      <section id="faq" aria-labelledby="faq-heading" className="flex scroll-mt-20 flex-col gap-3">
+        <h2 id="faq-heading" className="text-2xl font-semibold tracking-[-0.01em]">
+          Common questions
+        </h2>
+        <div className="border-t border-border">
+          {items.map((item) => (
+            <details key={item.question} className="group border-b border-border">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
+                {item.question}
+                <Plus
+                  className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-open:rotate-45 motion-reduce:transition-none"
+                  aria-hidden="true"
+                />
+              </summary>
+              <p className="pb-5 leading-relaxed text-muted-foreground">{item.shown ?? item.answer}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+    );
+  }
   return (
     <section id="faq" aria-labelledby="faq-heading" className="scroll-mt-16 border-t border-border px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
       <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] lg:gap-16">

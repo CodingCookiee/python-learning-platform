@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
+import { PROFILE_LINKS } from "@/lib/landing/structured-data";
 
 export function Footer() {
   return (
@@ -28,6 +29,11 @@ export function Footer() {
           <Link href="/privacy" className="text-muted-foreground hover:text-foreground">
             Privacy
           </Link>
+          {PROFILE_LINKS.map((p) => (
+            <a key={p.href} href={p.href} rel="me noopener" className="text-muted-foreground hover:text-foreground">
+              {p.label}
+            </a>
+          ))}
         </nav>
         <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} pylearn</p>
       </div>

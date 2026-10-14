@@ -15,7 +15,7 @@ describe("the landing page's structured data", () => {
     expect(org).toMatchObject({
       "@id": "https://pylearn.example/#organization",
       name: "pylearn",
-      sameAs: ["https://github.com/PL-PyLearn"],
+      sameAs: ["https://github.com/PL-PyLearn", "https://www.linkedin.com/company/pylearn/"],
     });
     expect(site).toMatchObject({ url: "https://pylearn.example/", publisher: { "@id": "https://pylearn.example/#organization" } });
   });
