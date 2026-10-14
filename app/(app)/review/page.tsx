@@ -35,7 +35,6 @@ export default async function ReviewPage() {
   const queue = await getReviewQueue(session.user.id);
   const first = queue.due[0];
   const overLimit = queue.dueTotal > queue.due.length && queue.due.length === 0;
-  const maxUpcoming = Math.max(1, ...queue.upcoming);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
@@ -130,7 +129,8 @@ export default async function ReviewPage() {
                     <span className="flex h-20 w-full items-end overflow-hidden rounded-[2px] bg-muted">
                       <span
                         className="block w-full bg-primary/70"
-                        style={{ height: `${(n / maxUpcoming) * 100}%` }}
+                        // Against the daily cap, so a light day looks light; a day over the cap is a full bar
+                        style={{ height: `${Math.min(1, n / queue.dailyLimit) * 100}%` }}
                         aria-hidden="true"
                       />
                     </span>
@@ -140,7 +140,7 @@ export default async function ReviewPage() {
                 ))}
               </ol>
               <p className="text-sm text-muted-foreground">
-                Today&rsquo;s bar counts what falls due later today. At most {queue.dailyLimit} reviews are offered a day.
+                Today&rsquo;s bar counts what falls due later today. A full bar is the daily cap: at most {queue.dailyLimit} reviews are offered a day.
               </p>
             </section>
           </FadeIn>

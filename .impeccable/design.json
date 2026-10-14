@@ -721,7 +721,11 @@
       },
       "numeral": {
         "displayName": "Rank Numeral",
-        "purpose": "Kyu/dan numbers set monumentally with a small muted unit; scales to 5.5rem in the record figure."
+        "purpose": "Kyu/dan numbers set monumentally with a small muted unit."
+      },
+      "record-figure": {
+        "displayName": "Record Figure",
+        "purpose": "5.5rem condensed 800: the one number that is the point of its surface (the landing's training record, the level-up notice's new level). Never more than one on screen."
       },
       "title": {
         "displayName": "Belt Title",

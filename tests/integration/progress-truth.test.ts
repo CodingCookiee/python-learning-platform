@@ -74,7 +74,11 @@ describe("one achievement check", () => {
     try {
       // 5 XP short of 1,000, with a lesson done: First Steps (+10 XP) takes it over the line
       await prisma.user.update({ where: { id: chained.user.id }, data: { xp: 995 } });
-      const lesson = await prisma.lesson.findFirstOrThrow({ where: { archivedAt: null }, select: { id: true } });
+      // A Python lesson: First Steps counts the Python track's lessons, not the on-ramp's
+      const lesson = await prisma.lesson.findFirstOrThrow({
+        where: { archivedAt: null, module: { track: { slug: "python" } } },
+        select: { id: true },
+      });
       await prisma.progress.create({ data: { userId: chained.user.id, lessonId: lesson.id, completed: true, completedAt: new Date() } });
 
       const slugs = (await checkAndUnlockAchievements(chained.user.id)).map((a) => a.slug);

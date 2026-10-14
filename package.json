@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "node scripts/check-malware-signatures.mjs && next dev",
+    "prebuild": "node -e \"require('fs').rmSync('.next/dev/types/validator.ts',{force:true})\"",
     "build": "node scripts/check-malware-signatures.mjs && next build",
     "check:malware": "node scripts/check-malware-signatures.mjs",
     "prepare": "git config core.hooksPath .githooks || true",

@@ -334,6 +334,10 @@ async function main() {
         `${stats.exercises} drills, ${stats.capstones} capstones, ${stats.achievements} achievements. ` +
         `Archived ${stats.archived} item(s).`
     );
+    console.log(
+      "The landing and About pages cache these numbers for up to an hour. To show them now, " +
+        "press Refresh public pages in Admin > Content."
+    );
   } finally {
     await prisma.$disconnect();
     await pool.end();

@@ -102,6 +102,9 @@ export function AiSettings({
   const [testResult, setTestResult] = React.useState<Status>(null);
 
   const keepsKey = credential !== null && credential.provider === provider;
+  // Something to save: a new key, or a provider or model other than the saved ones
+  const changed =
+    apiKey.trim() !== "" || (credential !== null && (credential.provider !== provider || credential.model !== model.trim()));
 
   function chooseProvider(next: Provider) {
     setProvider(next);
@@ -328,7 +331,7 @@ export function AiSettings({
         </div>
 
         <StatusLine status={status} />
-        <LoadingButton type="submit" loading={busy === "save"} loadingText="Saving…" disabled={busy !== null && busy !== "save"} className="w-fit">
+        <LoadingButton type="submit" variant={changed ? "default" : "outline"} loading={busy === "save"} loadingText="Saving…" disabled={busy !== null && busy !== "save"} className="w-fit">
           {credential ? "Save changes" : "Save key"}
         </LoadingButton>
       </form>

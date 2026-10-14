@@ -72,6 +72,14 @@ typography:
     letterSpacing: "-0.035em"
     fontFeature: "\"tnum\""
     fontVariation: "\"wdth\" 72"
+  record-figure:
+    fontFamily: "Archivo, system-ui, sans-serif"
+    fontSize: "5.5rem"
+    fontWeight: 800
+    lineHeight: 0.8
+    letterSpacing: "-0.03em"
+    fontFeature: "\"tnum\""
+    fontVariation: "\"wdth\" 72"
   numeral:
     fontFamily: "Archivo, system-ui, sans-serif"
     fontSize: "2.25rem"
@@ -315,7 +323,8 @@ Every colour is expressed in OKLCH and is the normative source in `app/globals.c
 - **Display** (800, clamp(3rem, 7.2vw, 6rem), 0.92, condensed): one per page, for the hero headline and the closing line ("Tie on the white belt.").
 - **Headline** (800, 3rem below 640px, 3.75rem above, line-height 1, condensed): section headings ("The syllabus", "Rank is earned, not clicked."). The auth panel uses a 3.75rem condensed heading at 0.92.
 - **Rank Numeral** (800, 6.5rem, 8rem from 640px, 0.78, -0.035em, tabular, condensed): the learner's own grade in the rank card ("15" beside "kyu"). One per page, and only for the learner's rank.
-- **Numeral** (800, 2.25rem, tabular, condensed): rank numbers such as "16–14" and "1st", followed by a small 0.875rem semibold muted unit ("kyu", "dan"). The record figure scales it to 5.5rem at 0.8 line-height and -0.03em tracking.
+- **Numeral** (800, 2.25rem, tabular, condensed): rank numbers such as "16–14" and "1st", followed by a small 0.875rem semibold muted unit ("kyu", "dan"). A number big enough to be the moment is a Record Figure instead.
+- **Record Figure** (800, 5.5rem, 0.8, -0.03em, tabular, condensed): one number that is the point of its surface. Two uses: the landing page's training-record figure, and the new level in the level-up notice. Never more than one on screen.
 - **Title** (700, 1.5rem, condensed): belt names in the syllabus.
 - **Title Plain** (600, 1.125rem, -0.01em, normal width): step headings and card titles.
 - **Lede** (400, 1.125rem, 1.625): section intros and hero subline, capped near 34 to 42rem (about 65ch).

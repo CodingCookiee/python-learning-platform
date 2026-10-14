@@ -291,17 +291,21 @@ model ExerciseSubmission {
 
 /// One sitting of a module's checkpoint: the drills it drew, which passed, and the score
 model CheckpointAttempt {
-  id          String    @id @default(cuid())
-  userId      String
-  moduleId    String
-  exerciseIds String[]
-  passedIds   String[]  @default([])
+  id              String    @id @default(cuid())
+  userId          String
+  moduleId        String
+  exerciseIds     String[]
+  passedIds       String[]  @default([])
   /// Taken to test out of the module before doing its lessons
-  placement   Boolean   @default(false)
-  score       Float?
-  passed      Boolean   @default(false)
-  startedAt   DateTime  @default(now())
-  submittedAt DateTime?
+  placement       Boolean   @default(false)
+  /// A belt test-out: the belt it covers ("yellow"). Null for a module's own grading
+  belt            String?
+  /// A belt test-out: every module it passes when passed (moduleId is the first of them)
+  coversModuleIds String[]  @default([])
+  score           Float?
+  passed          Boolean   @default(false)
+  startedAt       DateTime  @default(now())
+  submittedAt     DateTime?
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   module Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)

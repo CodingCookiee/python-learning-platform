@@ -13,6 +13,7 @@ import { CiPanel } from "@/components/ci/ci-panel";
 import { LessonContent } from "@/components/lesson";
 import type { CiLinkView } from "@/lib/ci/links";
 import type { AiReview } from "@/lib/ai/reviewer";
+import type { ReviewWait } from "@/lib/review-wait";
 
 export interface ProjectSubmission {
   id: string;
@@ -52,6 +53,8 @@ export interface ProjectDetailData {
 
 interface ProjectDetailClientProps {
   project: ProjectDetailData;
+  /** While it's under review: the typical wait and the queue ahead (lib/review-wait.ts) */
+  reviewWait?: ReviewWait | null;
 }
 
 /** One line of text where `backticks` mark code, as in the capstone YAML */
@@ -80,7 +83,7 @@ function getSubmissionState(status?: string | null): "none" | "pending" | "rejec
   }
 }
 
-export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
+export function ProjectDetailClient({ project, reviewWait }: ProjectDetailClientProps) {
   const submissionState = getSubmissionState(project.submission?.status);
   const isCompleted = submissionState === "approved";
   const needsRevision = submissionState === "rejected";
@@ -269,7 +272,12 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
                 With the examiner
               </span>
               <p className="text-sm text-muted-foreground">
-                Your submission is waiting for review. Feedback shows up on this page.
+                An examiner reads every capstone by hand.{" "}
+                {reviewWait?.typical ? `Recent reviews have taken ${reviewWait.typical}. ` : ""}
+                {reviewWait && reviewWait.ahead > 0
+                  ? `${reviewWait.ahead} ${reviewWait.ahead === 1 ? "hand-in is" : "hand-ins are"} ahead of yours. `
+                  : ""}
+                The decision and feedback show up on this page.
               </p>
             </>
           ) : needsRevision ? (

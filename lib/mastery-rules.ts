@@ -11,6 +11,13 @@ export const CHECKPOINT_MINUTES_PER_DRILL = 20;
 export const CHECKPOINT_RETRY_MINUTES = 30;
 /** XP for passing a module's checkpoint the first time */
 export const CHECKPOINT_XP = 100;
+/**
+ * A belt test-out draws this many drills from each module it covers: one sitting for a whole belt
+ * (6 to 8 drills) instead of a full grading per module
+ */
+export const BELT_DRILLS_PER_MODULE = 2;
+/** A belt test-out covers at least this many modules; with one left, the module's own grading is the test-out */
+export const BELT_TEST_OUT_MIN_MODULES = 2;
 
 interface DrillShape {
   slug: string | null;
@@ -30,6 +37,22 @@ export function inCheckpointPool(drill: DrillShape, pool: string[]): boolean {
 
 export function checkpointDeadline(startedAt: Date, drillCount: number): Date {
   return new Date(startedAt.getTime() + drillCount * CHECKPOINT_MINUTES_PER_DRILL * 60_000);
+}
+
+/** A grading that would still be running at or after this hour (local time) gets a late-night warning */
+export const LATE_HOUR = 22;
+/** ...or one that starts before this hour */
+export const EARLY_HOUR = 5;
+
+/**
+ * Whether a grading taken now would run late into the night, in the learner's local time: it ends
+ * after LATE_HOUR, runs past midnight, or starts in the small hours. The clock can't be paused, so
+ * the start confirmation says so before it starts.
+ */
+export function runsLate(start: Date, minutes: number): boolean {
+  const end = new Date(start.getTime() + minutes * 60_000);
+  const endHour = end.getHours() + end.getMinutes() / 60;
+  return start.getHours() < EARLY_HOUR || end.getDate() !== start.getDate() || endHour > LATE_HOUR;
 }
 
 export function checkpointScore(exerciseIds: string[], passedIds: string[]): number {

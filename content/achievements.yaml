@@ -61,12 +61,12 @@
 # Learning: the habit of practice
 - slug: first-lesson
   name: First Steps
-  description: Complete your first lesson
+  description: Finish your first Python lesson
   icon: Footprints
   category: Learning
   tier: bronze
   xp: 10
-  criteria: { kind: lessons, count: 1 }
+  criteria: { kind: lessons, count: 1, track: python }
 - slug: first-drill
   name: First Drill
   description: Pass your first drill

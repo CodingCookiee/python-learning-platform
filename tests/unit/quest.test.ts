@@ -59,6 +59,7 @@ describe("the quest achievement criterion", () => {
     xp: 0,
     blackBelt: false,
     lessonsByModule: new Map(),
+    lessonsByTrack: new Map(),
     passedByType: new Map(),
     questsFinished: new Set(questsFinished),
   });

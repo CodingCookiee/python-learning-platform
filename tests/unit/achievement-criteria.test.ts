@@ -13,6 +13,7 @@ const stats = (over: Partial<LearnerStats> = {}): LearnerStats => ({
   xp: 0,
   blackBelt: false,
   lessonsByModule: new Map(),
+  lessonsByTrack: new Map(),
   passedByType: new Map(),
   questsFinished: new Set(),
   ...over,
@@ -33,6 +34,14 @@ describe("achievement criteria", () => {
     const criteria = { kind: "module-lessons" as const, module: "programming-from-zero", count: 4 };
     expect(met(criteria, stats({ lessons: 9, lessonsByModule: new Map([["python-basics", 6], ["programming-from-zero", 3]]) }))).toBe(false);
     expect(met(criteria, stats({ lessonsByModule: new Map([["programming-from-zero", 4]]) }))).toBe(true);
+  });
+
+  it("count lessons in the named track only, when one is named", () => {
+    const firstPython = { kind: "lessons" as const, count: 1, track: "python" };
+    // The on-ramp's first lesson is Hello, World's; First Steps waits for a Python lesson
+    expect(met(firstPython, stats({ lessons: 1, lessonsByTrack: new Map([["start", 1]]) }))).toBe(false);
+    expect(met(firstPython, stats({ lessons: 2, lessonsByTrack: new Map([["start", 1], ["python", 1]]) }))).toBe(true);
+    expect(progress(firstPython, stats({ lessonsByTrack: new Map([["start", 3]]) }))).toEqual({ done: 0, of: 1, unit: "Python lesson" });
   });
 
   it("count passed drills of the named type only", () => {
@@ -70,6 +79,10 @@ describe("achievement progress", () => {
     expect(progress({ kind: "streak", days: 7 }, stats({ streak: 2 }))).toEqual({ done: 2, of: 7, unit: "days in a row" });
     expect(progress({ kind: "modules", modules: ["a", "b", "c"] }, stats({ passedModules: new Set(["b"]) }))).toEqual({ done: 1, of: 3, unit: "modules" });
     expect(progress({ kind: "drill-type", type: "fix", count: 4 }, stats({ passedByType: new Map([["fix", 1]]) }))).toEqual({ done: 1, of: 4, unit: "fix drills" });
+    // A total of one is singular
+    expect(progress({ kind: "lessons", count: 1 }, stats({ lessons: 0 }))).toEqual({ done: 0, of: 1, unit: "lesson" });
+    expect(progress({ kind: "drill-type", type: "fix", count: 1 }, stats({}))).toEqual({ done: 0, of: 1, unit: "fix drill" });
+    expect(progress({ kind: "streak", days: 1 }, stats({ streak: 0 }))).toEqual({ done: 0, of: 1, unit: "day" });
   });
 
   it("has no partial count for the all-or-nothing ones", () => {

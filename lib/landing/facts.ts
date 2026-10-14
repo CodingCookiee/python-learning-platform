@@ -50,7 +50,8 @@ export function paceLine(hours: number, perWeek: number): string {
 /**
  * Everything the landing page reads from the database, cached for an hour: it's the same for every
  * visitor and only changes with a content sync, so visits don't each wait on six queries (the slow
- * first byte an SEO crawl flagged). A sync shows within the hour.
+ * first byte an SEO crawl flagged). A sync shows within the hour, or at once after Refresh public
+ * pages in Admin > Content (app/api/admin/content/refresh).
  */
 export const getLandingData = unstable_cache(
   async () => {
@@ -80,7 +81,13 @@ export const getLandingData = unstable_cache(
       prisma.module.findMany({
         where: { archivedAt: null, track: { slug: "automation", archivedAt: null } },
         orderBy: { order: "asc" },
-        select: { title: true },
+        select: {
+          id: true,
+          order: true,
+          title: true,
+          duration: true,
+          _count: { select: { lessons: { where: { archivedAt: null } } } },
+        },
       }),
     ]);
     return { modules, lessonCount, achievements, achievementCount, hours, automationModules };

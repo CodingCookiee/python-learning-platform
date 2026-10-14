@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BELTS } from "@/lib/ranks";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -32,7 +33,9 @@ export async function projectMetadata(id: string, submitting = false): Promise<M
 export async function checkpointMetadata(attemptId: string): Promise<Metadata> {
   const attempt = await prisma.checkpointAttempt.findUnique({
     where: { id: attemptId },
-    select: { module: { select: { title: true } } },
+    select: { belt: true, module: { select: { title: true } } },
   });
+  const belt = attempt?.belt ? BELTS.find((b) => b.key === attempt.belt) : undefined;
+  if (belt) return { title: `Test-out: ${belt.label}` };
   return { title: attempt ? `Grading: ${attempt.module.title}` : "Grading" };
 }

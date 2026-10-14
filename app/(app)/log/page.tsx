@@ -34,8 +34,8 @@ export default async function LogPage() {
             </p>
             <h1 className="font-condensed text-5xl leading-[0.95] font-extrabold tracking-[-0.02em]">Learning log</h1>
             <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground">
-              A short check-in each week: what you built, what clicked, where you got stuck, and what&apos;s next. It&apos;s
-              drafted from what you did here; make it yours, then save it.
+              A short check-in each week: what you built, what clicked, where you got stuck, and what&apos;s next. The
+              facts are drafted from what you did here; what clicked and where you got stuck are yours to write.
             </p>
             <p className="text-sm text-muted-foreground">Now: {current.phase}</p>
           </header>

@@ -15,7 +15,7 @@ import { BeltBand } from "@/components/brand/belt";
 import { BeltTying } from "@/components/brand/belt-tying";
 import { LockedMark } from "@/components/brand/marks";
 import { beltForModule, ordinal } from "@/lib/ranks";
-import { getCheckpointSummary, type CheckpointSummary } from "@/lib/checkpoint";
+import { getBeltTestOut, getCheckpointSummary, type BeltTestOut, type CheckpointSummary } from "@/lib/checkpoint";
 import { StartCheckpointButton } from "@/components/mastery/checkpoint-controls";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -97,6 +97,51 @@ function CheckpointSection({ moduleId, summary }: { moduleId: string; summary: C
   );
 }
 
+/** One grading for the rest of the belt, for learners who already know it */
+function BeltTestOutSection({ moduleId, offer }: { moduleId: string; offer: BeltTestOut }) {
+  const range = `modules ${offer.modules[0]!.order} to ${offer.modules.at(-1)!.order}`;
+  return (
+    <section aria-labelledby="belt-test-out-heading" className="flex max-w-3xl flex-col gap-3 rounded-md border border-border bg-sheet p-5">
+      <h2 id="belt-test-out-heading" className="scroll-mt-24 font-semibold">
+        Already know the whole {offer.belt.label.toLowerCase()}?
+      </h2>
+      {offer.status === "open" ? (
+        <div className="flex flex-col items-start gap-3">
+          <p className="text-sm text-muted-foreground">Your {offer.belt.label.toLowerCase()} test-out is running. The clock doesn&apos;t stop.</p>
+          <Button asChild size="sm">
+            <Link href={`/checkpoints/${offer.openAttemptId}`}>
+              Resume the test-out
+              <ArrowRight data-icon="inline-end" aria-hidden="true" />
+            </Link>
+          </Button>
+        </div>
+      ) : (
+        <>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            Test out of {range} in one sitting instead of {offer.modules.length} separate gradings:{" "}
+            {offer.drills} drills, two from each module, {offer.minutes} minutes, {Math.round(offer.passMark * 100)}% to
+            pass. Passing it passes all {offer.modules.length}: {offer.modules.map((m) => m.title).join(", ")}.
+          </p>
+          {offer.status === "cooldown" ? (
+            <p className="text-sm text-muted-foreground">
+              A fresh set is ready at{" "}
+              {new Date(offer.retryAt!).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}.
+            </p>
+          ) : (
+            <StartCheckpointButton
+              moduleId={moduleId}
+              scope="belt"
+              label={`Test out of the ${offer.belt.label.toLowerCase()}`}
+              terms={{ drills: offer.drills, minutes: offer.minutes, passMark: offer.passMark }}
+              variant="outline"
+            />
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+
 function getProjectSubmissionState(
   status?: string | null
 ): "none" | "pending" | "rejected" | "approved" {
@@ -165,9 +210,10 @@ export default async function ModuleDetailPage({ params }: PageProps) {
   const totalLessons = learningModule.lessons.length;
   const completedCount = learningModule.lessons.filter((l) => l.progress[0]?.completed).length;
 
-  const [moduleUnlockMap, checkpoint] = await Promise.all([
+  const [moduleUnlockMap, checkpoint, beltTestOut] = await Promise.all([
     getSequentialModuleUnlockMap(userId),
     getCheckpointSummary(userId, learningModule.id),
+    getBeltTestOut(userId, learningModule.id),
   ]);
   const isUnlocked = moduleUnlockMap.get(learningModule.id) ?? false;
 
@@ -360,12 +406,17 @@ export default async function ModuleDetailPage({ params }: PageProps) {
           <FadeIn delay={0.05}>
             <section aria-labelledby="outcomes-heading" className="flex max-w-3xl flex-col gap-3">
               <h2 id="outcomes-heading" className="text-xl font-semibold">
-                By the end you can
+                {isPassed ? "What you can now do" : "By the end you can"}
               </h2>
               <ul className="grid gap-x-8 gap-y-2 sm:grid-cols-2">
                 {learningModule.outcomes.map((outcome) => (
                   <li key={outcome} className="flex gap-2.5 text-[0.9875rem] leading-snug">
-                    <Check className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+                    {/* Jade checks once the module is passed; until then they're goals, not achievements */}
+                    {isPassed ? (
+                      <Check className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+                    ) : (
+                      <span className="mt-[0.5625rem] h-px w-3 shrink-0 bg-muted-foreground" aria-hidden="true" />
+                    )}
                     {outcome}
                   </li>
                 ))}
@@ -447,6 +498,13 @@ export default async function ModuleDetailPage({ params }: PageProps) {
         {checkpoint && checkpoint.status !== "none" && (
           <FadeIn delay={0.08}>
             <CheckpointSection moduleId={learningModule.id} summary={checkpoint} />
+          </FadeIn>
+        )}
+
+        {/* The rest of the belt in one sitting, on every module page of a belt the learner has reached */}
+        {beltTestOut && (
+          <FadeIn delay={0.085}>
+            <BeltTestOutSection moduleId={learningModule.id} offer={beltTestOut} />
           </FadeIn>
         )}
 

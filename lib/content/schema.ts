@@ -163,7 +163,8 @@ export const quizSchema = z
 
 /** What earns an achievement. Evaluated by lib/achievements.ts. */
 export const achievementCriteriaSchema = z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("lessons"), count: z.number().int().positive() }),
+  /** At least `count` lessons completed, in one track (`track`, e.g. python) or anywhere */
+  z.object({ kind: z.literal("lessons"), count: z.number().int().positive(), track: slug.optional() }),
   z.object({ kind: z.literal("drills"), count: z.number().int().positive() }),
   /** Every listed module passed (a belt, a track, or one module) */
   z.object({ kind: z.literal("modules"), modules: z.array(slug).min(1) }),

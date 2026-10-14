@@ -6,7 +6,7 @@ import { SkipLink } from "@/components/layout/skip-link";
 import { getLandingData } from "@/lib/landing/facts";
 import { Faq, faqItems } from "@/components/landing/faq";
 import { BLACK_BELT } from "@/lib/black-belt";
-import { CHECKPOINT_MINUTES_PER_DRILL, CHECKPOINT_RETRY_MINUTES, REVIEW_INTERVALS } from "@/lib/mastery-rules";
+import { BELT_DRILLS_PER_MODULE, CHECKPOINT_MINUTES_PER_DRILL, CHECKPOINT_RETRY_MINUTES, REVIEW_INTERVALS } from "@/lib/mastery-rules";
 import { publicOrigin } from "@/lib/public-origin";
 import { PROFILE_LINKS } from "@/lib/landing/structured-data";
 
@@ -101,6 +101,10 @@ export default async function AboutPage() {
             <li>No hints, no reference solution, no AI tutor, and no copy and paste. The clock doesn&apos;t pause.</li>
             <li>Each drill is checked by tests that run your code. If you don&apos;t pass, a fresh set of drills is ready {CHECKPOINT_RETRY_MINUTES} minutes later.</li>
             <li>Already know a module? You can take its grading before the lessons to test out.</li>
+            <li>
+              Already know a whole belt? One belt test-out covers the rest of it in a single sitting: {BELT_DRILLS_PER_MODULE}{" "}
+              drills from each module still to pass, on the same terms. Passing it passes them all.
+            </li>
           </ul>
           <p>
             Passing puts a stripe on your belt. Grades count down in kyu, from 16 kyu to 1 kyu; the black belt is 1st dan,

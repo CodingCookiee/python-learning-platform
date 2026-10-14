@@ -8,6 +8,7 @@ import {
   drillStrength,
   inCheckpointPool,
   nextReview,
+  runsLate,
   REVIEW_INTERVALS,
   REVIEW_MAX_STAGE,
   reviewEligible,
@@ -103,5 +104,22 @@ describe("drill strength (the skill map and the black belt)", () => {
     expect(drillStrength(true, null)).toBeCloseTo(0.4);
     expect(drillStrength(true, REVIEW_MAX_STAGE)).toBeCloseTo(1);
     expect(drillStrength(true, 99)).toBeCloseTo(1);
+  });
+});
+
+describe("a grading's late-night warning", () => {
+  // Local times: the warning is about the learner's evening, wherever they are
+  const at = (h: number, m = 0) => new Date(2026, 9, 14, h, m);
+
+  it("stays quiet for a grading that ends by 10pm", () => {
+    expect(runsLate(at(19), 120)).toBe(false);
+    expect(runsLate(at(20), 120)).toBe(false);
+    expect(runsLate(at(9), 120)).toBe(false);
+  });
+
+  it("warns when it ends after 10pm, runs past midnight, or starts in the small hours", () => {
+    expect(runsLate(at(20, 30), 120)).toBe(true);
+    expect(runsLate(at(23, 30), 60)).toBe(true);
+    expect(runsLate(at(2), 60)).toBe(true);
   });
 });

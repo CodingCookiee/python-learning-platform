@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowRight, Check, Circle, X } from "lucide-react";
 import { auth } from "@/auth";
-import { getCheckpointAttempt, getCheckpointSummary, topicsToReview } from "@/lib/checkpoint";
+import { getBeltTestOut, getCheckpointAttempt, getCheckpointSummary, topicsToReview } from "@/lib/checkpoint";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { FadeIn } from "@/components/animations";
 import { Button } from "@/components/ui/button";
@@ -44,7 +44,14 @@ export default async function CheckpointPage({ params }: PageProps) {
   const passedCount = attempt.drills.filter((d) => d.passed).length;
   const total = attempt.drills.length;
   const needed = Math.ceil(attempt.passMark * total - 1e-9);
-  const summary = open ? null : await getCheckpointSummary(userId, attempt.module.id);
+  const belt = attempt.belt;
+  // What to offer after a miss: the module's own grading again, or the belt test-out
+  const [summary, beltOffer] = open
+    ? [null, null]
+    : belt
+      ? [null, await getBeltTestOut(userId, attempt.module.id)]
+      : [await getCheckpointSummary(userId, attempt.module.id), null];
+  const covered = belt ? `modules ${belt.modules[0]?.order} to ${belt.modules.at(-1)?.order}` : null;
   const review = !open && passedCount < total ? topicsToReview(attempt.drills) : null;
 
   return (
@@ -55,8 +62,8 @@ export default async function CheckpointPage({ params }: PageProps) {
             items={[
               { label: "Home", href: "/" },
               { label: "Syllabus", href: "/modules" },
-              { label: attempt.module.title, href: `/modules/${attempt.module.id}` },
-              { label: "Grading" },
+              { label: belt ? belt.label : attempt.module.title, href: `/modules/${attempt.module.id}` },
+              { label: belt ? "Test-out" : "Grading" },
             ]}
           />
         </FadeIn>
@@ -64,19 +71,21 @@ export default async function CheckpointPage({ params }: PageProps) {
         <FadeIn delay={0.03}>
           <header className="flex flex-col gap-4 border-b border-border pb-8">
             <p className="text-sm font-semibold text-muted-foreground">
-              {attempt.placement ? "Grading, taken to test out" : "Module grading"}
+              {belt ? `Belt test-out · ${covered}` : attempt.placement ? "Grading, taken to test out" : "Module grading"}
             </p>
             <h1 className="font-condensed text-5xl leading-[0.95] font-extrabold tracking-[-0.02em]">
-              {attempt.module.title}
+              {belt ? belt.label : attempt.module.title}
             </h1>
             <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground">
               {open
-                ? `Pass ${needed} of these ${total} drills to pass the module. Each starts from its blank starter, with no hints and no reference solution. Run the tests as often as you like.`
+                ? `Pass ${needed} of these ${total} drills to pass ${belt ? `all ${belt.modules.length} modules: ${belt.modules.map((m) => m.title).join(", ")}` : "the module"}. Each starts from its blank starter, with no hints and no reference solution. Run the tests as often as you like.`
                 : attempt.passed
-                  ? attempt.placement
-                    ? "You tested out of this module. Its lessons stay open whenever you want them."
-                    : "Module passed. The next one is open."
-                  : `You needed ${needed} of ${total}. Look at the drills you missed, then try a fresh set.`}
+                  ? belt
+                    ? `You tested out of the ${belt.label.toLowerCase()}: ${covered} are passed. Their lessons stay open whenever you want them.`
+                    : attempt.placement
+                      ? "You tested out of this module. Its lessons stay open whenever you want them."
+                      : "Module passed. The next one is open."
+                  : `You needed ${needed} of ${total}. Look at the drills you missed, then try a fresh set${belt ? ", or take the modules one at a time" : ""}.`}
             </p>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
               <p className="font-condensed tabular leading-none">
@@ -207,7 +216,7 @@ export default async function CheckpointPage({ params }: PageProps) {
                 </Link>
               </Button>
             )}
-            {!open && !attempt.passed && summary?.status === "cooldown" && (
+            {!open && !attempt.passed && (summary?.status === "cooldown" || beltOffer?.status === "cooldown") && (
               <p className="text-sm text-muted-foreground">
                 A fresh set of drills is ready {CHECKPOINT_RETRY_MINUTES} minutes after an attempt. Use the time on the
                 drills you missed.
@@ -220,8 +229,16 @@ export default async function CheckpointPage({ params }: PageProps) {
                 terms={{ drills: summary.pick, minutes: summary.minutes, passMark: summary.passMark }}
               />
             )}
+            {!open && !attempt.passed && beltOffer?.status === "available" && (
+              <StartCheckpointButton
+                moduleId={attempt.module.id}
+                scope="belt"
+                label="Try a fresh set"
+                terms={{ drills: beltOffer.drills, minutes: beltOffer.minutes, passMark: beltOffer.passMark }}
+              />
+            )}
             <Button asChild variant="outline">
-              <Link href={`/modules/${attempt.module.id}`}>Back to the module</Link>
+              <Link href={`/modules/${attempt.module.id}`}>{belt ? `Back to module ${attempt.module.order}` : "Back to the module"}</Link>
             </Button>
           </div>
         </FadeIn>

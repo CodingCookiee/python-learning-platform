@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { getCertificateForViewer } from "@/lib/certificates";
 import { CERTIFICATE, formatIssued, normaliseCode } from "@/lib/certificate-rules";
@@ -37,31 +39,32 @@ const KNOT = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <path d="M11.5 8.2 L20.5 13.8" stroke="${KEYLINE}" stroke-width="1.25" fill="none"/>
 </svg>`;
 
-// Archivo (and JetBrains Mono for the ID), as the page sets them. Google Fonts serves TrueType to a
-// plain fetch; kept for the life of the server. Without them the renderer's own font stands in.
-type FontSpec = { name: string; weight: 400 | 700 | 800; css: string };
+// Archivo (and JetBrains Mono for the ID), as the page sets them: the TrueType files in assets/fonts
+// (SIL Open Font License), read once per server. Bundled rather than fetched, so the image never
+// depends on reaching Google Fonts; next.config.ts traces them into this route. If one can't be read,
+// the renderer's own font stands in.
+type FontSpec = { name: string; weight: 400 | 700 | 800; file: string };
 const FONTS: FontSpec[] = [
-  { name: "Archivo Condensed", weight: 800, css: "Archivo:wdth,wght@75,800" },
-  { name: "Archivo SemiCondensed", weight: 700, css: "Archivo:wdth,wght@87.5,700" },
-  { name: "Archivo", weight: 400, css: "Archivo:wdth,wght@100,400" },
-  { name: "JetBrains Mono", weight: 400, css: "JetBrains+Mono:wght@400" },
+  { name: "Archivo Condensed", weight: 800, file: "archivo-condensed-800.ttf" },
+  { name: "Archivo SemiCondensed", weight: 700, file: "archivo-semicondensed-700.ttf" },
+  { name: "Archivo", weight: 400, file: "archivo-400.ttf" },
+  { name: "JetBrains Mono", weight: 400, file: "jetbrains-mono-400.ttf" },
 ];
-let fontsLoading: Promise<Array<{ name: string; data: ArrayBuffer; weight: 400 | 700 | 800; style: "normal" }>> | null = null;
+let fontsLoading: Promise<Array<{ name: string; data: Buffer; weight: 400 | 700 | 800; style: "normal" }>> | null = null;
 
 async function loadFont(spec: FontSpec) {
-  const css = await (await fetch(`https://fonts.googleapis.com/css2?family=${spec.css}&display=swap`)).text();
-  const url = css.match(/src: url\((https:[^)]+\.ttf)\)/)?.[1];
-  if (!url) throw new Error(`No TrueType file for ${spec.name}`);
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`${spec.name}: ${res.status}`);
-  return { name: spec.name, data: await res.arrayBuffer(), weight: spec.weight, style: "normal" as const };
+  const data = await readFile(join(process.cwd(), "assets/fonts", spec.file));
+  return { name: spec.name, data, weight: spec.weight, style: "normal" as const };
 }
 
 function fonts() {
   fontsLoading ??= Promise.allSettled(FONTS.map(loadFont)).then((results) => {
     const loaded = results.flatMap((r) => (r.status === "fulfilled" ? [r.value] : []));
-    // Try again on a later request if any failed
-    if (loaded.length < FONTS.length) fontsLoading = null;
+    if (loaded.length < FONTS.length) {
+      console.error("Certificate image: a font in assets/fonts couldn't be read", results);
+      // Try again on a later request
+      fontsLoading = null;
+    }
     return loaded;
   });
   return fontsLoading;

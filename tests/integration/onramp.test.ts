@@ -8,6 +8,12 @@ import { getSequentialModuleUnlockMap } from "@/lib/module-access";
 import { getLearnerRank } from "@/lib/learner-rank";
 import { makeLearner } from "./helpers";
 
+/**
+ * Walking all six on-ramp lessons runs about 30 queries per lesson; against the remote dev database
+ * that's ~16s on a good day and has stalled past the default 60s, so these get room
+ */
+const SLOW = 180_000;
+
 const created: string[] = [];
 afterAll(async () => {
   await prisma.user.deleteMany({ where: { email: { in: created } } });
@@ -120,7 +126,7 @@ describe("the on-ramp's state", () => {
     } finally {
       await learner.cleanup();
     }
-  });
+  }, SLOW);
 });
 
 describe("the on-ramp's rewards", () => {
@@ -155,7 +161,7 @@ describe("the on-ramp's rewards", () => {
     } finally {
       await learner.cleanup();
     }
-  });
+  }, SLOW);
 
   it("include Bug Squasher for a first fix drill, anywhere", async () => {
     const learner = await makeLearner("onramp-bug");

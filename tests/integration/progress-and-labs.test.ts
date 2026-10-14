@@ -64,6 +64,8 @@ describe("the learning log", () => {
     expect(week.hours).toBeGreaterThan(0);
     expect(week.phase).toBe("Python black belt grading");
     expect(week.nextGoal).toMatch(/capstone 1 of 3/);
+    // The facts only: what was learned and where it stuck are the learner's to write, with prompts beside them
+    expect(week).toMatchObject({ learned: "", stuck: "", prompts: { topics: expect.any(Array), unsolved: expect.any(Array) } });
     expect(formatCheckIn(week)).toMatch(/^ROADMAP CHECK-IN\nPhase: Python black belt grading +Week: \d+\n/);
   });
 

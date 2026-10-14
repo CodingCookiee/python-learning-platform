@@ -10,6 +10,7 @@
 //   npx tsx .impeccable/quest-e2e-db.ts tour <email>            an onboarded learner on the quest's step 5 (the dashboard tour)
 //   npx tsx .impeccable/quest-e2e-db.ts quest <email>           the account's quest row
 //   npx tsx .impeccable/quest-e2e-db.ts certificate-ready <email>   every Python and automation module passed: the automation certificate is earned
+//   npx tsx .impeccable/quest-e2e-db.ts black-belt-ready <email>   the black belt by its real rule: the Python certificate is earned
 //   npx tsx .impeccable/quest-e2e-db.ts certificate-issue <email> <python|automation> <name>   a certificate issued directly (prints its code)
 //   npx tsx .impeccable/quest-e2e-db.ts cleanup <email>...
 import "dotenv/config";
@@ -79,6 +80,42 @@ async function main() {
       data: modules.map((m) => ({ userId: user.id, moduleId: m.id, exerciseIds: [], passedIds: [], placement: true, score: 1, passed: true, submittedAt: new Date() })),
     });
     console.log(`passed ${modules.length}`);
+  } else if (command === "black-belt-ready") {
+    // The black belt by its real rule (lib/black-belt.ts), so the Python certificate is claimed through
+    // the eligibility check: every Python grading passed, every advanced drill (modules 8 to 13)
+    // solved and held through the last review stage, and three Python capstones approved
+    const { BLACK_BELT } = await import("@/lib/black-belt");
+    const { REVIEW_MAX_STAGE } = await import("@/lib/mastery-rules");
+    const user = await prisma.user.findUniqueOrThrow({ where: { email: args[0]! }, select: { id: true } });
+    const modules = await prisma.module.findMany({
+      where: { archivedAt: null, track: { slug: "python" } },
+      orderBy: { order: "asc" },
+      select: { id: true, order: true },
+    });
+    await prisma.checkpointAttempt.createMany({
+      data: modules.map((m) => ({ userId: user.id, moduleId: m.id, exerciseIds: [], passedIds: [], placement: true, score: 1, passed: true, submittedAt: new Date() })),
+    });
+    const advanced = modules.filter((m) => m.order >= BLACK_BELT.advancedModules.from && m.order <= BLACK_BELT.advancedModules.to);
+    const drills = await prisma.exercise.findMany({
+      where: { archivedAt: null, lesson: { archivedAt: null, moduleId: { in: advanced.map((m) => m.id) } } },
+      select: { id: true },
+    });
+    await prisma.exerciseSubmission.createMany({
+      data: drills.map((d) => ({ userId: user.id, exerciseId: d.id, code: "", passed: true, testResults: "[]" })),
+    });
+    await prisma.reviewItem.createMany({
+      data: drills.map((d) => ({ userId: user.id, exerciseId: d.id, stage: REVIEW_MAX_STAGE, dueAt: new Date(Date.now() + 90 * 86_400_000), reviews: REVIEW_MAX_STAGE })),
+    });
+    const capstones = await prisma.project.findMany({
+      where: { archivedAt: null, module: { track: { slug: "python" } } },
+      orderBy: { module: { order: "asc" } },
+      take: BLACK_BELT.capstonesNeeded,
+      select: { id: true },
+    });
+    await prisma.projectSubmission.createMany({
+      data: capstones.map((p) => ({ userId: user.id, projectId: p.id, files: "[]", status: "approved", evaluatedAt: new Date() })),
+    });
+    console.log(`passed ${modules.length} gradings, ${drills.length} advanced drills held, ${capstones.length} capstones approved`);
   } else if (command === "certificate-issue") {
     // A certificate issued straight into the database (no eligibility check), to look at a design
     const { newCertificateCode } = await import("@/lib/certificate-rules");
@@ -176,6 +213,8 @@ async function main() {
       data: { userId: user.id, projectId: project.id, status: "pending", files: JSON.stringify({ type: "files", files, notes: "My first try." }) },
     });
     console.log(submission.id);
+  } else if (command === "submission-project") {
+    console.log((await prisma.projectSubmission.findUniqueOrThrow({ where: { id: args[0]! }, select: { projectId: true } })).projectId);
   } else if (command === "submission-status") {
     console.log((await prisma.projectSubmission.findUniqueOrThrow({ where: { id: args[0]! }, select: { status: true } })).status);
   } else if (command === "tour") {
@@ -198,6 +237,10 @@ async function main() {
   } else if (command === "quest") {
     const row = await prisma.questProgress.findFirst({ where: { user: { email: args[0]! } } });
     console.log(JSON.stringify(row));
+  } else if (command === "cleanup-prefix") {
+    // Throwaway accounts a crashed run left behind: only ever @example.invalid addresses
+    const { count } = await prisma.user.deleteMany({ where: { email: { startsWith: args[0]!, endsWith: "@example.invalid" } } });
+    console.log(`deleted ${count}`);
   } else if (command === "cleanup") {
     const { count } = await prisma.user.deleteMany({ where: { email: { in: args } } });
     console.log(`deleted ${count}`);

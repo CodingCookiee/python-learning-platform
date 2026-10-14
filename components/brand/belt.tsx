@@ -31,7 +31,8 @@ export function BeltBand({
   const barColor = belt === "black" ? "var(--seal)" : "var(--belt-black)";
   const style = {
     backgroundColor: beltVar(belt),
-    color: "var(--keyline)",
+    // The stitch rows take this colour; the black belt's are lighter on a dark page
+    color: belt === "black" ? "var(--belt-black-stitch, var(--keyline))" : "var(--keyline)",
   } as CSSProperties;
 
   return (
@@ -116,7 +117,7 @@ function rungs(showDan: boolean): Rung[] {
     list.push({
       key: "dan",
       label: "AI automation",
-      range: "2nd–9th dan · in preparation",
+      range: "2nd–9th dan",
       span: 3,
       kind: "dan",
     });

@@ -21,6 +21,9 @@ import { tierStyle } from "@/lib/achievement-tier";
 import { getCertificateStates } from "@/lib/certificates";
 import { publicOrigin } from "@/lib/public-origin";
 import { CertificatesSection } from "@/components/certificates/certificates-section";
+import { StreakCalendar } from "@/components/gamification/streak-calendar";
+import { SkillMap } from "@/components/mastery/skill-map";
+import { getSkillMap } from "@/lib/skill-map";
 
 export const metadata: Metadata = { title: "Profile" };
 
@@ -101,7 +104,11 @@ export default async function ProfilePage() {
   const { user, streak, completion, recentActivity, achievements } = data;
   // One read of the curriculum for the rank and the certificates
   const tracks = await getCurriculumState(user.id);
-  const [blackBelt, certificates] = await Promise.all([blackBeltIfDue(user.id, tracks), getCertificateStates(user.id, tracks)]);
+  const [blackBelt, certificates, skills] = await Promise.all([
+    blackBeltIfDue(user.id, tracks),
+    getCertificateStates(user.id, tracks),
+    getSkillMap(user.id),
+  ]);
   const rank = rankFromTracks(tracks, blackBelt);
   const pythonModules = tracks.find((t) => t.slug === PYTHON_TRACK)?.modules ?? [];
   const pythonLessons = pythonModules.reduce((n, m) => ({ done: n.done + m.lessonsDone, total: n.total + m.lessonsTotal }), { done: 0, total: 0 });
@@ -134,7 +141,7 @@ export default async function ProfilePage() {
         {/* Training record: ruled facts, not stat cards */}
         <FadeIn delay={0.08}>
           <section aria-labelledby="record-heading" className="flex flex-col gap-5">
-            <h2 id="record-heading" className="text-xl font-semibold">
+            <h2 id="record-heading" className="scroll-mt-24 text-xl font-semibold">
               Training record
             </h2>
             <dl className="grid gap-x-10 border-t border-border sm:grid-cols-2">
@@ -171,6 +178,36 @@ export default async function ProfilePage() {
             </dl>
           </section>
         </FadeIn>
+
+        <FadeIn delay={0.1}>
+          <section aria-labelledby="log-heading" className="flex flex-col gap-5">
+            <div className="flex items-baseline justify-between gap-4">
+              <h2 id="log-heading" className="text-xl font-semibold">
+                Training log
+              </h2>
+              <Link href="/log" className="text-sm font-medium text-primary underline">
+                Weekly check-ins
+              </Link>
+            </div>
+            <StreakCalendar activeDates={streak.activeDates ?? []} />
+          </section>
+        </FadeIn>
+
+        {skills.modules.length > 0 && (
+          <FadeIn delay={0.11}>
+            <section aria-labelledby="skills-heading" className="flex flex-col gap-5">
+              <div className="flex items-baseline justify-between gap-4">
+                <h2 id="skills-heading" className="text-xl font-semibold">
+                  Skill map
+                </h2>
+                <Link href="/review" className="text-sm font-medium text-primary underline">
+                  Review queue
+                </Link>
+              </div>
+              <SkillMap map={skills} />
+            </section>
+          </FadeIn>
+        )}
 
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
           <FadeIn delay={0.12}>

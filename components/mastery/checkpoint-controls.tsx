@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { startNavigation } from "@/components/layout/navigation-progress";
 import { ArrowRight, Clock, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CHECKPOINT_RETRY_MINUTES } from "@/lib/mastery-rules";
+import { CHECKPOINT_RETRY_MINUTES, runsLate } from "@/lib/mastery-rules";
 import { cn } from "@/lib/utils";
 
 /**
@@ -19,15 +19,19 @@ export function StartCheckpointButton({
   terms,
   variant = "default",
   size,
+  scope = "module",
 }: {
   moduleId: string;
   label: string;
   terms: { drills: number; minutes: number; passMark: number };
   variant?: "default" | "outline";
   size?: "lg";
+  /** "belt": the belt test-out offered from this module's page */
+  scope?: "module" | "belt";
 }) {
   const router = useRouter();
-  const [confirming, setConfirming] = React.useState(false);
+  // When the confirmation opened: the grading's finish time is worked out from it
+  const [confirming, setConfirming] = React.useState<Date | null>(null);
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -39,7 +43,7 @@ export function StartCheckpointButton({
       const res = await fetch("/api/checkpoints", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ moduleId }),
+        body: JSON.stringify({ moduleId, scope }),
       });
       const data = (await res.json().catch(() => ({}))) as { attemptId?: string; error?: string };
       if (!res.ok || !data.attemptId) {
@@ -57,24 +61,32 @@ export function StartCheckpointButton({
 
   if (!confirming) {
     return (
-      <Button onClick={() => setConfirming(true)} variant={variant} size={size}>
+      <Button onClick={() => setConfirming(new Date())} variant={variant} size={size}>
         {label}
         <ArrowRight data-icon="inline-end" aria-hidden="true" />
       </Button>
     );
   }
+  const ends = new Date(confirming.getTime() + terms.minutes * 60_000);
+  const endsAt = ends.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const late = runsLate(confirming, terms.minutes);
   return (
-    <div role="group" aria-labelledby={`start-${moduleId}`} className="flex max-w-xl flex-col items-start gap-3 rounded-md border border-border bg-sheet p-4">
-      <p id={`start-${moduleId}`} className="font-semibold">
+    <div role="group" aria-labelledby={`start-${scope}-${moduleId}`} className="flex max-w-xl flex-col items-start gap-3 rounded-md border border-border bg-sheet p-4">
+      <p id={`start-${scope}-${moduleId}`} className="font-semibold">
         <span className="font-condensed tabular">
           {terms.drills} drills · {terms.minutes} minutes · {Math.round(terms.passMark * 100)}% to pass
         </span>
       </p>
       <p className="text-sm leading-relaxed text-muted-foreground">
         No hints, no reference solution, and no copy and paste. The clock starts when you press Start and doesn&apos;t
-        pause, so begin when you have the time. If you don&apos;t pass, a fresh set is ready {CHECKPOINT_RETRY_MINUTES}{" "}
-        minutes later.
+        pause: started now, it ends at <span className="font-semibold text-foreground">{endsAt}</span>. If you don&apos;t
+        pass, a fresh set is ready {CHECKPOINT_RETRY_MINUTES} minutes later.
       </p>
+      {late && (
+        <p className="border-l-2 border-highlight pl-3 text-sm leading-relaxed">
+          That runs late into the night. A grading goes best fresh: nothing expires if you take it tomorrow instead.
+        </p>
+      )}
       <div className="flex flex-wrap gap-2">
         {/* Focus lands here, so the keyboard is where the decision is */}
         <Button autoFocus onClick={() => void start()} aria-busy={busy} className={cn(busy && "cursor-progress")}>
@@ -82,7 +94,7 @@ export function StartCheckpointButton({
           {/* A one-off that moves on to the grading: the label simply says what's happening */}
           {busy ? "Drawing your drills…" : "Start the clock"}
         </Button>
-        <Button variant="ghost" onClick={() => setConfirming(false)} disabled={busy}>
+        <Button variant="ghost" onClick={() => setConfirming(null)} disabled={busy}>
           Not now
         </Button>
       </div>

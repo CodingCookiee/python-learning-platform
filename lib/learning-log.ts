@@ -6,8 +6,11 @@ import { BLACK_BELT, blackBeltIfDue } from "@/lib/black-belt";
 
 /**
  * The learning log: one entry a week, in the shape of the roadmap's weekly
- * check-in. The current week is pre-filled from what the learner actually did
- * (lessons, drills, checkpoints, capstones, labs), then edited and saved.
+ * check-in. The facts of the current week are pre-filled from what the learner
+ * actually did (lessons, drills, gradings, capstones, labs). "Learned" and
+ * "Stuck on" are left for the learner to write, since putting an idea in your
+ * own words is the point; the week's drill topics and unsolved drills are
+ * offered beside them as prompts.
  */
 
 export interface LogWeek {
@@ -23,6 +26,15 @@ export interface LogWeek {
   question: string;
   /** False for a draft built from activity that hasn't been saved yet */
   saved: boolean;
+  /** What to jog the learner's memory with, beside "Learned" and "Stuck on" (the current week only) */
+  prompts?: WeekPrompts;
+}
+
+export interface WeekPrompts {
+  /** Topics of the drills passed this week, most practised first */
+  topics: string[];
+  /** Drills tried this week and not passed since */
+  unsolved: string[];
 }
 
 const WEEK_MS = 7 * 86_400_000;
@@ -69,16 +81,10 @@ async function currentPhase(userId: string): Promise<{ phase: string; nextGoal: 
   return { phase, nextGoal };
 }
 
-/** A check-in drafted from the week's activity */
-async function draftFor(userId: string, weekOf: Date): Promise<Omit<LogWeek, "week" | "saved">> {
-  const until = new Date(weekOf.getTime() + WEEK_MS);
-  const range = { gte: weekOf, lt: until };
-  const [lessons, passed, attempted, checkpoints, capstones, labs, hours, where] = await Promise.all([
-    prisma.progress.findMany({
-      where: { userId, completed: true, completedAt: range },
-      orderBy: { completedAt: "asc" },
-      select: { lesson: { select: { title: true } } },
-    }),
+/** The week's drills: how many were passed, their topics, and the ones still unsolved */
+async function weekDrills(userId: string, weekOf: Date): Promise<WeekPrompts & { passed: number }> {
+  const range = { gte: weekOf, lt: new Date(weekOf.getTime() + WEEK_MS) };
+  const [passed, attempted] = await Promise.all([
     prisma.exerciseSubmission.findMany({
       where: { userId, passed: true, submittedAt: range },
       distinct: ["exerciseId"],
@@ -89,6 +95,37 @@ async function draftFor(userId: string, weekOf: Date): Promise<Omit<LogWeek, "we
       distinct: ["exerciseId"],
       select: { exerciseId: true, exercise: { select: { title: true } } },
     }),
+  ]);
+
+  // Unsolved: drills tried this week and never passed (not even later)
+  const solvedIds = new Set(
+    (
+      await prisma.exerciseSubmission.findMany({
+        where: { userId, passed: true, exerciseId: { in: attempted.map((a) => a.exerciseId) } },
+        distinct: ["exerciseId"],
+        select: { exerciseId: true },
+      })
+    ).map((s) => s.exerciseId)
+  );
+  const unsolved = attempted.filter((a) => !solvedIds.has(a.exerciseId)).map((a) => a.exercise.title);
+
+  const tagCounts = new Map<string, number>();
+  for (const p of passed) for (const t of new Set(p.exercise.tags.map((t) => t.toLowerCase()))) tagCounts.set(t, (tagCounts.get(t) ?? 0) + 1);
+  const topics = [...tagCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([t]) => t);
+  return { passed: passed.length, topics, unsolved: unsolved.slice(0, 5) };
+}
+
+/** A check-in drafted from the week's activity: the facts, with prompts for what only the learner can say */
+async function draftFor(userId: string, weekOf: Date): Promise<Omit<LogWeek, "week" | "saved">> {
+  const until = new Date(weekOf.getTime() + WEEK_MS);
+  const range = { gte: weekOf, lt: until };
+  const [lessons, drills, checkpoints, capstones, labs, hours, where] = await Promise.all([
+    prisma.progress.findMany({
+      where: { userId, completed: true, completedAt: range },
+      orderBy: { completedAt: "asc" },
+      select: { lesson: { select: { title: true } } },
+    }),
+    weekDrills(userId, weekOf),
     prisma.checkpointAttempt.findMany({
       where: { userId, passed: true, submittedAt: range },
       select: { placement: true, module: { select: { title: true } } },
@@ -99,18 +136,6 @@ async function draftFor(userId: string, weekOf: Date): Promise<Omit<LogWeek, "we
     currentPhase(userId),
   ]);
 
-  // Stuck: drills tried this week and never passed (not even later)
-  const solvedIds = new Set(
-    (
-      await prisma.exerciseSubmission.findMany({
-        where: { userId, passed: true, exerciseId: { in: attempted.map((a) => a.exerciseId) } },
-        distinct: ["exerciseId"],
-        select: { exerciseId: true },
-      })
-    ).map((s) => s.exerciseId)
-  );
-  const stuck = attempted.filter((a) => !solvedIds.has(a.exerciseId)).map((a) => a.exercise.title);
-
   const built: string[] = [];
   if (lessons.length) built.push(`Lessons: ${list(lessons.map((l) => l.lesson.title))}`);
   if (checkpoints.length) {
@@ -120,21 +145,18 @@ async function draftFor(userId: string, weekOf: Date): Promise<Omit<LogWeek, "we
   if (labs.length) {
     built.push(`Lab${labs.length > 1 ? "s" : ""}: ${list(labs.map((l) => (l.lesson.lab as { title?: string } | null)?.title ?? l.lesson.title))}`);
   }
-  if (passed.length) built.push(`${passed.length} ${passed.length === 1 ? "drill" : "drills"} passed`);
-
-  const tagCounts = new Map<string, number>();
-  for (const p of passed) for (const t of new Set(p.exercise.tags.map((t) => t.toLowerCase()))) tagCounts.set(t, (tagCounts.get(t) ?? 0) + 1);
-  const topTags = [...tagCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([t]) => t);
+  if (drills.passed) built.push(`${drills.passed} ${drills.passed === 1 ? "drill" : "drills"} passed`);
 
   return {
     weekOf: weekOf.toISOString(),
     phase: where.phase,
     hours,
     built: built.join("\n"),
-    learned: topTags.length ? `Practised ${list(topTags, 4)}` : "",
-    stuck: stuck.length ? `The drill${stuck.length > 1 ? "s" : ""} ${list(stuck.map((s) => `"${s}"`))}` : "",
+    learned: "",
+    stuck: "",
     nextGoal: where.nextGoal,
     question: "",
+    prompts: { topics: drills.topics, unsolved: drills.unsolved },
   };
 }
 
@@ -152,8 +174,11 @@ export async function getCurrentWeek(userId: string): Promise<LogWeek> {
     weekNumber(userId, weekOf),
   ]);
   if (saved) {
-    const phase = saved.phase || (await currentPhase(userId)).phase;
-    return { ...pick(saved), weekOf: weekOf.toISOString(), week, phase, saved: true };
+    const [phase, { topics, unsolved }] = await Promise.all([
+      saved.phase || currentPhase(userId).then((p) => p.phase),
+      weekDrills(userId, weekOf),
+    ]);
+    return { ...pick(saved), weekOf: weekOf.toISOString(), week, phase, saved: true, prompts: { topics, unsolved } };
   }
   return { ...(await draftFor(userId, weekOf)), week, saved: false };
 }

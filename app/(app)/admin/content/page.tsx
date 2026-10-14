@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { TrackTable } from "./_components/track-table";
+import { RefreshPublicPages } from "./_components/refresh-public-pages";
 
 export const metadata: Metadata = { title: "Content (admin)" };
 
@@ -84,13 +85,14 @@ export default async function ContentManagementPage() {
             description="The syllabus as learners see it: each track's modules in order, with their lessons, drills and capstone projects."
           />
         </FadeIn>
-        <FadeIn delay={0.08}>
+        <FadeIn delay={0.08} className="flex flex-col gap-3">
           <p className="rounded-md border border-border bg-sheet px-4 py-3 text-sm text-muted-foreground">
             Content lives in <code className="font-mono text-[0.8125rem] text-foreground">content/</code>{" "}
             as files. Edit them, run{" "}
             <code className="font-mono text-[0.8125rem] text-foreground">npm run content:validate</code>,
             then <code className="font-mono text-[0.8125rem] text-foreground">npm run content:sync</code>.
           </p>
+          <RefreshPublicPages />
         </FadeIn>
         <FadeIn delay={0.1}>
           <div className="flex flex-col gap-12">

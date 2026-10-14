@@ -65,6 +65,7 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
   );
 
   const [name, setName] = React.useState(initialName);
+  const [savedName, setSavedName] = React.useState(initialName);
   const [profileStatus, setProfileStatus] = React.useState<Status>(null);
   const [savingProfile, setSavingProfile] = React.useState(false);
 
@@ -87,6 +88,7 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
         setProfileStatus({ type: "error", message: "That didn't save. Try again in a moment." });
         return;
       }
+      setSavedName(trimmed);
       setProfileStatus({ type: "success", message: "Name saved." });
     } catch {
       setProfileStatus({ type: "error", message: "We couldn't reach the server. Check your connection." });
@@ -190,7 +192,14 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
             </p>
           </div>
           <StatusBanner status={profileStatus} />
-          <LoadingButton type="submit" loading={savingProfile} loadingText="Saving…" className="w-fit">
+          {/* A save is the page's primary only when it has something to save */}
+          <LoadingButton
+            type="submit"
+            variant={name.trim() !== savedName.trim() ? "default" : "outline"}
+            loading={savingProfile}
+            loadingText="Saving…"
+            className="w-fit"
+          >
             Save name
           </LoadingButton>
         </form>
@@ -290,7 +299,13 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
               />
             </div>
             <StatusBanner status={pwStatus} />
-            <LoadingButton type="submit" loading={savingPw} loadingText="Changing…" className="w-fit">
+            <LoadingButton
+              type="submit"
+              variant={currentPw && newPw && confirmPw ? "default" : "outline"}
+              loading={savingPw}
+              loadingText="Changing…"
+              className="w-fit"
+            >
               Change password
             </LoadingButton>
           </form>

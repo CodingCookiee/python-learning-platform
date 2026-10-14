@@ -18,7 +18,8 @@ import { Faq, faqItems, faqJsonLd } from "@/components/landing/faq";
 import { getLandingData } from "@/lib/landing/facts";
 import { siteJsonLd } from "@/lib/landing/structured-data";
 import { publicOrigin } from "@/lib/public-origin";
-import { BELTS, DAN_TRACK, beltForModule, kyuRange, ordinal } from "@/lib/ranks";
+import { BELTS, beltForModule, kyuRange, ordinal } from "@/lib/ranks";
+import { AUTOMATION_UNLOCK_AFTER } from "@/lib/curriculum-state";
 
 hljs.registerLanguage("javascript", javascript);
 hljs.registerLanguage("python", python);
@@ -173,7 +174,7 @@ export default async function LandingPage() {
                 </p>
               </article>
 
-              {/* AI automation dan ranks */}
+              {/* AI automation dan ranks: folded, so the page (long on phones) keeps to the Python path */}
               <article
                 className="grid gap-6 border-t border-border py-8 md:grid-cols-[14rem_minmax(0,1fr)] md:gap-12"
                 aria-labelledby="belt-dan"
@@ -183,22 +184,39 @@ export default async function LandingPage() {
                     AI automation
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Dan ranks for black belts. In preparation, and not yet open.
+                    2nd to 9th dan. Opens once you pass Python module {AUTOMATION_UNLOCK_AFTER}.
                   </p>
                 </div>
-                <ol className="grid gap-x-10 sm:grid-cols-2">
-                  {DAN_TRACK.map((d) => (
-                    <li
-                      key={d.dan}
-                      className="grid grid-cols-[3.25rem_minmax(0,1fr)] items-baseline gap-x-3 border-b border-border/70 py-3"
-                    >
-                      <span className="font-condensed tabular text-sm text-muted-foreground">
-                        {ordinal(d.dan)} dan
+                <details className="group self-start">
+                  <summary className="flex w-fit cursor-pointer list-none items-center gap-2 rounded-sm text-lg leading-relaxed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
+                    <span>
+                      {automationModules.length} more modules, about {Math.round(hours.automation)} hours: LLM APIs, tool
+                      calling, retrieval, agents, MCP servers and production systems.{" "}
+                      <span className="font-medium whitespace-nowrap text-primary underline">
+                        <span className="group-open:hidden">See the modules</span>
+                        <span className="hidden group-open:inline">Hide the modules</span>
                       </span>
-                      <span className="text-muted-foreground">{d.title}</span>
-                    </li>
-                  ))}
-                </ol>
+                    </span>
+                  </summary>
+                  <ol className="mt-4 grid gap-x-10 sm:grid-cols-2">
+                    {automationModules.map((m) => (
+                      <li
+                        key={m.id}
+                        className="grid grid-cols-[3.25rem_minmax(0,1fr)] items-baseline gap-x-3 border-b border-border/70 py-3"
+                      >
+                        <span className="font-condensed tabular text-sm text-muted-foreground">
+                          {ordinal(m.order + 1)} dan
+                        </span>
+                        <span className="flex min-w-0 flex-col">
+                          <span className="font-medium">{m.title}</span>
+                          <span className="font-condensed tabular text-sm text-muted-foreground">
+                            {m._count.lessons} {m._count.lessons === 1 ? "lesson" : "lessons"} · ~{m.duration} h
+                          </span>
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                </details>
               </article>
             </div>
           </div>

@@ -8,13 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { formatCheckIn } from "@/lib/learning-log-format";
-import type { LogWeek } from "@/lib/learning-log";
+import type { LogWeek, WeekPrompts } from "@/lib/learning-log";
 
 type Fields = Pick<LogWeek, "hours" | "built" | "learned" | "stuck" | "nextGoal" | "question">;
 
 const FIELDS: Array<{ key: Exclude<keyof Fields, "hours">; label: string; hint: string; rows: number }> = [
   { key: "built", label: "Built or finished", hint: "One to three lines: lessons, gradings, capstones, labs.", rows: 3 },
-  { key: "learned", label: "Learned", hint: "One or two key ideas, in your own words. That's what makes it stick.", rows: 2 },
+  { key: "learned", label: "Learned", hint: "One or two key ideas, in your own words. Writing it yourself is what makes it stick.", rows: 2 },
   { key: "stuck", label: "Stuck on", hint: "A specific problem, or leave it empty for “nothing”.", rows: 2 },
   { key: "nextGoal", label: "Next week's goal", hint: "One concrete deliverable.", rows: 2 },
   { key: "question", label: "A question to ask", hint: "Optional: for your AI assistant or mentor.", rows: 2 },
@@ -40,11 +40,28 @@ export function CopyCheckIn({ text, label = "Copy check-in" }: { text: string; l
   );
 }
 
+/** A prompt beside "Learned" or "Stuck on", from the week's drills. The learner writes the answer */
+function promptFor(key: keyof Fields, prompts: WeekPrompts | undefined): string | null {
+  if (!prompts) return null;
+  if (key === "learned" && prompts.topics.length > 0) {
+    return `Your drills this week covered ${listed(prompts.topics)}. What idea from them would you explain to someone else?`;
+  }
+  if (key === "stuck" && prompts.unsolved.length > 0) {
+    return `Tried and not passed yet: ${listed(prompts.unsolved.map((t) => `“${t}”`))}. What got in the way?`;
+  }
+  return null;
+}
+
+function listed(items: string[]): string {
+  return items.length <= 1 ? (items[0] ?? "") : `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`;
+}
+
 export function CheckInForm({ initial }: { initial: LogWeek }) {
   const [fields, setFields] = React.useState<Fields>(initial);
   const [saved, setSaved] = React.useState(initial.saved);
   const [busy, setBusy] = React.useState<"save" | "refill" | null>(null);
   const [status, setStatus] = React.useState<string | null>(null);
+  const [prompts, setPrompts] = React.useState(initial.prompts);
 
   const set = <K extends keyof Fields>(key: K, value: Fields[K]) => {
     setFields((f) => ({ ...f, [key]: value }));
@@ -80,8 +97,9 @@ export function CheckInForm({ initial }: { initial: LogWeek }) {
       const res = await fetch("/api/log");
       if (res.ok) {
         const draft = (await res.json()) as LogWeek;
-        // Keep what the learner wrote in the fields activity can't fill
-        setFields((f) => ({ ...draft, question: f.question, learned: f.learned || draft.learned }));
+        // Keep what the learner wrote in the fields activity doesn't fill
+        setFields((f) => ({ ...draft, learned: f.learned, stuck: f.stuck, question: f.question }));
+        setPrompts(draft.prompts);
         setSaved(false);
         setStatus("Refilled from this week's activity. Your own notes are kept.");
       } else setStatus("Couldn't read this week's activity. Try again in a moment.");
@@ -118,8 +136,21 @@ export function CheckInForm({ initial }: { initial: LogWeek }) {
         {FIELDS.map((f) => (
           <div key={f.key} className="flex flex-col gap-2">
             <Label htmlFor={`log-${f.key}`}>{f.label}</Label>
-            <Textarea id={`log-${f.key}`} rows={f.rows} value={fields[f.key]} onChange={(e) => set(f.key, e.target.value)} />
-            <p className="text-sm text-muted-foreground">{f.hint}</p>
+            <Textarea
+              id={`log-${f.key}`}
+              rows={f.rows}
+              value={fields[f.key]}
+              onChange={(e) => set(f.key, e.target.value)}
+              aria-describedby={`log-${f.key}-hint${promptFor(f.key, prompts) ? ` log-${f.key}-prompt` : ""}`}
+            />
+            <p id={`log-${f.key}-hint`} className="text-sm text-muted-foreground">
+              {f.hint}
+            </p>
+            {promptFor(f.key, prompts) && (
+              <p id={`log-${f.key}-prompt`} className="border-l-2 border-highlight pl-3 text-sm text-muted-foreground">
+                {promptFor(f.key, prompts)}
+              </p>
+            )}
           </div>
         ))}
         <div className="flex flex-wrap items-center gap-3">

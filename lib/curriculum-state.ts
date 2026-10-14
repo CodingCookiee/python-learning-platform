@@ -113,7 +113,7 @@ export async function getCurriculumState(userId: string | null): Promise<TrackPr
     userId
       ? prisma.checkpointAttempt.findMany({
           where: { userId, passed: true },
-          select: { moduleId: true, placement: true },
+          select: { moduleId: true, coversModuleIds: true, placement: true },
           orderBy: { submittedAt: "asc" },
         })
       : Promise.resolve([]),
@@ -122,7 +122,12 @@ export async function getCurriculumState(userId: string | null): Promise<TrackPr
   const done = new Set(completed.map((p) => p.lessonId));
   // The first pass decides whether it was a placement
   const passedCheckpoints = new Map<string, { placement: boolean }>();
-  for (const c of checkpoints) if (!passedCheckpoints.has(c.moduleId)) passedCheckpoints.set(c.moduleId, c);
+  // A belt test-out passes every module it covers, each as a placement
+  for (const c of checkpoints) {
+    for (const id of c.coversModuleIds.length > 0 ? c.coversModuleIds : [c.moduleId]) {
+      if (!passedCheckpoints.has(id)) passedCheckpoints.set(id, { placement: c.placement });
+    }
+  }
   const result: TrackProgress[] = tracks.map((t) => {
     let priorPassed = true;
     let modulesPassed = 0;

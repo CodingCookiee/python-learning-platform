@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowUp, MessageCircleQuestion, Sparkles } from "lucide-react";
+import { ArrowUp, MessageCircleQuestion, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { LessonContent } from "@/components/lesson";
@@ -39,6 +39,17 @@ const STARTERS = [
   { label: "Is there a more Pythonic way?", question: "My approach works, or nearly. Is there a more Pythonic way to think about it?" },
 ];
 
+/** The learner hid the "add a key" offer; remembered in this browser across drills */
+const OFFER_HIDDEN_KEY = "tutor-offer-hidden";
+
+function readOfferHidden(): boolean {
+  try {
+    return localStorage.getItem(OFFER_HIDDEN_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
 export function TutorPanel({
   exerciseId,
   aiReady,
@@ -61,6 +72,24 @@ export function TutorPanel({
   const [waiting, setWaiting] = React.useState<string[]>([]);
   const [error, setError] = React.useState<string | null>(null);
   const [needsKey, setNeedsKey] = React.useState(!aiReady);
+  // The offer can be hidden for good, unless the learner then asks the tutor something (which says why it can't)
+  const [askedWithoutKey, setAskedWithoutKey] = React.useState(false);
+  const [hiddenNow, setHiddenNow] = React.useState(false);
+  const hiddenBefore = React.useSyncExternalStore(
+    () => () => {},
+    readOfferHidden,
+    () => false
+  );
+  const offerHidden = (hiddenNow || hiddenBefore) && !askedWithoutKey;
+
+  function hideOffer() {
+    setHiddenNow(true);
+    try {
+      localStorage.setItem(OFFER_HIDDEN_KEY, "1");
+    } catch {
+      // Hidden for this page only; that's fine
+    }
+  }
   const listRef = React.useRef<HTMLOListElement>(null);
   const usedRef = React.useRef(false);
 
@@ -105,7 +134,10 @@ export function TutorPanel({
           code?: string;
         };
         if (!res.ok || !data.reply) {
-          if (data.code === "no_key") setNeedsKey(true);
+          if (data.code === "no_key") {
+            setNeedsKey(true);
+            setAskedWithoutKey(true);
+          }
           setError(data.error ?? "The tutor couldn't answer.");
           // Drop the unanswered question so the history stays in pairs
           setTurns((t) => t.slice(0, -1));
@@ -130,16 +162,30 @@ export function TutorPanel({
   React.useImperativeHandle(ref, () => ({ explain: (err: string) => void send("explain", "", err) }), [send]);
 
   if (needsKey) {
+    if (offerHidden) return null;
     return (
-      <div className="flex items-start gap-3 rounded-md border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
+      <div className="flex items-start gap-3 rounded-md border border-dashed border-border py-3 pr-2 pl-4 text-sm text-muted-foreground">
         <Sparkles className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-        <p>
+        <p className="flex-1">
           Stuck? The AI tutor points you the right way without giving the answer away. It runs on your own API key:{" "}
           <Link href="/settings" className="font-medium text-primary underline">
             add one in Settings
           </Link>
           .
         </p>
+        {!askedWithoutKey && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            onClick={hideOffer}
+            aria-label="Hide the tutor offer on every drill"
+            title="Hide on every drill (Settings still has it)"
+            className="-my-1 shrink-0"
+          >
+            <X aria-hidden="true" />
+          </Button>
+        )}
       </div>
     );
   }

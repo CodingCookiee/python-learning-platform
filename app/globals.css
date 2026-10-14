@@ -175,8 +175,10 @@
   --belt-green: oklch(0.7 0.095 145);
   --belt-blue: oklch(0.65 0.08 240);
   --belt-brown: oklch(0.53 0.06 60);
-  --belt-black: oklch(0.14 0.02 165);
+  --belt-black: oklch(0.1 0.015 165);
   --belt-black-mark: oklch(0.945 0.016 140);
+  /* On a dark page the black belt's stitching is drawn light, so the cloth reads as cloth */
+  --belt-black-stitch: oklch(0.88 0.02 150);
   --tape: oklch(0.94 0.01 100);
   --keyline: oklch(0.63 0.04 155);
   --tier-bronze: oklch(0.78 0.075 82);

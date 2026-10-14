@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { getAppOrigin } from "@/lib/server-url";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { FadeIn, StaggerContainer } from "@/components/animations";
+import { capstoneReviewWait } from "@/lib/review-wait";
 import { ProjectDetailClient } from "./_components/project-detail-client";
 import type { ProjectDetailData } from "./_components/project-detail-client";
 
@@ -42,6 +43,9 @@ export default async function ProjectDetailPage({ params }: PageProps) {
 
   const project = await getProject(id, cookieHeader);
   if (!project) notFound();
+  // While it's with the examiner: how long reviews have been taking, and the queue ahead of it
+  const reviewWait =
+    project.submission?.status === "pending" ? await capstoneReviewWait(new Date(project.submission.submittedAt)) : null;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
@@ -58,7 +62,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
         </FadeIn>
 
         <FadeIn delay={0.05}>
-          <ProjectDetailClient project={project} />
+          <ProjectDetailClient project={project} reviewWait={reviewWait} />
         </FadeIn>
       </StaggerContainer>
     </div>

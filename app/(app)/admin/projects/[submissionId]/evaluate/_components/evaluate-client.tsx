@@ -87,7 +87,8 @@ function ExaminerAiReview({
         </h2>
         {aiReady && (
           <LoadingButton
-            variant={review ? "outline" : "default"}
+            // Outline: the page's one primary is the decision (Approve and stamp), not the AI's opinion
+            variant="outline"
             size="sm"
             onClick={() => void run()}
             loading={busy}
@@ -196,6 +197,9 @@ function fileText(file: { name: string; size: number; content?: string }): strin
 }
 
 /** One submitted file: its name and size, View (text files, shown inline) and Download */
+/** Files up to this many lines open by default on the examiner's screen */
+const SHORT_FILE_LINES = 60;
+
 function SubmittedFile({
   file,
   href,
@@ -203,8 +207,9 @@ function SubmittedFile({
   file: { name: string; size: number; type: string; content?: string };
   href: string;
 }) {
-  const [open, setOpen] = React.useState(false);
   const text = fileText(file);
+  // A short file is shown straight away; a long one waits behind View so the page stays scannable
+  const [open, setOpen] = React.useState(() => text !== null && text.split("\n").length <= SHORT_FILE_LINES);
   const panelId = React.useId();
   return (
     <li className="border-b border-border py-2.5">

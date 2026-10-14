@@ -24,6 +24,8 @@ const nextConfig: NextConfig = {
       "./public/py/*.py",
       "./node_modules/pyodide/**/*",
     ],
+    // The certificate PNG reads its fonts from disk
+    "/certificates/*/image": ["./assets/fonts/*.ttf"],
   },
 };
 

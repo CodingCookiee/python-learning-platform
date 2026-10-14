@@ -117,6 +117,8 @@ export interface LearnerStats {
   drills: number;
   /** Completed lessons per module slug */
   lessonsByModule: Map<string, number>;
+  /** Completed lessons per track slug */
+  lessonsByTrack: Map<string, number>;
   /** Different passed drills per drill type */
   passedByType: Map<string, number>;
   /** Guided quests finished, by name */
@@ -132,7 +134,7 @@ async function learnerStats(userId: string): Promise<LearnerStats> {
   const [completedLessons, drills, tracks, capstones, streak, user, quests] = await Promise.all([
     prisma.progress.findMany({
       where: { userId, completed: true, lesson: { archivedAt: null } },
-      select: { lesson: { select: { module: { select: { slug: true } } } } },
+      select: { lesson: { select: { module: { select: { slug: true, track: { select: { slug: true } } } } } } },
     }),
     prisma.exerciseSubmission.findMany({
       where: { userId, passed: true, exercise: { archivedAt: null } },
@@ -165,6 +167,7 @@ async function learnerStats(userId: string): Promise<LearnerStats> {
     lessons: completedLessons.length,
     drills: drills.length,
     lessonsByModule: tally(completedLessons.map((p) => p.lesson.module.slug)),
+    lessonsByTrack: tally(completedLessons.map((p) => p.lesson.module.track?.slug)),
     passedByType: tally(drills.map((d) => d.exercise.type)),
     questsFinished: new Set(quests.map((q) => q.quest)),
     passedModules,
@@ -178,10 +181,14 @@ async function learnerStats(userId: string): Promise<LearnerStats> {
   };
 }
 
+function lessonCount(criteria: { track?: string }, stats: LearnerStats): number {
+  return criteria.track ? (stats.lessonsByTrack.get(criteria.track) ?? 0) : stats.lessons;
+}
+
 export function met(criteria: AchievementCriteria, stats: LearnerStats): boolean {
   switch (criteria.kind) {
     case "lessons":
-      return stats.lessons >= criteria.count;
+      return lessonCount(criteria, stats) >= criteria.count;
     case "drills":
       return stats.drills >= criteria.count;
     case "modules":
@@ -209,18 +216,23 @@ export function met(criteria: AchievementCriteria, stats: LearnerStats): boolean
  * honest partial count.
  */
 export function progress(criteria: AchievementCriteria, stats: LearnerStats): { done: number; of: number; unit: string } | null {
-  const of = (done: number, total: number, unit: string) => ({ done: Math.min(done, total), of: total, unit });
+  // The unit agrees with the total: "0 of 1 lesson", "2 of 5 lessons"
+  const of = (done: number, total: number, unit: string, one = unit.replace(/s(?=$| )/, "")) => ({
+    done: Math.min(done, total),
+    of: total,
+    unit: total === 1 ? one : unit,
+  });
   switch (criteria.kind) {
     case "lessons":
-      return of(stats.lessons, criteria.count, "lessons");
+      return of(lessonCount(criteria, stats), criteria.count, criteria.track === "python" ? "Python lessons" : "lessons");
     case "drills":
       return of(stats.drills, criteria.count, "drills");
     case "modules":
       return of(criteria.modules.filter((slug) => stats.passedModules.has(slug)).length, criteria.modules.length, "modules");
     case "streak":
-      return of(stats.streak, criteria.days, "days in a row");
+      return of(stats.streak, criteria.days, "days in a row", "day");
     case "xp":
-      return of(stats.xp, criteria.amount, "XP");
+      return of(stats.xp, criteria.amount, "XP", "XP");
     case "module-lessons":
       return of(stats.lessonsByModule.get(criteria.module) ?? 0, criteria.count, "lessons");
     case "drill-type":
@@ -235,6 +247,8 @@ export function progress(criteria: AchievementCriteria, stats: LearnerStats): { 
 /** Which ladder an achievement is a rung of: same kind, same subject, different targets */
 function ladder(criteria: AchievementCriteria): string {
   switch (criteria.kind) {
+    case "lessons":
+      return criteria.track ? `lessons:${criteria.track}` : "lessons";
     case "module-lessons":
       return `module-lessons:${criteria.module}`;
     case "drill-type":
