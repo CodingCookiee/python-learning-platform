@@ -12,6 +12,9 @@ export interface CourseFacts {
   hours: number;
 }
 
+/** pylearn's own profiles elsewhere (the organization's, never a person's), as `sameAs` */
+export const ORGANIZATION_PROFILES = ["https://github.com/PL-PyLearn"];
+
 export const SITE_DESCRIPTION =
   "A graded path from first Python syntax to advanced Python, then AI automation. Lessons, drills and gradings run in your browser. Free, no experience needed.";
 
@@ -53,7 +56,8 @@ export function siteJsonLd(origin: string, courses: { python: CourseFacts; autom
         ...org,
         name: "pylearn",
         url: `${origin}/`,
-        logo: `${origin}/icon.svg`,
+        logo: `${origin}/brand/pylearn-logo.png`,
+        sameAs: ORGANIZATION_PROFILES,
       },
       {
         "@type": "WebSite",
