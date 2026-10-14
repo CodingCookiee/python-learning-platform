@@ -12,8 +12,15 @@ export interface CourseFacts {
   hours: number;
 }
 
-/** pylearn's own profiles elsewhere (the organization's, never a person's), as `sameAs` */
-export const ORGANIZATION_PROFILES = ["https://github.com/PL-PyLearn"];
+/**
+ * pylearn's own profiles elsewhere (the organization's, never a person's): shown in the footers and
+ * on the About page, and given to search engines as the Organization's `sameAs`
+ */
+export const PROFILE_LINKS = [
+  { label: "GitHub", href: "https://github.com/PL-PyLearn" },
+  { label: "LinkedIn", href: "https://www.linkedin.com/company/pylearn/" },
+] as const;
+export const ORGANIZATION_PROFILES = PROFILE_LINKS.map((p) => p.href);
 
 export const SITE_DESCRIPTION =
   "A graded path from first Python syntax to advanced Python, then AI automation. Lessons, drills and gradings run in your browser. Free, no experience needed.";
