@@ -44,3 +44,11 @@ export async function peekToken(kind: TokenKind, token: string): Promise<string 
   if (!row || !row.identifier.startsWith(`${kind}:`) || row.expires.getTime() < Date.now()) return null;
   return row.identifier.slice(kind.length + 1);
 }
+
+/** Voids every outstanding link for an address (its account is being deleted) */
+export async function revokeTokensFor(email: string): Promise<void> {
+  const address = email.trim().toLowerCase();
+  await prisma.verificationToken.deleteMany({
+    where: { identifier: { in: (["verify", "reset"] as const).map((kind) => `${kind}:${address}`) } },
+  });
+}

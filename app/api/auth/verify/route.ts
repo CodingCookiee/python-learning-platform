@@ -21,10 +21,16 @@ export async function POST(req: Request) {
   if (!email) {
     return NextResponse.json({ error: "That link has expired or was already used. Sign in to get a new one." }, { status: 400 });
   }
-  const updated = await prisma.user.updateMany({
-    // The exact address the link was sent to: a case-insensitive match would also verify look-alike accounts
-    where: { email, emailVerified: null },
-    data: { emailVerified: new Date() },
-  });
-  return NextResponse.json({ ok: true, alreadyVerified: updated.count === 0 });
+  // The exact address the link was sent to: a case-insensitive match would also verify look-alike accounts
+  const user = await prisma.user.findUnique({ where: { email }, select: { id: true, emailVerified: true } });
+  // A link that outlived its account (deleted since it was sent) confirms nothing
+  if (!user) {
+    return NextResponse.json(
+      { error: "There's no account for this link any more. If you'd like one, sign up again." },
+      { status: 410 }
+    );
+  }
+  if (user.emailVerified) return NextResponse.json({ ok: true, alreadyVerified: true });
+  await prisma.user.update({ where: { id: user.id }, data: { emailVerified: new Date() } });
+  return NextResponse.json({ ok: true, alreadyVerified: false });
 }

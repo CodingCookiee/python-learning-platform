@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/lib/generated/prisma/client";
 import { checkAndUnlockAchievements } from "@/lib/achievements";
-import { issueToken } from "@/lib/auth-tokens";
+import { issueToken, revokeTokensFor } from "@/lib/auth-tokens";
 import { isEmailConfigured, sendPasswordResetEmail } from "@/lib/email";
 import { CHECKPOINT_RETRY_MINUTES } from "@/lib/mastery-rules";
 import { invalidateUserCache } from "@/lib/cache";
@@ -122,6 +122,8 @@ export async function deleteUser(
   if (user.role === "SUPER_ADMIN" && (await otherActiveSuperAdmins(userId)) === 0)
     return fail(409, "That's the last active super admin.");
   await prisma.user.delete({ where: { id: userId } });
+  // Confirmation and reset links already sent for the address die with the account
+  await revokeTokensFor(user.email);
   if (block) await blockEmail(user.email, admin.id);
   await log(admin, "user.delete", userId, label(user), { blocked: block });
   return {

@@ -9,6 +9,8 @@ import { getCertificateForViewer, updateCertificate } from "@/lib/certificates";
 import { newCertificateCode } from "@/lib/certificate-rules";
 import { CHECKPOINT_RETRY_MINUTES } from "@/lib/mastery-rules";
 import { isEmailBlocked } from "@/lib/admin/blocked-emails";
+import { issueToken } from "@/lib/auth-tokens";
+import { POST as confirmEmail } from "@/app/api/auth/verify/route";
 import { makeLearner } from "./helpers";
 
 let admin: Awaited<ReturnType<typeof makeLearner>>;
@@ -70,6 +72,27 @@ describe("account actions", () => {
     expect(await lastAction()).toMatchObject({ action: "user.delete", targetId: doomed.user.id, targetLabel: expect.stringContaining(doomed.user.email) });
     // Not barred unless the admin asked
     expect(await isEmailBlocked(doomed.user.email)).toBe(false);
+  });
+
+  it("voids the address's confirmation and reset links with the account", async () => {
+    const gone = await makeLearner("admin-links", { emailVerified: null });
+    const verify = await issueToken("verify", gone.user.email);
+    await issueToken("reset", gone.user.email);
+    // A link kept from before (no revocation), to show the route itself refuses it
+    const orphan = await issueToken("verify", `orphan-${gone.user.email}`);
+    expect(await actions.deleteUser(me, gone.user.id, gone.user.email)).toMatchObject({ ok: true });
+    const left = await prisma.verificationToken.count({
+      where: { identifier: { in: [`verify:${gone.user.email}`, `reset:${gone.user.email}`] } },
+    });
+    expect(left).toBe(0);
+
+    const post = (token: string) =>
+      confirmEmail(new Request("http://localhost/api/auth/verify", { method: "POST", body: JSON.stringify({ token }) }));
+    // The revoked link reads as used; a link with no account behind it says so, never "confirmed"
+    expect((await post(verify)).status).toBe(400);
+    const res = await post(orphan);
+    expect(res.status).toBe(410);
+    expect(((await res.json()) as { ok?: boolean }).ok).toBeUndefined();
   });
 
   it("can bar a deleted address from signing up again, keeping only a fingerprint, and lift it", async () => {
