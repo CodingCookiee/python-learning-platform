@@ -391,6 +391,46 @@
 :root[data-belt="brown"] { --loader-belt: var(--belt-brown); }
 :root[data-belt="black"] { --loader-belt: var(--belt-black-mark); }
 
+/* The belt loader (components/brand/belt-loader.tsx), for the longer, staged waits: stripes taped on
+   one by one (the grading's signature motion), held, and lifted off together for the next pass */
+@keyframes loader-stripe {
+  0%,
+  6% {
+    clip-path: inset(0 0 100% 0);
+    transform: translateY(-3px);
+    background: var(--highlight);
+  }
+  18% {
+    clip-path: inset(0 0 0 0);
+    transform: translateY(0);
+    background: var(--highlight);
+  }
+  34% {
+    background: var(--tape);
+  }
+  82% {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+    background: var(--tape);
+  }
+  94%,
+  100% {
+    clip-path: inset(0 0 0 0);
+    opacity: 0;
+    background: var(--tape);
+  }
+}
+.animate-loader-stripe {
+  animation: loader-stripe 2.6s var(--ease-out-expo) infinite both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-loader-stripe {
+    animation: knot-breathe 2.4s ease-in-out infinite;
+    clip-path: none;
+    background: var(--tape);
+  }
+}
+
 /* The knot loader (components/brand/knot-loader.tsx): the mark tied, held, loosened, tied again.
    One 2.8s loop, tied in the first half so even a quick page sees it done: the band unrolls from the
    middle, the knot drops on, the tails swing down in turn, it cinches and the wrap is drawn across;

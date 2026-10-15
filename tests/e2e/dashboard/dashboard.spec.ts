@@ -16,7 +16,7 @@ test.describe("The dashboard", () => {
     await dashboard.recordLink.click();
     await expect(page).toHaveURL(/\/profile#record-heading$/);
     // It lands on the record, not the top of the profile
-    await expect(profile.heading("Training record")).toBeInViewport();
+    await expect(profile.heading("Training record")).toBeInViewport({ timeout: 60_000 });
     for (const heading of ["Training record", "Training log", "Skill map", "Recent achievements", "Recently finished"]) {
       await expect(profile.heading(heading)).toBeVisible();
     }

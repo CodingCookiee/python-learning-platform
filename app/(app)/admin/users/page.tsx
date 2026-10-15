@@ -19,7 +19,7 @@ const FILTER_LABEL: Record<UserFilter, string> = {
   admins: "Admins",
   unverified: "Email not confirmed",
   suspended: "Suspended",
-  inactive: "Inactive 30+ days",
+  inactive: "Not seen in 30+ days",
 };
 
 function formatDate(d: Date): string {
@@ -140,7 +140,8 @@ export default async function AdminUsersPage({
                       <span className="hidden text-sm text-muted-foreground md:block">
                         Joined {formatDate(u.createdAt)}
                         <br />
-                        Active {since(u.lastActive)}
+                        Seen {since(u.lastSeen)}
+                        {u.lastTrained ? ` · trained ${since(u.lastTrained)}` : " · hasn't trained yet"}
                       </span>
                       <span className="font-condensed tabular hidden text-sm text-muted-foreground md:block">
                         {u.modulesPassed} {u.modulesPassed === 1 ? "grading" : "gradings"} passed

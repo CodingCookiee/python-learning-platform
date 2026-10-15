@@ -96,6 +96,8 @@ export default async function ContactPage() {
         </section>
         <script
           type="application/ld+json"
+          // Browsers hide a nonce from the page once it has been read, so the attribute reads "" on hydration
+          suppressHydrationWarning
           nonce={nonce}
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
         />

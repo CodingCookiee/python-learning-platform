@@ -512,7 +512,10 @@ export default async function AdminUserPage({ params }: { params: Promise<{ id: 
                     {user.emailVerified ? `Confirmed ${day(user.emailVerified)}` : "Not confirmed"}
                   </Fact>
                   <Fact label="Signs in with">{signIn || "—"}</Fact>
-                  <Fact label="Last active">{day(user.streak?.lastActivityDate)}</Fact>
+                  <Fact label="Last seen">{day(user.lastSeenAt)}</Fact>
+                  <Fact label="Last trained">
+                    {user.streak && user.streak.longestStreak > 0 ? day(user.streak.lastActivityDate) : "Hasn't trained yet"}
+                  </Fact>
                   <Fact label="Streak">
                     {user.streak?.currentStreak ?? 0} days (best {user.streak?.longestStreak ?? 0})
                   </Fact>

@@ -94,7 +94,9 @@ export function HowItWorks() {
           {/* The first three run along one belt; the grading is where the stripe goes on */}
           <div>
             <BeltBand belt="white" slots={4} filled={1} className="hidden h-4 lg:flex" />
-            <ol className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.5fr)] lg:gap-0">
+            {/* The same four columns as the row below, so the two lines up: Lessons and Drills take one
+                each, the grading (where the stripe goes on) the last two */}
+            <ol className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-0">
               <li className="flex flex-col gap-4 lg:border-l lg:border-(--keyline)/40 lg:pt-7 lg:pr-8 lg:pl-5">
                 <StopNumber n={1} />
                 <h3 className="text-lg font-semibold">Lessons</h3>
@@ -127,16 +129,19 @@ export function HowItWorks() {
                   ))}
                 </div>
               </li>
-              <li className="flex flex-col gap-5 rounded-md bg-accent/70 p-6 lg:mx-3 lg:mt-3 lg:rounded-t-none lg:px-8 lg:pt-7">
-                <StopNumber n={3} />
-                <h3 className="font-condensed text-4xl leading-none font-extrabold tracking-[-0.02em]">Gradings</h3>
-                <TriedTag />
-                <p className="leading-relaxed">
-                  Every module ends with one: no hints, 80% to pass. Pass it and a stripe goes on your belt. Already
-                  know the topic? Take the grading first and test out.
-                </p>
-                <div className="mt-auto flex items-center justify-center py-6">
-                  <Seal label="Passed" detail="Module grading" className="origin-center scale-150" />
+              {/* Marked by its panel and seal, in the same type and spacing as every other step */}
+              <li className="grid gap-4 rounded-md bg-accent/70 p-5 sm:col-span-2 lg:mt-3 lg:ml-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start lg:gap-x-8 lg:rounded-t-none lg:px-5 lg:pt-4 lg:pb-5">
+                <div className="flex flex-col gap-4">
+                  <StopNumber n={3} />
+                  <h3 className="text-lg font-semibold">Gradings</h3>
+                  <TriedTag />
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    Every module ends with one: no hints, 80% to pass. Pass it and a stripe goes on your belt. Already
+                    know the topic? Take the grading first and test out.
+                  </p>
+                </div>
+                <div className="flex items-center justify-center py-2 lg:self-center">
+                  <Seal label="Passed" detail="Module grading" />
                 </div>
               </li>
             </ol>

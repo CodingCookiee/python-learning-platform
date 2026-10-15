@@ -13,7 +13,7 @@ import { CHECKPOINT_RETRY_MINUTES } from "@/lib/mastery-rules";
 export const USER_FILTERS = ["all", "admins", "unverified", "suspended", "inactive"] as const;
 export type UserFilter = (typeof USER_FILTERS)[number];
 export const USERS_PER_PAGE = 40;
-/** No activity for this long counts as inactive */
+/** Not seen for this long counts as inactive */
 const INACTIVE_DAYS = 30;
 
 const DAY = 86_400_000;
@@ -27,12 +27,8 @@ function filterWhere(filter: UserFilter): Prisma.UserWhereInput {
     case "suspended":
       return { suspendedAt: { not: null } };
     case "inactive":
-      return {
-        OR: [
-          { streak: null },
-          { streak: { lastActivityDate: { lt: new Date(Date.now() - INACTIVE_DAYS * DAY) } } },
-        ],
-      };
+      // Not been here (any signed-in page) for a month
+      return { OR: [{ lastSeenAt: null }, { lastSeenAt: { lt: new Date(Date.now() - INACTIVE_DAYS * DAY) } }] };
     default:
       return {};
   }
@@ -48,7 +44,10 @@ export interface UserRow {
   suspended: boolean;
   xp: number;
   level: number;
-  lastActive: Date | null;
+  /** The last signed-in page view */
+  lastSeen: Date | null;
+  /** The last training (a lesson, a drill or an approved capstone); null if they never have */
+  lastTrained: Date | null;
   modulesPassed: number;
   capstonesPending: number;
 }
@@ -96,7 +95,8 @@ export async function listUsers({
         suspendedAt: true,
         xp: true,
         level: true,
-        streak: { select: { lastActivityDate: true } },
+        lastSeenAt: true,
+        streak: { select: { lastActivityDate: true, longestStreak: true } },
         _count: {
           select: {
             checkpointAttempts: { where: { passed: true } },
@@ -117,7 +117,9 @@ export async function listUsers({
     suspended: u.suspendedAt !== null,
     xp: u.xp,
     level: u.level,
-    lastActive: u.streak?.lastActivityDate ?? null,
+    lastSeen: u.lastSeenAt,
+    // The streak row is made at sign-up, dated then: a streak that never started means never trained
+    lastTrained: u.streak && u.streak.longestStreak > 0 ? u.streak.lastActivityDate : null,
     modulesPassed: u._count.checkpointAttempts,
     capstonesPending: u._count.projectSubmissions,
   }));
@@ -145,6 +147,7 @@ export async function getUserRecord(userId: string) {
       emailVerified: true,
       suspendedAt: true,
       suspendedReason: true,
+      lastSeenAt: true,
       onboardedAt: true,
       experience: true,
       goal: true,
@@ -285,6 +288,7 @@ export async function overviewStats() {
     signups7,
     signups30,
     active7,
+    seen7,
     unverified,
     suspended,
     gradings30,
@@ -296,7 +300,9 @@ export async function overviewStats() {
     prisma.user.count(),
     prisma.user.count({ where: { createdAt: { gte: since(7) } } }),
     prisma.user.count({ where: { createdAt: { gte: since(30) } } }),
-    prisma.streak.count({ where: { lastActivityDate: { gte: since(7) } } }),
+    // Trained this week (the streak's day moves only with training), and seen at all this week
+    prisma.streak.count({ where: { lastActivityDate: { gte: since(7) }, longestStreak: { gt: 0 } } }),
+    prisma.user.count({ where: { lastSeenAt: { gte: since(7) } } }),
     prisma.user.count({ where: { emailVerified: null } }),
     prisma.user.count({ where: { suspendedAt: { not: null } } }),
     prisma.checkpointAttempt.count({
@@ -326,6 +332,7 @@ export async function overviewStats() {
     signups7,
     signups30,
     active7,
+    seen7,
     unverified,
     suspended,
     gradings30,

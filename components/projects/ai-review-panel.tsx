@@ -1,5 +1,6 @@
 "use client";
 
+import { BeltLoader } from "@/components/brand/belt-loader";
 import * as React from "react";
 import Link from "next/link";
 import { Check, CircleDashed, Sparkles, X } from "lucide-react";
@@ -150,7 +151,7 @@ export function AiReviewPanel({
       {busy && (
         <PendingLine
           shimmer
-          icon={<Sparkles className="size-4 shrink-0 text-primary motion-safe:animate-pulse" aria-hidden="true" />}
+          icon={<BeltLoader size="sm" />}
           lines={["Reading your submission…", "Checking it against “How it's graded”…", "Writing your review…"]}
           stepMs={7000}
           stillAfterMs={25_000}

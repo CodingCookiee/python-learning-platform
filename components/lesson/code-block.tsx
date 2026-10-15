@@ -1,5 +1,6 @@
 "use client";
 
+import { BeltLoader } from "@/components/brand/belt-loader";
 import { Spinner } from "@/components/brand/knot-loader";
 import * as React from "react";
 import { Check, Copy, Pencil, Play, RotateCcw, SquareTerminal } from "lucide-react";
@@ -275,6 +276,8 @@ export function RunPending({ pythonText, className }: { pythonText?: string; cla
       <PendingLine
         key={downloading ? "python" : "code"}
         live={false}
+        // Python's first download is the long, staged wait: the belt; a run is quick: the knot
+        icon={downloading ? <BeltLoader size="sm" /> : undefined}
         delayMs={300}
         lines={[pythonText || "Running your code…"]}
         still={

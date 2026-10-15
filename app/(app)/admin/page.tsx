@@ -75,7 +75,7 @@ export default async function AdminDashboardPage() {
       note: `${stats.unverified} email not confirmed · ${stats.suspended} suspended`,
     },
     { label: "New this week", value: stats.signups7, note: `${stats.signups30} in 30 days` },
-    { label: "Active this week", value: stats.active7, note: "trained in the last 7 days" },
+    { label: "Seen this week", value: stats.seen7, note: `${stats.active7} trained in the last 7 days` },
     { label: "Gradings, 30 days", value: stats.gradings30, note: `${stats.passed30} passed` },
     { label: "Capstones waiting", value: stats.pending, note: "for an examiner" },
     { label: "Certificates", value: stats.certificates, note: "issued and live" },

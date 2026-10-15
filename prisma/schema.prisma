@@ -41,6 +41,8 @@ model User {
   level Int  @default(1)
   role  Role @default(LEARNER)
 
+  /// The last time the account used the app (any signed-in page), at most once per few minutes
+  lastSeenAt      DateTime?
   /// Set by an admin: the account can't sign in or use the app until it's cleared
   suspendedAt     DateTime?
   suspendedReason String?

@@ -1,4 +1,5 @@
 import { SignOutMenuItem, SigningOutNotice } from "@/components/layout/sign-out";
+import { recordSeen } from "@/lib/last-seen";
 import { BeltTheme } from "@/components/brand/belt-theme";
 import Link from "next/link";
 import { auth, signOut } from "@/auth";
@@ -44,13 +45,15 @@ export async function Navbar() {
     ? await Promise.all([
         prisma.user.findUnique({
           where: { id: userId },
-          select: { role: true, suspendedAt: true },
+          select: { role: true, suspendedAt: true, lastSeenAt: true },
         }),
         getLearnerRank(userId),
       ])
     : [null, null];
   // Suspended by an admin: end the session and say why (the API refuses them already)
   if (account?.suspendedAt) redirect("/auth/session-ended?reason=suspended");
+  // "Last seen" for the admin overview: any signed-in page counts, written at most every few minutes
+  if (userId && account) recordSeen(userId, account.lastSeenAt);
   const userIsAdmin = account?.role === "ADMIN" || account?.role === "SUPER_ADMIN";
   const unread = userIsAdmin && userId ? await unreadCount(userId) : 0;
 

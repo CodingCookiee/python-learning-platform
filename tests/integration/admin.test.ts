@@ -181,17 +181,13 @@ describe("the users list", () => {
     expect(admins.rows.map((r) => r.id)).toEqual([admin.user.id]);
   });
 
-  it("applies the filter and the search together (searching under Inactive lists only inactive accounts)", async () => {
-    // Active today: not inactive, whatever the search
-    await prisma.streak.upsert({
-      where: { userId: learner.user.id },
-      create: { userId: learner.user.id, currentStreak: 1, longestStreak: 1, lastActivityDate: new Date() },
-      update: { lastActivityDate: new Date() },
-    });
+  it("applies the filter and the search together (searching under Inactive lists only accounts not seen in a month)", async () => {
+    await prisma.user.update({ where: { id: learner.user.id }, data: { lastSeenAt: new Date() } });
     const inactive = await listUsers({ filter: "inactive", q: learner.user.email });
     expect(inactive.rows.map((r) => r.id)).not.toContain(learner.user.id);
-    await prisma.streak.update({ where: { userId: learner.user.id }, data: { lastActivityDate: new Date(Date.now() - 40 * 86_400_000) } });
+    await prisma.user.update({ where: { id: learner.user.id }, data: { lastSeenAt: new Date(Date.now() - 40 * 86_400_000) } });
     const nowInactive = await listUsers({ filter: "inactive", q: learner.user.email });
     expect(nowInactive.rows.map((r) => r.id)).toContain(learner.user.id);
   });
+
 });

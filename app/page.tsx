@@ -348,6 +348,8 @@ export default async function LandingPage() {
         <Faq items={faq} />
         <script
           type="application/ld+json"
+          // Browsers hide a nonce from the page once it has been read, so the attribute reads "" on hydration
+          suppressHydrationWarning
           nonce={nonce}
           // JSON in a script element: escape "<" so no answer can close the tag
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(faq)).replace(/</g, "\\u003c") }}
@@ -355,6 +357,8 @@ export default async function LandingPage() {
         {/* Who runs the site and the two courses it teaches, as schema.org data (lib/landing/structured-data.ts) */}
         <script
           type="application/ld+json"
+          // Browsers hide a nonce from the page once it has been read, so the attribute reads "" on hydration
+          suppressHydrationWarning
           nonce={nonce}
           dangerouslySetInnerHTML={{ __html: JSON.stringify(site).replace(/</g, "\\u003c") }}
         />

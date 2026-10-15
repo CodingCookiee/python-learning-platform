@@ -1,5 +1,6 @@
 "use client";
 
+import { BeltLoader } from "@/components/brand/belt-loader";
 import { Spinner } from "@/components/brand/knot-loader";
 import { KnotLoader } from "@/components/brand/knot-loader";
 import * as React from "react";
@@ -482,7 +483,7 @@ export function QuestPanel() {
               <div className="mt-2 border-t border-border pt-2">
                 <PendingLine
                   key={`${working.step}:${working.cold}`}
-                  icon={<KnotLoader size="sm" />}
+                  icon={working.cold ? <BeltLoader size="sm" /> : <KnotLoader size="sm" />}
                   lines={fillerLines(working)}
                   stepMs={2200}
                   stillAfterMs={9000}

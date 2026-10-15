@@ -1,5 +1,6 @@
 "use client";
 
+import { BeltLoader } from "@/components/brand/belt-loader";
 import * as React from "react";
 import Link from "next/link";
 import { AiReviewBody } from "@/components/projects/ai-review-panel";
@@ -120,7 +121,7 @@ function ExaminerAiReview({
       {busy && (
         <PendingLine
           shimmer
-          icon={<Sparkles className="size-4 shrink-0 text-primary motion-safe:animate-pulse" aria-hidden="true" />}
+          icon={<BeltLoader size="sm" />}
           lines={["Reading the submission…", "Checking it against each criterion…", "Writing the review…"]}
           stepMs={7000}
           stillAfterMs={25_000}
