@@ -14,6 +14,7 @@ import { LessonContent } from "@/components/lesson";
 import type { CiLinkView } from "@/lib/ci/links";
 import type { AiReview } from "@/lib/ai/reviewer";
 import type { ReviewWait } from "@/lib/review-wait";
+import { accountKey } from "@/lib/account-storage";
 
 export interface ProjectSubmission {
   id: string;
@@ -96,7 +97,7 @@ export function ProjectDetailClient({ project, reviewWait }: ProjectDetailClient
   const [showConfetti, setShowConfetti] = React.useState<boolean>(() => {
     if (!isCompleted || !evaluatedAt || !submissionId) return false;
     if (typeof window === "undefined") return false;
-    const seenKey = `confetti_seen_${submissionId}`;
+    const seenKey = accountKey(`confetti_seen_${submissionId}`);
     if (sessionStorage.getItem(seenKey)) return false;
     sessionStorage.setItem(seenKey, "1");
     return true;

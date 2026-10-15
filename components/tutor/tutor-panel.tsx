@@ -2,13 +2,14 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowUp, MessageCircleQuestion, Sparkles, X } from "lucide-react";
+import { ArrowUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { LessonContent } from "@/components/lesson";
 import { TutorWaiting } from "@/components/tutor/tutor-waiting";
 import { waitLines } from "@/lib/tutor/wait-lines";
 import { cn } from "@/lib/utils";
+import { Sensei } from "@/components/quest/sensei";
 
 /**
  * The Socratic tutor beside a drill. It runs on the learner's own key (Settings),
@@ -22,6 +23,18 @@ interface Turn {
   /** What the learner sees for their turn (an explain request shows as a label) */
   label?: string;
   redacted?: boolean;
+}
+
+/** The tutor's face: the Sensei's head (the same as the site's Ask the Sensei button), framed */
+function TutorFace() {
+  return (
+    <span
+      aria-hidden="true"
+      className="grid size-10 shrink-0 place-items-center rounded-sm border border-(--keyline)/40 bg-accent"
+    >
+      <Sensei head className="size-8" />
+    </span>
+  );
 }
 
 export interface TutorContext {
@@ -164,10 +177,11 @@ export function TutorPanel({
   if (needsKey) {
     if (offerHidden) return null;
     return (
-      <div className="flex items-start gap-3 rounded-md border border-dashed border-border py-3 pr-2 pl-4 text-sm text-muted-foreground">
-        <Sparkles className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-        <p className="flex-1">
-          Stuck? The AI tutor points you the right way without giving the answer away. It runs on your own API key:{" "}
+      <div className="flex items-start gap-3.5 rounded-md border border-dashed border-(--keyline)/45 py-3 pr-2 pl-3 text-sm text-muted-foreground">
+        <TutorFace />
+        <p className="flex-1 self-center leading-relaxed">
+          <span className="font-semibold text-foreground">Stuck? Ask the tutor.</span> It points you the
+          right way without giving the answer away, and runs on your own API key:{" "}
           <Link href="/settings" className="font-medium text-primary underline">
             add one in Settings
           </Link>
@@ -205,8 +219,8 @@ export function TutorPanel({
         aria-expanded={open}
         className="flex w-full items-center justify-between gap-3 rounded-md px-4 py-3 text-left hover:bg-accent/50"
       >
-        <span id="tutor-heading" className="flex items-center gap-2 text-sm font-semibold">
-          <MessageCircleQuestion className="size-4 text-primary" aria-hidden="true" />
+        <span id="tutor-heading" className="flex items-center gap-3 font-semibold">
+          <TutorFace />
           Ask the tutor
         </span>
         <span className="text-xs text-muted-foreground">It nudges; it won&apos;t write the answer</span>

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { MilestoneCelebration } from "./milestone-celebration";
+import { accountKey } from "@/lib/account-storage";
 
 const MILESTONES = [25, 50, 75, 100] as const;
 type Milestone = (typeof MILESTONES)[number];
@@ -20,7 +21,7 @@ export function MilestoneTracker({ overallPercentage }: MilestoneTrackerProps) {
     if (typeof window === "undefined") return null;
     for (const m of [...MILESTONES].reverse()) {
       if (overallPercentage >= m) {
-        const key = `milestone_seen_${m}`;
+        const key = accountKey(`milestone_seen_${m}`);
         if (!sessionStorage.getItem(key)) {
           sessionStorage.setItem(key, "1");
           return m;

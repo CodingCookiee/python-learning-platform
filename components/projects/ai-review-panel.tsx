@@ -3,11 +3,12 @@
 import { BeltLoader } from "@/components/brand/belt-loader";
 import * as React from "react";
 import Link from "next/link";
-import { Check, CircleDashed, Sparkles, X } from "lucide-react";
+import { Check, CircleDashed, X } from "lucide-react";
 import { LoadingButton } from "@/components/ui/loading-button";
 import { PendingLine } from "@/components/ui/pending-line";
 import { cn } from "@/lib/utils";
 import type { AiReview } from "@/lib/ai/reviewer";
+import { SenseiMark } from "@/components/brand/marks";
 
 type StoredReview = AiReview & { model?: string; files?: number };
 
@@ -123,7 +124,7 @@ export function AiReviewPanel({
     <section aria-labelledby="ai-review-heading" className="flex flex-col gap-4 rounded-md border border-border p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 id="ai-review-heading" className="flex items-center gap-2 text-lg font-semibold">
-          <Sparkles className="size-4 text-primary" aria-hidden="true" />
+          <SenseiMark className="size-4 text-primary" />
           AI review
         </h2>
         {aiReady && (

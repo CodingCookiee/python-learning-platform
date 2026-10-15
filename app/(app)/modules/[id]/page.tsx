@@ -17,6 +17,7 @@ import { LockedMark } from "@/components/brand/marks";
 import { beltForModule, ordinal } from "@/lib/ranks";
 import { getBeltTestOut, getCheckpointSummary, type BeltTestOut, type CheckpointSummary } from "@/lib/checkpoint";
 import { StartCheckpointButton } from "@/components/mastery/checkpoint-controls";
+import { EmptySlot } from "@/components/brand/empty-slot";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -386,17 +387,11 @@ export default async function ModuleDetailPage({ params }: PageProps) {
                   )}
                 </>
               ) : (
-                <div className="flex max-w-xs flex-col gap-2 rounded-md border border-dashed border-border p-5">
-                  <span className="flex items-center gap-2 font-semibold">
-                    <LockedMark className="size-5 text-muted-foreground" />
-                    Not open yet
-                  </span>
-                  <p className="text-sm text-muted-foreground">
-                    {isDan && !prevModule
-                      ? "The AI automation track opens once you pass Python module 14."
-                      : `Modules open in order. Pass ${prevModule ? prevModule.title : "the previous module"} to open this one.`}
-                  </p>
-                </div>
+                <EmptySlot title="Not open yet" className="max-w-sm">
+                  {isDan && !prevModule
+                    ? "The AI automation track opens once you pass Python module 14."
+                    : `Modules open in order. Pass ${prevModule ? prevModule.title : "the previous module"} to open this one.`}
+                </EmptySlot>
               )}
             </div>
           </header>

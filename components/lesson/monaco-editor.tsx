@@ -8,6 +8,7 @@ import { definePylearnThemes, MONACO_THEME } from "./monaco-theme";
 
 let snippetsRegistered = false;
 import { Monitor } from "lucide-react";
+import { accountKey } from "@/lib/account-storage";
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react").then((m) => m.default), {
   ssr: false,
@@ -162,8 +163,10 @@ export function PythonEditor({
   const [initialValue] = React.useState<string>(() => {
     if (storageKey && typeof window !== "undefined") {
       try {
-        const saved = localStorage.getItem(storageKey);
-        const savedAt = Number(localStorage.getItem(`${storageKey}:t`) ?? 0);
+        // Per account: another account's draft on this browser is never shown
+        const key = accountKey(storageKey);
+        const saved = localStorage.getItem(key);
+        const savedAt = Number(localStorage.getItem(`${key}:t`) ?? 0);
         const serverAt = valueSavedAt ? new Date(valueSavedAt).getTime() : 0;
         if (saved !== null && savedAt >= serverAt) return saved;
       } catch {
@@ -184,8 +187,9 @@ export function PythonEditor({
       if (saveTimer.current) clearTimeout(saveTimer.current);
       saveTimer.current = setTimeout(() => {
         try {
-          localStorage.setItem(storageKey, val);
-          localStorage.setItem(`${storageKey}:t`, String(Date.now()));
+          const key = accountKey(storageKey);
+          localStorage.setItem(key, val);
+          localStorage.setItem(`${key}:t`, String(Date.now()));
         } catch {
           // Out of space or blocked: the server autosave still has it
         }
@@ -271,11 +275,9 @@ export function PythonEditor({
           beforeMount={definePylearnThemes}
           onMount={handleMount}
           loading={
-            <div
-              className="animate-pulse bg-muted"
-              style={{ height: editorHeight }}
-              aria-label="Loading editor"
-            />
+            <div className="skeleton-tape w-full" style={{ height: editorHeight }} role="status">
+              <span className="sr-only">Loading the editor…</span>
+            </div>
           }
           options={{
             minimap: { enabled: false },

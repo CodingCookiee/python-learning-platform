@@ -13,7 +13,7 @@ import { ProfileCard } from "./_components/profile-card";
 import { Check } from "lucide-react";
 import { RankCard } from "@/components/brand/rank-card";
 import { AchievementPatch } from "@/components/gamification/achievement-badge";
-import { SealMark } from "@/components/brand/marks";
+import { SealMark, TapeMark } from "@/components/brand/marks";
 import { rankFromTracks } from "@/lib/learner-rank";
 import { getCurriculumState, PYTHON_TRACK } from "@/lib/curriculum-state";
 import { blackBeltIfDue } from "@/lib/black-belt";
@@ -24,6 +24,7 @@ import { CertificatesSection } from "@/components/certificates/certificates-sect
 import { StreakCalendar } from "@/components/gamification/streak-calendar";
 import { SkillMap } from "@/components/mastery/skill-map";
 import { getSkillMap } from "@/lib/skill-map";
+import { EmptySlot } from "@/components/brand/empty-slot";
 
 export const metadata: Metadata = { title: "Profile" };
 
@@ -235,10 +236,9 @@ export default async function ProfilePage() {
                   ))}
                 </ul>
               ) : (
-                <div className="flex items-center gap-3 rounded-md border border-dashed border-border p-5 text-sm text-muted-foreground">
-                  <SealMark className="size-5" />
+                <EmptySlot mark={<SealMark />}>
                   Finish your first lesson to earn your first achievement.
-                </div>
+                </EmptySlot>
               )}
             </section>
           </FadeIn>
@@ -266,9 +266,7 @@ export default async function ProfilePage() {
                   ))}
                 </ol>
               ) : (
-                <p className="rounded-md border border-dashed border-border p-5 text-sm text-muted-foreground">
-                  Lessons you finish show up here.
-                </p>
+                <EmptySlot mark={<TapeMark />}>Lessons you finish show up here.</EmptySlot>
               )}
             </section>
           </FadeIn>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { accountKey } from "@/lib/account-storage";
 
 interface PingResponse {
   currentStreak: number;
@@ -22,7 +23,7 @@ interface PingResponse {
  */
 export function StreakPing() {
   useEffect(() => {
-    const SESSION_KEY = "streak_pinged";
+    const SESSION_KEY = accountKey("streak_pinged");
 
     if (sessionStorage.getItem(SESSION_KEY)) {
       return; // Already pinged this session

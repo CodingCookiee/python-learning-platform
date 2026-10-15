@@ -11,9 +11,7 @@ import {
   Check,
   ChevronDown,
   Clock,
-  Eye,
   Lock,
-  Lightbulb,
   Play,
   Repeat,
   RotateCcw,
@@ -25,7 +23,7 @@ import { PendingLine } from "@/components/ui/pending-line";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { LessonContent, PythonEditor, languageFor } from "@/components/lesson";
-import { TapeMark } from "@/components/brand/marks";
+import { TapeMark, SenseiMark, SheetMark } from "@/components/brand/marks";
 import { Seal } from "@/components/brand/seal";
 import {
   AchievementNotificationQueue,
@@ -195,7 +193,7 @@ function Hints({ hints, used, onReveal }: { hints: string[]; used: number; onRev
   return (
     <section aria-labelledby={headingId} className="rounded-md border border-border bg-sheet p-4">
       <h2 id={headingId} className="flex items-center gap-2 text-base font-semibold">
-        <Lightbulb className="size-4 text-(--code-string)" aria-hidden="true" />
+        <SenseiMark className="size-4" />
         Hints
       </h2>
       {used > 0 && (
@@ -1574,7 +1572,7 @@ export function ExerciseClient({
             className="flex w-full items-center justify-between rounded-md px-4 py-3 text-left text-sm font-semibold hover:bg-accent/50"
           >
             <span className="flex items-center gap-2">
-              <Eye className="size-4 text-muted-foreground" aria-hidden="true" />
+              <SheetMark className="size-4 text-muted-foreground" />
               {solved ? "Compare with the reference solution" : "Show the reference solution"}
             </span>
             <ChevronDown

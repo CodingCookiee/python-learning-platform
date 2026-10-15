@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bell, FileUp, UserPlus } from "lucide-react";
+import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import type { AdminNotice } from "@/lib/admin/notifications";
+import { RankMark, SheetMark } from "@/components/brand/marks";
 
 /** How often the closed bell asks for its count, while the tab is in view */
 const POLL_MS = 60_000;
@@ -29,7 +30,7 @@ export function timeAgo(iso: string): string {
 }
 
 export function NoticeIcon({ kind }: { kind: AdminNotice["kind"] }) {
-  const Icon = kind === "signup" ? UserPlus : FileUp;
+  const Icon = kind === "signup" ? RankMark : SheetMark;
   return <Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />;
 }
 

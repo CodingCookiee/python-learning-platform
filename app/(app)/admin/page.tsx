@@ -1,17 +1,15 @@
 import type { Metadata } from "next";
 import { requireAdminPage } from "@/lib/admin/guard";
-import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, GitBranch, FileUp } from "lucide-react";
-import { auth } from "@/auth";
-import { isAdmin } from "@/lib/api-auth";
+import { ArrowRight, GitBranch } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import { Button } from "@/components/ui/button";
 import { AdminHeader } from "@/components/admin/admin-header";
-import { SealMark } from "@/components/brand/marks";
+import { SealMark, SheetMark } from "@/components/brand/marks";
 import type { Prisma } from "@/lib/generated/prisma/client";
 import { overviewStats } from "@/lib/admin/users";
+import { EmptySlot } from "@/components/brand/empty-slot";
 
 export const metadata: Metadata = { title: "Admin" };
 
@@ -222,7 +220,7 @@ export default async function AdminDashboardPage() {
                             {viaGithub ? (
                               <GitBranch className="size-4" aria-label="GitHub link" />
                             ) : (
-                              <FileUp className="size-4" aria-label="File upload" />
+                              <SheetMark className="size-4" title="File upload" />
                             )}
                             {formatDate(s.submittedAt)}
                           </span>
@@ -232,10 +230,9 @@ export default async function AdminDashboardPage() {
                   })}
                 </ol>
               ) : (
-                <div className="flex items-center gap-3 rounded-md border border-dashed border-border p-5 text-sm text-muted-foreground">
-                  <SealMark className="size-5" />
+                <EmptySlot mark={<SealMark />}>
                   The desk is clear. {approved > 0 ? `${approved} capstones approved so far.` : ""}
-                </div>
+                </EmptySlot>
               )}
             </section>
           </FadeIn>

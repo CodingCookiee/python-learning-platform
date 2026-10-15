@@ -7,7 +7,8 @@ import { requireAdminPage } from "@/lib/admin/guard";
 import { listNotifications, unreadCount } from "@/lib/admin/notifications";
 import { prisma } from "@/lib/prisma";
 import { cn } from "@/lib/utils";
-import { FileUp, UserPlus } from "lucide-react";
+import { EmptySlot } from "@/components/brand/empty-slot";
+import { KnotMark, RankMark, SheetMark } from "@/components/brand/marks";
 
 export const metadata: Metadata = { title: "Notifications (admin)" };
 
@@ -48,14 +49,14 @@ export default async function AdminNotificationsPage() {
               {unread > 0 ? `${unread} unread · ` : ""}latest {items.length}
             </h2>
             {items.length === 0 ? (
-              <p className="rounded-md border border-dashed border-border p-6 text-sm text-muted-foreground">
+              <EmptySlot mark={<KnotMark />}>
                 Nothing yet. When someone signs up or hands in a capstone, it shows up here and on
                 the bell.
-              </p>
+              </EmptySlot>
             ) : (
               <ol className="flex flex-col border-t border-border">
                 {items.map((n) => {
-                  const Icon = n.kind === "signup" ? UserPlus : FileUp;
+                  const Icon = n.kind === "signup" ? RankMark : SheetMark;
                   return (
                     <li key={n.id}>
                       <Link

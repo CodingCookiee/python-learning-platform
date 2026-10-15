@@ -143,7 +143,7 @@ export function AdminAction({
       {confirm ? (
         <AlertDialog open={open} onOpenChange={(o) => !busy && setOpen(o)}>
           <AlertDialogTrigger asChild>{button}</AlertDialogTrigger>
-          <AlertDialogContent>
+          <AlertDialogContent tone={confirm.destructive ? "destructive" : undefined}>
             <AlertDialogHeader>
               <AlertDialogTitle>{confirm.title}</AlertDialogTitle>
               <AlertDialogDescription asChild>

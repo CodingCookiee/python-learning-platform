@@ -7,6 +7,16 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { XIcon } from "lucide-react";
 
+/**
+ * The belt edge every dialog wears across its top: a band in the learner's own belt (BeltTheme sets
+ * it; jade before sign-in) with its rank bar, drawn in globals.css (.belt-edge). A destructive
+ * confirmation wears red instead.
+ */
+export const dialogEdge = "belt-edge";
+
+/** The ground under a dialog: forest ink, never raw black (DESIGN.md, the Float Rule) */
+export const dialogScrim = "bg-[color-mix(in_oklch,var(--shadow-ink)_55%,transparent)]";
+
 function Dialog({ ...props }: React.ComponentProps<typeof DialogPrimitive.Root>) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />;
 }
@@ -31,7 +41,8 @@ function DialogOverlay({
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
       className={cn(
-        "fixed inset-0 isolate z-50 bg-black/20 duration-100 supports-backdrop-filter:backdrop-blur-sm data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+        "fixed inset-0 isolate z-50 duration-100 supports-backdrop-filter:backdrop-blur-[2px] data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+        dialogScrim,
         className
       )}
       {...props}
@@ -53,7 +64,8 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "fixed left-[50%] top-[50%] z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 grid gap-6 rounded-md border border-border bg-sheet p-6 shadow-overlay duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+          dialogEdge,
+          "fixed left-[50%] top-[50%] z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 grid gap-6 rounded-md border border-border bg-sheet p-6 pt-8 shadow-overlay duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
           className
         )}
         {...props}
@@ -107,7 +119,7 @@ function DialogTitle({ className, ...props }: React.ComponentProps<typeof Dialog
     <DialogPrimitive.Title
       data-slot="dialog-title"
       className={cn(
-        "text-lg leading-snug font-semibold tracking-[-0.01em]",
+        "font-condensed text-2xl leading-tight font-extrabold tracking-[-0.015em] text-balance",
         className
       )}
       {...props}

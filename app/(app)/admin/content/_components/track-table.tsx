@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { EmptySlot } from "@/components/brand/empty-slot";
+import { KnotMark } from "@/components/brand/marks";
 
 export interface TrackTableData {
   id: string;
@@ -30,9 +32,7 @@ export function TrackTable({ track }: { track: TrackTableData }) {
       </div>
 
       {track.modules.length === 0 ? (
-        <p className="rounded-md border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
-          No modules in this track yet.
-        </p>
+        <EmptySlot mark={<KnotMark />}>No modules in this track yet.</EmptySlot>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[40rem] border-collapse text-left">

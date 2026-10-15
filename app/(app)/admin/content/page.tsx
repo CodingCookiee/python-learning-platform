@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
 import { requireAdminPage } from "@/lib/admin/guard";
-import { redirect } from "next/navigation";
-import { auth } from "@/auth";
-import { isAdmin } from "@/lib/api-auth";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { prisma } from "@/lib/prisma";
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { TrackTable } from "./_components/track-table";
 import { RefreshPublicPages } from "./_components/refresh-public-pages";
+import { EmptySlot } from "@/components/brand/empty-slot";
+import { KnotMark } from "@/components/brand/marks";
 
 export const metadata: Metadata = { title: "Content (admin)" };
 
@@ -88,9 +87,9 @@ export default async function ContentManagementPage() {
         <FadeIn delay={0.1}>
           <div className="flex flex-col gap-12">
             {rows.length === 0 ? (
-              <p className="rounded-md border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
-                No tracks yet. Run the content sync to load them.
-              </p>
+              <EmptySlot center mark={<KnotMark />} title="No tracks yet">
+                Run the content sync to load them.
+              </EmptySlot>
             ) : (
               rows.map((track) => <TrackTable key={track.id} track={track} />)
             )}

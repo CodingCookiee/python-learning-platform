@@ -19,7 +19,8 @@ import {
   LessonCompleteButton,
 } from "@/components/lesson";
 import { FadeIn, StaggerContainer } from "@/components/animations";
-import { LockedMark, TapeMark } from "@/components/brand/marks";
+import { TapeMark } from "@/components/brand/marks";
+import { EmptySlot } from "@/components/brand/empty-slot";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -181,15 +182,9 @@ export default async function LessonPage({ params }: PageProps) {
                 }
               >
                 {!lesson.moduleUnlocked && (
-                  <div className="mb-10 flex max-w-[70ch] items-start gap-3 rounded-md border border-dashed border-border bg-sheet p-5">
-                    <LockedMark className="mt-0.5 size-5 text-muted-foreground" />
-                    <div className="flex flex-col gap-1">
-                      <p className="font-semibold">Not open yet</p>
-                      <p className="text-sm text-muted-foreground">
-                        Pass the earlier modules to open this one. You can still read ahead.
-                      </p>
-                    </div>
-                  </div>
+                  <EmptySlot title="Not open yet" className="mb-10 max-w-[70ch] bg-sheet">
+                    Pass the earlier modules to open this one. You can still read ahead.
+                  </EmptySlot>
                 )}
                 <LessonContent content={lesson.content} />
               </LessonWorkspace>

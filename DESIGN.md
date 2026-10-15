@@ -411,9 +411,11 @@ Buttons are firm and square-shouldered, with no ornament.
 
 ### Overlays
 These are the only surfaces that cast a shadow (see The Float Rule).
-- **Dialog / Alert dialog:** Centred on Sheet, up to 28rem wide (with 1rem clear on each side on phones), with 3px corners, a hairline border, 24px padding, a 24px internal gap and `shadow-overlay`. It fades and zooms in from 95% over 200ms.
+- **Dialog / Alert dialog:** Centred on Sheet, up to 28rem wide (with 1rem clear on each side on phones), with 3px corners, a hairline border, 24px padding (32px at the top), a 24px internal gap and `shadow-overlay`. It fades and zooms in from 95% over 200ms. The ground under it is Shadow Ink at 55%, never raw black. Its title is condensed extrabold at 24px, left-aligned on every screen. It wears the **belt edge**.
+- **Belt edge** (`.belt-edge` in globals.css): a 6px band across the top of a dialog (4px on menus) in the learner's own belt (`--loader-belt`; jade before sign-in), keylined at 60%, with a 2.5rem rank bar at its tail in Belt Black (jade on a black belt), so it reads as a belt even when the belt is white. A destructive confirmation (`tone="destructive"`) wears Clay and drops the bar. Dropdown menus and selects wear it too.
+- **Tooltip:** an ink slip (Forest Ink, square) with a 2px band of the learner's belt along its top, like a tag tied to the belt.
 - **Search sheet:** Sheet with 3px corners, a hairline border and `shadow-overlay`, up to 36rem wide.
-- **Toast:** Sheet with 3px corners, a hairline border and `shadow-float`, up to 24rem wide with 12px by 16px padding. A 16px status icon leads the toast: Pass Green for success, Clay for an error, jade for information.
+- **Toast:** Sheet with a hairline border and `shadow-float`, up to 24rem wide. A 36px belt-end rail leads it in its tone, carrying a mark: the SealMark on Seal Jade for done, the SnagMark on Clay for a snag, the KnotMark on the learner's belt for a notice. A 2px strip of the same tone along its foot runs out with the time it stays up.
 
 ### Belt Band (signature)
 One belt of cloth: the dye fill, the keyline, the stitch rows, and a tail rank bar with tape stripes (see Shapes). Earned stripes are Tape. A stripe that has just been earned is Straw and plays **tape-on**: it is revealed top-down by `clip-path` while it drops 6px, over 420ms on the expo-out curve. A fading stripe (skill due for review) is at 35% opacity. The band drives the belt ladder, syllabus rows, auth panel and rank figures.
@@ -438,8 +440,20 @@ pylearn's own glyphs for the concepts it owns (`components/brand/marks.tsx`). Th
 - **RankMark** (a belt end with its rank bar and two stripes): rank at icon size, where a Belt Band will not fit. It is authored but not yet placed in the app. Use it before drawing a new rank glyph.
 - **SealMark** (the examiner's square seal, tilted -7deg, with an inner square): anything passed or awarded. It is used on passed modules in syllabus progress, the Achievements item in the mobile menu, the dashed empty states for achievements and the admin review desk and queue, and the "Approve and stamp" button. It is also the fallback icon for any unknown achievement.
 - **LockedMark** (a dashed, untied belt band): anything not yet open. It is used on locked modules, lessons, lesson-sidebar items and search results. Give it `title="Locked"` when it is the only signal.
+- **SenseiMark** (the guide's round head with its topknot): the AI's help, which speaks as the sensei. It is used on lesson tips, drill hints, the AI reviews and the examiner's Grade with AI. Where the tutor offers itself on a drill, it shows the Sensei's illustrated head instead, framed in a 40px Jade Wash tile, as the site's Ask the Sensei button does.
+- **SheetMark** (a ruled syllabus page): records and paperwork: the audit log, uploaded capstone files, hand-in notifications, and the reference solution.
+- **SnagMark** (a belt cut through) and **KnotMark** (the mark in outline): a toast's error and notice, and the admin's content and notification empty states.
 
 **The Own Marks Rule.** Streak, XP, rank, passed and locked are drawn with the marks and nothing else. Subject matter (databases, testing, the web) uses lucide line icons at the same stroke weight. Emoji are never icons.
+
+### Empty Slot
+What a section shows before there is anything in it (`components/brand/empty-slot.tsx`): the dashed "not yet" edge the dan track and locked patches wear (Keyline at 45%, 3px corners), with a mark set in a 40px dashed empty patch, as if waiting to be sewn on. It says what will fill it and, where there is one, the step that gets there (an outline button). `center` makes it the taller, centred version for a page's main list, such as the examiner's queue. Never hand-build a dashed box: use the slot.
+
+### Skeleton
+Loading placeholders are Muted cloth with a strip of Tape drawn slowly across them (`.skeleton-tape`, 2.2s, eased), as a stripe is laid on a belt, never a grey pulse. At night the strip is Tape at 14%. With reduced motion they hold still.
+
+### Celebration
+A pass, a project or a new belt is celebrated with falling offcuts of belt cloth and tape (`components/brand/tape-fall.ts`), never round confetti: strips 6 to 9px wide and 16 to 30px long in the belt dyes and Tape, half in the learner's own belt, a third with a Belt Black rank bar at one end, each keylined and twisting like ribbon as it falls. With reduced motion there is no fall.
 
 ### Achievement Patch
 An achievement is an embroidered patch: square-cut cloth in its tier's colour, with a 2px thread border, 4px of padding and an inner 1px dashed stitch line at 35% of the ink. There are three sizes: small (56px, 22px icon) at the head of every achievement row on the achievements page, dashboard and profile; medium (80px, 32px icon), the default; and large (112px, 44px icon) for the unlock modal. Patches sit at the head of ruled rows, never in a grid of cards. When the patch is wrapped in its tooltip (`AchievementBadge`), the tooltip gives the name, the description and a condensed tabular line ("Gold · 50 XP", with "· locked" appended when it is locked).

@@ -12,6 +12,9 @@ const SECURITY_HEADERS = [
 ];
 
 const nextConfig: NextConfig = {
+  // A local production build for tests can go to its own folder (NEXT_DIST_DIR=.next-e2e), so it
+  // never overwrites what a running `next dev` is serving from .next
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },

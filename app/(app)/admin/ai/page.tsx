@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import { requireAdminPage } from "@/lib/admin/guard";
-import { redirect } from "next/navigation";
 import Link from "next/link";
-import { auth } from "@/auth";
-import { isAdmin } from "@/lib/api-auth";
 import { getAiUsageReport, type UsageTotals } from "@/lib/ai/usage-report";
 import { DAILY_CALL_LIMIT } from "@/lib/ai/credentials";
 import { PROVIDER_LABEL, type Provider } from "@/lib/ai/gateway";

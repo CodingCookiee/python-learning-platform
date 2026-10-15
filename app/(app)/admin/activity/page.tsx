@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { requireAdminPage } from "@/lib/admin/guard";
 import { ACTION_LABEL, listActions } from "@/lib/admin/users";
 import { prisma } from "@/lib/prisma";
+import { EmptySlot } from "@/components/brand/empty-slot";
+import { SheetMark } from "@/components/brand/marks";
 
 export const metadata: Metadata = { title: "Activity (admin)" };
 
@@ -81,10 +83,10 @@ export default async function AdminActivityPage({
               )}
             </div>
             {rows.length === 0 ? (
-              <p className="rounded-md border border-dashed border-border p-6 text-sm text-muted-foreground">
+              <EmptySlot mark={<SheetMark />}>
                 No admin actions yet. Suspensions, role changes, granted passes and revoked
                 certificates are recorded here.
-              </p>
+              </EmptySlot>
             ) : (
               <ol className="flex flex-col border-t border-border">
                 {rows.map((r) => {

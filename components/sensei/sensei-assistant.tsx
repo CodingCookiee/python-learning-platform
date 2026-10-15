@@ -12,6 +12,7 @@ import { PendingLine } from "@/components/ui/pending-line";
 import { LessonContent } from "@/components/lesson";
 import { Sensei } from "@/components/quest/sensei";
 import { cn } from "@/lib/utils";
+import { accountKey } from "@/lib/account-storage";
 
 /**
  * The Sensei: a guide on every signed-in page, in the bottom-left corner (the quest has the
@@ -36,7 +37,7 @@ const STARTERS = [
 
 function readTurns(): Turn[] {
   try {
-    const raw = sessionStorage.getItem(STORE_KEY);
+    const raw = sessionStorage.getItem(accountKey(STORE_KEY));
     const parsed = raw ? (JSON.parse(raw) as unknown) : [];
     return Array.isArray(parsed)
       ? (parsed.filter(
@@ -50,7 +51,7 @@ function readTurns(): Turn[] {
 
 function saveTurns(turns: Turn[]) {
   try {
-    sessionStorage.setItem(STORE_KEY, JSON.stringify(turns.slice(-24)));
+    sessionStorage.setItem(accountKey(STORE_KEY), JSON.stringify(turns.slice(-24)));
   } catch {
     // Kept for this page only
   }

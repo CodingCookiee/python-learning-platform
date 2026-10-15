@@ -1,25 +1,22 @@
 import Link from "next/link";
-import { SealMark } from "@/components/brand/marks";
+import { SealMark, RankMark } from "@/components/brand/marks";
 import { ordinal } from "@/lib/ranks";
 import type { SkillMap as SkillMapData } from "@/lib/skill-map";
+import { EmptySlot } from "@/components/brand/empty-slot";
 
 function pct(strength: number) {
   return Math.round(strength * 100);
 }
 
-/**
- * How firmly each open module and its common topics are held. Solving a drill
- * fills 40% of it; surviving spaced reviews fills the rest. Warm-ups and predict drills don't
- * count, so until one that does is solved the map says so rather than showing empty bars.
- */
 export function SkillMap({ map }: { map: SkillMapData }) {
   if (map.modules.length === 0) return null;
   if (map.counted === 0) {
     return (
-      <p className="max-w-[65ch] rounded-md border border-dashed border-border p-5 text-sm leading-relaxed text-muted-foreground">
-        The map fills from your first core or stretch drill: solving one fills 40% of its topics, and each review it
-        survives fills more. Warm-ups and predict drills are practice and don&apos;t count here.
-      </p>
+      <EmptySlot mark={<RankMark />}>
+        The map fills from your first core or stretch drill: solving one fills 40% of its topics,
+        and each review it survives fills more. Warm-ups and predict drills are practice and
+        don&apos;t count here.
+      </EmptySlot>
     );
   }
   return (
@@ -32,7 +29,11 @@ export function SkillMap({ map }: { map: SkillMapData }) {
               className="grid grid-cols-[3.25rem_minmax(0,1fr)_7rem_2.75rem] items-center gap-x-3 py-2.5 text-sm hover:text-primary"
             >
               <span className="font-condensed tabular text-muted-foreground">
-                {m.grade === "dan" ? `${ordinal(m.order + 1)} dan` : m.grade === "none" ? "Start" : String(m.order).padStart(2, "0")}
+                {m.grade === "dan"
+                  ? `${ordinal(m.order + 1)} dan`
+                  : m.grade === "none"
+                    ? "Start"
+                    : String(m.order).padStart(2, "0")}
               </span>
               <span className="flex min-w-0 items-center gap-1.5 truncate">
                 <span className="truncate">{m.title}</span>
@@ -43,9 +44,14 @@ export function SkillMap({ map }: { map: SkillMapData }) {
                 role="img"
                 aria-label={`${pct(m.strength)}% held, ${m.solved} of ${m.drills} drills solved`}
               >
-                <span className="block h-full bg-primary" style={{ width: `${pct(m.strength)}%` }} />
+                <span
+                  className="block h-full bg-primary"
+                  style={{ width: `${pct(m.strength)}%` }}
+                />
               </span>
-              <span className="font-condensed tabular text-right text-muted-foreground">{pct(m.strength)}%</span>
+              <span className="font-condensed tabular text-right text-muted-foreground">
+                {pct(m.strength)}%
+              </span>
             </Link>
           </li>
         ))}
@@ -54,8 +60,8 @@ export function SkillMap({ map }: { map: SkillMapData }) {
       {map.tags.length > 0 && (
         <div className="flex flex-col gap-3">
           <p className="text-sm text-muted-foreground">
-            Topics across your open modules, strongest first. Solving a core or stretch drill fills 40%; each review it
-            survives fills more. Warm-ups don&apos;t count.
+            Topics across your open modules, strongest first. Solving a core or stretch drill fills
+            40%; each review it survives fills more. Warm-ups don&apos;t count.
           </p>
           <ul className="flex flex-wrap gap-2" role="list">
             {map.tags.map((t) => (
@@ -68,7 +74,9 @@ export function SkillMap({ map }: { map: SkillMapData }) {
                 title={`${pct(t.strength)}% held across ${t.drills} drills`}
               >
                 {t.tag}
-                <span className="font-condensed tabular ml-1.5 text-xs text-muted-foreground">{pct(t.strength)}%</span>
+                <span className="font-condensed tabular ml-1.5 text-xs text-muted-foreground">
+                  {pct(t.strength)}%
+                </span>
               </li>
             ))}
           </ul>

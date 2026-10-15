@@ -24,6 +24,7 @@ import {
 import { signOut } from "next-auth/react";
 import { AiSettings } from "./ai-settings";
 import type { CredentialSummary, UsageSummary } from "@/lib/ai/credentials";
+import { forgetAccountStorage } from "@/lib/account-storage";
 
 interface SettingsClientProps {
   initialName: string;
@@ -157,7 +158,8 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
     try {
       const res = await fetch("/api/settings/delete", { method: "DELETE" });
       if (res.ok) {
-        // Deleted: busy until signing out takes the browser to the home page
+        // Deleted: nothing of the account stays in the browser, then signing out takes it home
+        forgetAccountStorage();
         await signOut({ callbackUrl: "/" });
         return;
       }
@@ -334,7 +336,7 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
                 Delete my account
               </LoadingButton>
             </AlertDialogTrigger>
-            <AlertDialogContent>
+            <AlertDialogContent tone="destructive">
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete your account?</AlertDialogTitle>
                 <AlertDialogDescription>

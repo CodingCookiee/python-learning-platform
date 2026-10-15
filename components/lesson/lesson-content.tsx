@@ -8,11 +8,12 @@ import type { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import rehypeHighlight from "rehype-highlight";
-import { ChevronDown, Info, Lightbulb, TriangleAlert } from "lucide-react";
+import { ChevronDown, Info, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CodeBlock, CopyableCode, RunnableExamples } from "@/components/lesson/code-block";
 import { QuizCheck } from "@/components/lesson/quiz-check";
 import remarkPylearn from "@/components/lesson/remark-pylearn";
+import { SenseiMark } from "@/components/brand/marks";
 
 // Helpers
 
@@ -174,7 +175,7 @@ const CALLOUTS = {
   },
   tip: {
     label: "Tip",
-    Icon: Lightbulb,
+    Icon: SenseiMark,
     className: "border-border bg-accent/45 text-foreground [&>svg]:text-(--code-string)",
   },
   warning: {

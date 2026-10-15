@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 /**
  * A password field with a Show / Hide switch on its right edge, so a learner can check what they
  * typed (on a phone especially) instead of being made to type it twice blind. The switch is plain
- * words in the condensed face, not an eye icon.
+ * words, not an eye icon, in sentence case (uppercase belongs to the seal alone).
  */
 export function PasswordInput({
   className,
@@ -28,7 +28,7 @@ export function PasswordInput({
         aria-controls={props.id}
         aria-label={`${shown ? "Hide" : "Show"} ${what}`}
         disabled={props.disabled}
-        className="font-condensed absolute inset-y-1 right-1 rounded-sm px-2.5 text-xs font-bold tracking-[0.08em] text-muted-foreground uppercase transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-50"
+        className="absolute inset-y-1 right-1 rounded-sm px-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-50"
       >
         {shown ? "Hide" : "Show"}
       </button>

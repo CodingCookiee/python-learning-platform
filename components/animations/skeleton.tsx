@@ -5,7 +5,7 @@ interface SkeletonProps {
 }
 
 export function Skeleton({ className }: SkeletonProps) {
-  return <div className={cn("animate-pulse bg-muted rounded-none", className)} />;
+  return <div aria-hidden="true" className={cn("skeleton-tape rounded-sm", className)} />;
 }
 
 export function SkeletonCard({ className }: SkeletonProps) {

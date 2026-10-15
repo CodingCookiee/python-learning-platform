@@ -7,6 +7,7 @@ import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { startNavigation } from "@/components/layout/navigation-progress";
+import { forgetAccountStorage } from "@/lib/account-storage";
 
 /**
  * Signing out, kept outside the menu: the account menu can be closed while the sign-out is on its
@@ -48,6 +49,8 @@ function begin(event: React.MouseEvent) {
     return;
   }
   setSigningOut(true);
+  // This account's drafts and Sensei chat don't stay behind for whoever uses the browser next
+  forgetAccountStorage();
   startNavigation();
 }
 

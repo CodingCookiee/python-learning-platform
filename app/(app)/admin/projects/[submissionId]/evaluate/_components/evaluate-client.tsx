@@ -19,9 +19,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Spinner } from "@/components/brand/knot-loader";
-import { Check, ChevronDown, ExternalLink, FileText, ListChecks, PenLine, Sparkles } from "lucide-react";
+import { Check, ChevronDown, ExternalLink, FileText, ListChecks, PenLine } from "lucide-react";
 import { Seal } from "@/components/brand/seal";
-import { SealMark } from "@/components/brand/marks";
+import { SealMark, SenseiMark } from "@/components/brand/marks";
 import { draftFeedback, isReadableSource, matchCriteria } from "@/lib/ai/reviewer";
 import { cn } from "@/lib/utils";
 import type { SubmissionDetail } from "../page";
@@ -94,7 +94,7 @@ function ExaminerAiReview({
             onClick={() => void run()}
             loading={busy}
             loadingText="Reviewing…"
-            icon={<Sparkles aria-hidden="true" />}
+            icon={<SenseiMark />}
           >
             {review ? "Review again" : "Review with AI"}
           </LoadingButton>

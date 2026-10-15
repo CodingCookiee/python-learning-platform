@@ -16,6 +16,7 @@ import { getPythonRuntime } from "@/lib/python-runtime";
 import { usePyodide } from "@/lib/pyodide";
 import { questAction, questWorking } from "@/lib/quest-steps";
 import { cn } from "@/lib/utils";
+import { accountKey } from "@/lib/account-storage";
 
 const OPEN_KEY = "pylearn:scratchpad-open";
 
@@ -138,8 +139,9 @@ export function LessonWorkspace({
         setCode(snippet);
         // Remount the editor so it shows the new code rather than its saved copy
         try {
-          localStorage.setItem(`scratch-${lessonId}`, snippet);
-          localStorage.setItem(`scratch-${lessonId}:t`, String(Date.now()));
+          const key = accountKey(`scratch-${lessonId}`);
+          localStorage.setItem(key, snippet);
+          localStorage.setItem(`${key}:t`, String(Date.now()));
         } catch {
           // The editor still shows it
         }

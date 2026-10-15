@@ -7,15 +7,21 @@ import { QuestPanel } from "@/components/quest/quest-panel";
 import { SkipLink } from "@/components/layout/skip-link";
 import { HashScroll } from "@/components/layout/hash-scroll";
 import { SenseiAssistant } from "@/components/sensei/sensei-assistant";
+import { auth } from "@/auth";
+import { AccountStorageSweep } from "@/components/layout/account-storage-sweep";
 
-export default function AppLayout({
+export default async function AppLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Marks the page with the signed-in account, so per-account browser storage (drafts, the Sensei's
+  // chat) is keyed to it (lib/account-storage.ts)
+  const session = await auth();
   return (
     <ToastProvider>
-      <div className="flex min-h-dvh flex-col">
+      <div className="flex min-h-dvh flex-col" data-account={session?.user?.id ?? ""}>
+        <AccountStorageSweep />
         {/* Silent client component: pings streak endpoint once per browser session */}
         <StreakPing />
         {/* A link to a #section of another page lands on it once the page has streamed in */}

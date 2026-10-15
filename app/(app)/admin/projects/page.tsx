@@ -8,10 +8,11 @@ import { isAdmin } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { FadeIn, StaggerContainer } from "@/components/animations";
-import { ArrowRight, FileUp, GitBranch } from "lucide-react";
+import { ArrowRight, GitBranch } from "lucide-react";
 import { AdminHeader } from "@/components/admin/admin-header";
-import { SealMark } from "@/components/brand/marks";
+import { SealMark, SheetMark } from "@/components/brand/marks";
 import type { EvaluationListItem } from "@/app/api/admin/projects/submissions/route";
+import { EmptySlot } from "@/components/brand/empty-slot";
 
 export const metadata: Metadata = { title: "Capstone submissions (admin)" };
 
@@ -69,13 +70,9 @@ export default async function AdminProjectsPage() {
 
         <FadeIn delay={0.05}>
           {submissions.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 rounded-md border border-dashed border-border py-16 text-center">
-              <SealMark className="size-8 text-muted-foreground" />
-              <p className="font-semibold">The queue is empty.</p>
-              <p className="text-sm text-muted-foreground">
-                New capstone submissions land here for review.
-              </p>
-            </div>
+            <EmptySlot center mark={<SealMark />} title="The queue is empty.">
+              New capstone submissions land here for review.
+            </EmptySlot>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[44rem] border-collapse text-left">
@@ -131,7 +128,7 @@ export default async function AdminProjectsPage() {
                             </>
                           ) : (
                             <>
-                              <FileUp className="size-4 text-muted-foreground" aria-hidden="true" />
+                              <SheetMark className="size-4 text-muted-foreground" />
                               Files
                             </>
                           )}

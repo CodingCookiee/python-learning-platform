@@ -100,3 +100,25 @@ export function KnotMark(props: MarkProps) {
     </Mark>
   );
 }
+
+/** Sensei: the guide's head and topknot, for the AI help (the Sensei, the drill tutor, hints) */
+export function SenseiMark(props: MarkProps) {
+  return (
+    <Mark {...props}>
+      <circle cx="12" cy="4.75" r="2" fill="currentColor" />
+      <circle cx="12" cy="13.5" r="6.75" />
+      <path d="M5.4 12.2 C9.2 10.2 14.8 10.2 18.6 12.2" />
+      <path d="M10.2 16.6 Q12 17.8 13.8 16.6" strokeLinecap="round" strokeWidth={1.5} />
+    </Mark>
+  );
+}
+
+/** Sheet: a ruled page of the syllabus, for records, hand-ins and reference answers */
+export function SheetMark(props: MarkProps) {
+  return (
+    <Mark {...props}>
+      <rect x="5.5" y="3.5" width="13" height="17" />
+      <path d="M8.5 8.5 H15.5 M8.5 12 H15.5 M8.5 15.5 H12.5" strokeWidth={1.5} />
+    </Mark>
+  );
+}
