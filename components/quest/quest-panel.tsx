@@ -29,6 +29,10 @@ import {
   currentStep,
   QUEST_ACTION_EVENT,
   QUEST_BADGE,
+  QUEST_BUG_EVENT,
+  nextBugStage,
+  type BugMoment,
+  type BugStage,
   QUEST_REFRESH_EVENT,
   QUEST_WORKING_EVENT,
   questAction,
@@ -162,6 +166,8 @@ export function QuestPanel() {
   const recordRef = React.useRef<(step: StepKey) => void>(() => {});
   // A step's work in progress (Run pressed): the sensei says what's happening while it runs
   const [working, setWorking] = React.useState<{ step: StepKey; cold: boolean } | null>(null);
+  // Where step 4 has got to on its bug drill (run it, read the error, fix it, run the tests)
+  const [bug, setBug] = React.useState<{ path: string; stage: BugStage } | null>(null);
   // A step being recorded ("Got it" on the tour), and a skip on its way (or one that didn't land)
   const [posting, setPosting] = React.useState<StepKey | null>(null);
   const [skipping, setSkipping] = React.useState(false);
@@ -287,11 +293,22 @@ export function QuestPanel() {
         setHeldFor(null);
       }
     };
+    const onBug = (event: Event) => {
+      const moment = (event as CustomEvent<{ moment?: BugMoment }>).detail?.moment;
+      if (!moment) return;
+      const path = window.location.pathname;
+      setBug((now) => {
+        const stage = nextBugStage(moment);
+        return now?.path === path && now.stage === stage ? now : { path, stage };
+      });
+    };
+    window.addEventListener(QUEST_BUG_EVENT, onBug);
     window.addEventListener(QUEST_REFRESH_EVENT, onRefresh);
     window.addEventListener(QUEST_ACTION_EVENT, onAction);
     window.addEventListener(QUEST_WORKING_EVENT, onWorking);
     document.addEventListener("focusin", onFocus);
     return () => {
+      window.removeEventListener(QUEST_BUG_EVENT, onBug);
       window.removeEventListener(QUEST_REFRESH_EVENT, onRefresh);
       window.removeEventListener(QUEST_ACTION_EVENT, onAction);
       window.removeEventListener(QUEST_WORKING_EVENT, onWorking);
@@ -375,7 +392,13 @@ export function QuestPanel() {
   const total = STEPS.length;
   const position = STEPS.findIndex((s) => s.key === step.key) + 1;
   const touring = step.key === "progress" && pathname === "/dashboard";
-  const stop = touring ? SENSEI.tour[Math.min(tour, SENSEI.tour.length - 1)]! : null;
+  // On the bug drill, step 4 walks through its stages; the step ticks only when the tests pass
+  const fixing = step.key === "fix-bug" && pathname === step.href;
+  const stop = touring
+    ? SENSEI.tour[Math.min(tour, SENSEI.tour.length - 1)]!
+    : fixing
+      ? SENSEI.bug[bug?.path === pathname ? bug.stage : "look"]
+      : null;
   const target = stop?.target ?? step.target;
   // Where this step can be done right here: any lesson's examples and scratchpad, any drill for the
   // first pass, the path's own bug drill, and the dashboard's record
@@ -473,7 +496,7 @@ export function QuestPanel() {
               aria-hidden="true"
               className="absolute top-5 -left-[7px] size-3 rotate-45 border-b border-l border-border bg-background"
             />
-            <p className="mb-1 font-semibold">{stop ? stop.pointer : step.title}</p>
+            <p className="mb-1 font-semibold">{touring && stop ? stop.pointer : step.title}</p>
             {lines.map((line) => (
               <p key={line} className="text-pretty [&+p]:mt-1.5">
                 {line}

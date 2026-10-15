@@ -3,6 +3,7 @@ import { Logo } from "@/components/brand/logo";
 import { BeltBand } from "@/components/brand/belt";
 import { BELTS, kyuRange } from "@/lib/ranks";
 import { SkipLink } from "@/components/layout/skip-link";
+import { ResetSigningOut } from "@/components/layout/sign-out";
 
 /**
  * Two-panel auth layout: the belt ladder on the left, the form on the right.
@@ -19,6 +20,8 @@ export function AuthShell({
   return (
     <div className="grid min-h-screen lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <SkipLink href="#auth-main">Skip to the form</SkipLink>
+      {/* A sign-out that ended in this tab is over: the account menu starts fresh next time */}
+      <ResetSigningOut />
       <aside className="hidden flex-col justify-between border-r border-border bg-sheet p-12 lg:flex">
         <Link href="/" aria-label="pylearn home" className="w-fit rounded-sm">
           <Logo />

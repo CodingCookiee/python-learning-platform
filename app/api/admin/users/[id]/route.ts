@@ -11,7 +11,11 @@ const code = z.string().trim().min(1).max(40);
 const actionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("suspend"), reason }),
   z.object({ action: z.literal("unsuspend") }),
-  z.object({ action: z.literal("delete"), confirmEmail: z.string().max(320) }),
+  z.object({
+    action: z.literal("delete"),
+    confirmEmail: z.string().max(320),
+    block: z.boolean().default(false),
+  }),
   z.object({ action: z.literal("role"), role: z.enum(["LEARNER", "ADMIN", "SUPER_ADMIN"]) }),
   z.object({ action: z.literal("verify") }),
   z.object({ action: z.literal("reset-link") }),
@@ -61,7 +65,7 @@ export const POST = withSuperAdmin<{ id: string }>(
         result = await actions.unsuspendUser(me, id);
         break;
       case "delete":
-        result = await actions.deleteUser(me, id, a.confirmEmail);
+        result = await actions.deleteUser(me, id, a.confirmEmail, a.block);
         break;
       case "role":
         result = await actions.setRole(me, id, a.role);

@@ -41,7 +41,7 @@ Set these in the Vercel project's Production environment.
 
 - [ ] Create the Vercel project from the GitHub repo, and set the variables above.
 - [ ] Deploy.
-- [ ] Apply the database migrations: `npx prisma migrate deploy`, with production's `DATABASE_URL` and `DIRECT_URL`. This includes `20261012000000_examiner_ai_review`, `20261013000000_certificates` and `20261014000000_belt_test_out`.
+- [ ] Apply the database migrations: `npx prisma migrate deploy`, with production's `DATABASE_URL` and `DIRECT_URL`. This includes `20261012000000_examiner_ai_review`, `20261013000000_certificates`, `20261014000000_belt_test_out`, the admin migrations of 2026-10-15 and `20261015040000_blocked_emails`.
 - [ ] Load the content: `npm run content:sync`. It syncs all modules, lessons, drills, capstones and achievements. Then, in Admin > Content, press **Refresh public pages** so the landing and About pages show the new numbers straight away.
 - [ ] Add the domain in Vercel: `pylearn.academy` as the primary, and `www.pylearn.academy` redirecting to it. Then set the DNS records Vercel shows.
 - [ ] Sign in with `ADMIN_BOOTSTRAP_EMAIL`, and check that `/admin` opens.

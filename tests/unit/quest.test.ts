@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { BROWSER_STEPS, currentStep, firstLessonSlug, isBugDrill, questPath, SENSEI, STEPS } from "@/lib/quest";
+import { nextBugStage } from "@/lib/quest-steps";
 import { met, type LearnerStats } from "@/lib/achievements";
 import { achievementCriteriaSchema } from "@/lib/content/schema";
 
@@ -69,5 +70,17 @@ describe("the quest achievement criterion", () => {
     expect(achievementCriteriaSchema.safeParse(criteria).success).toBe(true);
     expect(met(criteria, stats([]))).toBe(false);
     expect(met(criteria, stats(["first-session"]))).toBe(true);
+  });
+});
+
+describe("step 4 on its bug drill", () => {
+  it("leads from running the broken code to reading the error, fixing it and testing it", () => {
+    expect(STEPS.find((s) => s.key === "fix-bug")?.target).toBe("run-code");
+    expect(nextBugStage("ran-error")).toBe("read");
+    expect(nextBugStage("edited")).toBe("check");
+    expect(nextBugStage("tests-failed")).toBe("retry");
+    expect(nextBugStage("edited")).toBe("check");
+    // Running the broken code again sends them back to the error, never past it
+    expect(nextBugStage("ran-error")).toBe("read");
   });
 });

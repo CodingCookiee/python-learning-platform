@@ -8,6 +8,7 @@ import { getCheckpointSummary } from "@/lib/checkpoint";
 import { getCertificateForViewer, updateCertificate } from "@/lib/certificates";
 import { newCertificateCode } from "@/lib/certificate-rules";
 import { CHECKPOINT_RETRY_MINUTES } from "@/lib/mastery-rules";
+import { isEmailBlocked } from "@/lib/admin/blocked-emails";
 import { makeLearner } from "./helpers";
 
 let admin: Awaited<ReturnType<typeof makeLearner>>;
@@ -23,6 +24,7 @@ afterAll(async () => {
   await learner.cleanup();
   await admin.cleanup();
   await prisma.adminAction.deleteMany({ where: { adminId: me.id } });
+  await prisma.blockedEmail.deleteMany({ where: { blockedById: me.id } });
 });
 
 const lastAction = () => prisma.adminAction.findFirst({ where: { adminId: me.id }, orderBy: { createdAt: "desc" } });
@@ -66,6 +68,24 @@ describe("account actions", () => {
     expect(await prisma.user.findUnique({ where: { id: doomed.user.id } })).toBeNull();
     // The record outlives the account
     expect(await lastAction()).toMatchObject({ action: "user.delete", targetId: doomed.user.id, targetLabel: expect.stringContaining(doomed.user.email) });
+    // Not barred unless the admin asked
+    expect(await isEmailBlocked(doomed.user.email)).toBe(false);
+  });
+
+  it("can bar a deleted address from signing up again, keeping only a fingerprint, and lift it", async () => {
+    const banned = await makeLearner("admin-banned");
+    const address = banned.user.email;
+    expect(await actions.deleteUser(me, banned.user.id, address, true)).toMatchObject({ ok: true });
+    expect(await lastAction()).toMatchObject({ action: "user.delete", detail: { blocked: true } });
+    // Matched however it's typed, and the address itself is nowhere in the table
+    expect(await isEmailBlocked(` ${address.toUpperCase()} `)).toBe(true);
+    const rows = await prisma.blockedEmail.findMany({ where: { blockedById: me.id } });
+    expect(rows.some((r) => r.hash.includes(address) || r.hash.length !== 64)).toBe(false);
+
+    expect(await actions.unblockAddress(me, address)).toMatchObject({ ok: true });
+    expect(await isEmailBlocked(address)).toBe(false);
+    expect(await actions.unblockAddress(me, address)).toMatchObject({ ok: false, status: 404 });
+    expect(await lastAction()).toMatchObject({ action: "user.unblock-email" });
   });
 });
 

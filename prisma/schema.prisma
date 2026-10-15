@@ -591,11 +591,22 @@ model Certificate {
 
 /// Everything an admin does to an account, a learner's progress or a certificate, for oversight.
 /// Ids and labels are copied in rather than related, so the record outlives a deleted account.
+/// An address a super admin deleted and barred from signing up again (lib/admin/blocked-emails.ts).
+/// Only a keyed fingerprint is stored, never the address.
+model BlockedEmail {
+  /// HMAC-SHA256 of the normalised address
+  hash        String   @id
+  blockedById String?
+  createdAt   DateTime @default(now())
+
+  @@map("blocked_emails")
+}
+
 model AdminAction {
   id          String   @id @default(cuid())
   adminId     String
   adminEmail  String
-  /// user.suspend | user.unsuspend | user.delete | user.role | user.verify | user.reset-link |
+  /// user.suspend | user.unsuspend | user.delete | user.unblock-email | user.role | user.verify | user.reset-link |
   /// module.grant | module.revoke | grading.clear-cooldown | certificate.revoke | certificate.reinstate
   action      String
   targetId    String?

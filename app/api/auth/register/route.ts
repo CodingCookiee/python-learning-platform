@@ -7,6 +7,8 @@ import { signUpSchema } from "@/lib/validations/auth";
 import { clientIp, rateLimit, tooManyRequests } from "@/lib/rate-limit";
 import { isEmailConfigured, sendVerificationEmail } from "@/lib/email";
 import { issueToken } from "@/lib/auth-tokens";
+import { BREACHED_MESSAGE, isBreachedPassword } from "@/lib/password-breach";
+import { BLOCKED_MESSAGE, isEmailBlocked } from "@/lib/admin/blocked-emails";
 
 export async function POST(req: Request) {
   try {
@@ -14,6 +16,14 @@ export async function POST(req: Request) {
     if (!limited.ok) return tooManyRequests(limited, "Too many sign-ups from here.");
     const body = await req.json();
     const validatedData = signUpSchema.parse(body);
+    if (await isBreachedPassword(validatedData.password)) {
+      return NextResponse.json({ error: BREACHED_MESSAGE, field: "password" }, { status: 400 });
+    }
+
+    // An address a super admin removed and barred
+    if (await isEmailBlocked(validatedData.email)) {
+      return NextResponse.json({ error: BLOCKED_MESSAGE }, { status: 403 });
+    }
 
     // Check if user already exists
     // Case-insensitive, so a look-alike of an existing address (or of the admin's) can't register
@@ -69,8 +79,9 @@ export async function POST(req: Request) {
     console.error("Registration error:", error);
 
     if (error instanceof ZodError) {
+      // The first problem, in the form's own words (the browser runs the same checks first)
       return NextResponse.json(
-        { error: "Invalid input data", details: error.issues },
+        { error: error.issues[0]?.message ?? "Check the form and try again.", details: error.issues },
         { status: 400 }
       );
     }

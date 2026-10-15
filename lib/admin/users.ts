@@ -364,6 +364,7 @@ export const ACTION_LABEL: Record<string, string> = {
   "user.suspend": "Suspended",
   "user.unsuspend": "Lifted suspension",
   "user.delete": "Deleted account",
+  "user.unblock-email": "Let a blocked address sign up again",
   "user.role": "Changed role",
   "user.verify": "Marked email confirmed",
   "user.reset-link": "Sent password-reset link",

@@ -2,57 +2,61 @@
 
 import * as React from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { cutStrips, type TapeStrip } from "@/components/brand/tape-fall";
 
-interface ConfettiPiece {
-  id: number;
-  x: number;
-  color: string;
-  size: number;
-  delay: number;
-  duration: number;
-  rotate: number;
-  /** Pre-computed so Math.random() is never called during render */
-  isCircle: boolean;
-}
-
-// Palette only: belt dyes, jade, straw and tape
-const COLORS = [
-  "oklch(0.6 0.11 162)", // jade
-  "oklch(0.88 0.12 95)", // straw
-  "oklch(0.72 0.1 145)", // leaf belt
-  "oklch(0.66 0.085 240)", // denim belt
-  "oklch(0.57 0.065 60)", // cocoa belt
-  "oklch(0.97 0.008 100)", // tape
-];
-
-function generatePieces(count: number): ConfettiPiece[] {
-  return Array.from({ length: count }, (_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    color: COLORS[Math.floor(Math.random() * COLORS.length)]!,
-    size: Math.random() * 8 + 6,
-    delay: Math.random() * 0.6,
-    duration: Math.random() * 1.5 + 1.5,
-    rotate: Math.random() * 720 - 360,
-    isCircle: Math.random() > 0.5,
-  }));
+/** One offcut of belt cloth: the dye, a keyline, and (sometimes) a rank bar across the end */
+function Strip({ strip }: { strip: TapeStrip }) {
+  return (
+    <motion.div
+      className="absolute top-0"
+      style={{ left: `${strip.x * 100}%` }}
+      initial={{ y: -40, x: 0, rotate: strip.tilt, opacity: 1 }}
+      animate={{
+        y: "105vh",
+        x: [0, strip.sway, strip.sway * 0.4, strip.sway * 0.8],
+        rotate: strip.tilt + strip.turn,
+        opacity: [1, 1, 1, 0],
+      }}
+      transition={{ duration: strip.duration, delay: strip.delay, ease: [0.35, 0, 0.75, 1] }}
+    >
+      {/* The twist: flipping on its long axis like a ribbon */}
+      <motion.div
+        style={{
+          transformPerspective: 400,
+          width: strip.width,
+          height: strip.length,
+          backgroundColor: strip.dye,
+          backgroundImage: strip.ranked
+            ? "linear-gradient(to bottom, transparent 70%, var(--belt-black) 70%)"
+            : undefined,
+          boxShadow: "inset 0 0 0 1px color-mix(in oklch, var(--keyline) 45%, transparent)",
+        }}
+        animate={{ rotateX: [0, 180, 360] }}
+        transition={{ duration: strip.twist, repeat: Infinity, ease: "linear" }}
+      />
+    </motion.div>
+  );
 }
 
 interface ConfettiEffectProps {
   onComplete?: () => void;
 }
 
+/**
+ * The celebration overlay for a pass, a project or a new belt: offcuts of belt cloth and tape fall
+ * across the page (components/brand/tape-fall.ts), then clear.
+ */
 export function ConfettiEffect({ onComplete }: ConfettiEffectProps) {
-  const [pieces] = React.useState<ConfettiPiece[]>(() => generatePieces(60));
+  const [strips] = React.useState<TapeStrip[]>(() => cutStrips(56));
   const [visible, setVisible] = React.useState(true);
-  // Reduced motion: no falling pieces (frozen ones would just be litter on the dialog)
+  // Reduced motion: no falling strips (frozen ones would just be litter on the dialog)
   const reduceMotion = useReducedMotion();
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setVisible(false);
       onComplete?.();
-    }, 3500);
+    }, 4000);
     return () => clearTimeout(timer);
   }, [onComplete]);
 
@@ -66,30 +70,8 @@ export function ConfettiEffect({ onComplete }: ConfettiEffectProps) {
           transition={{ duration: 0.4 }}
           aria-hidden="true"
         >
-          {pieces.map((piece) => (
-            <motion.div
-              key={piece.id}
-              className="absolute top-0"
-              style={{
-                left: `${piece.x}%`,
-                width: piece.size,
-                height: piece.size,
-                backgroundColor: piece.color,
-                borderRadius: piece.isCircle ? "50%" : "2px",
-              }}
-              initial={{ y: -20, opacity: 1, rotate: 0, scale: 1 }}
-              animate={{
-                y: "100vh",
-                opacity: [1, 1, 0],
-                rotate: piece.rotate,
-                scale: [1, 0.8, 0.6],
-              }}
-              transition={{
-                duration: piece.duration,
-                delay: piece.delay,
-                ease: "easeIn",
-              }}
-            />
+          {strips.map((strip) => (
+            <Strip key={strip.id} strip={strip} />
           ))}
         </motion.div>
       )}

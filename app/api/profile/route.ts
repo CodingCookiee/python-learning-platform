@@ -3,9 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
 import { invalidateUserCache } from "@/lib/cache";
 import { z } from "zod";
+import { displayName } from "@/lib/validations/auth";
 
 const patchSchema = z.object({
-  name: z.string().min(1).max(80).optional(),
+  name: displayName.optional(),
   image: z.string().url().optional().nullable(),
 });
 
@@ -16,7 +17,7 @@ export const PATCH = withAuth(async (req: NextRequest, context: AuthContext) => 
     const parsed = patchSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Invalid request", details: parsed.error.issues },
+        { error: parsed.error.issues[0]?.message ?? "Invalid request", details: parsed.error.issues },
         { status: 400 }
       );
     }

@@ -36,3 +36,11 @@ export async function consumeToken(kind: TokenKind, token: string): Promise<stri
   if (row.expires.getTime() < Date.now()) return null;
   return row.identifier.slice(kind.length + 1);
 }
+
+/** The email a valid, unexpired token was issued for, without using it up (checks before a reset) */
+export async function peekToken(kind: TokenKind, token: string): Promise<string | null> {
+  if (!token || token.length > 200) return null;
+  const row = await prisma.verificationToken.findUnique({ where: { token: hash(token) } });
+  if (!row || !row.identifier.startsWith(`${kind}:`) || row.expires.getTime() < Date.now()) return null;
+  return row.identifier.slice(kind.length + 1);
+}

@@ -1,8 +1,9 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, AlertCircle, Info, X } from "lucide-react";
+import { X } from "lucide-react";
+import { KnotMark, SealMark, SnagMark } from "@/components/brand/marks";
 import { cn } from "@/lib/utils";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -61,47 +62,71 @@ export function useToast() {
 
 // ─── Individual toast ─────────────────────────────────────────────────────────
 
-const iconMap: Record<ToastType, React.ReactNode> = {
-  success: <CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden="true" />,
-  error: <AlertCircle className="size-4 shrink-0 text-destructive" aria-hidden="true" />,
-  info: <Info className="size-4 shrink-0 text-primary" aria-hidden="true" />,
-};
-
-const borderMap: Record<ToastType, string> = {
-  success: "border-success/35",
-  error: "border-destructive/35",
-  info: "border-border",
+/**
+ * A toast is a slip pinned to the board: a belt-end rail in its tone with pylearn's own mark
+ * (the seal for done, a cut belt for a snag, the knot for a notice), and a strip of tape along
+ * the foot that runs out with the time it stays up.
+ */
+const toneMap: Record<ToastType, { mark: React.ReactNode; rail: string; ink: string }> = {
+  success: {
+    mark: <SealMark className="size-4" />,
+    rail: "bg-seal",
+    ink: "text-seal-foreground",
+  },
+  error: {
+    mark: <SnagMark className="size-4" />,
+    rail: "bg-destructive",
+    ink: "text-background",
+  },
+  info: {
+    mark: <KnotMark className="size-4" />,
+    // The learner's own belt, inked with the keyline as the logo is, so it reads on a white belt too
+    rail: "bg-[var(--loader-belt)]",
+    ink: "text-[var(--keyline)]",
+  },
 };
 
 function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }) {
+  const tone = toneMap[toast.type];
+  const duration = toast.duration ?? 4000;
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 16, scale: 0.96 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 8, scale: 0.95 }}
-      transition={{ duration: 0.2, ease: "easeOut" }}
-      className={cn(
-        "flex w-full max-w-sm items-start gap-3 rounded-md border bg-sheet px-4 py-3 shadow-float",
-        borderMap[toast.type]
-      )}
+      initial={{ opacity: 0, x: 24 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 16 }}
+      transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+      className="relative flex w-full max-w-sm overflow-hidden border border-border bg-sheet shadow-float"
       role={toast.type === "error" ? "alert" : "status"}
       aria-live={toast.type === "error" ? "assertive" : "polite"}
     >
-      {iconMap[toast.type]}
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <p className="text-sm font-semibold leading-snug">{toast.title}</p>
-        {toast.description && (
-          <p className="text-sm leading-relaxed text-muted-foreground">{toast.description}</p>
-        )}
+      <div className={cn("flex w-9 shrink-0 items-start justify-center pt-3.5", tone.rail, tone.ink)}>
+        {tone.mark}
       </div>
-      <button
-        onClick={onDismiss}
-        className="shrink-0 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        aria-label="Dismiss notification"
-      >
-        <X className="size-3.5" aria-hidden="true" />
-      </button>
+      <div className="flex min-w-0 flex-1 items-start gap-3 py-3 pr-3 pl-3.5">
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <p className="text-sm leading-snug font-semibold">{toast.title}</p>
+          {toast.description && (
+            <p className="text-sm leading-relaxed text-muted-foreground">{toast.description}</p>
+          )}
+        </div>
+        <button
+          onClick={onDismiss}
+          className="-m-1 shrink-0 p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+          aria-label="Dismiss notification"
+        >
+          <X className="size-3.5" aria-hidden="true" />
+        </button>
+      </div>
+      {duration > 0 && (
+        <motion.span
+          aria-hidden="true"
+          className={cn("absolute right-0 bottom-0 left-9 h-0.5 origin-left motion-reduce:hidden", tone.rail)}
+          initial={{ scaleX: 1 }}
+          animate={{ scaleX: 0 }}
+          transition={{ duration: duration / 1000, ease: "linear" }}
+        />
+      )}
     </motion.div>
   );
 }

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/privacy" },
 };
 
-const UPDATED = "2026-10-06";
+const UPDATED = "2026-10-15";
 
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
@@ -36,7 +36,7 @@ export default function PrivacyPage() {
           <h1 className="font-condensed text-5xl leading-[0.95] font-extrabold tracking-[-0.02em]">Privacy policy</h1>
           <p className="text-lg leading-relaxed text-muted-foreground">
             What pylearn keeps about you, why, and how to get it deleted. Last updated{" "}
-            <time dateTime={UPDATED}>6 October 2026</time>.
+            <time dateTime={UPDATED}>15 October 2026</time>.
           </p>
         </header>
 
@@ -45,6 +45,8 @@ export default function PrivacyPage() {
             <li>
               <strong>Your account:</strong> your name and email, and your password as a one-way hash (never the password
               itself). If you sign in with GitHub or Google, we get your name, email and profile picture from them instead.
+              When you choose a password, we check it hasn&apos;t appeared in a known data breach using Have I Been
+              Pwned&apos;s range service: only the first five characters of a hash of it are sent, never the password.
             </li>
             <li>
               <strong>Your training:</strong> the lessons you finish, the code you submit for drills and gradings, drafts
@@ -128,7 +130,9 @@ export default function PrivacyPage() {
               Settings
             </Link>
             , your account and everything attached to it (progress, submissions, drafts, keys, logs) is deleted at once.
-            Backups held by the database provider age out on its own schedule.
+            Backups held by the database provider age out on its own schedule. If we remove an account for abuse, we
+            may keep a one-way fingerprint of its email address (not the address) so it can&apos;t sign up again;
+            accounts you delete yourself are never blocked.
           </p>
         </Section>
 

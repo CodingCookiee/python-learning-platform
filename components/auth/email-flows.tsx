@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { LoadingButton } from "@/components/ui/loading-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
+import { PASSWORD_RULE, passwordProblem } from "@/lib/validations/password";
 import { FormError } from "@/components/auth/auth-shell";
 
 async function post(url: string, body: unknown): Promise<{ ok: boolean; error?: string }> {
@@ -228,7 +230,8 @@ export function ResetPasswordForm({ token: fromUrl }: { token: string }) {
     e.preventDefault();
     // A reset link works once: never send it twice
     if (busy) return;
-    if (password.length < 8) return setError("Password must be at least 8 characters.");
+    const problem = passwordProblem(password);
+    if (problem) return setError(problem);
     if (password !== confirm) return setError("The two passwords don't match.");
     setError(null);
     setBusy(true);
@@ -249,19 +252,23 @@ export function ResetPasswordForm({ token: fromUrl }: { token: string }) {
       {error && <FormError message={error} />}
       <div className="flex flex-col gap-2">
         <Label htmlFor="reset-password">New password</Label>
-        <Input
+        <PasswordInput
           id="reset-password"
-          type="password"
+          what="new password"
           autoComplete="new-password"
+          aria-describedby="reset-password-hint"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
+        <p id="reset-password-hint" className="text-sm text-muted-foreground">
+          {PASSWORD_RULE} It can&rsquo;t be the password you have now.
+        </p>
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="reset-confirm">Confirm new password</Label>
-        <Input
+        <PasswordInput
           id="reset-confirm"
-          type="password"
+          what="confirmation"
           autoComplete="new-password"
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}

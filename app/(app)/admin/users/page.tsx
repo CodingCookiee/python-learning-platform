@@ -11,6 +11,7 @@ import { prisma } from "@/lib/prisma";
 import { cn } from "@/lib/utils";
 import { StatusChip } from "@/components/admin/status-chip";
 import { ROLE_LABEL } from "@/lib/admin/levels";
+import { UnblockEmail } from "@/components/admin/unblock-email";
 
 export const metadata: Metadata = { title: "Users (admin)" };
 
@@ -44,9 +45,10 @@ export default async function AdminUsersPage({
     ? (params.filter as UserFilter)
     : "all";
   const page = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
-  const [{ total, rows, pages, counts }, pending] = await Promise.all([
+  const [{ total, rows, pages, counts }, pending, blocked] = await Promise.all([
     listUsers({ q, filter, page }),
     prisma.projectSubmission.count({ where: { status: "pending" } }),
+    prisma.blockedEmail.count(),
   ]);
   const href = (next: Partial<{ q: string; filter: UserFilter; page: number }>) => {
     const sp = new URLSearchParams();
@@ -189,6 +191,8 @@ export default async function AdminUsersPage({
             )}
           </nav>
         )}
+
+        <UnblockEmail blocked={blocked} />
       </StaggerContainer>
     </div>
   );

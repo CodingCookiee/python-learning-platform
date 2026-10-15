@@ -79,3 +79,24 @@ export function LockedMark(props: MarkProps) {
     </Mark>
   );
 }
+
+/** Snag: a belt cut through, for anything that went wrong */
+export function SnagMark(props: MarkProps) {
+  return (
+    <Mark {...props}>
+      <path d="M2.5 8.5 H11 L9 15.5 H2.5 Z" />
+      <path d="M21.5 8.5 H15 L13 15.5 H21.5 Z" />
+    </Mark>
+  );
+}
+
+/** Knot: the mark itself in outline, for plain notices */
+export function KnotMark(props: MarkProps) {
+  return (
+    <Mark {...props}>
+      <path d="M2.5 8.5 H9 M15 8.5 H21.5 V14.5 H15 M9 14.5 H2.5 V8.5" />
+      <rect x="9" y="5.5" width="6" height="10" />
+      <path d="M10.5 15.5 L7.5 21.5 M13.5 15.5 L16.5 21.5" />
+    </Mark>
+  );
+}

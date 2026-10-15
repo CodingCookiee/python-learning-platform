@@ -229,6 +229,22 @@ async function main() {
       },
     });
     console.log("created");
+  } else if (command === "bug-step") {
+    // An onboarded developer whose quest is on step 4, fix your first bug (fix-the-indentation)
+    await prisma.user.create({
+      data: {
+        email: args[0]!,
+        name: "Bug Learner",
+        password: await hash("E2e-Quest-2026", 12),
+        emailVerified: new Date(),
+        onboardedAt: new Date(),
+        experience: "python",
+        goal: "python",
+        streak: { create: { currentStreak: 0, longestStreak: 0, lastActivityDate: new Date() } },
+        quests: { create: { quest: "first-session", completed: ["run-code", "scratchpad", "first-drill"] } },
+      },
+    });
+    console.log("created");
   } else if (command === "quest") {
     const row = await prisma.questProgress.findFirst({ where: { user: { email: args[0]! } } });
     console.log(JSON.stringify(row));

@@ -27,12 +27,14 @@ const CARDS = [
     title: "Developers",
     text: (
       <>
-        Test out of what you know with each module&apos;s grading. If you come from JavaScript, side notes put Python
-        next to the code you already write. Then go deep: the data model, concurrency, FastAPI, then AI automation.
+        Test out of what you know with each module&apos;s grading. If you come from JavaScript, side notes put{" "}
+        <Link href="#bridge" className="font-medium text-foreground underline decoration-foreground/30 hover:decoration-foreground">
+          Python next to the code you already write
+        </Link>
+        . Then go deep: the data model, concurrency, FastAPI, then AI automation.
       </>
     ),
     action: { label: "I already code", href: "/auth/signup" },
-    more: { label: "Python next to JavaScript", href: "#bridge" },
   },
 ] as const;
 
@@ -55,21 +57,14 @@ export function WhoItsFor() {
             >
               <h3 className="font-condensed text-3xl leading-none font-extrabold tracking-[-0.01em]">{card.title}</h3>
               <p className="max-w-[62ch] leading-relaxed text-muted-foreground">{card.text}</p>
-              <div className="flex flex-wrap items-center gap-x-5 gap-y-3 md:col-start-2 lg:col-start-auto lg:flex-col lg:items-start">
-                <Button asChild>
+              {/* One width for all three: the action column, label left and arrow at the edge */}
+              <div className="md:col-start-2 lg:col-start-auto">
+                <Button asChild className="w-full justify-between sm:w-60 lg:w-full">
                   <Link href={card.action.href}>
                     {card.action.label}
                     <ArrowRight data-icon="inline-end" aria-hidden="true" />
                   </Link>
                 </Button>
-                {"more" in card && (
-                  <Link
-                    href={card.more.href}
-                    className="text-sm font-semibold underline decoration-foreground/30 hover:decoration-foreground"
-                  >
-                    {card.more.label}
-                  </Link>
-                )}
               </div>
             </li>
           ))}

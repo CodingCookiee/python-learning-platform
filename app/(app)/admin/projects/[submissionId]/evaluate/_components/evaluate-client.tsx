@@ -18,7 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Spinner } from "@/components/animations";
+import { Spinner } from "@/components/brand/knot-loader";
 import { Check, ChevronDown, ExternalLink, FileText, ListChecks, PenLine, Sparkles } from "lucide-react";
 import { Seal } from "@/components/brand/seal";
 import { SealMark } from "@/components/brand/marks";
@@ -596,7 +596,7 @@ export function EvaluateClient({ submission, aiReady }: EvaluateClientProps) {
               variant={pendingDecision === "rejected" ? "destructive" : "default"}
               aria-busy={isSubmitting}
             >
-              {isSubmitting && <Spinner size="sm" />}
+              {isSubmitting && <Spinner />}
               {pendingDecision === "approved" ? "Approve" : "Send back"}
             </Button>
           </DialogFooter>

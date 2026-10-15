@@ -5,6 +5,8 @@ import { issueToken } from "@/lib/auth-tokens";
 import { isEmailConfigured, sendPasswordResetEmail } from "@/lib/email";
 import { CHECKPOINT_RETRY_MINUTES } from "@/lib/mastery-rules";
 import { invalidateUserCache } from "@/lib/cache";
+import { blockEmail, unblockEmail } from "@/lib/admin/blocked-emails";
+import { normalizeEmail } from "@/lib/email-address";
 
 /**
  * What an admin can do to an account, a learner's progress or a certificate. Every action checks its
@@ -106,7 +108,9 @@ export async function unsuspendUser(admin: Admin, userId: string): Promise<Actio
 export async function deleteUser(
   admin: Admin,
   userId: string,
-  confirmEmail: string
+  confirmEmail: string,
+  /** Bar the address from signing up again (a keyed fingerprint is kept, not the address) */
+  block = false
 ): Promise<ActionResult> {
   if (userId === admin.id)
     return fail(400, "You can't delete your own account here; use Settings.");
@@ -118,8 +122,23 @@ export async function deleteUser(
   if (user.role === "SUPER_ADMIN" && (await otherActiveSuperAdmins(userId)) === 0)
     return fail(409, "That's the last active super admin.");
   await prisma.user.delete({ where: { id: userId } });
-  await log(admin, "user.delete", userId, label(user));
-  return { ok: true, message: "Deleted, with everything in the account." };
+  if (block) await blockEmail(user.email, admin.id);
+  await log(admin, "user.delete", userId, label(user), { blocked: block });
+  return {
+    ok: true,
+    message: block
+      ? "Deleted, with everything in the account. The address can't sign up again."
+      : "Deleted, with everything in the account.",
+  };
+}
+
+/** Lets a blocked address sign up again (the block is found by the address typed in) */
+export async function unblockAddress(admin: Admin, email: string): Promise<ActionResult> {
+  const address = normalizeEmail(email);
+  if (!address.includes("@")) return fail(400, "Type the full email address.");
+  if (!(await unblockEmail(address))) return fail(404, "That address isn't blocked.");
+  await log(admin, "user.unblock-email", null, address);
+  return { ok: true, message: `${address} can sign up again.` };
 }
 
 const ROLE_WORDS: Record<"LEARNER" | "ADMIN" | "SUPER_ADMIN", string> = {

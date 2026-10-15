@@ -4,10 +4,12 @@ import { withAuth, AuthContext } from "@/lib/api-auth";
 import { z } from "zod";
 import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 import bcrypt from "bcryptjs";
+import { newPasswordField, passwordProblem } from "@/lib/validations/password";
+import { BREACHED_MESSAGE, isBreachedPassword } from "@/lib/password-breach";
 
 const schema = z.object({
   currentPassword: z.string().min(1),
-  newPassword: z.string().min(8, "Password must be at least 8 characters"),
+  newPassword: newPasswordField,
 });
 
 export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
@@ -18,14 +20,14 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
     const parsed = schema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Invalid request", details: parsed.error.issues },
+        { error: parsed.error.issues[0]?.message ?? "Invalid request", details: parsed.error.issues },
         { status: 400 }
       );
     }
     const { currentPassword, newPassword } = parsed.data;
     const user = await prisma.user.findUnique({
       where: { id: context.userId },
-      select: { password: true },
+      select: { password: true, email: true, name: true },
     });
     if (!user?.password) {
       return NextResponse.json(
@@ -36,6 +38,17 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
     const valid = await bcrypt.compare(currentPassword, user.password);
     if (!valid) {
       return NextResponse.json({ error: "Current password is incorrect." }, { status: 400 });
+    }
+    const problem = passwordProblem(newPassword, { email: user.email, name: user.name ?? undefined });
+    if (problem) return NextResponse.json({ error: problem }, { status: 400 });
+    if (await bcrypt.compare(newPassword, user.password)) {
+      return NextResponse.json(
+        { error: "That's the password you have now. Choose a new one." },
+        { status: 400 }
+      );
+    }
+    if (await isBreachedPassword(newPassword)) {
+      return NextResponse.json({ error: BREACHED_MESSAGE }, { status: 400 });
     }
     const hashed = await bcrypt.hash(newPassword, 12);
     await prisma.user.update({ where: { id: context.userId }, data: { password: hashed } });

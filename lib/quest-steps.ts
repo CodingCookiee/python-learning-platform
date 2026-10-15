@@ -48,9 +48,9 @@ export const STEPS: QuestStepDef[] = [
   {
     key: "fix-bug",
     title: "Fix your first bug",
-    line: "Errors are part of training, not a sign you're failing. Read the message from the bottom up, then fix the code.",
-    target: "run-tests",
-    pointer: "Fix it, then run the tests",
+    line: "This program has a bug. Before changing anything, press Run and let Python tell you what's wrong.",
+    target: "run-code",
+    pointer: "Run it first",
     source: "server",
   },
   {
@@ -72,6 +72,17 @@ export const SENSEI = {
     { target: "streak", pointer: "Your streak", line: "Your streak counts the days in a row you've trained. A few minutes a day keeps it going." },
     { target: "xp", pointer: "Your XP", line: "XP is the work you put in: every lesson and drill adds to it. Rank only comes from gradings." },
   ],
+  /**
+   * Step 4 on its bug drill, one stage at a time: run the broken code, read the error, fix the
+   * line, run the tests (and, if they fail, read them and go again). The step itself only ticks
+   * when the tests pass, so running the code alone never completes it.
+   */
+  bug: {
+    look: { target: "run-code", pointer: "Run it first", line: "This program has a bug. Before changing anything, press Run and let Python tell you what's wrong." },
+    read: { target: "drill-output", pointer: "Read the error", line: "Errors are part of training, not a sign you're failing. Read this from the bottom up: the last line names the problem, the line number says where. Now fix that line in the editor." },
+    check: { target: "run-tests", pointer: "Run the tests", line: "Changed it? Run the tests. They only pass when the program prints exactly what the task asks for." },
+    retry: { target: "drill-output", pointer: "What the tests say", line: "Not yet, and that's normal. Read which test failed and what it expected, fix the code, then run the tests again. A hint is there if you're stuck." },
+  },
   skip: { title: "Skip the quest?", line: "You can pick it up again from your dashboard, and the steps you've done are kept." },
   offer: {
     title: "New: a 15-minute guided quest",
@@ -154,6 +165,28 @@ export function questAction(step: StepKey): void {
 /** A step's work started (`working`) or stopped, e.g. Run pressed on the example */
 export function questWorking(detail: QuestWorking): void {
   window.dispatchEvent(new CustomEvent(QUEST_WORKING_EVENT, { detail }));
+}
+
+export const QUEST_BUG_EVENT = "pylearn:quest-bug";
+
+/** What just happened on a drill, for step 4's stages (the panel ignores it on any other step) */
+export type BugMoment = "ran-error" | "ran-clean" | "edited" | "tests-failed";
+
+export type BugStage = keyof typeof SENSEI.bug;
+
+/**
+ * Step 4's next stage after something happens on the bug drill. An error sends the learner to read
+ * it, failed tests to read those, and an edit (or a clean run, a fix already in place) on to the
+ * tests. Nothing here ticks the step: only passing tests do.
+ */
+export function nextBugStage(moment: BugMoment): BugStage {
+  if (moment === "ran-error") return "read";
+  if (moment === "tests-failed") return "retry";
+  return "check";
+}
+
+export function questBug(moment: BugMoment): void {
+  window.dispatchEvent(new CustomEvent(QUEST_BUG_EVENT, { detail: { moment } }));
 }
 
 /** Something the server records changed (a drill pass): the panel reloads */

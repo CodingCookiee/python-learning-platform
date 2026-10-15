@@ -246,6 +246,38 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* Everything you can press shows the hand, not only links (Tailwind v4 leaves buttons on the
+     arrow). A disabled control says it can't be pressed; a busy one that it's working */
+  button,
+  [role="button"],
+  [role="tab"],
+  [role="radio"],
+  [role="checkbox"],
+  [role="switch"],
+  [role="option"],
+  [role="menuitem"],
+  [role="menuitemcheckbox"],
+  [role="menuitemradio"],
+  summary,
+  select,
+  label[for],
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="range"],
+  input[type="file"],
+  input[type="color"],
+  input[type="submit"],
+  input[type="button"] {
+    cursor: pointer;
+  }
+  :is(button, [role="button"], [role="tab"], [role="radio"], [role="menuitem"], input, select):disabled,
+  [aria-disabled="true"],
+  [data-disabled] {
+    cursor: not-allowed;
+  }
+  [aria-busy="true"]:is(button, [role="button"]) {
+    cursor: progress;
+  }
   html {
     @apply font-sans;
     -webkit-text-size-adjust: 100%;

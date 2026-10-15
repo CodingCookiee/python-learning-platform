@@ -30,6 +30,17 @@ function useSigningOut(): boolean {
   );
 }
 
+/**
+ * The sign-in and sign-up pages clear it as they open: the tab can stay loaded from signing out to
+ * signing back in, and the flag would otherwise still say "Signing out…" in the new session.
+ */
+export function ResetSigningOut() {
+  React.useEffect(() => {
+    if (signingOut) setSigningOut(false);
+  }, []);
+  return null;
+}
+
 function begin(event: React.MouseEvent) {
   // A second press while it's going does nothing
   if (signingOut) {

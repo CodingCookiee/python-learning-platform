@@ -40,7 +40,7 @@ import {
   type TestRunResult,
 } from "@/lib/python-runtime";
 import type { UnlockedAchievement } from "@/lib/achievements";
-import { QUEST_BADGE, questRefresh } from "@/lib/quest-steps";
+import { QUEST_BADGE, questBug, questRefresh } from "@/lib/quest-steps";
 import { WHITE_BELT_TIED, WhiteBeltCeremony } from "@/components/onramp/white-belt-ceremony";
 import { ClockAnnouncement, HandInButton } from "@/components/mastery/checkpoint-controls";
 import type { DrillData, DrillMode, DrillType } from "@/lib/drills";
@@ -1038,6 +1038,7 @@ export function ExerciseClient({
         });
         setCheck({ kind: "tests", result });
         setAnnouncement(spokenTests(result));
+        if (!(result.status === "ok" && result.passed === true)) questBug("tests-failed");
         foldTaskPeek();
         // The drill's own tests failing to load isn't the learner's attempt
         if (!(result.status === "error" && result.phase === "tests")) {
@@ -1075,6 +1076,8 @@ export function ExerciseClient({
       });
       setRanCode(source);
       setRunResult(result);
+      // Step 4 of the quest: the sensei moves from "run it" to "read the error"
+      questBug(result.status === "ok" ? "ran-clean" : "ran-error");
       setAnnouncement(spokenRun(result, definedFunctions(source)));
       foldTaskPeek();
     } finally {
@@ -1220,7 +1223,10 @@ export function ExerciseClient({
           <div className={cn(activeDef && "hidden")}>
             <PythonEditor
               value={code}
-              onChange={setCode}
+              onChange={(v) => {
+                setCode(v);
+                if (v !== drill.starterCode) questBug("edited");
+              }}
               storageKey={EDITOR_KEY[mode.kind](drill)}
               valueSavedAt={drill.draft?.savedAt ?? null}
               onRun={() => void runCheck()}
@@ -1314,6 +1320,7 @@ export function ExerciseClient({
           <Button
             variant="outline"
             onClick={() => void runCode()}
+            data-quest-target="run-code"
             aria-busy={busy === "run"}
             aria-disabled={busy !== null}
           >
@@ -1360,7 +1367,10 @@ export function ExerciseClient({
       </div>
 
       {/* Not a live region: the announcement below says each outcome once, in a sentence */}
-      <div className={cn("flex flex-col gap-4 transition-opacity", busy && "opacity-60")}>
+      <div
+        data-quest-target="drill-output"
+        className={cn("flex flex-col gap-4 transition-opacity", busy && "opacity-60")}
+      >
         {check.kind === "tests" && <TestResults result={check.result} onExplain={explain} />}
         {check.kind === "predict" &&
           (check.correct ? (

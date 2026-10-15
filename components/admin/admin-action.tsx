@@ -79,6 +79,13 @@ export function AdminAction({
       required?: boolean;
       mustEqual?: string;
     };
+    /** A yes/no in the dialog, sent as spec[checkbox.name] */
+    checkbox?: {
+      name: string;
+      label: string;
+      hint?: string;
+      defaultChecked?: boolean;
+    };
   };
   className?: string;
   /** Go here afterwards instead of refreshing (after a deletion, the page is gone) */
@@ -89,12 +96,18 @@ export function AdminAction({
   const [result, setResult] = React.useState<{ ok: boolean; message: string } | null>(null);
   const [open, setOpen] = React.useState(false);
   const [text, setText] = React.useState("");
+  const [checked, setChecked] = React.useState(Boolean(confirm?.checkbox?.defaultChecked));
   const fieldId = React.useId();
+  const checkId = React.useId();
 
   async function go() {
     setBusy(true);
     setResult(null);
-    const body = confirm?.field ? { ...spec, [confirm.field.name]: text } : spec;
+    const body = {
+      ...spec,
+      ...(confirm?.field ? { [confirm.field.name]: text } : {}),
+      ...(confirm?.checkbox ? { [confirm.checkbox.name]: checked } : {}),
+    };
     const r = await run(userId, body);
     setBusy(false);
     setResult(r);
@@ -148,6 +161,26 @@ export function AdminAction({
                   autoComplete="off"
                   spellCheck={false}
                 />
+              </div>
+            )}
+            {confirm.checkbox && (
+              <div className="flex items-start gap-2.5">
+                <input
+                  id={checkId}
+                  type="checkbox"
+                  checked={checked}
+                  onChange={(e) => setChecked(e.target.checked)}
+                  aria-describedby={confirm.checkbox.hint ? `${checkId}-hint` : undefined}
+                  className="mt-0.5 size-4 shrink-0 accent-[var(--primary)]"
+                />
+                <div className="flex flex-col gap-0.5">
+                  <Label htmlFor={checkId}>{confirm.checkbox.label}</Label>
+                  {confirm.checkbox.hint && (
+                    <p id={`${checkId}-hint`} className="text-xs text-muted-foreground">
+                      {confirm.checkbox.hint}
+                    </p>
+                  )}
+                </div>
               </div>
             )}
             {result && !result.ok && (

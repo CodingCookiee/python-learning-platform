@@ -5,6 +5,8 @@ import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
 import { LoadingButton } from "@/components/ui/loading-button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
+import { PASSWORD_RULE, passwordProblem } from "@/lib/validations/password";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { AlertCircle, CheckCircle2, Moon, Sun, Monitor, Trash2 } from "lucide-react";
@@ -85,7 +87,11 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
         body: JSON.stringify({ name: trimmed }),
       });
       if (!res.ok) {
-        setProfileStatus({ type: "error", message: "That didn't save. Try again in a moment." });
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        setProfileStatus({
+          type: "error",
+          message: res.status === 400 && data.error ? data.error : "That didn't save. Try again in a moment.",
+        });
         return;
       }
       setSavedName(trimmed);
@@ -105,8 +111,13 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
 
   async function handleSavePassword(e: React.FormEvent) {
     e.preventDefault();
-    if (newPw.length < 8) {
-      setPwStatus({ type: "error", message: "Password must be at least 8 characters." });
+    const problem = passwordProblem(newPw, { email, name: initialName ?? undefined });
+    if (problem) {
+      setPwStatus({ type: "error", message: problem });
+      return;
+    }
+    if (newPw === currentPw) {
+      setPwStatus({ type: "error", message: "That's the password you have now. Choose a new one." });
       return;
     }
     if (newPw !== confirmPw) {
@@ -260,7 +271,7 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
       {hasPassword && (
         <SettingsRow
           title="Password"
-          description="At least 8 characters. You stay signed in on this device."
+          description={`${PASSWORD_RULE} You stay signed in on this device.`}
         >
           <form method="post"
             onSubmit={(e) => {
@@ -270,9 +281,9 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
           >
             <div className="flex flex-col gap-2">
               <Label htmlFor="current-pw">Current password</Label>
-              <Input
+              <PasswordInput
                 id="current-pw"
-                type="password"
+                what="current password"
                 value={currentPw}
                 onChange={(e) => setCurrentPw(e.target.value)}
                 autoComplete="current-password"
@@ -280,9 +291,9 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="new-pw">New password</Label>
-              <Input
+              <PasswordInput
                 id="new-pw"
-                type="password"
+                what="new password"
                 value={newPw}
                 onChange={(e) => setNewPw(e.target.value)}
                 autoComplete="new-password"
@@ -290,9 +301,9 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="confirm-pw">Confirm new password</Label>
-              <Input
+              <PasswordInput
                 id="confirm-pw"
-                type="password"
+                what="confirmation"
                 value={confirmPw}
                 onChange={(e) => setConfirmPw(e.target.value)}
                 autoComplete="new-password"

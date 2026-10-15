@@ -656,6 +656,12 @@ export default async function AdminUserPage({ params }: { params: Promise<{ id: 
                             required: true,
                             mustEqual: user.email,
                           },
+                          checkbox: {
+                            name: "block",
+                            label: "Don't let this address sign up again",
+                            hint: "Only a fingerprint of the address is kept. You can lift the block from Users.",
+                            defaultChecked: true,
+                          },
                         }}
                       />
                     </div>

@@ -1,5 +1,6 @@
 import type { NextAuthConfig } from "next-auth";
 import { notifySignup } from "@/lib/admin/notifications";
+import { isEmailBlocked } from "@/lib/admin/blocked-emails";
 import { normalizeEmail } from "@/lib/email-address";
 import { promotesToAdmin } from "@/lib/admin/bootstrap";
 import type { Provider } from "next-auth/providers";
@@ -137,6 +138,8 @@ export const authConfig = {
             select: { suspendedAt: true },
           });
           if (existing?.suspendedAt) return "/auth/signin?suspended=1";
+          // A first Google or GitHub sign-in is a sign-up: a barred address can't make an account
+          if (!existing && (await isEmailBlocked(user.email))) return "/auth/signin?blocked=1";
         }
         return true;
       }

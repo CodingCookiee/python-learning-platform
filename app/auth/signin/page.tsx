@@ -1,3 +1,4 @@
+import { BLOCKED_MESSAGE } from "@/lib/admin/blocked-emails";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { hasCredentialsInQuery } from "@/lib/strip-credentials";
@@ -23,6 +24,7 @@ function noticeFor(params: Record<string, string | string[] | undefined>): strin
 /** Not good news: shown as an error rather than a notice */
 function alertFor(params: Record<string, string | string[] | undefined>): string | null {
   if (params.suspended) return "This account is suspended. If you think that's a mistake, contact pylearn.";
+  if (params.blocked) return BLOCKED_MESSAGE;
   return null;
 }
 
