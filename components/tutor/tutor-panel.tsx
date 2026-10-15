@@ -227,7 +227,7 @@ export function TutorPanel({
                   {t.role === "user" ? (
                     <p className="whitespace-pre-wrap">{t.label ?? t.content}</p>
                   ) : (
-                    <LessonContent content={t.content} runnable={false} className="[&_p]:mb-2 [&_p]:text-sm [&_p:last-child]:mb-0" />
+                    <LessonContent content={t.content} runnable={false} trusted={false} className="[&_p]:mb-2 [&_p]:text-sm [&_p:last-child]:mb-0" />
                   )}
                 </li>
               ))}

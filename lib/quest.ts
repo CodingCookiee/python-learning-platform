@@ -26,12 +26,37 @@ export * from "@/lib/quest-steps";
  */
 
 /** Where each step happens for this learner's path */
+/** Step links change only with a content sync: kept for a few minutes rather than read on every event */
+const LINKS_TTL_MS = 10 * 60_000;
+const linkCache = new Map<QuestPath, { at: number; links: Record<StepKey, string> }>();
+
 async function stepLinks(path: QuestPath): Promise<Record<StepKey, string>> {
-  const lesson = await prisma.lesson.findFirst({
-    where: { slug: firstLessonSlug(path), archivedAt: null },
-    select: { id: true, exercises: { where: { archivedAt: null }, orderBy: { order: "asc" }, take: 1, select: { id: true } } },
-  });
-  const bug = await prisma.exercise.findFirst({ where: { slug: BUG_DRILLS[path], archivedAt: null }, select: { id: true } });
+  const hit = linkCache.get(path);
+  if (hit && Date.now() - hit.at < LINKS_TTL_MS) return hit.links;
+  const links = await readStepLinks(path);
+  linkCache.set(path, { at: Date.now(), links });
+  return links;
+}
+
+async function readStepLinks(path: QuestPath): Promise<Record<StepKey, string>> {
+  const [lesson, bug] = await Promise.all([
+    prisma.lesson.findFirst({
+      where: { slug: firstLessonSlug(path), archivedAt: null },
+      select: {
+        id: true,
+        exercises: {
+          where: { archivedAt: null },
+          orderBy: { order: "asc" },
+          take: 1,
+          select: { id: true },
+        },
+      },
+    }),
+    prisma.exercise.findFirst({
+      where: { slug: BUG_DRILLS[path], archivedAt: null },
+      select: { id: true },
+    }),
+  ]);
   const lessonHref = lesson ? `/lessons/${lesson.id}` : "/modules";
   return {
     "run-code": lessonHref,
@@ -42,7 +67,8 @@ async function stepLinks(path: QuestPath): Promise<Record<StepKey, string>> {
   };
 }
 
-const known = (keys: string[]): StepKey[] => STEPS.map((s) => s.key).filter((k) => keys.includes(k));
+const known = (keys: string[]): StepKey[] =>
+  STEPS.map((s) => s.key).filter((k) => keys.includes(k));
 
 /** The learner's quest for the panel, or null if they've never started (or declined) it */
 export async function getQuest(userId: string, quest = FIRST_SESSION): Promise<QuestView | null> {
@@ -56,7 +82,10 @@ export async function getQuest(userId: string, quest = FIRST_SESSION): Promise<Q
   const links = await stepLinks(path);
   const finished = row.finishedAt !== null;
   const reward = finished
-    ? await prisma.achievement.findUnique({ where: { slug: QUEST_BADGE }, select: { xpReward: true } })
+    ? await prisma.achievement.findUnique({
+        where: { slug: QUEST_BADGE },
+        select: { xpReward: true },
+      })
     : null;
   const skipped = row.skippedAt !== null && !finished;
   return {
@@ -87,9 +116,13 @@ async function historySteps(userId: string): Promise<StepKey[]> {
 
 /** Start the quest (once); drill steps the learner's history already covers are ticked */
 export async function startQuest(userId: string, quest = FIRST_SESSION): Promise<QuestView | null> {
-  const existing = await prisma.questProgress.findUnique({ where: { userId_quest: { userId, quest } } });
+  const existing = await prisma.questProgress.findUnique({
+    where: { userId_quest: { userId, quest } },
+  });
   if (!existing) {
-    await prisma.questProgress.create({ data: { userId, quest, completed: await historySteps(userId) } });
+    await prisma.questProgress.create({
+      data: { userId, quest, completed: await historySteps(userId) },
+    });
   }
   return getQuest(userId, quest);
 }
@@ -101,7 +134,11 @@ export interface StepResult {
 }
 
 /** Record a step on an active quest. The fifth step finishes it and awards Ready to Train. */
-export async function recordStep(userId: string, key: StepKey, quest = FIRST_SESSION): Promise<StepResult> {
+export async function recordStep(
+  userId: string,
+  key: StepKey,
+  quest = FIRST_SESSION
+): Promise<StepResult> {
   const row = await prisma.questProgress.findUnique({ where: { userId_quest: { userId, quest } } });
   if (!row || row.finishedAt || row.skippedAt || row.completed.includes(key)) {
     return { view: row ? await getQuest(userId, quest) : null, achievements: [] };
@@ -118,7 +155,10 @@ export async function recordStep(userId: string, key: StepKey, quest = FIRST_SES
 }
 
 /** A drill passed: the first-drill step, and fix-bug for a bug drill. Never throws. */
-export async function recordDrillPass(userId: string, drill: { slug: string | null; type: string }): Promise<UnlockedAchievement[]> {
+export async function recordDrillPass(
+  userId: string,
+  drill: { slug: string | null; type: string }
+): Promise<UnlockedAchievement[]> {
   try {
     const first = await recordStep(userId, "first-drill");
     const bug = isBugDrill(drill) ? await recordStep(userId, "fix-bug") : { achievements: [] };
@@ -139,20 +179,37 @@ export async function skipQuest(userId: string, quest = FIRST_SESSION): Promise<
   return getQuest(userId, quest);
 }
 
-export async function resumeQuest(userId: string, quest = FIRST_SESSION): Promise<QuestView | null> {
-  await prisma.questProgress.updateMany({ where: { userId, quest, finishedAt: null }, data: { skippedAt: null } });
+export async function resumeQuest(
+  userId: string,
+  quest = FIRST_SESSION
+): Promise<QuestView | null> {
+  await prisma.questProgress.updateMany({
+    where: { userId, quest, finishedAt: null },
+    data: { skippedAt: null },
+  });
   return getQuest(userId, quest);
 }
 
-export type EventResult = ({ ok: true } & StepResult) | { ok: false; status: 400 | 409; error: string };
+export type EventResult =
+  | ({ ok: true } & StepResult)
+  | { ok: false; status: 400 | 409; error: string };
 
 /** A step reported by the browser (POST /api/quest/event): only the three browser steps, only while active */
-export async function questEvent(userId: string, body: unknown, quest = FIRST_SESSION): Promise<EventResult> {
+export async function questEvent(
+  userId: string,
+  body: unknown,
+  quest = FIRST_SESSION
+): Promise<EventResult> {
   const step = (body as { step?: unknown } | null)?.step;
   if (typeof step !== "string" || !(BROWSER_STEPS as string[]).includes(step)) {
     return { ok: false, status: 400, error: "Unknown quest step." };
   }
-  const view = await getQuest(userId, quest);
-  if (!view?.active) return { ok: false, status: 409, error: "No quest in progress." };
+  // One lookup to check there's a quest running; recordStep builds the view once, at the end
+  const row = await prisma.questProgress.findUnique({
+    where: { userId_quest: { userId, quest } },
+    select: { finishedAt: true, skippedAt: true },
+  });
+  if (!row || row.finishedAt || row.skippedAt)
+    return { ok: false, status: 409, error: "No quest in progress." };
   return { ok: true, ...(await recordStep(userId, step as StepKey, quest)) };
 }

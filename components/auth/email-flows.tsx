@@ -4,7 +4,8 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { startNavigation } from "@/components/layout/navigation-progress";
-import { CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { Seal } from "@/components/brand/seal";
 import { Button } from "@/components/ui/button";
 import { LoadingButton } from "@/components/ui/loading-button";
 import { Input } from "@/components/ui/input";
@@ -30,16 +31,24 @@ function Done({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** Confirm an email with a button press (link scanners open links; they don't press buttons) */
+/**
+ * The email-confirmation page's content: a button press first (link scanners open links; they don't
+ * press buttons), then a confirmed state that owns the page, with one full-width way on to sign in.
+ * Its heading changes with it, so the page never asks to confirm what's already confirmed.
+ */
 export function VerifyEmailForm({ token }: { token: string }) {
   const [state, setState] = React.useState<"idle" | "busy" | "done">("idle");
   const [error, setError] = React.useState<string | null>(null);
+  const heading = React.useRef<HTMLHeadingElement>(null);
 
   async function confirm() {
     setState("busy");
     const r = await post("/api/auth/verify", { token });
-    if (r.ok) setState("done");
-    else {
+    if (r.ok) {
+      setState("done");
+      // The page changed under the button that was pressed: put focus on what it says now
+      requestAnimationFrame(() => heading.current?.focus());
+    } else {
       setError(r.error ?? null);
       setState("idle");
     }
@@ -47,20 +56,42 @@ export function VerifyEmailForm({ token }: { token: string }) {
 
   if (state === "done") {
     return (
-      <Done>
-        <p className="font-semibold">Email confirmed.</p>
-        <Button asChild className="w-fit">
-          <Link href="/auth/signin?verified=1">Sign in</Link>
+      <div className="flex flex-col gap-8">
+        <Seal label="Confirmed" detail="Email" animate className="w-fit" />
+        <div className="flex flex-col gap-2">
+          <h1 ref={heading} tabIndex={-1} className="text-3xl font-semibold tracking-[-0.015em] outline-none">
+            You&apos;re all set.
+          </h1>
+          <p className="leading-relaxed text-muted-foreground">
+            Your email is confirmed and your white belt is waiting. Sign in to start your first lesson.
+          </p>
+        </div>
+        <Button asChild size="lg" className="w-full">
+          <Link href="/auth/signin?verified=1">
+            Sign in to start training
+            <ArrowRight data-icon="inline-end" aria-hidden="true" />
+          </Link>
         </Button>
-      </Done>
+      </div>
     );
   }
   return (
-    <div className="flex flex-col gap-4">
-      {error && <FormError message={error} />}
-      <LoadingButton size="lg" onClick={() => void confirm()} loading={state === "busy"} loadingText="Confirming…" disabled={!token} className="w-full">
-        Confirm my email
-      </LoadingButton>
+    <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-1.5">
+        <h1 className="text-2xl font-semibold tracking-[-0.01em]">Confirm your email</h1>
+        <p className="text-sm text-muted-foreground">Press the button to finish setting up your account.</p>
+      </div>
+      <div className="flex flex-col gap-4">
+        {error && <FormError message={error} />}
+        <LoadingButton size="lg" onClick={() => void confirm()} loading={state === "busy"} loadingText="Confirming…" disabled={!token} className="w-full">
+          Confirm my email
+        </LoadingButton>
+      </div>
+      <p className="text-sm text-muted-foreground">
+        <Link href="/auth/signin" className="font-medium text-primary underline">
+          Back to sign in
+        </Link>
+      </p>
     </div>
   );
 }
@@ -94,7 +125,7 @@ export function ForgotPasswordForm() {
   }
   return (
     // The browser's own email check explains what's wrong with an address, so it stays on
-    <form onSubmit={(e) => void submit(e)} className="flex flex-col gap-5">
+    <form method="post" onSubmit={(e) => void submit(e)} className="flex flex-col gap-5">
       {error && <FormError message={error} />}
       <div className="flex flex-col gap-2">
         <Label htmlFor="forgot-email">Email</Label>
@@ -151,7 +182,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
   }
 
   return (
-    <form onSubmit={(e) => void submit(e)} className="flex flex-col gap-5" noValidate>
+    <form method="post" onSubmit={(e) => void submit(e)} className="flex flex-col gap-5" noValidate>
       {error && <FormError message={error} />}
       <div className="flex flex-col gap-2">
         <Label htmlFor="reset-password">New password</Label>

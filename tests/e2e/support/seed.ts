@@ -25,7 +25,6 @@ async function developer(email: string) {
       name: "Grace Tester",
       password: await hash(E2E_PASSWORD, 12),
       emailVerified: new Date(),
-      ageConfirmedAt: new Date(),
       onboardedAt: new Date(),
       experience: "python",
       goal: "python",

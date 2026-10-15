@@ -3,8 +3,6 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { startNavigation } from "@/components/layout/navigation-progress";
-import { signOut } from "next-auth/react";
-import { LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LoadingButton } from "@/components/ui/loading-button";
 import { cn } from "@/lib/utils";
@@ -25,54 +23,30 @@ const EXPERIENCE: Array<{ value: Experience; title: string; detail: string }> = 
   {
     value: "other-language",
     title: "I code in another language",
-    detail: "JavaScript, Java, Go… The “Coming from JavaScript” notes are for you, and you can test out of early modules.",
+    detail:
+      "JavaScript, Java, Go… The “Coming from JavaScript” notes are for you, and you can test out of early modules.",
   },
-  { value: "python", title: "I already write Python", detail: "Test out of what you know with each module's grading, and train the rest." },
+  {
+    value: "python",
+    title: "I already write Python",
+    detail: "Test out of what you know with each module's grading, and train the rest.",
+  },
 ];
 
 const GOALS: Array<{ value: Goal; title: string; detail: string }> = [
-  { value: "python", title: "Advanced Python", detail: "All 16 modules to the black belt: idioms, internals, testing, async, FastAPI, data." },
-  { value: "automation", title: "Python, then AI automation", detail: "The black belt, then the 8 dan grades: LLM APIs, agents, RAG, MCP, n8n, production." },
+  {
+    value: "python",
+    title: "Advanced Python",
+    detail: "All 16 modules to the black belt: idioms, internals, testing, async, FastAPI, data.",
+  },
+  {
+    value: "automation",
+    title: "Python, then AI automation",
+    detail: "The black belt, then the 8 dan grades: LLM APIs, agents, RAG, MCP, n8n, production.",
+  },
 ];
 
 const HOURS = [3, 5, 8, 10, 15, 20];
-
-type Age = "16-plus" | "under-16";
-const AGE: Array<{ value: Age; title: string; detail: string }> = [
-  { value: "16-plus", title: "I'm 16 or older", detail: "pylearn is for people 16 and over." },
-  { value: "under-16", title: "I'm under 16", detail: "We'll explain what happens next." },
-];
-
-/** Shown to someone who says they're under 16: no training, and their account can go */
-function UnderSixteen() {
-  const [busy, setBusy] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-  async function deleteAccount() {
-    setBusy(true);
-    setError(null);
-    const res = await fetch("/api/settings/delete", { method: "DELETE" }).catch(() => null);
-    if (!res?.ok) {
-      setError("We couldn't delete the account. Try again, or use Settings.");
-      setBusy(false);
-      return;
-    }
-    await signOut({ redirectTo: "/" });
-  }
-  return (
-    <section aria-live="polite" className="flex flex-col gap-3 rounded-md border border-border bg-sheet p-6">
-      <h2 className="text-xl font-semibold">pylearn is for people 16 and over</h2>
-      <p className="leading-relaxed text-muted-foreground">
-        Thanks for being honest. Learning to code is a great idea, and we&apos;d love to see you here when you&apos;re 16.
-        Until then, we won&apos;t keep your details: delete the account now and nothing about you stays with us.
-      </p>
-      {error && <p className="text-sm text-destructive">{error}</p>}
-      <Button variant="outline" className="w-fit" onClick={() => void deleteAccount()} disabled={busy}>
-        {busy && <LoaderCircle className="animate-spin" aria-hidden="true" />}
-        Delete my account
-      </Button>
-    </section>
-  );
-}
 
 function Choice<T extends string>({
   name,
@@ -89,7 +63,12 @@ function Choice<T extends string>({
   locked?: boolean;
 }) {
   return (
-    <div role="radiogroup" aria-label={name} aria-disabled={locked || undefined} className="grid gap-3">
+    <div
+      role="radiogroup"
+      aria-label={name}
+      aria-disabled={locked || undefined}
+      className="grid gap-3"
+    >
       {options.map((o) => (
         <button
           key={o.value}
@@ -101,7 +80,9 @@ function Choice<T extends string>({
           }}
           className={cn(
             "flex flex-col gap-1 rounded-md border p-4 text-left transition-colors",
-            value === o.value ? "border-primary bg-accent/60" : "border-border hover:border-foreground/35"
+            value === o.value
+              ? "border-primary bg-accent/60"
+              : "border-border hover:border-foreground/35"
           )}
         >
           <span className="font-semibold">{o.title}</span>
@@ -114,15 +95,11 @@ function Choice<T extends string>({
 
 export function OnboardingForm({
   first,
-  askAge = false,
   initial,
 }: {
   first: boolean;
-  /** No age on record (an account that didn't come through the sign-up form): ask first */
-  askAge?: boolean;
   initial: { experience: Experience | null; goal: Goal | null; weeklyHours: number };
 }) {
-  const [age, setAge] = React.useState<Age | null>(null);
   const router = useRouter();
   const [picked, setExperience] = React.useState<Experience | null>(initial.experience);
   // "I've never coded" on the landing page pre-selects "New to programming" until an answer is on record
@@ -134,7 +111,7 @@ export function OnboardingForm({
   const [error, setError] = React.useState<string | null>(null);
 
   async function save() {
-    if (!experience || !goal || (askAge && age !== "16-plus")) {
+    if (!experience || !goal) {
       setError("Pick an answer for each question.");
       return;
     }
@@ -144,10 +121,12 @@ export function OnboardingForm({
       const res = await fetch("/api/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ experience, goal, weeklyHours: hours, ...(askAge ? { ageConfirmed: true } : {}) }),
+        body: JSON.stringify({ experience, goal, weeklyHours: hours }),
       });
       if (!res.ok) {
-        setError(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "That didn't save.");
+        setError(
+          ((await res.json().catch(() => ({}))) as { error?: string }).error ?? "That didn't save."
+        );
         setBusy(false);
         return;
       }
@@ -163,73 +142,67 @@ export function OnboardingForm({
     }
   }
 
-  // Question numbers shift by one when the age question comes first
-  const n = (step: number) => (askAge ? step + 1 : step);
   return (
     <div className="flex flex-col gap-10">
-      {askAge && (
-        <section className="flex flex-col gap-3">
-          <h2 className="text-xl font-semibold">1. How old are you?</h2>
-          <Choice name="Age" options={AGE} value={age} onChange={setAge} />
-        </section>
-      )}
-      {age === "under-16" ? (
-        <UnderSixteen />
-      ) : (
-        <>
-          <section className="flex flex-col gap-3">
-            <h2 className="text-xl font-semibold">{n(1)}. Where are you starting from?</h2>
-            <Choice name="Experience" options={EXPERIENCE} value={experience} onChange={setExperience} locked={busy} />
-          </section>
+      <section className="flex flex-col gap-3">
+        <h2 className="text-xl font-semibold">1. Where are you starting from?</h2>
+        <Choice
+          name="Experience"
+          options={EXPERIENCE}
+          value={experience}
+          onChange={setExperience}
+          locked={busy}
+        />
+      </section>
 
-          <section className="flex flex-col gap-3">
-            <h2 className="text-xl font-semibold">{n(2)}. Where do you want to get to?</h2>
-            <Choice name="Goal" options={GOALS} value={goal} onChange={setGoal} locked={busy} />
-          </section>
+      <section className="flex flex-col gap-3">
+        <h2 className="text-xl font-semibold">2. Where do you want to get to?</h2>
+        <Choice name="Goal" options={GOALS} value={goal} onChange={setGoal} locked={busy} />
+      </section>
 
-          <section className="flex flex-col gap-3">
-            <h2 className="text-xl font-semibold">{n(3)}. How many hours a week can you train?</h2>
-            <p className="text-sm text-muted-foreground">
-              Honest beats ambitious: steady weeks and spaced reviews are what make it stick. 10 is a solid pace alongside
-              a job.
-            </p>
-            <div role="radiogroup" aria-label="Hours per week" className="flex flex-wrap gap-2">
-              {HOURS.map((h) => (
-                <button
-                  key={h}
-                  type="button"
-                  role="radio"
-                  aria-checked={hours === h}
-                  onClick={() => setHours(h)}
-                  className={cn(
-                    "font-condensed tabular min-w-16 rounded-md border px-4 py-2.5 text-lg font-bold transition-colors",
-                    hours === h ? "border-primary bg-accent/60" : "border-border hover:border-foreground/35"
-                  )}
-                >
-                  {h} h
-                </button>
-              ))}
-            </div>
-          </section>
-
-          {error && <p className="text-sm text-destructive">{error}</p>}
-          <div className="flex flex-wrap items-center gap-3">
-            <LoadingButton
-              size="lg"
-              onClick={() => void save()}
-              loading={busy}
-              loadingText={first ? "Setting up your training…" : "Saving your plan…"}
+      <section className="flex flex-col gap-3">
+        <h2 className="text-xl font-semibold">3. How many hours a week can you train?</h2>
+        <p className="text-sm text-muted-foreground">
+          Honest beats ambitious: steady weeks and spaced reviews are what make it stick. 10 is a
+          solid pace alongside a job.
+        </p>
+        <div role="radiogroup" aria-label="Hours per week" className="flex flex-wrap gap-2">
+          {HOURS.map((h) => (
+            <button
+              key={h}
+              type="button"
+              role="radio"
+              aria-checked={hours === h}
+              onClick={() => setHours(h)}
+              className={cn(
+                "font-condensed tabular min-w-16 rounded-md border px-4 py-2.5 text-lg font-bold transition-colors",
+                hours === h
+                  ? "border-primary bg-accent/60"
+                  : "border-border hover:border-foreground/35"
+              )}
             >
-              {first ? "Start training" : "Save my plan"}
-            </LoadingButton>
-            {!first && (
-              <Button variant="ghost" onClick={() => router.push("/dashboard")} disabled={busy}>
-                Cancel
-              </Button>
-            )}
-          </div>
-        </>
-      )}
+              {h} h
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {error && <p className="text-sm text-destructive">{error}</p>}
+      <div className="flex flex-wrap items-center gap-3">
+        <LoadingButton
+          size="lg"
+          onClick={() => void save()}
+          loading={busy}
+          loadingText={first ? "Setting up your training…" : "Saving your plan…"}
+        >
+          {first ? "Start training" : "Save my plan"}
+        </LoadingButton>
+        {!first && (
+          <Button variant="ghost" onClick={() => router.push("/dashboard")} disabled={busy}>
+            Cancel
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

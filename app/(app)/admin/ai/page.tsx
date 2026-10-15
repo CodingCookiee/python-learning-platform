@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { requireAdminPage } from "@/lib/admin/guard";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/auth";
@@ -80,10 +81,7 @@ function UsageTable<T extends UsageTotals>({
 }
 
 export default async function AdminAiPage({ searchParams }: { searchParams: Promise<{ days?: string }> }) {
-  const session = await auth();
-  const userId = session?.user?.id;
-  if (!userId) redirect("/auth/signin");
-  if (!(await isAdmin(userId))) redirect("/dashboard");
+  await requireAdminPage("super");
 
   const requested = Number((await searchParams).days);
   const days = RANGES.includes(requested) ? requested : 30;

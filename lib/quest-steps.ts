@@ -136,10 +136,24 @@ export const QUEST_BADGE = "ready-to-train";
 /** In-page events. Components report what the learner did; only the quest panel talks to the API. */
 export const QUEST_ACTION_EVENT = "pylearn:quest-action";
 export const QUEST_REFRESH_EVENT = "pylearn:quest";
+/** A step's work started or stopped (a run in progress), so the sensei can say what's happening */
+export const QUEST_WORKING_EVENT = "pylearn:quest-working";
+
+export interface QuestWorking {
+  step: StepKey;
+  working: boolean;
+  /** Python isn't loaded yet: the first run downloads it */
+  cold?: boolean;
+}
 
 /** The learner did a browser step (the panel records it if the quest is active and it isn't done) */
 export function questAction(step: StepKey): void {
   window.dispatchEvent(new CustomEvent(QUEST_ACTION_EVENT, { detail: { step } }));
+}
+
+/** A step's work started (`working`) or stopped, e.g. Run pressed on the example */
+export function questWorking(detail: QuestWorking): void {
+  window.dispatchEvent(new CustomEvent(QUEST_WORKING_EVENT, { detail }));
 }
 
 /** Something the server records changed (a drill pass): the panel reloads */

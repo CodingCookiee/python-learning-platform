@@ -377,6 +377,62 @@
 .animate-tape-on {
   animation: tape-on 420ms var(--ease-out-expo) both;
 }
+
+/* The belt loader (components/brand/belt-loader.tsx), in the learner's own belt: the header sets
+   data-belt on <html>; before that, and for anyone signed out, the white belt */
+:root {
+  --loader-belt: var(--belt-white);
+}
+:root[data-belt="yellow"] { --loader-belt: var(--belt-yellow); }
+:root[data-belt="green"] { --loader-belt: var(--belt-green); }
+:root[data-belt="blue"] { --loader-belt: var(--belt-blue); }
+:root[data-belt="brown"] { --loader-belt: var(--belt-brown); }
+:root[data-belt="black"] { --loader-belt: var(--belt-black); }
+
+/* Each stripe is taped on in turn (the grading's signature motion), held, and the set lifts off
+   together before the next pass; staggered delays keep one sequence across the loop */
+@keyframes loader-stripe {
+  0%,
+  6% {
+    clip-path: inset(0 0 100% 0);
+    transform: translateY(-3px);
+    background: var(--highlight);
+  }
+  18% {
+    clip-path: inset(0 0 0 0);
+    transform: translateY(0);
+    background: var(--highlight);
+  }
+  34% {
+    background: var(--tape);
+  }
+  82% {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+    background: var(--tape);
+  }
+  94%,
+  100% {
+    clip-path: inset(0 0 0 0);
+    opacity: 0;
+    background: var(--tape);
+  }
+}
+.animate-loader-stripe {
+  animation: loader-stripe 2.6s var(--ease-out-expo) infinite both;
+}
+@keyframes loader-breathe {
+  50% {
+    opacity: 0.45;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-loader-stripe {
+    animation: loader-breathe 2.4s ease-in-out infinite;
+    clip-path: none;
+    background: var(--tape);
+  }
+}
 .animate-seal-stamp {
   animation: seal-stamp 520ms var(--ease-out-expo) both;
 }

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { hasCredentialsInQuery } from "@/lib/strip-credentials";
 import Link from "next/link";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { SignInForm } from "./_components/signin-form";
@@ -18,9 +20,19 @@ function noticeFor(params: Record<string, string | string[] | undefined>): strin
   return null;
 }
 
+/** Not good news: shown as an error rather than a notice */
+function alertFor(params: Record<string, string | string[] | undefined>): string | null {
+  if (params.suspended) return "This account is suspended. If you think that's a mistake, contact pylearn.";
+  return null;
+}
+
 // Rendered on the server, so the page works (and reads) before any JavaScript arrives
 export default async function SignInPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const notice = noticeFor(await searchParams);
+  const params = await searchParams;
+  // Credentials in the address (an old GET submit): drop them before anything else
+  if (hasCredentialsInQuery(params)) redirect("/auth/signin");
+  const notice = noticeFor(params);
+  const alert = alertFor(params);
   return (
     <AuthShell title="Back to the mat." lede="Your belt, stripes and streak are where you left them.">
       <div className="flex flex-col gap-8">
@@ -33,7 +45,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
             </Link>
           </p>
         </div>
-        <SignInForm notice={notice} />
+        <SignInForm notice={notice} alert={alert} />
       </div>
     </AuthShell>
   );

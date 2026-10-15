@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { withAdmin } from "@/lib/api-auth";
+import { withSuperAdmin } from "@/lib/api-auth";
 
 /**
  * GET /api/admin/content/modules
  * Read-only listing of live modules across tracks. Content is edited as files
  * in content/ and synced with `npm run content:sync`, so there is no write API.
  */
-export const GET = withAdmin(async () => {
+export const GET = withSuperAdmin(async () => {
   try {
     const modules = await prisma.module.findMany({
       where: { archivedAt: null, trackId: { not: null } },

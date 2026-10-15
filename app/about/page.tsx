@@ -85,7 +85,7 @@ export default async function AboutPage() {
           </ul>
           <p>
             Python runs in your browser (CPython compiled to WebAssembly), so the examples and drills are real Python, not
-            a simulation. pylearn is free and is for people 16 and over.
+            a simulation. pylearn is free and open to anyone.
           </p>
         </Section>
 

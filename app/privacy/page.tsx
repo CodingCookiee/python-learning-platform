@@ -68,8 +68,8 @@ export default function PrivacyPage() {
 
         <Section id="age" title="Who it's for">
           <p>
-            pylearn is for people 16 and over. Sign-up asks you to confirm your age, and we keep the date you did. If
-            you&apos;re under 16, please don&apos;t create an account.
+            pylearn is open to anyone who wants to learn. We don&apos;t ask for your age. If you&apos;re a parent or
+            guardian and want a child&apos;s account and everything in it deleted, contact us and we&apos;ll do it.
           </p>
         </Section>
 
@@ -104,7 +104,9 @@ export default function PrivacyPage() {
             <li>
               <strong>The AI provider you choose</strong> (Anthropic, OpenAI or Google), only if you add your own key: when
               you ask the tutor or request a review, the drill or brief, your code or files and your question go to that
-              provider under your key and its terms.
+              provider under your key and its terms. When you ask the Sensei, your question, the conversation so far and
+              the text of the page you&apos;re on go the same way. Conversations aren&apos;t stored by pylearn: the Sensei&apos;s
+              chat stays in your browser until you close the tab.
             </li>
             <li>
               <strong>Our hosting provider</strong> serves the site and keeps standard request logs.

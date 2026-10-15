@@ -74,7 +74,6 @@ export function WhoItsFor() {
             </li>
           ))}
         </ul>
-        <p className="mt-8 text-sm text-muted-foreground">pylearn is for people 16 and over.</p>
       </div>
     </section>
   );

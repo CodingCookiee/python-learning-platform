@@ -65,7 +65,7 @@ export async function proxy(req: NextRequest) {
   }
 
   // Admin route protection (optimistic; pages re-check with isAdmin)
-  if (isAuthenticated && pathname.startsWith("/admin") && token?.role !== "ADMIN") {
+  if (isAuthenticated && pathname.startsWith("/admin") && token?.role !== "ADMIN" && token?.role !== "SUPER_ADMIN") {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 

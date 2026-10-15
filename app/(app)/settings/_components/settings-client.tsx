@@ -168,7 +168,7 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
   return (
     <div className="flex flex-col border-t border-border">
       <SettingsRow title="Name" description="Shown on your profile and training record.">
-        <form
+        <form method="post"
           onSubmit={(e) => {
             void handleSaveProfile(e);
           }}
@@ -262,7 +262,7 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
           title="Password"
           description="At least 8 characters. You stay signed in on this device."
         >
-          <form
+          <form method="post"
             onSubmit={(e) => {
               void handleSavePassword(e);
             }}

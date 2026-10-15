@@ -14,10 +14,17 @@ function compact(n: number): string {
 
 function label(day: string, withMonth = false): string {
   const d = new Date(`${day}T12:00:00`);
-  return d.toLocaleDateString([], withMonth ? { month: "short", day: "numeric" } : { day: "numeric" });
+  return d.toLocaleDateString(
+    [],
+    withMonth ? { month: "short", day: "numeric" } : { day: "numeric" }
+  );
 }
 
-export function UsageChart({ daily }: { daily: Array<{ day: string; calls: number; tokens: number }> }) {
+export function UsageChart({
+  daily,
+}: {
+  daily: Array<{ day: string; calls: number; tokens: number }>;
+}) {
   const max = Math.max(1, ...daily.map((d) => d.tokens));
   // A tidy top for the scale: 1, 2 or 5 times a power of ten
   const pow = 10 ** Math.floor(Math.log10(max));
@@ -28,13 +35,19 @@ export function UsageChart({ daily }: { daily: Array<{ day: string; calls: numbe
     <figure className="flex flex-col gap-3">
       <div className="grid grid-cols-[3rem_minmax(0,1fr)] gap-x-2">
         {/* Y axis: recessive, three reference lines */}
-        <div className="font-condensed tabular relative h-48 text-right text-xs text-muted-foreground" aria-hidden="true">
+        <div
+          className="font-condensed tabular relative h-48 text-right text-xs text-muted-foreground"
+          aria-hidden="true"
+        >
           <span className="absolute top-0 right-0 -translate-y-1/2">{compact(top)}</span>
           <span className="absolute top-1/2 right-0 -translate-y-1/2">{compact(top / 2)}</span>
           <span className="absolute right-0 bottom-0 translate-y-1/2">0</span>
         </div>
         <div className="relative h-48">
-          <div className="pointer-events-none absolute inset-0 flex flex-col justify-between" aria-hidden="true">
+          <div
+            className="pointer-events-none absolute inset-0 flex flex-col justify-between"
+            aria-hidden="true"
+          >
             <span className="border-t border-dashed border-border" />
             <span className="border-t border-dashed border-border" />
             <span className="border-t border-(--keyline)/60" />
@@ -70,14 +83,19 @@ export function UsageChart({ daily }: { daily: Array<{ day: string; calls: numbe
           </ol>
         </div>
         <span />
-        <div className="font-condensed tabular mt-1.5 flex justify-between text-xs text-muted-foreground" aria-hidden="true">
+        <div
+          className="font-condensed tabular mt-1.5 flex justify-between text-xs text-muted-foreground"
+          aria-hidden="true"
+        >
           <span>{label(daily[0]!.day, true)}</span>
           <span>{label(daily[Math.floor(daily.length / 2)]!.day, true)}</span>
           <span>{label(daily.at(-1)!.day, true)}</span>
         </div>
       </div>
       <details className="text-sm">
-        <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Show as a table</summary>
+        <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+          Show as a table
+        </summary>
         <table className="mt-2 w-full max-w-md text-left">
           <thead className="text-xs text-muted-foreground">
             <tr>

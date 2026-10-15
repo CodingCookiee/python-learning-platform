@@ -6,6 +6,7 @@ import { ToastProvider } from "@/components/ui/toast";
 import { QuestPanel } from "@/components/quest/quest-panel";
 import { SkipLink } from "@/components/layout/skip-link";
 import { HashScroll } from "@/components/layout/hash-scroll";
+import { SenseiAssistant } from "@/components/sensei/sensei-assistant";
 
 export default function AppLayout({
   children,
@@ -28,6 +29,8 @@ export default function AppLayout({
         <Footer />
         {/* The first-session quest's guide; renders nothing unless a quest is in progress */}
         <QuestPanel />
+        {/* The Sensei: help on any page, bottom-left (stands aside on drills and gradings) */}
+        <SenseiAssistant />
       </div>
     </ToastProvider>
   );

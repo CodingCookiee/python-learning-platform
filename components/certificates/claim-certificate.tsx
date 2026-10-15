@@ -79,7 +79,7 @@ export function ClaimCertificate({
       </Button>
       <Dialog open={open} onOpenChange={(next) => !busy && setOpen(next)}>
         <DialogContent className="max-h-[calc(100dvh-2rem)] max-w-3xl overflow-y-auto" showCloseButton={!busy}>
-          <form onSubmit={(event) => void claim(event)} className="grid gap-6">
+          <form method="post" onSubmit={(event) => void claim(event)} className="grid gap-6">
             <DialogHeader>
               <DialogTitle className="font-condensed text-3xl leading-none font-extrabold tracking-[-0.02em]">
                 {words.title}

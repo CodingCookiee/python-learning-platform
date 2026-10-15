@@ -23,6 +23,7 @@ export const LIMITS = {
   passwordChange: { limit: 5, windowSec: 15 * 60 },
   submit: { limit: 60, windowSec: 60 },
   tutor: { limit: 12, windowSec: 60 },
+  sensei: { limit: 12, windowSec: 60 },
   checkpointStart: { limit: 10, windowSec: 60 * 60 },
   labVerify: { limit: 30, windowSec: 60 * 60 },
   projectSubmit: { limit: 10, windowSec: 60 * 60 },

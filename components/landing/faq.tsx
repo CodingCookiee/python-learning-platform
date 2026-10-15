@@ -35,10 +35,10 @@ export function faqItems(hours: CourseHours): FaqItem[] {
     },
     {
       question: "Who can join?",
-      answer: "Anyone 16 or over. Your progress is private to your account; see the privacy policy for exactly what's kept.",
+      answer: "Anyone who wants to learn. Your progress is private to your account; see the privacy policy for exactly what's kept.",
       shown: (
         <>
-          Anyone 16 or over. Your progress is private to your account; see the{" "}
+          Anyone who wants to learn. Your progress is private to your account; see the{" "}
           <Link href="/privacy" className="font-medium text-primary underline">
             privacy policy
           </Link>{" "}

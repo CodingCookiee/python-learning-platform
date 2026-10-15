@@ -22,6 +22,8 @@ export interface IssuedCertificate {
   name: string;
   issuedAt: Date;
   withdrawnAt: Date | null;
+  /** Revoked by an admin: void, with no public page, and the holder can't restore it */
+  revokedAt: Date | null;
 }
 
 export type CertificateState =
@@ -29,10 +31,24 @@ export type CertificateState =
   | { track: CertificateTrack; state: "ready" }
   | { track: CertificateTrack; state: "not-yet"; left: string };
 
-const SELECT = { code: true, track: true, name: true, issuedAt: true, withdrawnAt: true, userId: true } as const;
+const SELECT = { code: true, track: true, name: true, issuedAt: true, withdrawnAt: true, revokedAt: true, userId: true } as const;
 
-function issued(row: { code: string; track: string; name: string; issuedAt: Date; withdrawnAt: Date | null }): IssuedCertificate {
-  return { code: row.code, track: row.track as CertificateTrack, name: row.name, issuedAt: row.issuedAt, withdrawnAt: row.withdrawnAt };
+function issued(row: {
+  code: string;
+  track: string;
+  name: string;
+  issuedAt: Date;
+  withdrawnAt: Date | null;
+  revokedAt: Date | null;
+}): IssuedCertificate {
+  return {
+    code: row.code,
+    track: row.track as CertificateTrack,
+    name: row.name,
+    issuedAt: row.issuedAt,
+    withdrawnAt: row.withdrawnAt,
+    revokedAt: row.revokedAt,
+  };
 }
 
 /** Whether the learner has earned this certificate now, and if not, what's left in a line */
@@ -136,6 +152,7 @@ export async function updateCertificate(
   const row = await prisma.certificate.findUnique({ where: { code }, select: SELECT });
   if (!row) return { ok: false, status: 404, error: "No certificate with that ID." };
   if (row.userId !== userId) return { ok: false, status: 403, error: "Only the holder can change this certificate." };
+  if (row.revokedAt) return { ok: false, status: 403, error: "pylearn revoked this certificate, so it can't be changed." };
 
   const data: { name?: string; withdrawnAt?: Date | null } = {};
   if (change.name !== undefined) {
@@ -154,14 +171,15 @@ export async function updateCertificate(
 
 /**
  * A certificate for its public page. A withdrawn one is shown to its holder only: anyone else gets
- * nothing, the same as for a code that doesn't exist, so the page never says whose it was.
+ * nothing, the same as for a code that doesn't exist, so the page never says whose it was. A revoked
+ * one is gone for everyone.
  */
 export async function getCertificateForViewer(
   code: string,
   viewerId: string | null
 ): Promise<{ certificate: IssuedCertificate; holder: boolean } | null> {
   const row = await prisma.certificate.findUnique({ where: { code }, select: SELECT });
-  if (!row) return null;
+  if (!row || row.revokedAt) return null;
   const holder = viewerId !== null && row.userId === viewerId;
   if (row.withdrawnAt && !holder) return null;
   return { certificate: issued(row), holder };

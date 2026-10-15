@@ -47,7 +47,9 @@ export function CertificatesSection({
                     {s.state === "issued" ? (
                       <>
                         Issued {formatIssued(s.certificate.issuedAt)} · ID <span className="font-mono">{s.certificate.code}</span>
-                        {s.certificate.withdrawnAt && " · public page withdrawn"}
+                        {s.certificate.revokedAt
+                          ? " · revoked by pylearn"
+                          : s.certificate.withdrawnAt && " · public page withdrawn"}
                       </>
                     ) : s.state === "ready" ? (
                       "Earned. Claim it for its page, a PDF and an image to share."
@@ -57,7 +59,7 @@ export function CertificatesSection({
                   </span>
                 </div>
               </div>
-              {s.state === "issued" ? (
+              {s.state === "issued" && s.certificate.revokedAt ? null : s.state === "issued" ? (
                 <Button variant="outline" asChild className="w-fit shrink-0">
                   <Link href={`/certificates/${s.certificate.code}`}>
                     View certificate

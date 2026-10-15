@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { hasCredentialsInQuery } from "@/lib/strip-credentials";
 import Link from "next/link";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { SignUpForm } from "./_components/signup-form";
@@ -15,8 +17,11 @@ export default async function SignUpPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const params = await searchParams;
+  // Credentials in the address (an old GET submit): drop them before anything else
+  if (hasCredentialsInQuery(params)) redirect("/auth/signup");
   // ?start=new: the landing page's "I've never coded", carried into onboarding
-  const { start } = await searchParams;
+  const { start } = params;
   return (
     <AuthShell
       title="Tie on the white belt."

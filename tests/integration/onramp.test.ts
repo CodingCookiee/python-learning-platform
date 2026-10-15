@@ -19,49 +19,35 @@ afterAll(async () => {
   await prisma.user.deleteMany({ where: { email: { in: created } } });
 });
 
-function signUp(body: Record<string, unknown>) {
-  const email = `onramp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.invalid`;
-  created.push(email);
+function signUp(body: Record<string, unknown>, prefix = "onramp") {
+  const email = (body.email as string | undefined) ?? `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.invalid`;
+  created.push(email.toLowerCase());
   const request = new Request("http://localhost/api/auth/register", {
     method: "POST",
     headers: { "content-type": "application/json", "x-forwarded-for": `10.9.${created.length}.1` },
-    body: JSON.stringify({ name: "Ada Learner", email, password: "Correct-Horse-1", confirmPassword: "Correct-Horse-1", ...body }),
+    body: JSON.stringify({ name: "Ada Learner", password: "Correct-Horse-1", confirmPassword: "Correct-Horse-1", ...body, email }),
   });
   return { email, response: register(request) };
 }
 
-describe("signing up (16 and over)", () => {
-  it("is refused without confirming the age, and creates no account", async () => {
-    const { email, response } = signUp({});
-    expect((await response).status).toBe(400);
-    expect(await prisma.user.findUnique({ where: { email } })).toBeNull();
+describe("signing up", () => {
+  it("needs no age, and stores the address lower-cased", async () => {
+    const { email, response } = signUp({}, "Mixed.Case");
+    expect((await response).status).toBe(201);
+    expect(await prisma.user.findUnique({ where: { email: email.toLowerCase() } })).not.toBeNull();
   });
 
-  it("records when the age was confirmed", async () => {
-    const { email, response } = signUp({ ageConfirmed: true });
-    expect((await response).status).toBe(201);
-    const user = await prisma.user.findUniqueOrThrow({ where: { email } });
-    expect(user.ageConfirmedAt).toBeInstanceOf(Date);
+  it("refuses a different-case copy of an existing address (security review C-1)", async () => {
+    const first = signUp({});
+    expect((await first.response).status).toBe(201);
+    const lookAlike = signUp({ email: first.email.toUpperCase() });
+    expect((await lookAlike.response).status).toBe(400);
+    expect(await prisma.user.count({ where: { email: { equals: first.email, mode: "insensitive" } } })).toBe(1);
   });
 });
 
 describe("onboarding", () => {
   const answers = { experience: "new" as const, goal: "python" as const, weeklyHours: 5 };
-
-  it("asks for the age when the account has none on record (GitHub or Google sign-ins)", async () => {
-    const learner = await makeLearner("onboard-age", { ageConfirmedAt: null });
-    try {
-      const refused = await saveOnboarding(learner.user.id, answers);
-      expect(refused).toMatchObject({ ok: false, status: 400 });
-      const saved = await saveOnboarding(learner.user.id, { ...answers, ageConfirmed: true });
-      expect(saved.ok).toBe(true);
-      const user = await prisma.user.findUniqueOrThrow({ where: { id: learner.user.id } });
-      expect(user.ageConfirmedAt).toBeInstanceOf(Date);
-      expect(user.onboardedAt).toBeInstanceOf(Date);
-    } finally {
-      await learner.cleanup();
-    }
-  });
 
   it("sends a beginner to the on-ramp and everyone else to the dashboard", async () => {
     const learner = await makeLearner("onboard-route");
@@ -74,10 +60,11 @@ describe("onboarding", () => {
     }
   });
 
-  it("doesn't ask again once the age is on record", async () => {
+  it("records when the learner finished it", async () => {
     const learner = await makeLearner("onboard-known");
     try {
       expect((await saveOnboarding(learner.user.id, answers)).ok).toBe(true);
+      expect((await prisma.user.findUniqueOrThrow({ where: { id: learner.user.id } })).onboardedAt).toBeInstanceOf(Date);
     } finally {
       await learner.cleanup();
     }

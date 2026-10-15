@@ -1,21 +1,23 @@
 import { z } from "zod";
 
+/** An email field, trimmed and lower-cased before it's checked or stored (lib/email-address.ts) */
+const email = z.string().trim().toLowerCase().email("Invalid email address");
+
 /**
  * Validation schemas for authentication forms
  */
 
 export const signInSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email,
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 export const signUpSchema = z
   .object({
     name: z.string().min(2, "Name must be at least 2 characters"),
-    email: z.string().email("Invalid email address"),
+    email,
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string(),
-    ageConfirmed: z.literal(true, { message: "pylearn is for people 16 and over." }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
@@ -23,7 +25,7 @@ export const signUpSchema = z
   });
 
 export const forgotPasswordSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email,
 });
 
 export const resetPasswordSchema = z

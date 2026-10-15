@@ -22,7 +22,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "That link has expired or was already used. Sign in to get a new one." }, { status: 400 });
   }
   const updated = await prisma.user.updateMany({
-    where: { email: { equals: email, mode: "insensitive" }, emailVerified: null },
+    // The exact address the link was sent to: a case-insensitive match would also verify look-alike accounts
+    where: { email, emailVerified: null },
     data: { emailVerified: new Date() },
   });
   return NextResponse.json({ ok: true, alreadyVerified: updated.count === 0 });

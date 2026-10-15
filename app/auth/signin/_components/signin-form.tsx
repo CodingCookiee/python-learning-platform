@@ -15,7 +15,7 @@ import { signInSchema, type SignInInput } from "@/lib/validations/auth";
 import { ResendVerification } from "@/components/auth/email-flows";
 
 /** The sign-in form. The page around it renders on the server and passes in any notice from the URL */
-export function SignInForm({ notice }: { notice: string | null }) {
+export function SignInForm({ notice, alert = null }: { notice: string | null; alert?: string | null }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -50,6 +50,8 @@ export function SignInForm({ notice }: { notice: string | null }) {
         if (result.code === "unverified") {
           setError("Confirm your email first: the link is in your inbox.");
           setUnverifiedEmail(data.email);
+        } else if (result.code === "suspended") {
+          setError("This account is suspended. If you think that's a mistake, contact pylearn.");
         } else if (result.code === "rate_limited") {
           setError("Too many sign-in attempts. Wait 15 minutes, or reset your password.");
         } else {
@@ -71,13 +73,13 @@ export function SignInForm({ notice }: { notice: string | null }) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
+    <form method="post" onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
       {notice && !error && (
         <p role="status" className="rounded-sm border border-success/35 bg-success/6 px-3 py-2.5 text-sm text-success">
           {notice}
         </p>
       )}
-      {error && <FormError message={error} />}
+      {(error ?? alert) && <FormError message={(error ?? alert)!} />}
       {unverifiedEmail && <ResendVerification email={unverifiedEmail} />}
 
       <div className="flex flex-col gap-2">

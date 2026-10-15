@@ -104,7 +104,7 @@ export function HolderControls({
         </Button>
       </div>
 
-      <form
+      <form method="post"
         className="flex max-w-xl flex-col gap-2"
         onSubmit={(event) => {
           event.preventDefault();

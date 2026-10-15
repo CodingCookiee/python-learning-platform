@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { notifySignup } from "@/lib/admin/notifications";
 import { hash } from "bcryptjs";
 import { ZodError } from "zod";
 import { prisma } from "@/lib/prisma";
@@ -15,8 +16,10 @@ export async function POST(req: Request) {
     const validatedData = signUpSchema.parse(body);
 
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email: validatedData.email },
+    // Case-insensitive, so a look-alike of an existing address (or of the admin's) can't register
+    const existingUser = await prisma.user.findFirst({
+      where: { email: { equals: validatedData.email, mode: "insensitive" } },
+      select: { id: true },
     });
 
     if (existingUser) {
@@ -34,8 +37,6 @@ export async function POST(req: Request) {
         password: hashedPassword,
         // With email set up, the address is confirmed by link; without it there's no way to, so trust it
         emailVerified: isEmailConfigured() ? null : new Date(),
-        // signUpSchema only lets this through when they confirmed they're 16 or over
-        ageConfirmedAt: new Date(),
       },
     });
 
@@ -47,6 +48,8 @@ export async function POST(req: Request) {
         longestStreak: 0,
       },
     });
+
+    await notifySignup(user, "email sign-up");
 
     const needsVerification = isEmailConfigured();
     if (needsVerification) await sendVerificationEmail(user.email, await issueToken("verify", user.email));

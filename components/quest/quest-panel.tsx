@@ -1,5 +1,6 @@
 "use client";
 
+import { BeltLoader } from "@/components/brand/belt-loader";
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -23,15 +24,20 @@ import { QuestPointer, showQuestTarget } from "@/components/quest/quest-pointer"
 import { QuestFarewell } from "@/components/quest/quest-farewell";
 import type { UnlockedAchievement } from "@/lib/achievements";
 import {
+  currentStep,
   QUEST_ACTION_EVENT,
   QUEST_BADGE,
   QUEST_REFRESH_EVENT,
+  QUEST_WORKING_EVENT,
   questAction,
   SENSEI,
   STEPS,
   type QuestView,
+  type QuestWorking,
   type StepKey,
 } from "@/lib/quest-steps";
+import { PendingLine } from "@/components/ui/pending-line";
+import { getPythonRuntime } from "@/lib/python-runtime";
 import { cn } from "@/lib/utils";
 
 /** "open" or "min", per device: how the learner last left the panel */
@@ -70,7 +76,10 @@ function useScratchpadOpen(): boolean {
   return React.useSyncExternalStore(
     (onChange) => {
       const observer = new MutationObserver(onChange);
-      observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-scratchpad-open"] });
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["data-scratchpad-open"],
+      });
       return () => observer.disconnect();
     },
     () => document.documentElement.hasAttribute("data-scratchpad-open"),
@@ -78,17 +87,41 @@ function useScratchpadOpen(): boolean {
   );
 }
 
+/** The quest with `step` done, as the server will record it: the sensei moves on without waiting */
+function advance(view: QuestView, step: StepKey): QuestView {
+  const completed = [...view.completed, step];
+  return {
+    ...view,
+    completed,
+    current: currentStep(completed)?.key ?? null,
+    steps: view.steps.map((s) => (s.key === step ? { ...s, done: true } : s)),
+  };
+}
+
+/** What the sensei says while a run is going: the first one starts Python, later ones just run */
+function fillerLines(working: { step: StepKey; cold: boolean }): string[] {
+  const running = working.step === "scratchpad" ? "Running your code…" : "Running the example…";
+  return working.cold
+    ? ["Starting Python in your browser…", "Loading Python's standard library…", running]
+    : [running];
+}
+
 async function post<T>(url: string, body?: unknown): Promise<T | null> {
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: body === undefined ? undefined : JSON.stringify(body),
+    // The sensei moves on before the server answers, so the learner may already be leaving the page:
+    // the request is finished even if they do
+    keepalive: true,
   }).catch(() => null);
   return res?.ok ? ((await res.json()) as T) : null;
 }
 
 const isEditor = (el: EventTarget | null) =>
-  el instanceof Element && !el.closest("[data-quest-panel]") && !!el.closest(".monaco-editor, textarea, [contenteditable='true']");
+  el instanceof Element &&
+  !el.closest("[data-quest-panel]") &&
+  !!el.closest(".monaco-editor, textarea, [contenteditable='true']");
 
 /**
  * The first-session quest's guide, in the signed-in layout. It loads its own state on every page
@@ -101,7 +134,9 @@ export function QuestPanel() {
   const pathname = usePathname();
   const [view, setView] = React.useState<QuestView | null>(null);
   const viewRef = React.useRef<QuestView | null>(null);
-  const [farewell, setFarewell] = React.useState<{ xp: number | null; lessonHref: string } | null>(null);
+  const [farewell, setFarewell] = React.useState<{ xp: number | null; lessonHref: string } | null>(
+    null
+  );
   const [unlocked, setUnlocked] = React.useState<UnlockedAchievement[]>([]);
   const [announcement, setAnnouncement] = React.useState("");
   const [cheer, setCheer] = React.useState(false);
@@ -119,6 +154,12 @@ export function QuestPanel() {
   // fold only (the page, the pane, the typing as they were), and until the learner types again
   const [heldFor, setHeldFor] = React.useState<string | null>(null);
   const pending = React.useRef(new Set<string>());
+  // Steps done before the panel had loaded the quest: recorded as soon as it has, never dropped
+  const queued = React.useRef(new Set<StepKey>());
+  const loaded = React.useRef(false);
+  const recordRef = React.useRef<(step: StepKey) => void>(() => {});
+  // A step's work in progress (Run pressed): the sensei says what's happening while it runs
+  const [working, setWorking] = React.useState<{ step: StepKey; cold: boolean } | null>(null);
   // A step being recorded ("Got it" on the tour), and a skip on its way (or one that didn't land)
   const [posting, setPosting] = React.useState<StepKey | null>(null);
   const [skipping, setSkipping] = React.useState(false);
@@ -127,30 +168,59 @@ export function QuestPanel() {
   const cardRef = React.useRef<HTMLElement>(null);
   const focusAfter = React.useRef<"pill" | "card" | null>(null);
 
-  const apply = React.useCallback((next: QuestView | null, achievements: UnlockedAchievement[] = []) => {
-    const prev = viewRef.current;
-    viewRef.current = next;
-    setView(next);
-    const others = achievements.filter((a) => a.slug !== QUEST_BADGE);
-    if (others.length > 0) setUnlocked((list) => [...list, ...others]);
-    if (!prev || !next || prev.quest !== next.quest) return;
-    const fresh = STEPS.filter((s) => next.completed.includes(s.key) && !prev.completed.includes(s.key));
-    const last = fresh.at(-1);
-    if (last) {
-      setAnnouncement(`Step ${STEPS.indexOf(last) + 1} of ${STEPS.length} done: ${last.title}`);
-      setCheer(true);
-      window.setTimeout(() => setCheer(false), 2400);
-    }
-    if (!prev.finished && next.finished) {
-      setFarewell({ xp: next.rewardXp, lessonHref: next.steps[0]?.href ?? "/dashboard" });
-    }
-  }, []);
+  const apply = React.useCallback(
+    (next: QuestView | null, achievements: UnlockedAchievement[] = []) => {
+      const prev = viewRef.current;
+      viewRef.current = next;
+      setView(next);
+      loaded.current = true;
+      if (queued.current.size > 0) {
+        const early = [...queued.current];
+        queued.current.clear();
+        // After this render, so each is recorded against the quest just loaded
+        window.setTimeout(() => early.forEach((s) => recordRef.current(s)), 0);
+      }
+      const others = achievements.filter((a) => a.slug !== QUEST_BADGE);
+      if (others.length > 0) setUnlocked((list) => [...list, ...others]);
+      if (!prev || !next || prev.quest !== next.quest) return;
+      const fresh = STEPS.filter(
+        (s) => next.completed.includes(s.key) && !prev.completed.includes(s.key)
+      );
+      const last = fresh.at(-1);
+      if (last) {
+        setAnnouncement(`Step ${STEPS.indexOf(last) + 1} of ${STEPS.length} done: ${last.title}`);
+        setCheer(true);
+        window.setTimeout(() => setCheer(false), 2400);
+      }
+      if (!prev.finished && next.finished) {
+        setFarewell({ xp: next.rewardXp, lessonHref: next.steps[0]?.href ?? "/dashboard" });
+      }
+    },
+    []
+  );
+
+  // A server answer can be older than steps still being saved (a slow save, then the next step done
+  // meanwhile): keep those, so the sensei never steps backwards
+  const applyServer = React.useCallback(
+    (next: QuestView | null, achievements: UnlockedAchievement[] = []) => {
+      const inFlight = [...pending.current] as StepKey[];
+      const merged =
+        next?.active && inFlight.length > 0
+          ? inFlight.reduce(
+              (v, s) => (v.completed.includes(s) || s === "progress" ? v : advance(v, s)),
+              next
+            )
+          : next;
+      apply(merged, achievements);
+    },
+    [apply]
+  );
 
   const load = React.useCallback(async () => {
     const res = await fetch("/api/quest", { cache: "no-store" }).catch(() => null);
     if (!res?.ok) return;
-    apply(((await res.json()) as { quest: QuestView | null }).quest);
-  }, [apply]);
+    applyServer(((await res.json()) as { quest: QuestView | null }).quest);
+  }, [applyServer]);
 
   // Every page change: the step may have been done elsewhere (a drill passed, another tab). A
   // finished or skipped quest stays put until something sends `pylearn:quest` (Resume, Start).
@@ -159,27 +229,53 @@ export function QuestPanel() {
     let current = true;
     fetch("/api/quest", { cache: "no-store" })
       .then((res) => (res.ok ? (res.json() as Promise<{ quest: QuestView | null }>) : null))
-      .then((data) => current && data && apply(data.quest))
+      .then((data) => current && data && applyServer(data.quest))
       .catch(() => {});
     return () => {
       current = false;
     };
-  }, [apply, pathname]);
+  }, [applyServer, pathname]);
 
   React.useEffect(() => {
     const onRefresh = () => void load();
-    const onAction = (event: Event) => {
-      const step = (event as CustomEvent<{ step?: StepKey }>).detail?.step;
+    const record = (step: StepKey) => {
+      // Not loaded yet (the page just opened): keep it for when the quest arrives
+      if (!loaded.current) {
+        queued.current.add(step);
+        return;
+      }
       const current = viewRef.current;
-      if (!step || !current?.active || current.completed.includes(step) || pending.current.has(step)) return;
+      if (!current?.active || current.completed.includes(step) || pending.current.has(step)) return;
       pending.current.add(step);
       setPosting(step);
-      void post<{ quest: QuestView | null; achievements: UnlockedAchievement[] }>("/api/quest/event", { step })
-        .then((data) => data && apply(data.quest, data.achievements))
+      // The sensei moves on as the output appears; the server's answer confirms it (or, if it
+      // refuses, puts back the true state). The last step waits for the server: it ends the quest
+      if (step !== "progress") apply(advance(current, step));
+      void post<{ quest: QuestView | null; achievements: UnlockedAchievement[] }>(
+        "/api/quest/event",
+        { step }
+      )
+        .then((data) => (data ? applyServer(data.quest, data.achievements) : load()))
         .finally(() => {
           pending.current.delete(step);
           setPosting(null);
         });
+    };
+    recordRef.current = record;
+    const onAction = (event: Event) => {
+      const step = (event as CustomEvent<{ step?: StepKey }>).detail?.step;
+      if (step) record(step);
+    };
+    const onWorking = (event: Event) => {
+      const detail = (event as CustomEvent<QuestWorking>).detail;
+      if (!detail) return;
+      setWorking((now) =>
+        detail.working
+          ? { step: detail.step, cold: Boolean(detail.cold) }
+          : now?.step === detail.step
+            ? null
+            : now
+      );
     };
     // Once the learner types on a page the panel stays folded there, so it doesn't spring back over
     // the results when they press Run tests; the next page starts afresh
@@ -191,13 +287,22 @@ export function QuestPanel() {
     };
     window.addEventListener(QUEST_REFRESH_EVENT, onRefresh);
     window.addEventListener(QUEST_ACTION_EVENT, onAction);
+    window.addEventListener(QUEST_WORKING_EVENT, onWorking);
     document.addEventListener("focusin", onFocus);
     return () => {
       window.removeEventListener(QUEST_REFRESH_EVENT, onRefresh);
       window.removeEventListener(QUEST_ACTION_EVENT, onAction);
+      window.removeEventListener(QUEST_WORKING_EVENT, onWorking);
       document.removeEventListener("focusin", onFocus);
     };
-  }, [load, apply]);
+  }, [load, apply, applyServer]);
+
+  // On a lesson while the step is to run code, start Python now: it downloads while the learner
+  // reads, so the first Run doesn't wait for all of it
+  const runStep = view?.active && (view.current === "run-code" || view.current === "scratchpad");
+  React.useEffect(() => {
+    if (runStep && pathname.startsWith("/lessons/")) getPythonRuntime().preload();
+  }, [runStep, pathname]);
 
   const preference = chosen ?? stored;
   const typing = typingOn === pathname;
@@ -207,7 +312,12 @@ export function QuestPanel() {
 
   // Keep keyboard focus with the panel as it folds and unfolds
   React.useEffect(() => {
-    const target = focusAfter.current === "pill" ? pillRef.current : focusAfter.current === "card" ? cardRef.current : null;
+    const target =
+      focusAfter.current === "pill"
+        ? pillRef.current
+        : focusAfter.current === "card"
+          ? cardRef.current
+          : null;
     focusAfter.current = null;
     target?.focus();
   }, [minimised]);
@@ -267,11 +377,18 @@ export function QuestPanel() {
   const target = stop?.target ?? step.target;
   // Where this step can be done right here: any lesson's examples and scratchpad, any drill for the
   // first pass, the path's own bug drill, and the dashboard's record
-  const doableHere = touring || (step.key === "fix-bug" ? pathname === step.href : step.key !== "progress");
+  const doableHere =
+    touring || (step.key === "fix-bug" ? pathname === step.href : step.key !== "progress");
   const pointerKey = `${pathname}:${target}`;
   const present = doableHere && presence?.key === pointerKey && presence.present;
-  const lines = stop ? [stop.line] : view.completed.length === 0 ? [SENSEI.welcome, step.line] : [step.line];
+  const lines = stop
+    ? [stop.line]
+    : view.completed.length === 0
+      ? [SENSEI.welcome, step.line]
+      : [step.line];
   const mood = cheer ? "pleased" : "calm";
+  // The current step's work is running (Run pressed): fill the wait rather than look stuck
+  const busyHere = working?.step === step.key;
   const lastStop = tour >= SENSEI.tour.length - 1;
 
   const pointer = doableHere && (
@@ -296,15 +413,25 @@ export function QuestPanel() {
           aria-label={`Open the quest: step ${position} of ${total}, ${step.title}`}
           className={cn(
             // Square cut and a float shadow (DESIGN.md): it hovers over the page but isn't modal
-            "fixed right-4 bottom-4 z-42 inline-flex items-center gap-2 rounded-sm border border-border bg-card py-1 pr-3.5 pl-1.5 text-sm font-semibold shadow-float transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+            // Above the Sensei's button, which has the corner itself
+            "fixed right-4 bottom-20 z-42 inline-flex items-center gap-2 rounded-sm border border-border bg-card py-1 pr-3.5 pl-1.5 text-sm font-semibold shadow-float transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
             // Out of the scratchpad's way: above its bottom sheet, or beside its column on wide screens
             scratchpadOpen && (xl ? "right-auto left-4" : "top-20 bottom-auto")
           )}
         >
           <Sensei head mood={mood} />
           <span>
-            Quest <span className="tabular">{position} of {total}</span>
+            Quest{" "}
+            <span className="tabular">
+              {position} of {total}
+            </span>
           </span>
+          {busyHere && (
+            <LoaderCircle
+              className="size-3.5 animate-spin text-muted-foreground"
+              aria-hidden="true"
+            />
+          )}
         </button>
       </>
     );
@@ -326,13 +453,16 @@ export function QuestPanel() {
           }
         }}
         className={cn(
-          "fixed inset-x-2 bottom-2 z-42 flex max-h-[min(36rem,calc(100dvh-6rem))] flex-col gap-3 overflow-y-auto rounded-md border border-border bg-card p-4 shadow-overlay outline-none md:inset-x-auto md:right-4 md:bottom-4 md:w-80",
+          "fixed inset-x-2 bottom-18 z-42 flex max-h-[min(36rem,calc(100dvh-10rem))] flex-col gap-3 overflow-y-auto rounded-md border border-border bg-card p-4 shadow-overlay outline-none md:inset-x-auto md:right-4 md:bottom-20 md:w-80",
           scratchpadOpen && !xl && "top-20 bottom-auto"
         )}
       >
         <div className="flex items-center justify-between gap-2">
           <p className="text-sm font-semibold text-primary">
-            Quest · <span className="tabular">step {position} of {total}</span>
+            Quest ·{" "}
+            <span className="tabular">
+              step {position} of {total}
+            </span>
           </p>
           <Button variant="ghost" size="icon-xs" onClick={minimise} aria-label="Minimise the quest">
             <Minus aria-hidden="true" />
@@ -342,20 +472,42 @@ export function QuestPanel() {
         <div className="flex items-start gap-3">
           <Sensei mood={mood} className="h-18 w-16" />
           <div className="relative min-w-0 flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm leading-relaxed">
-            <span aria-hidden="true" className="absolute top-5 -left-[7px] size-3 rotate-45 border-b border-l border-border bg-background" />
+            <span
+              aria-hidden="true"
+              className="absolute top-5 -left-[7px] size-3 rotate-45 border-b border-l border-border bg-background"
+            />
             <p className="mb-1 font-semibold">{stop ? stop.pointer : step.title}</p>
             {lines.map((line) => (
               <p key={line} className="text-pretty [&+p]:mt-1.5">
                 {line}
               </p>
             ))}
+            {busyHere && working && (
+              <div className="mt-2 border-t border-border pt-2">
+                <PendingLine
+                  key={`${working.step}:${working.cold}`}
+                  icon={<BeltLoader size="sm" />}
+                  lines={fillerLines(working)}
+                  stepMs={2200}
+                  stillAfterMs={9000}
+                  slowAfterMs={25_000}
+                  still="The first run downloads Python into your browser, once. After that it's instant."
+                  slow="A slow connection makes this first download take a while. It's still coming."
+                />
+              </div>
+            )}
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           {touring ? (
             <>
-              <Button size="sm" variant="outline" onClick={() => showQuestTarget(target)} disabled={!present}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => showQuestTarget(target)}
+                disabled={!present}
+              >
                 <Crosshair aria-hidden="true" />
                 Show me
               </Button>
@@ -395,7 +547,11 @@ export function QuestPanel() {
           {view.steps.map((s, i) => {
             const current = s.key === step.key;
             return (
-              <li key={s.key} aria-current={current ? "step" : undefined} className="flex items-center gap-2">
+              <li
+                key={s.key}
+                aria-current={current ? "step" : undefined}
+                className="flex items-center gap-2"
+              >
                 <span
                   aria-hidden="true"
                   className={cn(
@@ -409,14 +565,19 @@ export function QuestPanel() {
                 >
                   {s.done ? <Check className="size-3.5" strokeWidth={3} /> : i + 1}
                 </span>
-                <span className={cn(s.done && "text-muted-foreground", current && "font-semibold")}>{s.title}</span>
+                <span className={cn(s.done && "text-muted-foreground", current && "font-semibold")}>
+                  {s.title}
+                </span>
                 {s.done && <span className="sr-only">(done)</span>}
               </li>
             );
           })}
         </ol>
 
-        <Progress value={(view.completed.length / total) * 100} aria-label={`${view.completed.length} of ${total} steps done`} />
+        <Progress
+          value={(view.completed.length / total) * 100}
+          aria-label={`${view.completed.length} of ${total} steps done`}
+        />
 
         <button
           type="button"

@@ -1,26 +1,74 @@
 "use client";
 
-import { useFormStatus } from "react-dom";
+import * as React from "react";
+import { createPortal } from "react-dom";
 import { LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { startNavigation } from "@/components/layout/navigation-progress";
 
-/** The sign-out button inside its form: "Signing out…" until the home page takes over */
+/**
+ * Signing out, kept outside the menu: the account menu can be closed while the sign-out is on its
+ * way, and reopening it must still say "Signing out…" rather than offer it again. The page also
+ * says so on its own until the home page takes over.
+ */
+let signingOut = false;
+const listeners = new Set<() => void>();
+function setSigningOut(next: boolean) {
+  signingOut = next;
+  listeners.forEach((l) => l());
+}
+function useSigningOut(): boolean {
+  return React.useSyncExternalStore(
+    (onChange) => {
+      listeners.add(onChange);
+      return () => listeners.delete(onChange);
+    },
+    () => signingOut,
+    () => false
+  );
+}
+
+function begin(event: React.MouseEvent) {
+  // A second press while it's going does nothing
+  if (signingOut) {
+    event.preventDefault();
+    return;
+  }
+  setSigningOut(true);
+  startNavigation();
+}
+
+/** The sign-out button inside its form */
 function Submit({ asButton = false }: { asButton?: boolean }) {
-  const { pending } = useFormStatus();
-  const spinner = pending ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : null;
+  const pending = useSigningOut();
+  const spinner = pending ? (
+    <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
+  ) : null;
   const label = pending ? "Signing out…" : "Sign out";
   if (asButton) {
     return (
-      <Button variant="ghost" size="sm" type="submit" aria-busy={pending || undefined} onClick={() => startNavigation()}>
+      <Button
+        variant="ghost"
+        size="sm"
+        type="submit"
+        aria-busy={pending || undefined}
+        aria-disabled={pending || undefined}
+        onClick={begin}
+      >
         {spinner}
         {label}
       </Button>
     );
   }
   return (
-    <button type="submit" aria-busy={pending || undefined} onClick={() => startNavigation()} className="flex w-full items-center gap-2 text-left">
+    <button
+      type="submit"
+      aria-busy={pending || undefined}
+      aria-disabled={pending || undefined}
+      onClick={begin}
+      className="flex w-full items-center gap-2 text-left aria-disabled:cursor-progress"
+    >
       {spinner}
       {label}
     </button>
@@ -31,7 +79,19 @@ function Submit({ asButton = false }: { asButton?: boolean }) {
 export function SignOutMenuItem({ action }: { action: () => Promise<void> }) {
   return (
     <DropdownMenuItem asChild onSelect={(event) => event.preventDefault()}>
-      <form action={action} className="w-full">
+      <form
+        action={async () => {
+          try {
+            await action();
+          } catch (error) {
+            // A redirect is how a sign-out ends; anything else means it didn't happen
+            if (!(error instanceof Error) || !error.message.includes("NEXT_REDIRECT"))
+              setSigningOut(false);
+            throw error;
+          }
+        }}
+        className="w-full"
+      >
         <Submit />
       </form>
     </DropdownMenuItem>
@@ -44,5 +104,24 @@ export function SignOutButton({ action }: { action: () => Promise<void> }) {
     <form action={action}>
       <Submit asButton />
     </form>
+  );
+}
+
+/**
+ * While a sign-out is going, a notice stays on the page whatever the menus do. Rendered once, in the
+ * app's header.
+ */
+export function SigningOutNotice() {
+  const pending = useSigningOut();
+  if (!pending || typeof document === "undefined") return null;
+  return createPortal(
+    <div
+      role="status"
+      className="fixed inset-x-0 bottom-6 z-50 mx-auto flex w-fit items-center gap-2 rounded-sm border border-border bg-card px-4 py-2.5 text-sm font-semibold shadow-overlay"
+    >
+      <LoaderCircle className="size-4 animate-spin text-primary" aria-hidden="true" />
+      Signing you out…
+    </div>,
+    document.body
   );
 }

@@ -9,7 +9,7 @@ import { usePyodide } from "@/lib/pyodide";
 import { getPythonRuntime } from "@/lib/python-runtime";
 import { PendingLine } from "@/components/ui/pending-line";
 import { isBrowserRunnable } from "@/lib/content/runnable";
-import { questAction } from "@/lib/quest-steps";
+import { questAction, questWorking } from "@/lib/quest-steps";
 
 export type RunState = {
   status: "idle" | "running" | "ok" | "error";
@@ -111,10 +111,19 @@ export function CodeBlock({
   async function execute() {
     if (runningRef.current) return;
     runningRef.current = true;
+    // The quest's sensei fills the wait (the first run downloads Python) and moves on with the output
+    questWorking({ step: "run-code", working: true, cold: getPythonRuntime().getStatus() !== "ready" });
     setResult((r) => ({ ...r, status: "running" }));
-    setResult(await runExample(run, editing ? draft : code));
-    runningRef.current = false;
-    questAction("run-code");
+    try {
+      setResult(await runExample(run, editing ? draft : code));
+      // Output or an error message: either way the code ran
+      questAction("run-code");
+    } catch {
+      setResult({ status: "error", output: "Python couldn't start. Check your connection and press Run again.", values: [] });
+    } finally {
+      runningRef.current = false;
+      questWorking({ step: "run-code", working: false });
+    }
   }
 
   // Only this example's own run shows here; Python's download shows in its output, not on every button

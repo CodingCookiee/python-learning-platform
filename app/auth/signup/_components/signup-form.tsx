@@ -94,7 +94,7 @@ export function SignUpForm({ start }: { start?: string }) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
+    <form method="post" onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
       {error && <FormError message={error} />}
 
       {FIELDS.map((f, i) => (
@@ -114,27 +114,6 @@ export function SignUpForm({ start }: { start?: string }) {
           {errors[f.name] && <p className="text-sm text-destructive">{errors[f.name]?.message}</p>}
         </div>
       ))}
-
-      <div className="flex flex-col gap-2">
-        {/* Wraps its checkbox, which labels it (an htmlFor as well reads as a second label) */}
-        <label className="flex items-start gap-3 text-sm leading-relaxed">
-          <input
-            id="ageConfirmed"
-            type="checkbox"
-            className="mt-0.5 size-4 shrink-0 accent-primary"
-            disabled={isLoading}
-            aria-invalid={Boolean(errors.ageConfirmed)}
-            aria-describedby={errors.ageConfirmed ? "ageConfirmed-error" : undefined}
-            {...register("ageConfirmed")}
-          />
-          <span>I&apos;m 16 or older</span>
-        </label>
-        {errors.ageConfirmed && (
-          <p id="ageConfirmed-error" className="text-sm text-destructive">
-            {errors.ageConfirmed.message}
-          </p>
-        )}
-      </div>
 
       <LoadingButton
         type="submit"

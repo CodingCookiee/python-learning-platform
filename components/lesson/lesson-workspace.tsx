@@ -8,7 +8,7 @@ import { ExampleOutput, RunPending, runExample, type RunState } from "@/componen
 import { ScratchpadContext, type Scratchpad } from "@/components/lesson/scratchpad-context";
 import { getPythonRuntime } from "@/lib/python-runtime";
 import { usePyodide } from "@/lib/pyodide";
-import { questAction } from "@/lib/quest-steps";
+import { questAction, questWorking } from "@/lib/quest-steps";
 import { cn } from "@/lib/utils";
 
 
@@ -150,11 +150,15 @@ export function LessonWorkspace({
   async function run() {
     if (running) return;
     setRunning(true);
+    questWorking({ step: "scratchpad", working: true, cold: getPythonRuntime().getStatus() !== "ready" });
     try {
       setResult(await runExample(runPython, codeRef.current, 10_000));
       questAction("scratchpad");
+    } catch {
+      setResult({ status: "error", output: "Python couldn't start. Check your connection and press Run again.", values: [] });
     } finally {
       setRunning(false);
+      questWorking({ step: "scratchpad", working: false });
     }
   }
 

@@ -61,8 +61,3 @@ export function isRedisConfigured(): boolean {
   const e = env();
   return Boolean(e.UPSTASH_REDIS_REST_URL && e.UPSTASH_REDIS_REST_TOKEN);
 }
-
-export function isBootstrapAdmin(email: string | null | undefined): boolean {
-  const bootstrap = env().ADMIN_BOOTSTRAP_EMAIL;
-  return Boolean(email && bootstrap && email.trim().toLowerCase() === bootstrap.toLowerCase());
-}

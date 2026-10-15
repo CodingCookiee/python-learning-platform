@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { requireAdminPage } from "@/lib/admin/guard";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { isAdmin } from "@/lib/api-auth";
@@ -12,17 +13,7 @@ import { RefreshPublicPages } from "./_components/refresh-public-pages";
 export const metadata: Metadata = { title: "Content (admin)" };
 
 export default async function ContentManagementPage() {
-  const session = await auth();
-  if (!session?.user?.email) redirect("/auth/signin");
-
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    select: { id: true },
-  });
-  // Signed in as an account that no longer exists: clear the stale session (else a redirect loop)
-  if (!user) redirect("/auth/session-ended");
-  const admin = await isAdmin(user.id);
-  if (!admin) redirect("/dashboard");
+  await requireAdminPage("super");
 
   const tracks = await prisma.track.findMany({
     where: { archivedAt: null },

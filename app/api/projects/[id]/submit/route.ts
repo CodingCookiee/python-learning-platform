@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { notifySubmission } from "@/lib/admin/notifications";
 import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
 import { CacheKeys, invalidateCache, invalidateUserCache } from "@/lib/cache";
@@ -72,7 +73,7 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
     // Check project exists
     const project = await prisma.project.findFirst({
       where: { id: projectId, archivedAt: null, module: { archivedAt: null } },
-      select: { id: true },
+      select: { id: true, title: true },
     });
     if (!project) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
@@ -109,6 +110,10 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
         status: "pending",
       },
     });
+
+    // Every admin hears about it (the bell in the header)
+    const learner = await prisma.user.findUnique({ where: { id: context.userId }, select: { name: true, email: true } });
+    if (learner) await notifySubmission(submission, learner, project);
 
     // Invalidate project detail cache so the latest status shows immediately
     await invalidateCache(CacheKeys.project(projectId, context.userId));

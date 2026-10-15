@@ -15,7 +15,10 @@ datasource db {
 enum Role {
   LEARNER
   AUTHOR
+  /// Reviews capstone submissions and sees the admin overview (read-only)
   ADMIN
+  /// Everything an admin does, plus users, progress, certificates, content and the audit log
+  SUPER_ADMIN
 }
 
 model User {
@@ -38,16 +41,18 @@ model User {
   level Int  @default(1)
   role  Role @default(LEARNER)
 
+  /// Set by an admin: the account can't sign in or use the app until it's cleared
+  suspendedAt     DateTime?
+  suspendedReason String?
+
   /// First-run setup (/onboarding): set once the learner has answered it
-  onboardedAt    DateTime?
-  /// When the learner confirmed they're 16 or over (at sign-up, or in onboarding for other sign-ins)
-  ageConfirmedAt DateTime?
+  onboardedAt DateTime?
   /// new | other-language | python
-  experience     String?
+  experience  String?
   /// python | automation
-  goal           String?
+  goal        String?
   /// The weekly training target the dashboard plans around
-  weeklyHours    Int       @default(10)
+  weeklyHours Int       @default(10)
 
   exerciseSubmissions ExerciseSubmission[]
   projectSubmissions  ProjectSubmission[]
@@ -61,6 +66,7 @@ model User {
   ciLinks             CiLink[]
   quests              QuestProgress[]
   certificates        Certificate[]
+  notifications       AdminNotification[]
 
   @@map("users")
 }
@@ -302,6 +308,8 @@ model CheckpointAttempt {
   belt            String?
   /// A belt test-out: every module it passes when passed (moduleId is the first of them)
   coversModuleIds String[]  @default([])
+  /// A pass granted by an admin rather than earned in a grading: the admin's user id
+  grantedById     String?
   score           Float?
   passed          Boolean   @default(false)
   startedAt       DateTime  @default(now())
@@ -558,20 +566,63 @@ model QuestProgress {
 /// the black belt in Python, or the AI automation track's 9th dan. Its public page lives at
 /// /certificates/{code}; nothing is public until the learner claims it.
 model Certificate {
-  id          String    @id @default(cuid())
+  id            String    @id @default(cuid())
   /// Public ID printed on the certificate and used in its URL: PL-PY-XXXX-XXXX or PL-AI-XXXX-XXXX
-  code        String    @unique
-  userId      String
+  code          String    @unique
+  userId        String
   /// "python" | "automation"
-  track       String
+  track         String
   /// The name printed, as the learner confirmed it when claiming
-  name        String
-  issuedAt    DateTime  @default(now())
+  name          String
+  issuedAt      DateTime  @default(now())
   /// Set while the holder has withdrawn the public page
-  withdrawnAt DateTime?
+  withdrawnAt   DateTime?
+  /// Set by an admin: the certificate is void and its page shows nothing, whatever the holder does
+  revokedAt     DateTime?
+  revokedReason String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, track])
   @@map("certificates")
+}
+
+/// Everything an admin does to an account, a learner's progress or a certificate, for oversight.
+/// Ids and labels are copied in rather than related, so the record outlives a deleted account.
+model AdminAction {
+  id          String   @id @default(cuid())
+  adminId     String
+  adminEmail  String
+  /// user.suspend | user.unsuspend | user.delete | user.role | user.verify | user.reset-link |
+  /// module.grant | module.revoke | grading.clear-cooldown | certificate.revoke | certificate.reinstate
+  action      String
+  targetId    String?
+  /// The target as it read at the time ("Ada Lovelace <ada@example.com>")
+  targetLabel String   @default("")
+  detail      Json?
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([targetId])
+  @@map("admin_actions")
+}
+
+/// A notice for one admin: a new sign-up, a capstone handed in. One row per admin, so each has
+/// their own unread state.
+model AdminNotification {
+  id          String    @id @default(cuid())
+  recipientId String
+  /// signup | submission
+  kind        String
+  title       String
+  body        String    @default("")
+  /// Where it leads in the admin area
+  href        String
+  createdAt   DateTime  @default(now())
+  readAt      DateTime?
+
+  recipient User @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, readAt, createdAt])
+  @@map("admin_notifications")
 }

@@ -237,7 +237,7 @@ export function AiSettings({
       )}
       {credential && busy !== "test" && <StatusLine status={testResult} />}
 
-      <form onSubmit={(e) => void save(e)} className="flex flex-col gap-4">
+      <form method="post" onSubmit={(e) => void save(e)} className="flex flex-col gap-4">
         <fieldset className="flex flex-col gap-2">
           <legend className="mb-2 text-sm font-medium">Provider</legend>
           <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Provider">

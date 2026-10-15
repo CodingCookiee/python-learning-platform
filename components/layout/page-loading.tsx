@@ -1,9 +1,10 @@
 import { Skeleton } from "@/components/animations";
 import { cn } from "@/lib/utils";
+import { BeltLoader } from "@/components/brand/belt-loader";
 
 /**
- * A page's loading screen (its route's loading.tsx): a skeleton shaped like the page, announced to
- * screen readers as what's loading ("Loading your review queue"). The skeleton itself is for the eye.
+ * A page's loading screen (its route's loading.tsx): the belt loader and what's loading ("Loading your
+ * review queue…"), then a skeleton shaped like the page. The skeleton is for the eye only.
  */
 export function PageLoading({
   label,
@@ -22,7 +23,11 @@ export function PageLoading({
       aria-busy="true"
       className={cn("mx-auto min-h-[calc(100dvh-4rem)] max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8", className)}
     >
-      <span className="sr-only">{label}…</span>
+      {/* The belt loader says something is happening; the skeleton shows what's coming */}
+      <p className="mb-6 flex items-center gap-3 text-sm text-muted-foreground">
+        <BeltLoader />
+        <span>{label}…</span>
+      </p>
       <div aria-hidden="true">{children}</div>
     </div>
   );

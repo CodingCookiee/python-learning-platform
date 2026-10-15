@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { adminLevel } from "@/lib/admin/levels";
 import { auth } from "@/auth";
 
 /**
@@ -33,12 +34,16 @@ export function withAuth<TParams extends Record<string, string> = Record<string,
     const { prisma } = await import("@/lib/prisma");
     const user = await prisma.user.findUnique({
       where: { id: sessionUserId },
-      select: { id: true },
+      select: { id: true, suspendedAt: true },
     });
 
     // A valid token for an account that no longer exists is not a session
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    // Suspended by an admin: the session stays, but nothing works until it's lifted
+    if (user.suspendedAt) {
+      return NextResponse.json({ error: "This account is suspended." }, { status: 403 });
     }
 
     // Provide an empty resolved params promise when there are no route params
@@ -59,7 +64,27 @@ export async function isAdmin(userId: string): Promise<boolean> {
     select: { role: true },
   });
 
-  return user?.role === "ADMIN";
+  // Either level: both may review submissions and see the overview
+  return adminLevel(user?.role) !== null;
+}
+
+/** Full control: accounts, progress, certificates, content, the audit log */
+export async function isSuperAdmin(userId: string): Promise<boolean> {
+  const { prisma } = await import("@/lib/prisma");
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+  return adminLevel(user?.role) === "super";
+}
+
+/** Wrapper for API routes only a super admin may use */
+export function withSuperAdmin<TParams extends Record<string, string> = Record<string, never>>(
+  handler: (req: NextRequest, context: AuthContext<TParams>) => Promise<Response>
+) {
+  return withAuth<TParams>(async (req: NextRequest, context: AuthContext<TParams>) => {
+    if (!(await isSuperAdmin(context.userId))) {
+      return NextResponse.json({ error: "Only a super admin can do that." }, { status: 403 });
+    }
+    return handler(req, context);
+  });
 }
 
 /**

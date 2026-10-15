@@ -39,7 +39,7 @@ export function GET() {
 
 > A free, graded course that takes anyone, from their first line of code, to advanced Python, then to building AI automation. Lessons, drills and gradings run in the browser; ranks follow the martial-arts belts, from 16 kyu (white belt) to black belt. People who have never programmed start with a 4-hour on-ramp in plain language; developers can test out of what they know.
 
-Everything is free. Lessons and drills need a free account; the pages below are public. The optional AI tutor and reviewer use the learner's own Anthropic, OpenAI or Google key, so the learner pays that provider directly. For people 16 and over.
+Everything is free. Lessons and drills need a free account; the pages below are public. The optional AI tutor and reviewer use the learner's own Anthropic, OpenAI or Google key, so the learner pays that provider directly.
 
 ## Pages
 

@@ -64,6 +64,11 @@ export interface LessonContentProps {
   copyable?: boolean;
   /** False keeps the table of contents above the text, for pages with their own sidebar */
   sideToc?: boolean;
+  /**
+   * False for text the course didn't write (AI replies): rendered as Markdown without raw HTML, so a
+   * reply steered by prompt injection can't inject markup (security review L-1)
+   */
+  trusted?: boolean;
 }
 
 function TocList({ items, activeSlug }: { items: TocItem[]; activeSlug: string | null }) {
@@ -334,7 +339,14 @@ const components: Components = {
 
 // LessonContent
 
-export function LessonContent({ content, className, runnable = true, copyable = true, sideToc = true }: LessonContentProps) {
+export function LessonContent({
+  content,
+  className,
+  runnable = true,
+  copyable = true,
+  sideToc = true,
+  trusted = true,
+}: LessonContentProps) {
   // The page renders the lesson title; drop a leading markdown h1 that repeats it
   content = content.replace(/^\s*#\s+[^\n]*\n+/, "");
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
@@ -388,7 +400,8 @@ export function LessonContent({ content, className, runnable = true, copyable = 
           <CopyableCode.Provider value={copyable}>
             <ReactMarkdown
               remarkPlugins={[remarkGfm, remarkPylearn]}
-              rehypePlugins={[rehypeRaw, [rehypeHighlight, { detect: true }]]}
+              // Raw HTML only in the course's own content: AI replies render as Markdown alone
+              rehypePlugins={trusted ? [rehypeRaw, [rehypeHighlight, { detect: true }]] : [[rehypeHighlight, { detect: true }]]}
               components={components}
             >
               {content}

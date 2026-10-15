@@ -1,4 +1,7 @@
 import type { NextAuthConfig } from "next-auth";
+import { notifySignup } from "@/lib/admin/notifications";
+import { normalizeEmail } from "@/lib/email-address";
+import { promotesToAdmin } from "@/lib/admin/bootstrap";
 import type { Provider } from "next-auth/providers";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
@@ -6,7 +9,7 @@ import Credentials from "next-auth/providers/credentials";
 import { CredentialsSignin } from "next-auth";
 import { compare } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { env, isBootstrapAdmin } from "@/lib/env";
+import { env } from "@/lib/env";
 import { rateLimit } from "@/lib/rate-limit";
 
 /** Shown to the learner as a code; neither reveals whether an account exists without the password */
@@ -15,6 +18,9 @@ class UnverifiedEmail extends CredentialsSignin {
 }
 class TooManyAttempts extends CredentialsSignin {
   code = "rate_limited";
+}
+class SuspendedAccount extends CredentialsSignin {
+  code = "suspended";
 }
 
 /**
@@ -35,11 +41,13 @@ const providers: Provider[] = [
         return null;
       }
       // Slow down password guessing against one account
-      const limited = await rateLimit("signIn", String(credentials.email).trim().toLowerCase());
+      const email = normalizeEmail(String(credentials.email));
+      const limited = await rateLimit("signIn", email);
       if (!limited.ok) throw new TooManyAttempts();
 
-      const user = await prisma.user.findUnique({
-        where: { email: credentials.email as string },
+      // Case-insensitive: accounts made before emails were lower-cased still sign in
+      const user = await prisma.user.findFirst({
+        where: { email: { equals: email, mode: "insensitive" } },
       });
 
       if (!user || !user.password) {
@@ -52,6 +60,8 @@ const providers: Provider[] = [
         return null;
       }
       if (!user.emailVerified) throw new UnverifiedEmail();
+      // Suspended by an admin: the right password still doesn't open the account
+      if (user.suspendedAt) throw new SuspendedAccount();
 
       return {
         id: user.id,
@@ -81,13 +91,23 @@ if (env().AUTH_GOOGLE_ID && env().AUTH_GOOGLE_SECRET) {
 async function resolveRole(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { email: true, role: true },
+    select: { email: true, role: true, emailVerified: true },
   });
   if (!user) return "LEARNER" as const;
 
-  if (user.role !== "ADMIN" && isBootstrapAdmin(user.email)) {
-    await prisma.user.update({ where: { id: userId }, data: { role: "ADMIN" } });
-    return "ADMIN" as const;
+  // The bootstrap email only ever makes the first admin, once verified (lib/admin/bootstrap.ts)
+  if (
+    promotesToAdmin(
+      { email: user.email, verified: Boolean(user.emailVerified), role: user.role },
+      {
+        bootstrapEmail: env().ADMIN_BOOTSTRAP_EMAIL,
+        adminExists: Boolean(await prisma.user.findFirst({ where: { role: { in: ["ADMIN", "SUPER_ADMIN"] } }, select: { id: true } })),
+      }
+    )
+  ) {
+    // The first admin has full control
+    await prisma.user.update({ where: { id: userId }, data: { role: "SUPER_ADMIN" } });
+    return "SUPER_ADMIN" as const;
   }
   return user.role;
 }
@@ -104,15 +124,26 @@ export const authConfig = {
   },
 
   callbacks: {
-    async signIn({ user, account }) {
-      // Allow OAuth without email verification
+    async signIn({ user, account, profile }) {
       if (account?.provider !== "credentials") {
+        // Google says whether it verified the address; an unverified one could belong to anybody
+        if (account?.provider === "google" && (profile as { email_verified?: boolean } | undefined)?.email_verified !== true) {
+          return false;
+        }
+        // A suspended account stays shut whichever way it signs in
+        if (user.email) {
+          const existing = await prisma.user.findFirst({
+            where: { email: { equals: normalizeEmail(user.email), mode: "insensitive" } },
+            select: { suspendedAt: true },
+          });
+          if (existing?.suspendedAt) return "/auth/signin?suspended=1";
+        }
         return true;
       }
 
       // For credentials, check if email is verified
-      const existingUser = await prisma.user.findUnique({
-        where: { email: user.email! },
+      const existingUser = await prisma.user.findFirst({
+        where: { email: { equals: normalizeEmail(user.email ?? ""), mode: "insensitive" } },
       });
 
       if (!existingUser?.emailVerified) {
@@ -156,7 +187,7 @@ export const authConfig = {
   },
 
   events: {
-    async signIn({ user, isNewUser }) {
+    async signIn({ user, account, isNewUser }) {
       // Create streak record for new users
       if (isNewUser && user.id) {
         await prisma.streak.upsert({
@@ -164,6 +195,10 @@ export const authConfig = {
           update: {},
           create: { userId: user.id, currentStreak: 0, longestStreak: 0 },
         });
+        // A first GitHub or Google sign-in is a sign-up (the form's sign-ups notify from their route)
+        if (user.email) {
+          await notifySignup({ id: user.id, name: user.name ?? null, email: user.email }, `${account?.provider ?? "OAuth"} sign-in`);
+        }
       }
     },
 

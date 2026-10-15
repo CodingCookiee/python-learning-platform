@@ -8,7 +8,9 @@ import { NextResponse, type NextRequest } from "next/server";
  * session cookie (a route handler can; a page can't) and then shows sign-in.
  */
 export function GET(req: NextRequest) {
-  const res = NextResponse.redirect(new URL("/auth/signin", req.url));
+  // ?reason=suspended: an admin suspended the account; sign-in says so
+  const suspended = req.nextUrl.searchParams.get("reason") === "suspended";
+  const res = NextResponse.redirect(new URL(suspended ? "/auth/signin?suspended=1" : "/auth/signin", req.url));
   for (const cookie of req.cookies.getAll()) {
     // Auth.js's session cookie, chunked (.0, .1) when large, with the __Secure- prefix over https
     if (cookie.name.includes("authjs.session-token")) {
