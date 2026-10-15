@@ -12,7 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
 import { PASSWORD_RULE, passwordProblem } from "@/lib/validations/password";
-import { FormError } from "@/components/auth/auth-shell";
+import { AUTH_HEADING, FormError } from "@/components/auth/auth-shell";
+import { cn } from "@/lib/utils";
 
 async function post(url: string, body: unknown): Promise<{ ok: boolean; error?: string }> {
   try {
@@ -111,7 +112,7 @@ export function VerifyEmailForm({ token: fromUrl }: { token: string }) {
           <h1
             ref={heading}
             tabIndex={-1}
-            className="text-3xl font-semibold tracking-[-0.015em] outline-none"
+            className={cn(AUTH_HEADING, "outline-none")}
           >
             You&apos;re all set.
           </h1>
@@ -132,7 +133,7 @@ export function VerifyEmailForm({ token: fromUrl }: { token: string }) {
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-1.5">
-        <h1 className="text-2xl font-semibold tracking-[-0.01em]">Confirm your email</h1>
+        <h1 className={AUTH_HEADING}>Confirm your email</h1>
         <p className="text-sm text-muted-foreground">
           Press the button to finish setting up your account.
         </p>
@@ -150,11 +151,6 @@ export function VerifyEmailForm({ token: fromUrl }: { token: string }) {
           Confirm my email
         </LoadingButton>
       </div>
-      <p className="text-sm text-muted-foreground">
-        <Link href="/auth/signin" className="font-medium text-primary underline">
-          Back to sign in
-        </Link>
-      </p>
     </div>
   );
 }

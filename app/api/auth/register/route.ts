@@ -22,7 +22,7 @@ export async function POST(req: Request) {
 
     // An address a super admin removed and barred
     if (await isEmailBlocked(validatedData.email)) {
-      return NextResponse.json({ error: BLOCKED_MESSAGE }, { status: 403 });
+      return NextResponse.json({ error: BLOCKED_MESSAGE, field: "email" }, { status: 403 });
     }
 
     // Check if user already exists
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     });
 
     if (existingUser) {
-      return NextResponse.json({ error: "User with this email already exists" }, { status: 400 });
+      return NextResponse.json({ error: "This email already has an account.", field: "email" }, { status: 400 });
     }
 
     // Hash password
@@ -81,7 +81,12 @@ export async function POST(req: Request) {
     if (error instanceof ZodError) {
       // The first problem, in the form's own words (the browser runs the same checks first)
       return NextResponse.json(
-        { error: error.issues[0]?.message ?? "Check the form and try again.", details: error.issues },
+        {
+          error: error.issues[0]?.message ?? "Check the form and try again.",
+          // The form shows it under the field it's about
+          field: error.issues[0]?.path[0],
+          details: error.issues,
+        },
         { status: 400 }
       );
     }

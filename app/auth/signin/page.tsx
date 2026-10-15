@@ -2,7 +2,6 @@ import { BLOCKED_MESSAGE } from "@/lib/admin/blocked-emails";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { hasCredentialsInQuery } from "@/lib/strip-credentials";
-import Link from "next/link";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { SignInForm } from "./_components/signin-form";
 
@@ -36,19 +35,14 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
   const notice = noticeFor(params);
   const alert = alertFor(params);
   return (
-    <AuthShell title="Back to the mat." lede="Your belt, stripes and streak are where you left them.">
-      <div className="flex flex-col gap-8">
-        <div className="flex flex-col gap-1.5">
-          <h1 className="text-2xl font-semibold tracking-[-0.01em]">Sign in</h1>
-          <p className="text-sm text-muted-foreground">
-            New here?{" "}
-            <Link href="/auth/signup" className="font-medium text-primary underline">
-              Create an account
-            </Link>
-          </p>
-        </div>
-        <SignInForm notice={notice} alert={alert} />
-      </div>
+    <AuthShell
+      title="Back to the mat."
+      lede="Your belt, stripes and streak are where you left them."
+      heading="Sign in"
+      sub="Pick up your training where you stopped."
+      switchTo={{ prompt: "New here?", label: "Create an account", href: "/auth/signup" }}
+    >
+      <SignInForm notice={notice} alert={alert} />
     </AuthShell>
   );
 }

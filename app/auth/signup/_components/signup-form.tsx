@@ -11,26 +11,46 @@ import { PendingLine } from "@/components/ui/pending-line";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FormError } from "@/components/auth/auth-shell";
+import { cn } from "@/lib/utils";
 import { PasswordInput } from "@/components/ui/password-input";
 import { signUpSchema, type SignUpInput } from "@/lib/validations/auth";
 import { PASSWORD_RULE } from "@/lib/validations/password";
 import type { z } from "zod";
 import { rememberStart } from "@/lib/start-intent";
 
-const FIELDS: Array<{
-  name: keyof SignUpInput;
-  label: string;
-  type: string;
-  autoComplete: string;
-  placeholder?: string;
-  /** Said under the field before anyone types, so the rule is never a surprise */
+/**
+ * Every field keeps a line under it for its hint or its error, so a message appearing or clearing
+ * never changes the form's height: nothing jumps while the learner fills it in.
+ */
+function FieldNote({
+  id,
+  error,
+  hint,
+  lines = 1,
+  className,
+}: {
+  id: string;
+  error?: string;
   hint?: string;
-}> = [
-  { name: "name", label: "Name", type: "text", autoComplete: "name", placeholder: "Your name" },
-  { name: "email", label: "Email", type: "email", autoComplete: "email", placeholder: "you@example.com" },
-  { name: "password", label: "Password", type: "password", autoComplete: "new-password", hint: PASSWORD_RULE },
-  { name: "confirmPassword", label: "Confirm password", type: "password", autoComplete: "new-password" },
-];
+  lines?: 1 | 2;
+  className?: string;
+}) {
+  return (
+    <p
+      id={id}
+      className={cn(
+        "text-sm leading-5",
+        lines === 2 ? "min-h-10" : "min-h-5",
+        error ? "text-destructive" : "text-muted-foreground",
+        className
+      )}
+    >
+      {error ?? hint}
+    </p>
+  );
+}
+
+const FIELD_NAMES: ReadonlyArray<keyof SignUpInput> = ["name", "email", "password", "confirmPassword"];
 
 /** The sign-up form. The page around it renders on the server */
 export function SignUpForm({ start }: { start?: string }) {
@@ -43,6 +63,7 @@ export function SignUpForm({ start }: { start?: string }) {
   const {
     register,
     handleSubmit,
+    setError: setFieldError,
     formState: { errors },
   } = useForm<SignUpInput, unknown, z.output<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
@@ -69,7 +90,14 @@ export function SignUpForm({ start }: { start?: string }) {
       const result = await response.json();
 
       if (!response.ok) {
-        setError(result.error || "We couldn't create your account. Please try again.");
+        const message = result.error || "We couldn't create your account. Please try again.";
+        // A refusal about one field (a breached password, a taken email) shows in that field's note,
+        // in the line already kept for it; anything else goes under the button
+        if (result.field && FIELD_NAMES.includes(result.field)) {
+          setFieldError(result.field, { type: "server", message }, { shouldFocus: true });
+        } else {
+          setError(message);
+        }
         return;
       }
 
@@ -101,54 +129,87 @@ export function SignUpForm({ start }: { start?: string }) {
   };
 
   return (
-    <form method="post" onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
-      {error && <FormError message={error} />}
+    <form method="post" onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2" noValidate>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="name">Name</Label>
+        <Input
+          id="name"
+          type="text"
+          autoComplete="name"
+          enterKeyHint="next"
+          placeholder="Your name"
+          disabled={isLoading}
+          aria-invalid={Boolean(errors.name)}
+          aria-describedby="name-note"
+          {...register("name")}
+        />
+        <FieldNote id="name-note" error={errors.name?.message} />
+      </div>
 
-      {FIELDS.map((f, i) => {
-        const Field = f.type === "password" ? PasswordInput : Input;
-        const hintId = f.hint ? `${f.name}-hint` : undefined;
-        const errorId = errors[f.name] ? `${f.name}-error` : undefined;
-        return (
-          <div key={f.name} className="flex flex-col gap-2">
-            <Label htmlFor={f.name}>{f.label}</Label>
-            <Field
-              id={f.name}
-              {...(f.type === "password"
-                ? { what: f.name === "confirmPassword" ? "confirmation" : "password" }
-                : { type: f.type })}
-              autoComplete={f.autoComplete}
-              // The phone keyboard's Enter key moves on, then submits from the last field
-              enterKeyHint={i === FIELDS.length - 1 ? "go" : "next"}
-              placeholder={f.placeholder}
-              disabled={isLoading}
-              aria-invalid={Boolean(errors[f.name])}
-              aria-describedby={[errorId, hintId].filter(Boolean).join(" ") || undefined}
-              {...register(f.name)}
-            />
-            {errors[f.name] ? (
-              <p id={errorId} className="text-sm text-destructive">
-                {errors[f.name]?.message}
-              </p>
-            ) : (
-              f.hint && (
-                <p id={hintId} className="text-sm text-muted-foreground">
-                  {f.hint}
-                </p>
-              )
-            )}
-          </div>
-        );
-      })}
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          type="email"
+          autoComplete="email"
+          enterKeyHint="next"
+          placeholder="you@example.com"
+          disabled={isLoading}
+          aria-invalid={Boolean(errors.email)}
+          aria-describedby="email-note"
+          {...register("email")}
+        />
+        <FieldNote id="email-note" error={errors.email?.message} />
+      </div>
+
+      {/* The pair side by side, sharing one note: the rule first, then whichever needs fixing */}
+      <div className="grid gap-x-3 gap-y-1.5 sm:grid-cols-2">
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="password">Password</Label>
+          <PasswordInput
+            id="password"
+            what="password"
+            autoComplete="new-password"
+            enterKeyHint="next"
+            disabled={isLoading}
+            aria-invalid={Boolean(errors.password)}
+            aria-describedby="password-note"
+            {...register("password")}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="confirmPassword">Confirm password</Label>
+          <PasswordInput
+            id="confirmPassword"
+            what="confirmation"
+            autoComplete="new-password"
+            enterKeyHint="go"
+            disabled={isLoading}
+            aria-invalid={Boolean(errors.confirmPassword)}
+            aria-describedby="password-note"
+            {...register("confirmPassword")}
+          />
+        </div>
+        <FieldNote
+          id="password-note"
+          lines={2}
+          className="sm:col-span-2"
+          error={errors.password?.message ?? errors.confirmPassword?.message}
+          hint={PASSWORD_RULE}
+        />
+      </div>
 
       <LoadingButton
         type="submit"
         size="lg"
-        className="mt-2 w-full"
+        className="mt-1 w-full"
         loading={isLoading}
         loadingText={leaving === "signin" ? "Taking you to sign in…" : leaving === "app" ? "Opening pylearn…" : "Creating your account…"}
       >
         Create account
       </LoadingButton>
+      {/* Under the button, so a refusal adds to the foot of the form and nothing above it moves */}
+      {error && <FormError message={error} />}
       {isLoading && !leaving && (
         <PendingLine
           className="self-center"
