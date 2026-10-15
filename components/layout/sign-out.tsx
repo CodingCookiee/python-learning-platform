@@ -1,8 +1,9 @@
 "use client";
 
+import { Spinner } from "@/components/brand/knot-loader";
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { LoaderCircle } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { startNavigation } from "@/components/layout/navigation-progress";
@@ -42,9 +43,7 @@ function begin(event: React.MouseEvent) {
 /** The sign-out button inside its form */
 function Submit({ asButton = false }: { asButton?: boolean }) {
   const pending = useSigningOut();
-  const spinner = pending ? (
-    <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
-  ) : null;
+  const spinner = pending ? <Spinner className="size-4" /> : null;
   const label = pending ? "Signing out…" : "Sign out";
   if (asButton) {
     return (
@@ -119,7 +118,7 @@ export function SigningOutNotice() {
       role="status"
       className="fixed inset-x-0 bottom-6 z-50 mx-auto flex w-fit items-center gap-2 rounded-sm border border-border bg-card px-4 py-2.5 text-sm font-semibold shadow-overlay"
     >
-      <LoaderCircle className="size-4 animate-spin text-primary" aria-hidden="true" />
+      <Spinner className="size-4 text-primary" />
       Signing you out…
     </div>,
     document.body

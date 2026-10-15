@@ -1,8 +1,9 @@
 "use client";
 
+import { Spinner } from "@/components/brand/knot-loader";
 import * as React from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Check, LoaderCircle, Play, RotateCcw, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Play, RotateCcw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Seal } from "@/components/brand/seal";
 import { Sensei } from "@/components/quest/sensei";
@@ -35,7 +36,9 @@ async function runPython(code: string): Promise<Ran> {
   const result = await getPythonRuntime().run(code, { timeoutMs: 8000 });
   if (result.error && isStartFailure(result.error)) return "unavailable";
   const output = result.stdout + (result.stderr ? `\n${result.stderr}` : "");
-  const error = result.error ? result.error.traceback || `${result.error.type}: ${result.error.message}` : null;
+  const error = result.error
+    ? result.error.traceback || `${result.error.type}: ${result.error.message}`
+    : null;
   return { output, error };
 }
 
@@ -173,7 +176,11 @@ export function TryIt({ onPass }: { onPass?: () => void }) {
                   aria-hidden="true"
                   className={cn(
                     "size-2.5 rotate-45 border border-(--keyline)",
-                    i === step ? "bg-primary" : i < step || (i === 2 && passed) ? "bg-(--keyline)/50" : "bg-transparent"
+                    i === step
+                      ? "bg-primary"
+                      : i < step || (i === 2 && passed)
+                        ? "bg-(--keyline)/50"
+                        : "bg-transparent"
                   )}
                 />
               </button>
@@ -196,7 +203,8 @@ export function TryIt({ onPass }: { onPass?: () => void }) {
 
       {unavailable && (
         <p className="mx-5 mt-3 rounded-sm border border-border bg-background px-3 py-2 text-xs leading-relaxed text-muted-foreground">
-          Python couldn&apos;t start in this browser (offline, or blocked), so each step shows what it would print.
+          Python couldn&apos;t start in this browser (offline, or blocked), so each step shows what
+          it would print.
         </p>
       )}
 
@@ -205,9 +213,16 @@ export function TryIt({ onPass }: { onPass?: () => void }) {
         {step === 0 && (
           <div className="overflow-hidden rounded-sm border border-border bg-background">
             <div className="flex items-center justify-between gap-3 border-b border-border py-1.5 pr-1.5 pl-3">
-              <span className="font-condensed text-xs font-semibold text-muted-foreground">python</span>
-              <Button size="xs" onClick={() => void runLine()} aria-busy={busy === "line" || loading} className="min-w-20">
-                {busy === "line" || loading ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <Play aria-hidden="true" />}
+              <span className="font-condensed text-xs font-semibold text-muted-foreground">
+                python
+              </span>
+              <Button
+                size="xs"
+                onClick={() => void runLine()}
+                aria-busy={busy === "line" || loading}
+                className="min-w-20"
+              >
+                {busy === "line" || loading ? <Spinner /> : <Play aria-hidden="true" />}
                 {runLabel}
               </Button>
             </div>
@@ -264,23 +279,41 @@ export function TryIt({ onPass }: { onPass?: () => void }) {
             )}
             {unavailable && (
               <p className="text-sm text-muted-foreground">
-                With the quote added, it prints <span className="font-mono text-foreground">{EXPECTED}</span>.
+                With the quote added, it prints{" "}
+                <span className="font-mono text-foreground">{EXPECTED}</span>.
               </p>
             )}
             <div className="flex flex-wrap items-center gap-2">
-              <Button size="sm" onClick={() => void runTests()} aria-busy={busy === "test" || loading} disabled={unavailable}>
-                {busy === "test" || loading ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <Check aria-hidden="true" />}
+              <Button
+                size="sm"
+                onClick={() => void runTests()}
+                aria-busy={busy === "test" || loading}
+                disabled={unavailable}
+              >
+                {busy === "test" || loading ? <Spinner /> : <Check aria-hidden="true" />}
                 {loading ? "Loading Python…" : "Run tests"}
               </Button>
-              <Button size="sm" variant="outline" onClick={() => void runCode()} aria-busy={busy === "run"}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => void runCode()}
+                aria-busy={busy === "run"}
+              >
                 <Play aria-hidden="true" />
                 Run
               </Button>
-              <Button size="sm" variant="ghost" onClick={reset} disabled={code === BROKEN_CODE && !test && !second}>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={reset}
+                disabled={code === BROKEN_CODE && !test && !second}
+              >
                 <RotateCcw aria-hidden="true" />
                 Reset
               </Button>
-              <span className="ml-auto hidden text-xs text-muted-foreground sm:inline">Ctrl + Enter runs the tests</span>
+              <span className="ml-auto hidden text-xs text-muted-foreground sm:inline">
+                Ctrl + Enter runs the tests
+              </span>
             </div>
           </>
         )}
@@ -288,7 +321,9 @@ export function TryIt({ onPass }: { onPass?: () => void }) {
         {step === 2 && (
           <div className="flex items-center gap-5">
             <div className="flex min-w-0 flex-1 flex-col items-start gap-3">
-              <p className="font-condensed text-3xl leading-none font-extrabold tracking-[-0.01em]">Make it count</p>
+              <p className="font-condensed text-3xl leading-none font-extrabold tracking-[-0.01em]">
+                Make it count
+              </p>
               <p className="text-sm leading-relaxed text-muted-foreground">
                 {passed
                   ? "That stripe is on the belt below. With an account every stripe you earn is kept, and the white belt starts with this same loop: read, run, fix, pass."
@@ -301,7 +336,14 @@ export function TryIt({ onPass }: { onPass?: () => void }) {
                 </Link>
               </Button>
             </div>
-            {passed && <Seal label="Passed" detail="Drill 1" animate className="hidden shrink-0 sm:inline-flex" />}
+            {passed && (
+              <Seal
+                label="Passed"
+                detail="Drill 1"
+                animate
+                className="hidden shrink-0 sm:inline-flex"
+              />
+            )}
           </div>
         )}
       </div>
@@ -312,7 +354,12 @@ export function TryIt({ onPass }: { onPass?: () => void }) {
           Back
         </Button>
         {step < 2 && (
-          <Button variant="outline" size="sm" onClick={() => go(step + 1)} disabled={step === 1 && !canLeaveFix}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => go(step + 1)}
+            disabled={step === 1 && !canLeaveFix}
+          >
             Next
             <ArrowRight data-icon="inline-end" aria-hidden="true" />
           </Button>

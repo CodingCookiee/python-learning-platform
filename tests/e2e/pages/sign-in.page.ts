@@ -31,5 +31,7 @@ export class SignInPage extends BasePage {
     await this.goto();
     await this.signIn(email, password);
     await expect(this.page).toHaveURL(/\/dashboard$/, { timeout: 60_000 });
+    // Past the loading screen: the remote dev database can take a while on a first render
+    await expect(this.page.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 60_000 });
   }
 }

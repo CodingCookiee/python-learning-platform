@@ -1,10 +1,11 @@
 "use client";
 
-import { BeltLoader } from "@/components/brand/belt-loader";
+import { Spinner } from "@/components/brand/knot-loader";
+import { KnotLoader } from "@/components/brand/knot-loader";
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowRight, Check, Crosshair, LoaderCircle, Minus } from "lucide-react";
+import { ArrowRight, Check, Crosshair, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LoadingButton } from "@/components/ui/loading-button";
 import { Progress } from "@/components/ui/progress";
@@ -426,12 +427,7 @@ export function QuestPanel() {
               {position} of {total}
             </span>
           </span>
-          {busyHere && (
-            <LoaderCircle
-              className="size-3.5 animate-spin text-muted-foreground"
-              aria-hidden="true"
-            />
-          )}
+          {busyHere && <Spinner className="size-3.5 text-muted-foreground" />}
         </button>
       </>
     );
@@ -486,7 +482,7 @@ export function QuestPanel() {
               <div className="mt-2 border-t border-border pt-2">
                 <PendingLine
                   key={`${working.step}:${working.cold}`}
-                  icon={<BeltLoader size="sm" />}
+                  icon={<KnotLoader size="sm" />}
                   lines={fillerLines(working)}
                   stepMs={2200}
                   stillAfterMs={9000}
@@ -624,7 +620,7 @@ export function QuestPanel() {
                   });
               }}
             >
-              {skipping && <LoaderCircle className="animate-spin" aria-hidden="true" />}
+              {skipping && <Spinner />}
               {skipping ? "Skipping…" : "Skip the quest"}
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -378,59 +378,95 @@
   animation: tape-on 420ms var(--ease-out-expo) both;
 }
 
-/* The belt loader (components/brand/belt-loader.tsx), in the learner's own belt: the header sets
-   data-belt on <html>; before that, and for anyone signed out, the white belt */
+/* The loader's colour: the learner's own belt (the header sets data-belt on <html>); before that,
+   and for anyone signed out, the jade accent, as the logo does. A black belt uses the mark's
+   variant, which keeps its mass on the dark theme */
 :root {
-  --loader-belt: var(--belt-white);
+  --loader-belt: var(--primary);
 }
+:root[data-belt="white"] { --loader-belt: var(--belt-white); }
 :root[data-belt="yellow"] { --loader-belt: var(--belt-yellow); }
 :root[data-belt="green"] { --loader-belt: var(--belt-green); }
 :root[data-belt="blue"] { --loader-belt: var(--belt-blue); }
 :root[data-belt="brown"] { --loader-belt: var(--belt-brown); }
-:root[data-belt="black"] { --loader-belt: var(--belt-black); }
+:root[data-belt="black"] { --loader-belt: var(--belt-black-mark); }
 
-/* Each stripe is taped on in turn (the grading's signature motion), held, and the set lifts off
-   together before the next pass; staggered delays keep one sequence across the loop */
-@keyframes loader-stripe {
-  0%,
-  6% {
-    clip-path: inset(0 0 100% 0);
-    transform: translateY(-3px);
-    background: var(--highlight);
-  }
-  18% {
-    clip-path: inset(0 0 0 0);
-    transform: translateY(0);
-    background: var(--highlight);
-  }
-  34% {
-    background: var(--tape);
-  }
-  82% {
-    clip-path: inset(0 0 0 0);
-    opacity: 1;
-    background: var(--tape);
-  }
-  94%,
-  100% {
-    clip-path: inset(0 0 0 0);
-    opacity: 0;
-    background: var(--tape);
-  }
+/* The knot loader (components/brand/knot-loader.tsx): the mark tied, held, loosened, tied again.
+   One 2.8s loop, tied in the first half so even a quick page sees it done: the band unrolls from the
+   middle, the knot drops on, the tails swing down in turn, it cinches and the wrap is drawn across;
+   then a long hold, and it lifts away. */
+.knot-loader * {
+  transform-box: view-box;
+  animation-duration: 2.8s;
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+  animation-timing-function: var(--ease-out-expo);
 }
-.animate-loader-stripe {
-  animation: loader-stripe 2.6s var(--ease-out-expo) infinite both;
+/* At button size the same tie runs quicker: a button's wait is a second or two */
+.knot-loader-quick * {
+  animation-duration: 1.7s;
 }
-@keyframes loader-breathe {
-  50% {
-    opacity: 0.45;
-  }
+.knot-loader .knot-band {
+  transform-origin: 16px 11.5px;
+  animation-name: knot-band;
+}
+.knot-loader .knot-knot {
+  transform-origin: 16px 16.5px;
+  animation-name: knot-knot;
+}
+.knot-loader .knot-tail-l {
+  transform-origin: 15.5px 15.5px;
+  animation-name: knot-tail-l;
+}
+.knot-loader .knot-tail-r {
+  transform-origin: 16.5px 15.5px;
+  animation-name: knot-tail-r;
+}
+.knot-loader .knot-wrap {
+  stroke-dasharray: 11;
+  animation-name: knot-wrap;
+}
+@keyframes knot-band {
+  0% { transform: scaleX(0); opacity: 0; }
+  3% { opacity: 1; }
+  14%, 86% { transform: scaleX(1); opacity: 1; }
+  96%, 100% { transform: scaleX(1); opacity: 0; }
+}
+@keyframes knot-knot {
+  0%, 9% { transform: translateY(-5px) scaleY(1); opacity: 0; }
+  22% { transform: translateY(0) scaleY(1); opacity: 1; }
+  /* the cinch: pulled tight once the tails are down */
+  42% { transform: translateY(0) scaleY(0.88); }
+  50%, 86% { transform: translateY(0) scaleY(1); opacity: 1; }
+  96%, 100% { transform: translateY(0) scaleY(1); opacity: 0; }
+}
+@keyframes knot-tail-l {
+  0%, 19% { transform: rotate(62deg); opacity: 0; }
+  23% { opacity: 1; }
+  35%, 86% { transform: rotate(0deg); opacity: 1; }
+  96%, 100% { transform: rotate(0deg); opacity: 0; }
+}
+@keyframes knot-tail-r {
+  0%, 24% { transform: rotate(-62deg); opacity: 0; }
+  28% { opacity: 1; }
+  40%, 86% { transform: rotate(0deg); opacity: 1; }
+  96%, 100% { transform: rotate(0deg); opacity: 0; }
+}
+@keyframes knot-wrap {
+  0%, 40% { stroke-dashoffset: 11; opacity: 1; }
+  52%, 86% { stroke-dashoffset: 0; opacity: 1; }
+  96%, 100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes knot-breathe {
+  50% { opacity: 0.5; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .animate-loader-stripe {
-    animation: loader-breathe 2.4s ease-in-out infinite;
-    clip-path: none;
-    background: var(--tape);
+  /* Tied and still, breathing gently */
+  .knot-loader * {
+    animation-name: none !important;
+  }
+  .knot-loader {
+    animation: knot-breathe 2.4s ease-in-out infinite;
   }
 }
 .animate-seal-stamp {

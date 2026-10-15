@@ -1,7 +1,8 @@
 "use client";
 
+import { Spinner } from "@/components/brand/knot-loader";
 import * as React from "react";
-import { Check, Copy, LoaderCircle, Pencil, Play, RotateCcw, SquareTerminal } from "lucide-react";
+import { Check, Copy, Pencil, Play, RotateCcw, SquareTerminal } from "lucide-react";
 import { ScratchpadContext } from "@/components/lesson/scratchpad-context";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -112,14 +113,22 @@ export function CodeBlock({
     if (runningRef.current) return;
     runningRef.current = true;
     // The quest's sensei fills the wait (the first run downloads Python) and moves on with the output
-    questWorking({ step: "run-code", working: true, cold: getPythonRuntime().getStatus() !== "ready" });
+    questWorking({
+      step: "run-code",
+      working: true,
+      cold: getPythonRuntime().getStatus() !== "ready",
+    });
     setResult((r) => ({ ...r, status: "running" }));
     try {
       setResult(await runExample(run, editing ? draft : code));
       // Output or an error message: either way the code ran
       questAction("run-code");
     } catch {
-      setResult({ status: "error", output: "Python couldn't start. Check your connection and press Run again.", values: [] });
+      setResult({
+        status: "error",
+        output: "Python couldn't start. Check your connection and press Run again.",
+        values: [],
+      });
     } finally {
       runningRef.current = false;
       questWorking({ step: "run-code", working: false });
@@ -133,7 +142,11 @@ export function CodeBlock({
   const lines = draft.split("\n").length;
 
   return (
-    <div className="my-6 overflow-hidden rounded-md border border-border bg-sheet" onPointerEnter={warmUp} onFocus={warmUp}>
+    <div
+      className="my-6 overflow-hidden rounded-md border border-border bg-sheet"
+      onPointerEnter={warmUp}
+      onFocus={warmUp}
+    >
       <div className="flex items-center gap-1 border-b border-border py-1 pr-1.5 pl-4">
         <span className="font-condensed text-xs font-semibold text-muted-foreground select-none">
           {language || "text"}
@@ -173,12 +186,14 @@ export function CodeBlock({
                   Edit
                 </Button>
               )}
-              <Button size="xs" onClick={() => void execute()} aria-busy={busy} className="min-w-20" data-quest-target="run-example">
-                {busy ? (
-                  <LoaderCircle className="animate-spin" aria-hidden="true" />
-                ) : (
-                  <Play aria-hidden="true" />
-                )}
+              <Button
+                size="xs"
+                onClick={() => void execute()}
+                aria-busy={busy}
+                className="min-w-20"
+                data-quest-target="run-example"
+              >
+                {busy ? <Spinner /> : <Play aria-hidden="true" />}
                 {busy ? "Running…" : "Run"}
               </Button>
             </>
@@ -213,7 +228,10 @@ export function CodeBlock({
         />
       ) : (
         // Focusable so a long line can be scrolled from the keyboard
-        <pre tabIndex={0} className="scroll-cue overflow-x-auto px-4 py-3 font-mono text-[0.875rem] leading-6 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring">
+        <pre
+          tabIndex={0}
+          className="scroll-cue overflow-x-auto px-4 py-3 font-mono text-[0.875rem] leading-6 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
+        >
           {children}
         </pre>
       )}
@@ -227,7 +245,9 @@ type RunFn = ReturnType<typeof usePyodide>["run"];
 
 /** Run code the way the REPL would, reporting a final expression's value and what the code changed */
 export async function runExample(run: RunFn, source: string, timeoutMs = 8000): Promise<RunState> {
-  const { output, error } = await run(buildExampleHarness(source), timeoutMs, { scanImports: source });
+  const { output, error } = await run(buildExampleHarness(source), timeoutMs, {
+    scanImports: source,
+  });
   if (error) {
     // The last line of a traceback is the part that names the problem
     const message = error.trim().split("\n").filter(Boolean).at(-1) ?? error;
@@ -257,7 +277,11 @@ export function RunPending({ pythonText, className }: { pythonText?: string; cla
         live={false}
         delayMs={300}
         lines={[pythonText || "Running your code…"]}
-        still={downloading ? "The first run downloads Python; after that it's quick." : "Your code is still running."}
+        still={
+          downloading
+            ? "The first run downloads Python; after that it's quick."
+            : "Your code is still running."
+        }
         slow={downloading ? "Still downloading: a slow connection takes longer." : undefined}
       />
     </div>
@@ -274,48 +298,55 @@ export function ExampleOutput({
   /** What Python is doing ("Downloading Python…"), shown while a first run has nothing to dim */
   pythonText?: string;
 }) {
-  const firstRun = result.status === "running" && result.output.trim() === "" && result.values.length === 0;
+  const firstRun =
+    result.status === "running" && result.output.trim() === "" && result.values.length === 0;
   return (
     <>
       {firstRun ? (
         <RunPending pythonText={pythonText} className={cn("px-4 py-3", className)} />
-      ) : result.status !== "idle" && (
-        <div
-          aria-live="polite"
-          className={cn(
-            "border-t border-border px-4 py-3 font-mono text-[0.8125rem] leading-6 transition-opacity",
-            className,
-            result.status === "running" && "opacity-55",
-            result.status === "error" ? "bg-destructive/6 text-destructive" : "bg-accent/35"
-          )}
-        >
-          {(result.status === "error" || result.output.trim() !== "") && (
-            <>
-              <span className="mb-1 block font-sans text-xs font-semibold text-muted-foreground">
-                {result.status === "error" ? "Error" : "Printed"}
-              </span>
-              <pre className="whitespace-pre-wrap">{result.output.trimEnd()}</pre>
-            </>
-          )}
-          {result.values.length > 0 && (
-            <div className={cn(result.output.trim() !== "" && "mt-3")}>
-              <span className="mb-1 block font-sans text-xs font-semibold text-muted-foreground">
-                {result.values.length === 1 && result.values[0]![0] === "" ? "Value" : "Afterwards"}
-              </span>
-              <dl className="flex flex-col gap-0.5">
-                {result.values.map(([name, value], i) => (
-                  <div key={name || i} className="flex gap-2">
-                    {name && <dt className="shrink-0 text-(--code-attr)">{name} =</dt>}
-                    <dd className="min-w-0 break-all whitespace-pre-wrap">{value}</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-          )}
-          {result.status === "ok" && result.output.trim() === "" && result.values.length === 0 && (
-            <span className="text-muted-foreground">Ran without printing anything.</span>
-          )}
-        </div>
+      ) : (
+        result.status !== "idle" && (
+          <div
+            aria-live="polite"
+            className={cn(
+              "border-t border-border px-4 py-3 font-mono text-[0.8125rem] leading-6 transition-opacity",
+              className,
+              result.status === "running" && "opacity-55",
+              result.status === "error" ? "bg-destructive/6 text-destructive" : "bg-accent/35"
+            )}
+          >
+            {(result.status === "error" || result.output.trim() !== "") && (
+              <>
+                <span className="mb-1 block font-sans text-xs font-semibold text-muted-foreground">
+                  {result.status === "error" ? "Error" : "Printed"}
+                </span>
+                <pre className="whitespace-pre-wrap">{result.output.trimEnd()}</pre>
+              </>
+            )}
+            {result.values.length > 0 && (
+              <div className={cn(result.output.trim() !== "" && "mt-3")}>
+                <span className="mb-1 block font-sans text-xs font-semibold text-muted-foreground">
+                  {result.values.length === 1 && result.values[0]![0] === ""
+                    ? "Value"
+                    : "Afterwards"}
+                </span>
+                <dl className="flex flex-col gap-0.5">
+                  {result.values.map(([name, value], i) => (
+                    <div key={name || i} className="flex gap-2">
+                      {name && <dt className="shrink-0 text-(--code-attr)">{name} =</dt>}
+                      <dd className="min-w-0 break-all whitespace-pre-wrap">{value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            )}
+            {result.status === "ok" &&
+              result.output.trim() === "" &&
+              result.values.length === 0 && (
+                <span className="text-muted-foreground">Ran without printing anything.</span>
+              )}
+          </div>
+        )
       )}
     </>
   );

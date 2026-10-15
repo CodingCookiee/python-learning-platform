@@ -1,7 +1,8 @@
 "use client";
 
+import { Spinner } from "@/components/brand/knot-loader";
 import * as React from "react";
-import { LoaderCircle } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -42,13 +43,22 @@ export function LoadingButton({
       }}
       className={cn(loading && "cursor-progress", className)}
     >
-      {loading ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : icon}
+      {loading ? <Spinner /> : icon}
       {/* Both labels share one cell, as wide as the longer (no jump): beside an icon they start right
           after it; on their own they sit centred, so the spare width reads as even padding */}
       <span className={cn("grid", icon ? "justify-items-start text-left" : "justify-items-center")}>
-        <span className={cn("col-start-1 row-start-1", loading && loadingText !== undefined && "invisible")}>{children}</span>
+        <span
+          className={cn(
+            "col-start-1 row-start-1",
+            loading && loadingText !== undefined && "invisible"
+          )}
+        >
+          {children}
+        </span>
         {loadingText !== undefined && (
-          <span className={cn("col-start-1 row-start-1", !loading && "invisible")}>{loadingText}</span>
+          <span className={cn("col-start-1 row-start-1", !loading && "invisible")}>
+            {loadingText}
+          </span>
         )}
       </span>
     </Button>

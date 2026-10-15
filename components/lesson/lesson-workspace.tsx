@@ -1,16 +1,21 @@
 "use client";
 
+import { Spinner } from "@/components/brand/knot-loader";
 import * as React from "react";
-import { LoaderCircle, PanelRightClose, PanelRightOpen, Play, SquareTerminal } from "lucide-react";
+import { PanelRightClose, PanelRightOpen, Play, SquareTerminal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PythonEditor } from "@/components/lesson/monaco-editor";
-import { ExampleOutput, RunPending, runExample, type RunState } from "@/components/lesson/code-block";
+import {
+  ExampleOutput,
+  RunPending,
+  runExample,
+  type RunState,
+} from "@/components/lesson/code-block";
 import { ScratchpadContext, type Scratchpad } from "@/components/lesson/scratchpad-context";
 import { getPythonRuntime } from "@/lib/python-runtime";
 import { usePyodide } from "@/lib/pyodide";
 import { questAction, questWorking } from "@/lib/quest-steps";
 import { cn } from "@/lib/utils";
-
 
 const OPEN_KEY = "pylearn:scratchpad-open";
 
@@ -150,12 +155,20 @@ export function LessonWorkspace({
   async function run() {
     if (running) return;
     setRunning(true);
-    questWorking({ step: "scratchpad", working: true, cold: getPythonRuntime().getStatus() !== "ready" });
+    questWorking({
+      step: "scratchpad",
+      working: true,
+      cold: getPythonRuntime().getStatus() !== "ready",
+    });
     try {
       setResult(await runExample(runPython, codeRef.current, 10_000));
       questAction("scratchpad");
     } catch {
-      setResult({ status: "error", output: "Python couldn't start. Check your connection and press Run again.", values: [] });
+      setResult({
+        status: "error",
+        output: "Python couldn't start. Check your connection and press Run again.",
+        values: [],
+      });
     } finally {
       setRunning(false);
       questWorking({ step: "scratchpad", working: false });
@@ -164,7 +177,9 @@ export function LessonWorkspace({
 
   return (
     <ScratchpadContext.Provider value={scratchpad}>
-      <div className={cn("grid min-w-0 gap-8", open && "xl:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]")}>
+      <div
+        className={cn("grid min-w-0 gap-8", open && "xl:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]")}
+      >
         <div ref={lessonRef} className="min-w-0">
           <header className="mb-10 flex max-w-[70ch] flex-col gap-4 border-b border-border pb-8">
             {heading}
@@ -178,7 +193,11 @@ export function LessonWorkspace({
                 aria-controls={open ? "scratchpad" : undefined}
                 data-quest-target={open ? undefined : "scratchpad"}
               >
-                {open ? <PanelRightClose aria-hidden="true" /> : <PanelRightOpen aria-hidden="true" />}
+                {open ? (
+                  <PanelRightClose aria-hidden="true" />
+                ) : (
+                  <PanelRightOpen aria-hidden="true" />
+                )}
                 {open ? "Close scratchpad" : "Open scratchpad"}
               </Button>
             </div>
@@ -196,21 +215,42 @@ export function LessonWorkspace({
               <SquareTerminal className="size-4 text-primary" aria-hidden="true" />
               <span className="text-sm font-semibold">Scratchpad</span>
               <span className="text-xs text-muted-foreground">Ctrl+Enter runs</span>
-              <Button size="xs" className="ml-auto" onClick={() => void run()} aria-busy={running} data-quest-target="scratchpad">
-                {running ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <Play aria-hidden="true" />}
+              <Button
+                size="xs"
+                className="ml-auto"
+                onClick={() => void run()}
+                aria-busy={running}
+                data-quest-target="scratchpad"
+              >
+                {running ? <Spinner /> : <Play aria-hidden="true" />}
                 {running ? "Running…" : "Run"}
               </Button>
-              <Button variant="ghost" size="icon-xs" onClick={() => toggle(false)} aria-label="Close scratchpad">
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                onClick={() => toggle(false)}
+                aria-label="Close scratchpad"
+              >
                 <PanelRightClose aria-hidden="true" />
               </Button>
             </div>
             <div className="min-h-0 flex-1 overflow-hidden">
-              <PythonEditor key={editorKey} value={code} onChange={update} storageKey={`scratch-${lessonId}`} onRun={() => void run()} height="min(40dvh, 380px)" ariaLabel="Scratchpad code" />
+              <PythonEditor
+                key={editorKey}
+                value={code}
+                onChange={update}
+                storageKey={`scratch-${lessonId}`}
+                onRun={() => void run()}
+                height="min(40dvh, 380px)"
+                ariaLabel="Scratchpad code"
+              />
             </div>
             {running ? (
               <RunPending pythonText={pythonText} className="px-3 py-2" />
             ) : (
-              result && <ExampleOutput result={result} className="max-h-48 overflow-auto px-3 py-2" />
+              result && (
+                <ExampleOutput result={result} className="max-h-48 overflow-auto px-3 py-2" />
+              )
             )}
           </aside>
         )}

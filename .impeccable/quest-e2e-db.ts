@@ -190,7 +190,7 @@ async function main() {
       data: {
         email: args[0]!,
         name: "Test Examiner",
-        role: "ADMIN",
+        role: "SUPER_ADMIN",
         password: await hash("E2e-Quest-2026", 12),
         emailVerified: new Date(),
         onboardedAt: new Date(),

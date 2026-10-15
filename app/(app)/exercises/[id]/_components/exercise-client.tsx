@@ -1,5 +1,6 @@
 "use client";
 
+import { Spinner } from "@/components/brand/knot-loader";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -13,7 +14,6 @@ import {
   Eye,
   Lock,
   Lightbulb,
-  LoaderCircle,
   Play,
   Repeat,
   RotateCcw,
@@ -27,7 +27,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { LessonContent, PythonEditor, languageFor } from "@/components/lesson";
 import { TapeMark } from "@/components/brand/marks";
 import { Seal } from "@/components/brand/seal";
-import { AchievementNotificationQueue, Confetti, LevelUpNotification } from "@/components/gamification";
+import {
+  AchievementNotificationQueue,
+  Confetti,
+  LevelUpNotification,
+} from "@/components/gamification";
 import {
   getPythonRuntime,
   useRuntimeStatus,
@@ -77,7 +81,13 @@ function firstDifferentLine(expected: string, actual: string): number | null {
 type CheckState =
   | { kind: "idle" }
   | { kind: "tests"; result: TestRunResult }
-  | { kind: "predict"; correct: boolean; wrongLine: number | null; actual: string; error: PyError | null };
+  | {
+      kind: "predict";
+      correct: boolean;
+      wrongLine: number | null;
+      actual: string;
+      error: PyError | null;
+    };
 
 // Error box: a traceback trimmed to the learner's own code
 
@@ -85,12 +95,24 @@ type CheckState =
 type Explain = ((error: PyError) => void) | null;
 
 function errorText(error: PyError): string {
-  return [`${error.type}: ${error.message}`, error.line ? `(line ${error.line})` : "", error.traceback ?? ""]
+  return [
+    `${error.type}: ${error.message}`,
+    error.line ? `(line ${error.line})` : "",
+    error.traceback ?? "",
+  ]
     .filter(Boolean)
     .join("\n");
 }
 
-function ErrorBox({ error, title, onExplain }: { error: PyError; title?: string; onExplain?: Explain }) {
+function ErrorBox({
+  error,
+  title,
+  onExplain,
+}: {
+  error: PyError;
+  title?: string;
+  onExplain?: Explain;
+}) {
   const heading =
     title ??
     (error.type === "Timeout"
@@ -130,12 +152,20 @@ function TestList({ drill, check }: { drill: DrillData; check: CheckState }) {
     <section aria-labelledby={headingId}>
       <h2 id={headingId} className="mb-2 flex items-baseline gap-2 text-base font-semibold">
         Tests
-        <span className="font-condensed tabular text-sm font-normal text-muted-foreground">{rows.length}</span>
+        <span className="font-condensed tabular text-sm font-normal text-muted-foreground">
+          {rows.length}
+        </span>
       </h2>
       <ul className="flex flex-col border-t border-border" role="list">
         {rows.map((row, i) => (
-          <li key={`${row.name}-${i}`} className="flex items-start gap-2.5 border-b border-border py-2.5 text-sm">
-            <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center" aria-hidden="true">
+          <li
+            key={`${row.name}-${i}`}
+            className="flex items-start gap-2.5 border-b border-border py-2.5 text-sm"
+          >
+            <span
+              className="mt-0.5 flex size-4 shrink-0 items-center justify-center"
+              aria-hidden="true"
+            >
               {row.passed === true ? (
                 <Check className="size-4 text-success" />
               ) : row.passed === false ? (
@@ -149,7 +179,9 @@ function TestList({ drill, check }: { drill: DrillData; check: CheckState }) {
               {row.name}
               {row.hidden && <span className="ml-2 text-xs text-muted-foreground">hidden</span>}
             </span>
-            <span className="sr-only">{row.passed === true ? "passed" : row.passed === false ? "failed" : "not run yet"}</span>
+            <span className="sr-only">
+              {row.passed === true ? "passed" : row.passed === false ? "failed" : "not run yet"}
+            </span>
           </li>
         ))}
       </ul>
@@ -170,9 +202,15 @@ function Hints({ hints, used, onReveal }: { hints: string[]; used: number; onRev
         <ol className="mt-3 flex flex-col gap-2.5" role="list">
           {hints.slice(0, used).map((hint, i) => (
             <li key={i} className="flex gap-2.5 text-sm leading-relaxed">
-              <span className="font-condensed tabular font-bold text-muted-foreground">{i + 1}</span>
+              <span className="font-condensed tabular font-bold text-muted-foreground">
+                {i + 1}
+              </span>
               <span className="min-w-0">
-                <LessonContent content={hint} runnable={false} className="[&_p]:mb-0 [&_p]:text-sm" />
+                <LessonContent
+                  content={hint}
+                  runnable={false}
+                  className="[&_p]:mb-0 [&_p]:text-sm"
+                />
               </span>
             </li>
           ))}
@@ -247,7 +285,9 @@ function ModeBanner({
       <span
         className={cn(
           "font-condensed tabular ml-auto flex items-center gap-1.5",
-          left !== null && left < 5 * 60_000 ? "font-bold text-destructive" : "text-muted-foreground"
+          left !== null && left < 5 * 60_000
+            ? "font-bold text-destructive"
+            : "text-muted-foreground"
         )}
       >
         <Clock className="size-3.5" aria-hidden="true" />
@@ -255,7 +295,8 @@ function ModeBanner({
         <ClockAnnouncement left={left} />
       </span>
       <p className="basis-full text-muted-foreground">
-        No hints, no reference solution, and no copy and paste: type your answer. Run the tests as often as you like.
+        No hints, no reference solution, and no copy and paste: type your answer. Run the tests as
+        often as you like.
       </p>
       {/* Done before the clock is: hand in from here, without going back to the checkpoint page */}
       {!closed && left !== 0 && (
@@ -278,7 +319,10 @@ function ModeBanner({
  */
 function ClipboardNote({ shown }: { shown: boolean }) {
   return (
-    <p role="status" className={cn("flex items-center gap-2 text-sm text-muted-foreground", !shown && "sr-only")}>
+    <p
+      role="status"
+      className={cn("flex items-center gap-2 text-sm text-muted-foreground", !shown && "sr-only")}
+    >
       {shown && (
         <>
           <Lock className="size-4 shrink-0" aria-hidden="true" />
@@ -330,7 +374,11 @@ function PromptPanel({
           <Badge variant="outline" className="text-muted-foreground">
             {TYPE_LABEL[drill.type]}
           </Badge>
-          <Badge variant="outline" className="text-muted-foreground" aria-label={`Difficulty: ${drill.difficulty}`}>
+          <Badge
+            variant="outline"
+            className="text-muted-foreground"
+            aria-label={`Difficulty: ${drill.difficulty}`}
+          >
             {drill.difficulty}
           </Badge>
           <Badge variant="outline" className="font-condensed tabular gap-1 text-muted-foreground">
@@ -343,7 +391,9 @@ function PromptPanel({
             </Badge>
           )}
         </div>
-        <h1 className="font-condensed text-4xl leading-[0.98] font-extrabold tracking-[-0.02em]">{drill.title}</h1>
+        <h1 className="font-condensed text-4xl leading-[0.98] font-extrabold tracking-[-0.02em]">
+          {drill.title}
+        </h1>
         {drill.position.total > 1 && drill.mode.kind !== "review" && (
           <p className="font-condensed tabular text-sm text-muted-foreground">
             Drill {drill.position.index + 1} of {drill.position.total}{" "}
@@ -357,7 +407,12 @@ function PromptPanel({
         )}
       </div>
 
-      <LessonContent content={drill.instructions} runnable={false} copyable={!inCheckpoint} className="[&_p]:text-base" />
+      <LessonContent
+        content={drill.instructions}
+        runnable={false}
+        copyable={!inCheckpoint}
+        className="[&_p]:text-base"
+      />
       {drill.type !== "predict" && <TestList drill={drill} check={check} />}
       <Hints hints={drill.hints} used={hintsUsed} onReveal={onRevealHint} />
     </div>
@@ -377,7 +432,11 @@ function TestResults({ result, onExplain }: { result: TestRunResult; onExplain?:
           : undefined;
     return (
       <div className="flex flex-col gap-3">
-        <ErrorBox error={result.error!} title={title} onExplain={result.phase === "tests" ? null : onExplain} />
+        <ErrorBox
+          error={result.error!}
+          title={title}
+          onExplain={result.phase === "tests" ? null : onExplain}
+        />
         {result.stdout && <PrintedOutput text={result.stdout} />}
       </div>
     );
@@ -393,15 +452,29 @@ function TestResults({ result, onExplain }: { result: TestRunResult; onExplain?:
         <p className="font-condensed tabular text-lg font-bold text-success-ink">
           All {total} {total === 1 ? "test" : "tests"} passed
         </p>
-        <button type="button" onClick={() => setOpen(-1)} className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground">
+        <button
+          type="button"
+          onClick={() => setOpen(-1)}
+          className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
+        >
           Show tests
         </button>
       </div>
     );
   }
   return (
-    <div className={cn("rounded-md border p-4", all ? "border-success/35 bg-success/6" : "border-border bg-sheet")}>
-      <p className={cn("font-condensed tabular text-lg font-bold", all ? "text-success-ink" : "text-foreground")}>
+    <div
+      className={cn(
+        "rounded-md border p-4",
+        all ? "border-success/35 bg-success/6" : "border-border bg-sheet"
+      )}
+    >
+      <p
+        className={cn(
+          "font-condensed tabular text-lg font-bold",
+          all ? "text-success-ink" : "text-foreground"
+        )}
+      >
         {passed} of {total} tests passed
       </p>
       <ul className="mt-2 flex flex-col" role="list">
@@ -418,7 +491,9 @@ function TestResults({ result, onExplain }: { result: TestRunResult; onExplain?:
                 <div className="min-w-0 flex-1">
                   <p className={cn(!t.passed && "font-medium")}>
                     {t.name}
-                    {t.hidden && <span className="ml-2 text-xs font-normal text-muted-foreground">hidden</span>}
+                    {t.hidden && (
+                      <span className="ml-2 text-xs font-normal text-muted-foreground">hidden</span>
+                    )}
                   </p>
                   {t.message && (
                     <p className="mt-0.5 font-mono text-[0.8125rem] leading-5 wrap-break-word whitespace-pre-wrap text-foreground/85">
@@ -434,7 +509,10 @@ function TestResults({ result, onExplain }: { result: TestRunResult; onExplain?:
                     className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
                   >
                     Details
-                    <ChevronDown className={cn("size-3.5 transition-transform", open === i && "rotate-180")} aria-hidden="true" />
+                    <ChevronDown
+                      className={cn("size-3.5 transition-transform", open === i && "rotate-180")}
+                      aria-hidden="true"
+                    />
                   </button>
                 )}
               </div>
@@ -459,7 +537,9 @@ function TestResults({ result, onExplain }: { result: TestRunResult; onExplain?:
 function PrintedOutput({ text, label = "Printed" }: { text: string; label?: string }) {
   return (
     <div className="rounded-md border border-border bg-sheet">
-      <p className="border-b border-border px-3 py-1.5 font-sans text-xs font-semibold text-muted-foreground">{label}</p>
+      <p className="border-b border-border px-3 py-1.5 font-sans text-xs font-semibold text-muted-foreground">
+        {label}
+      </p>
       <pre className="max-h-72 overflow-auto px-3 py-2 font-mono text-[0.8125rem] leading-6 whitespace-pre-wrap">
         {text.trimEnd() || <span className="text-muted-foreground">(nothing)</span>}
       </pre>
@@ -483,17 +563,27 @@ function NothingPrinted({ functions }: { functions: string[] }) {
       <p className="font-semibold">It ran, and printed nothing.</p>
       <p className="mt-1 text-muted-foreground">
         Your code defines <code className="font-mono text-foreground">{name}()</code>
-        {functions.length > 1 ? ` and ${functions.length - 1} more` : ""}, and defining a function doesn&apos;t run
-        it. To see what it gives back, add a line below it that calls it and prints the result, with values of your
-        own:
+        {functions.length > 1 ? ` and ${functions.length - 1} more` : ""}, and defining a function
+        doesn&apos;t run it. To see what it gives back, add a line below it that calls it and prints
+        the result, with values of your own:
       </p>
       <pre className="mt-2 font-mono text-[0.8125rem] text-foreground">print({name}(…))</pre>
-      <p className="mt-2 text-muted-foreground">Run tests checks it against the drill&apos;s cases either way.</p>
+      <p className="mt-2 text-muted-foreground">
+        Run tests checks it against the drill&apos;s cases either way.
+      </p>
     </div>
   );
 }
 
-function RunOutput({ result, code, onExplain }: { result: RunResult; code: string; onExplain?: Explain }) {
+function RunOutput({
+  result,
+  code,
+  onExplain,
+}: {
+  result: RunResult;
+  code: string;
+  onExplain?: Explain;
+}) {
   const functions = definedFunctions(code);
   if (!result.error && !result.stdout.trim() && !result.stderr && functions.length > 0) {
     return <NothingPrinted functions={functions} />;
@@ -550,19 +640,27 @@ function daysUntil(iso: string): number {
 }
 
 /** A plain-text account of the latest run, for the tutor */
-function describeCheck(check: CheckState, run: RunResult | null, answer: string): string | undefined {
+function describeCheck(
+  check: CheckState,
+  run: RunResult | null,
+  answer: string
+): string | undefined {
   const parts: string[] = [];
   if (check.kind === "tests") {
     const r = check.result;
     if (r.status === "timeout") parts.push("The test run timed out.");
-    else if (r.status === "error" && r.error) parts.push(`The tests couldn't run: ${errorText(r.error)}`);
+    else if (r.status === "error" && r.error)
+      parts.push(`The tests couldn't run: ${errorText(r.error)}`);
     else {
       const passed = r.tests.filter((t) => t.passed).length;
       parts.push(`${passed} of ${r.tests.length} tests passed.`);
-      for (const t of r.tests.filter((t) => !t.passed)) parts.push(`FAILED ${t.name}${t.message ? `: ${t.message}` : ""}`);
+      for (const t of r.tests.filter((t) => !t.passed))
+        parts.push(`FAILED ${t.name}${t.message ? `: ${t.message}` : ""}`);
     }
   } else if (check.kind === "predict") {
-    parts.push(`My predicted output:\n${answer}\n\nThat was ${check.correct ? "correct" : "not correct"}.`);
+    parts.push(
+      `My predicted output:\n${answer}\n\nThat was ${check.correct ? "correct" : "not correct"}.`
+    );
   }
   if (run) {
     parts.push(`Output of my last Run:\n${run.stdout || "(nothing printed)"}`);
@@ -584,10 +682,13 @@ function spokenError(error: PyError): string {
 function spokenTests(result: TestRunResult): string {
   if (result.status === "timeout") return "The tests timed out.";
   if (result.status === "error" && result.error) {
-    return result.phase === "tests" ? "The drill's tests couldn't run." : `Your code raised an error. ${spokenError(result.error)}`;
+    return result.phase === "tests"
+      ? "The drill's tests couldn't run."
+      : `Your code raised an error. ${spokenError(result.error)}`;
   }
   const failed = result.tests.filter((t) => !t.passed);
-  if (failed.length === 0) return `All ${result.tests.length} ${result.tests.length === 1 ? "test" : "tests"} passed.`;
+  if (failed.length === 0)
+    return `All ${result.tests.length} ${result.tests.length === 1 ? "test" : "tests"} passed.`;
   return `${result.tests.length - failed.length} of ${result.tests.length} tests passed. Failed: ${failed.map((t) => t.name).join("; ")}.`;
 }
 
@@ -620,9 +721,16 @@ function WaitLink({
   return (
     <Button asChild variant={variant}>
       <Link href={href} onClick={onClick(href)} aria-busy={waiting || undefined}>
-        {waiting && <LoaderCircle className="animate-spin" aria-hidden="true" />}
+        {waiting && <Spinner />}
         <span className="grid justify-items-center">
-          <span className={cn("col-start-1 row-start-1 inline-flex items-center gap-1.5", waiting && "invisible")}>{children}</span>
+          <span
+            className={cn(
+              "col-start-1 row-start-1 inline-flex items-center gap-1.5",
+              waiting && "invisible"
+            )}
+          >
+            {children}
+          </span>
           <span className={cn("col-start-1 row-start-1", !waiting && "invisible")}>Saving…</span>
         </span>
       </Link>
@@ -657,9 +765,14 @@ export function ExerciseClient({
   const draftTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   // Multi-file drills: the other files, as the learner has them
   const multi = drill.files.length > 0;
-  const starterFiles = React.useMemo(() => Object.fromEntries(drill.files.map((d) => [d.path, d.starter])), [drill.files]);
+  const starterFiles = React.useMemo(
+    () => Object.fromEntries(drill.files.map((d) => [d.path, d.starter])),
+    [drill.files]
+  );
   const [files, setFilesState] = React.useState<Record<string, string>>(() =>
-    Object.fromEntries(drill.files.map((d) => [d.path, (d.editable && drill.draft?.files?.[d.path]) || d.starter]))
+    Object.fromEntries(
+      drill.files.map((d) => [d.path, (d.editable && drill.draft?.files?.[d.path]) || d.starter])
+    )
   );
   const filesRef = React.useRef(files);
   const [activeFile, setActiveFile] = React.useState(drill.mainFile);
@@ -672,19 +785,29 @@ export function ExerciseClient({
     if (draftTimer.current) clearTimeout(draftTimer.current);
     draftTimer.current = setTimeout(() => {
       const now = JSON.stringify([codeRef.current, filesRef.current]);
-      if (now === lastDraftRef.current || (!lastDraftRef.current && codeRef.current === lastSavedRef.current && !multi)) return;
-      const body = JSON.stringify({ code: codeRef.current, ...(multi ? { files: filesRef.current } : {}) });
+      if (
+        now === lastDraftRef.current ||
+        (!lastDraftRef.current && codeRef.current === lastSavedRef.current && !multi)
+      )
+        return;
+      const body = JSON.stringify({
+        code: codeRef.current,
+        ...(multi ? { files: filesRef.current } : {}),
+      });
       void fetch(`/api/exercises/${drill.id}/draft`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body,
         keepalive: body.length < 60_000,
-      }).then((r) => {
-        if (r.ok) {
-          lastDraftRef.current = now;
-          setDraftSaved(true);
-        }
-      }, () => {});
+      }).then(
+        (r) => {
+          if (r.ok) {
+            lastDraftRef.current = now;
+            setDraftSaved(true);
+          }
+        },
+        () => {}
+      );
     }, 2500);
   }, [drill.id, drill.mode.kind, drill.type, multi]);
   const setCode = React.useCallback(
@@ -713,7 +836,9 @@ export function ExerciseClient({
   const [attempts, setAttempts] = React.useState(drill.stats.attempts);
   const [solved, setSolved] = React.useState(drill.stats.solved);
   const [solution, setSolution] = React.useState(drill.solution);
-  const [solutionFiles, setSolutionFiles] = React.useState<Record<string, string> | null>(drill.solutionFiles);
+  const [solutionFiles, setSolutionFiles] = React.useState<Record<string, string> | null>(
+    drill.solutionFiles
+  );
   const [solutionOpen, setSolutionOpen] = React.useState(false);
   const [hintsUsed, setHintsUsed] = React.useState(0);
   const [xpGained, setXpGained] = React.useState<number | null>(null);
@@ -724,13 +849,19 @@ export function ExerciseClient({
   const [lessonDone, setLessonDone] = React.useState<LessonDone | null>(null);
   const [ceremony, setCeremony] = React.useState<UnlockedAchievement | null>(null);
   const [reviewOutcome, setReviewOutcome] = React.useState<SubmitResponse["review"]>(null);
-  const [progress, setProgress] = React.useState<{ passedCount: number; total: number } | null>(null);
+  const [progress, setProgress] = React.useState<{ passedCount: number; total: number } | null>(
+    null
+  );
   const [finished, setFinished] = React.useState<{ score: number; passed: boolean } | null>(null);
   const [saveError, setSaveError] = React.useState<string | null>(null);
   // The save runs after the result is on screen: what it's saving, and an attempt to send again
   // if it failed on the way
   const [saving, setSaving] = React.useState<{ passed: boolean } | null>(null);
-  const [retry, setRetry] = React.useState<{ passed: boolean; submitted: string; summary: unknown } | null>(null);
+  const [retry, setRetry] = React.useState<{
+    passed: boolean;
+    submitted: string;
+    summary: unknown;
+  } | null>(null);
   // The server's verdict on the latest attempt (with server grading it can overrule the browser's)
   const [verdict, setVerdict] = React.useState<boolean | null>(null);
   // A link followed while a pass was saving: taken once the save (and its celebrations) are done
@@ -755,7 +886,8 @@ export function ExerciseClient({
     setTaskPeekOpen(false);
   };
   const codeBlocked = () => setClipboardNote("code");
-  const explain: Explain = tutorOn && aiReady ? (error) => tutorRef.current?.explain(errorText(error)) : null;
+  const explain: Explain =
+    tutorOn && aiReady ? (error) => tutorRef.current?.explain(errorText(error)) : null;
 
   React.useEffect(() => {
     getPythonRuntime().preload();
@@ -765,12 +897,23 @@ export function ExerciseClient({
 
   React.useEffect(() => {
     // The ceremony is its own way on (to module 1), so a held link waits for it to close
-    if (!pendingHref || saving || saveError || achievements.length > 0 || levelUp !== null || ceremony) return;
+    if (
+      !pendingHref ||
+      saving ||
+      saveError ||
+      achievements.length > 0 ||
+      levelUp !== null ||
+      ceremony
+    )
+      return;
     // A moment to see the XP land before the page moves on
-    const timer = window.setTimeout(() => {
-      startNavigation();
-      router.push(pendingHref);
-    }, xpGained ? 900 : 0);
+    const timer = window.setTimeout(
+      () => {
+        startNavigation();
+        router.push(pendingHref);
+      },
+      xpGained ? 900 : 0
+    );
     return () => window.clearTimeout(timer);
   }, [pendingHref, saving, saveError, achievements.length, levelUp, xpGained, ceremony, router]);
 
@@ -836,7 +979,9 @@ export function ExerciseClient({
         setTimeout(() => setConfetti(false), 3200);
       }
       // Finishing the on-ramp plays the white belt ceremony instead of a toast
-      const tied = data.lesson?.onRamp ? data.achievements.find((a) => a.slug === WHITE_BELT_TIED) : undefined;
+      const tied = data.lesson?.onRamp
+        ? data.achievements.find((a) => a.slug === WHITE_BELT_TIED)
+        : undefined;
       if (tied) setCeremony(tied);
       // Ready to Train is celebrated by the quest's farewell, which the refresh below brings up
       const unlocked = data.achievements.filter((a) => a.slug !== QUEST_BADGE && a !== tied);
@@ -899,7 +1044,10 @@ export function ExerciseClient({
           attempt = {
             passed: result.status === "ok" && result.passed === true,
             submitted,
-            summary: { status: result.status, tests: result.tests.map((t) => ({ name: t.name, passed: t.passed })) },
+            summary: {
+              status: result.status,
+              tests: result.tests.map((t) => ({ name: t.name, passed: t.passed })),
+            },
           };
         }
       }
@@ -916,7 +1064,8 @@ export function ExerciseClient({
     setBusy("run");
     setAnnouncement("");
     try {
-      const lines = stdin.length > 0 ? stdin.replace(/\r\n/g, "\n").replace(/\n$/, "").split("\n") : null;
+      const lines =
+        stdin.length > 0 ? stdin.replace(/\r\n/g, "\n").replace(/\n$/, "").split("\n") : null;
       const source = isPredict ? drill.starterCode : codeRef.current;
       const result = await getPythonRuntime().run(source, {
         stdin: lines,
@@ -948,14 +1097,20 @@ export function ExerciseClient({
     (check.kind === "tests" && check.result.status === "ok" && check.result.passed === true) ||
     (check.kind === "predict" && check.correct);
   // Short busy labels: the line beside the buttons says what's running in full
-  const checkLabels = isPredict ? ["Check answer", "Checking…", "Saving…"] : ["Run tests", "Running…", "Saving…"];
+  const checkLabels = isPredict
+    ? ["Check answer", "Checking…", "Saving…"]
+    : ["Run tests", "Running…", "Saving…"];
   const checkLabel = busy === "check" ? checkLabels[1] : saving ? checkLabels[2] : checkLabels[0];
   const checkBusy = busy === "check" || saving !== null;
   // What the save says while it works, in this drill's mode
   const savingLines = (passed: boolean) =>
     passed
       ? [
-          mode.kind === "review" ? "Saving your review…" : mode.kind === "checkpoint" ? "Saving your answer…" : "Saving your pass…",
+          mode.kind === "review"
+            ? "Saving your review…"
+            : mode.kind === "checkpoint"
+              ? "Saving your answer…"
+              : "Saving your pass…",
           ...(serverGrading ? ["Double-checking your tests on our server…"] : []),
           mode.kind === "review"
             ? "Scheduling your next review…"
@@ -963,7 +1118,10 @@ export function ExerciseClient({
               ? "Updating your grading…"
               : "Adding your XP…",
         ]
-      : ["Saving this attempt…", ...(serverGrading ? ["Re-running your tests on our server…"] : [])];
+      : [
+          "Saving this attempt…",
+          ...(serverGrading ? ["Re-running your tests on our server…"] : []),
+        ];
   const saveLine = (passed: boolean, live = true) => (
     <PendingLine
       live={live}
@@ -983,7 +1141,8 @@ export function ExerciseClient({
   const canRunPredict = !isPredict || (!exam && (solved || solution !== null));
   // The box for Run's input appears once the code calls input() (in any of its files), and stays
   // while it holds something
-  const readsInput = /\binput\(/.test(code) || (multi && Object.values(files).some((f) => /\binput\(/.test(f)));
+  const readsInput =
+    /\binput\(/.test(code) || (multi && Object.values(files).some((f) => /\binput\(/.test(f)));
   const showInput = !isPredict && (readsInput || stdin !== "");
 
   const workspace = (
@@ -1031,7 +1190,11 @@ export function ExerciseClient({
       ) : (
         <div className={cn(multi && "overflow-hidden rounded-md border border-border")}>
           {multi && (
-            <div role="tablist" aria-label="Files" className="flex flex-wrap gap-px border-b border-border bg-sheet">
+            <div
+              role="tablist"
+              aria-label="Files"
+              className="flex flex-wrap gap-px border-b border-border bg-sheet"
+            >
               {[{ path: drill.mainFile, editable: true }, ...drill.files].map((file) => (
                 <button
                   key={file.path}
@@ -1064,7 +1227,11 @@ export function ExerciseClient({
               height="420px"
               lockClipboard={lockClipboard}
               onClipboardBlocked={codeBlocked}
-              ariaLabel={multi ? `${drill.mainFile}: your code for ${drill.title}` : `Your code for ${drill.title}`}
+              ariaLabel={
+                multi
+                  ? `${drill.mainFile}: your code for ${drill.title}`
+                  : `Your code for ${drill.title}`
+              }
               keyLegend
             />
           </div>
@@ -1077,13 +1244,19 @@ export function ExerciseClient({
                 }}
                 readOnly={!def.editable}
                 language={languageFor(def.path)}
-                storageKey={def.editable ? `${EDITOR_KEY[mode.kind](drill)}:${def.path}` : undefined}
+                storageKey={
+                  def.editable ? `${EDITOR_KEY[mode.kind](drill)}:${def.path}` : undefined
+                }
                 valueSavedAt={drill.draft?.savedAt ?? null}
                 onRun={() => void runCheck()}
                 height="420px"
                 lockClipboard={lockClipboard}
                 onClipboardBlocked={codeBlocked}
-                ariaLabel={def.editable ? `${def.path}: your code for ${drill.title}` : `${def.path} (read-only)`}
+                ariaLabel={
+                  def.editable
+                    ? `${def.path}: your code for ${drill.title}`
+                    : `${def.path} (read-only)`
+                }
                 keyLegend={def.editable}
               />
             </div>
@@ -1096,7 +1269,9 @@ export function ExerciseClient({
         <label className="flex flex-col gap-1.5">
           <span className="flex items-baseline justify-between text-sm font-semibold">
             Input for Run
-            <span className="text-xs font-normal text-muted-foreground">One line per input() call</span>
+            <span className="text-xs font-normal text-muted-foreground">
+              One line per input() call
+            </span>
           </span>
           <Textarea
             value={stdin}
@@ -1117,7 +1292,7 @@ export function ExerciseClient({
           className={cn("justify-start", (busy !== null || saving) && "cursor-progress")}
         >
           {checkBusy ? (
-            <LoaderCircle className="animate-spin" aria-hidden="true" />
+            <Spinner />
           ) : isPredict ? (
             <Check aria-hidden="true" />
           ) : (
@@ -1126,19 +1301,23 @@ export function ExerciseClient({
           {/* Every label in one cell, start-aligned beside the icon: one width, no jump */}
           <span className="grid justify-items-start text-left">
             {checkLabels.map((label) => (
-              <span key={label} className={cn("col-start-1 row-start-1", label !== checkLabel && "invisible")}>
+              <span
+                key={label}
+                className={cn("col-start-1 row-start-1", label !== checkLabel && "invisible")}
+              >
                 {label}
               </span>
             ))}
           </span>
         </Button>
         {canRunPredict && (
-          <Button variant="outline" onClick={() => void runCode()} aria-busy={busy === "run"} aria-disabled={busy !== null}>
-            {busy === "run" ? (
-              <LoaderCircle className="animate-spin" aria-hidden="true" />
-            ) : (
-              <TerminalSquare aria-hidden="true" />
-            )}
+          <Button
+            variant="outline"
+            onClick={() => void runCode()}
+            aria-busy={busy === "run"}
+            aria-disabled={busy !== null}
+          >
+            {busy === "run" ? <Spinner /> : <TerminalSquare aria-hidden="true" />}
             {isPredict ? "Run it" : "Run"}
           </Button>
         )}
@@ -1147,7 +1326,10 @@ export function ExerciseClient({
             variant="ghost"
             size="sm"
             onClick={reset}
-            disabled={code === drill.starterCode && Object.entries(starterFiles).every(([p, v]) => files[p] === v)}
+            disabled={
+              code === drill.starterCode &&
+              Object.entries(starterFiles).every(([p, v]) => files[p] === v)
+            }
           >
             <RotateCcw aria-hidden="true" />
             Reset
@@ -1163,7 +1345,13 @@ export function ExerciseClient({
               slow="Still downloading: a slow connection takes longer."
             />
           ) : busy === "check" ? (
-            <PendingLine key="tests" className="text-xs" delayMs={700} lines={["Running your tests…"]} still="Some tests take a few seconds." />
+            <PendingLine
+              key="tests"
+              className="text-xs"
+              delayMs={700}
+              lines={["Running your tests…"]}
+              still="Some tests take a few seconds."
+            />
           ) : exam ? null : (
             // "solved earlier" while the run on screen fails, so the line never contradicts the results
             `${attempts} ${attempts === 1 ? "attempt" : "attempts"}${solved ? (check.kind !== "idle" && !allPassed ? " · solved earlier" : " · solved") : ""}${draftSaved ? " · draft saved" : ""}`
@@ -1197,7 +1385,11 @@ export function ExerciseClient({
               {saveError}
             </p>
             {retry && (
-              <Button size="sm" variant="outline" onClick={() => void record(retry.passed, retry.submitted, retry.summary)}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => void record(retry.passed, retry.submitted, retry.summary)}
+              >
                 <RotateCcw aria-hidden="true" />
                 Try again
               </Button>
@@ -1215,7 +1407,9 @@ export function ExerciseClient({
           <div className="min-w-0 flex-1">
             <p className="font-semibold">
               {finished ? (finished.passed ? "Grading passed" : "Grading closed") : "Drill passed"}
-              {xpGained ? <span className="font-condensed tabular text-primary-ink"> · +{xpGained} XP</span> : null}
+              {xpGained ? (
+                <span className="font-condensed tabular text-primary-ink"> · +{xpGained} XP</span>
+              ) : null}
             </p>
             <div className="mt-0.5 text-sm text-muted-foreground">
               {saving
@@ -1244,7 +1438,9 @@ export function ExerciseClient({
               {finished ? "See the result" : "Back to the grading"}
             </WaitLink>
           )}
-          {finished?.passed ? <Seal label="Passed" detail="Grading" animate className="shrink-0" /> : null}
+          {finished?.passed ? (
+            <Seal label="Passed" detail="Grading" animate className="shrink-0" />
+          ) : null}
         </div>
       )}
 
@@ -1252,7 +1448,10 @@ export function ExerciseClient({
         <div className="flex flex-wrap items-center gap-5 rounded-md border border-border bg-accent/55 px-5 py-4">
           <div className="min-w-0 flex-1">
             <p className="font-semibold">
-              Recalled{xpGained ? <span className="font-condensed tabular text-primary-ink"> · +{xpGained} XP</span> : null}
+              Recalled
+              {xpGained ? (
+                <span className="font-condensed tabular text-primary-ink"> · +{xpGained} XP</span>
+              ) : null}
             </p>
             <div className="mt-0.5 text-sm text-muted-foreground">
               {saving
@@ -1280,7 +1479,9 @@ export function ExerciseClient({
           <div className={cn("min-w-0 flex-1 basis-56", xpGained && "max-sm:pr-20")}>
             <p className="font-semibold">
               {lessonDone ? "Lesson finished" : "Drill passed"}
-              {xpGained ? <span className="font-condensed tabular text-primary-ink"> · +{xpGained} XP</span> : null}
+              {xpGained ? (
+                <span className="font-condensed tabular text-primary-ink"> · +{xpGained} XP</span>
+              ) : null}
             </p>
             <div className="mt-0.5 text-sm text-muted-foreground">
               {saving
@@ -1296,7 +1497,11 @@ export function ExerciseClient({
           </div>
           {lessonDone ? (
             <WaitLink
-              href={lessonDone.next ? `/lessons/${lessonDone.next.id}` : `/modules/${lessonDone.moduleId}#checkpoint-heading`}
+              href={
+                lessonDone.next
+                  ? `/lessons/${lessonDone.next.id}`
+                  : `/modules/${lessonDone.moduleId}#checkpoint-heading`
+              }
               pending={pendingHref}
               onClick={guard}
             >
@@ -1309,7 +1514,12 @@ export function ExerciseClient({
               <ArrowRight aria-hidden="true" />
             </WaitLink>
           ) : (
-            <WaitLink href={`/lessons/${drill.lesson.id}`} pending={pendingHref} onClick={guard} variant="outline">
+            <WaitLink
+              href={`/lessons/${drill.lesson.id}`}
+              pending={pendingHref}
+              onClick={guard}
+              variant="outline"
+            >
               Back to the lesson
             </WaitLink>
           )}
@@ -1330,7 +1540,13 @@ export function ExerciseClient({
           exerciseId={drill.id}
           aiReady={aiReady}
           getContext={() => ({
-            code: isPredict ? drill.starterCode : combinedSource(drill.mainFile, codeRef.current, multi ? filesRef.current : undefined),
+            code: isPredict
+              ? drill.starterCode
+              : combinedSource(
+                  drill.mainFile,
+                  codeRef.current,
+                  multi ? filesRef.current : undefined
+                ),
             result: describeCheck(check, runResult, answer),
           })}
           onUsed={() => {
@@ -1351,7 +1567,10 @@ export function ExerciseClient({
               <Eye className="size-4 text-muted-foreground" aria-hidden="true" />
               {solved ? "Compare with the reference solution" : "Show the reference solution"}
             </span>
-            <ChevronDown className={cn("size-4 transition-transform", solutionOpen && "rotate-180")} aria-hidden="true" />
+            <ChevronDown
+              className={cn("size-4 transition-transform", solutionOpen && "rotate-180")}
+              aria-hidden="true"
+            />
           </button>
           {solutionOpen && (
             <div className="border-t border-border">
@@ -1361,7 +1580,11 @@ export function ExerciseClient({
                 </p>
               )}
               <PythonEditor
-                value={combinedSource(drill.mainFile, solution, drill.solutionFiles ?? solutionFiles ?? undefined)}
+                value={combinedSource(
+                  drill.mainFile,
+                  solution,
+                  drill.solutionFiles ?? solutionFiles ?? undefined
+                )}
                 onChange={() => {}}
                 readOnly
                 height="300px"
@@ -1372,9 +1595,16 @@ export function ExerciseClient({
         </section>
       )}
 
-      <nav className="flex items-center justify-between gap-3 border-t border-border pt-4 text-sm" aria-label="Drills">
+      <nav
+        className="flex items-center justify-between gap-3 border-t border-border pt-4 text-sm"
+        aria-label="Drills"
+      >
         {mode.kind === "review" ? (
-          <Link href="/review" onClick={guard("/review")} className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
+          <Link
+            href="/review"
+            onClick={guard("/review")}
+            className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
+          >
             <ArrowLeft className="size-4" aria-hidden="true" />
             The review queue
           </Link>
@@ -1389,8 +1619,16 @@ export function ExerciseClient({
           </Link>
         ) : (
           <Link
-            href={mode.kind === "checkpoint" ? `/checkpoints/${mode.attemptId}` : `/lessons/${drill.lesson.id}`}
-            onClick={guard(mode.kind === "checkpoint" ? `/checkpoints/${mode.attemptId}` : `/lessons/${drill.lesson.id}`)}
+            href={
+              mode.kind === "checkpoint"
+                ? `/checkpoints/${mode.attemptId}`
+                : `/lessons/${drill.lesson.id}`
+            }
+            onClick={guard(
+              mode.kind === "checkpoint"
+                ? `/checkpoints/${mode.attemptId}`
+                : `/lessons/${drill.lesson.id}`
+            )}
             className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="size-4" aria-hidden="true" />
@@ -1404,7 +1642,9 @@ export function ExerciseClient({
             aria-busy={pendingHref === `/exercises/${drill.next.id}` || undefined}
             className="flex min-w-0 items-center gap-1.5 text-muted-foreground hover:text-foreground"
           >
-            {pendingHref === `/exercises/${drill.next.id}` && <LoaderCircle className="size-4 shrink-0 animate-spin" aria-hidden="true" />}
+            {pendingHref === `/exercises/${drill.next.id}` && (
+              <Spinner className="size-4 shrink-0" />
+            )}
             <span className="truncate">{drill.next.title}</span>
             <ArrowRight className="size-4 shrink-0" aria-hidden="true" />
           </Link>
@@ -1431,8 +1671,15 @@ export function ExerciseClient({
       <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
         <Confetti active={confetti} particleCount={70} duration={2800} />
       </div>
-      {levelUp !== null && <LevelUpNotification level={levelUp} onDismiss={() => setLevelUp(null)} />}
-      {achievements.length > 0 && <AchievementNotificationQueue achievements={achievements} onDone={() => setAchievements([])} />}
+      {levelUp !== null && (
+        <LevelUpNotification level={levelUp} onDismiss={() => setLevelUp(null)} />
+      )}
+      {achievements.length > 0 && (
+        <AchievementNotificationQueue
+          achievements={achievements}
+          onDone={() => setAchievements([])}
+        />
+      )}
       {ceremony && lessonDone?.onRamp && (
         <WhiteBeltCeremony
           open
@@ -1446,7 +1693,11 @@ export function ExerciseClient({
       )}
 
       {/* One copy of the task and the workspace: side by side on wide screens, switched on phones */}
-      <div className="mb-4 grid grid-cols-2 gap-1 rounded-md bg-muted p-1 lg:hidden" role="group" aria-label="Show">
+      <div
+        className="mb-4 grid grid-cols-2 gap-1 rounded-md bg-muted p-1 lg:hidden"
+        role="group"
+        aria-label="Show"
+      >
         {(["task", "code"] as const).map((pane) => (
           <button
             key={pane}
@@ -1455,7 +1706,9 @@ export function ExerciseClient({
             onClick={() => setMobilePane(pane)}
             className={cn(
               "rounded-sm px-3 py-1.5 text-sm font-medium transition-colors",
-              mobilePane === pane ? "bg-background ring-1 ring-border" : "text-muted-foreground hover:text-foreground"
+              mobilePane === pane
+                ? "bg-background ring-1 ring-border"
+                : "text-muted-foreground hover:text-foreground"
             )}
           >
             {pane === "task" ? "Task" : isPredict ? "Answer" : "Code"}
@@ -1463,7 +1716,12 @@ export function ExerciseClient({
         ))}
       </div>
       <div className="lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-10">
-        <div className={cn("lg:sticky lg:top-24 lg:block lg:max-h-[calc(100dvh-8rem)] lg:self-start lg:overflow-y-auto lg:pr-1", mobilePane !== "task" && "hidden")}>
+        <div
+          className={cn(
+            "lg:sticky lg:top-24 lg:block lg:max-h-[calc(100dvh-8rem)] lg:self-start lg:overflow-y-auto lg:pr-1",
+            mobilePane !== "task" && "hidden"
+          )}
+        >
           {prompt}
         </div>
         <div className={cn("lg:block", mobilePane !== "code" && "hidden")}>
@@ -1472,12 +1730,22 @@ export function ExerciseClient({
           <details
             open={taskPeekOpen}
             onToggle={(event) => setTaskPeekOpen(event.currentTarget.open)}
-            className={cn("mb-4 rounded-md border border-border bg-sheet lg:hidden", lockClipboard && "select-none")}
-            {...(lockClipboard ? { onCopy: blockClipboard(codeBlocked), onCut: blockClipboard(codeBlocked) } : {})}
+            className={cn(
+              "mb-4 rounded-md border border-border bg-sheet lg:hidden",
+              lockClipboard && "select-none"
+            )}
+            {...(lockClipboard
+              ? { onCopy: blockClipboard(codeBlocked), onCut: blockClipboard(codeBlocked) }
+              : {})}
           >
             <summary className="cursor-pointer px-4 py-2.5 text-sm font-semibold">The task</summary>
             <div className="max-h-72 overflow-y-auto border-t border-border px-4 py-3">
-              <LessonContent content={drill.instructions} runnable={false} copyable={!lockClipboard} className="[&_p]:text-sm" />
+              <LessonContent
+                content={drill.instructions}
+                runnable={false}
+                copyable={!lockClipboard}
+                className="[&_p]:text-sm"
+              />
             </div>
           </details>
           {workspace}

@@ -1,9 +1,10 @@
 "use client";
 
+import { Spinner } from "@/components/brand/knot-loader";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { startNavigation } from "@/components/layout/navigation-progress";
-import { ArrowRight, Clock, LoaderCircle } from "lucide-react";
+import { ArrowRight, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CHECKPOINT_RETRY_MINUTES, runsLate } from "@/lib/mastery-rules";
 import { cn } from "@/lib/utils";
@@ -71,26 +72,38 @@ export function StartCheckpointButton({
   const endsAt = ends.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
   const late = runsLate(confirming, terms.minutes);
   return (
-    <div role="group" aria-labelledby={`start-${scope}-${moduleId}`} className="flex max-w-xl flex-col items-start gap-3 rounded-md border border-border bg-sheet p-4">
+    <div
+      role="group"
+      aria-labelledby={`start-${scope}-${moduleId}`}
+      className="flex max-w-xl flex-col items-start gap-3 rounded-md border border-border bg-sheet p-4"
+    >
       <p id={`start-${scope}-${moduleId}`} className="font-semibold">
         <span className="font-condensed tabular">
-          {terms.drills} drills · {terms.minutes} minutes · {Math.round(terms.passMark * 100)}% to pass
+          {terms.drills} drills · {terms.minutes} minutes · {Math.round(terms.passMark * 100)}% to
+          pass
         </span>
       </p>
       <p className="text-sm leading-relaxed text-muted-foreground">
-        No hints, no reference solution, and no copy and paste. The clock starts when you press Start and doesn&apos;t
-        pause: started now, it ends at <span className="font-semibold text-foreground">{endsAt}</span>. If you don&apos;t
-        pass, a fresh set is ready {CHECKPOINT_RETRY_MINUTES} minutes later.
+        No hints, no reference solution, and no copy and paste. The clock starts when you press
+        Start and doesn&apos;t pause: started now, it ends at{" "}
+        <span className="font-semibold text-foreground">{endsAt}</span>. If you don&apos;t pass, a
+        fresh set is ready {CHECKPOINT_RETRY_MINUTES} minutes later.
       </p>
       {late && (
         <p className="border-l-2 border-highlight pl-3 text-sm leading-relaxed">
-          That runs late into the night. A grading goes best fresh: nothing expires if you take it tomorrow instead.
+          That runs late into the night. A grading goes best fresh: nothing expires if you take it
+          tomorrow instead.
         </p>
       )}
       <div className="flex flex-wrap gap-2">
         {/* Focus lands here, so the keyboard is where the decision is */}
-        <Button autoFocus onClick={() => void start()} aria-busy={busy} className={cn(busy && "cursor-progress")}>
-          {busy ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <Clock aria-hidden="true" />}
+        <Button
+          autoFocus
+          onClick={() => void start()}
+          aria-busy={busy}
+          className={cn(busy && "cursor-progress")}
+        >
+          {busy ? <Spinner /> : <Clock aria-hidden="true" />}
           {/* A one-off that moves on to the grading: the label simply says what's happening */}
           {busy ? "Drawing your drills…" : "Start the clock"}
         </Button>
@@ -180,11 +193,15 @@ export function CheckpointClock({ deadline, className }: { deadline: string; cla
       )}
     >
       {left === 0 ? (
-        <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
+        <Spinner className="size-4" />
       ) : (
         <Clock className="size-4" aria-hidden="true" />
       )}
-      {left === null ? "…" : left === 0 ? "Time’s up: marking your grading…" : `${formatClock(left)} left`}
+      {left === null
+        ? "…"
+        : left === 0
+          ? "Time’s up: marking your grading…"
+          : `${formatClock(left)} left`}
       <ClockAnnouncement left={left} />
     </span>
   );
@@ -236,7 +253,9 @@ export function HandInButton({
     return (
       <div className="flex flex-col items-start gap-2">
         <div className="flex flex-wrap items-center gap-3">
-          {!allPassed && <span className="text-sm">Hand in now? Drills you haven’t passed count as failed.</span>}
+          {!allPassed && (
+            <span className="text-sm">Hand in now? Drills you haven’t passed count as failed.</span>
+          )}
           <Button
             size={size}
             onClick={() => void handIn()}
@@ -244,11 +263,16 @@ export function HandInButton({
             aria-disabled={working}
             className={cn(working && "cursor-progress")}
           >
-            {working && <LoaderCircle className="animate-spin" aria-hidden="true" />}
+            {working && <Spinner />}
             {working ? "Marking your grading…" : "Hand in"}
           </Button>
           {!allPassed && (
-            <Button size={size} variant="ghost" onClick={() => setConfirming(false)} disabled={working}>
+            <Button
+              size={size}
+              variant="ghost"
+              onClick={() => setConfirming(false)}
+              disabled={working}
+            >
               Keep going
             </Button>
           )}

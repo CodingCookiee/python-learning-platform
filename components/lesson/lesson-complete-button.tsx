@@ -1,9 +1,10 @@
 ﻿"use client";
 
+import { Spinner } from "@/components/brand/knot-loader";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { startNavigation } from "@/components/layout/navigation-progress";
-import { CheckCircle2, Circle, LoaderCircle } from "lucide-react";
+import { CheckCircle2, Circle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,6 @@ import { AchievementNotificationQueue } from "@/components/gamification";
 import { WHITE_BELT_TIED, WhiteBeltCeremony } from "@/components/onramp/white-belt-ceremony";
 import type { UnlockedAchievement } from "@/lib/achievements";
 import { PendingLine } from "@/components/ui/pending-line";
-
 
 export interface LessonCompleteButtonProps {
   lessonId: string;
@@ -54,10 +54,13 @@ export function LessonCompleteButton({
 
   React.useEffect(() => {
     if (!moveTo || achievements.length > 0) return;
-    const timer = window.setTimeout(() => {
-      startNavigation();
-      router.push(moveTo);
-    }, nextLessonId ? 1200 : 1800);
+    const timer = window.setTimeout(
+      () => {
+        startNavigation();
+        router.push(moveTo);
+      },
+      nextLessonId ? 1200 : 1800
+    );
     return () => window.clearTimeout(timer);
   }, [moveTo, achievements.length, nextLessonId, router]);
 
@@ -100,7 +103,10 @@ export function LessonCompleteButton({
         setTimeout(() => setShowXp(false), 2500);
       }
 
-      const tied = nowCompleted && afterOnRampHref ? data.achievements.find((a) => a.slug === WHITE_BELT_TIED) : undefined;
+      const tied =
+        nowCompleted && afterOnRampHref
+          ? data.achievements.find((a) => a.slug === WHITE_BELT_TIED)
+          : undefined;
       if (tied) {
         // The ceremony is the celebration, so it doesn't queue as a toast as well
         setCeremony(tied);
@@ -114,7 +120,14 @@ export function LessonCompleteButton({
 
       // Move on to the next lesson, or the module's checkpoint (not when the ceremony is on screen:
       // the learner moves on from there); the success line stays until the page changes
-      const next = !tied && nowCompleted ? (nextLessonId ? `/lessons/${nextLessonId}` : moduleId ? `/modules/${moduleId}#checkpoint-heading` : null) : null;
+      const next =
+        !tied && nowCompleted
+          ? nextLessonId
+            ? `/lessons/${nextLessonId}`
+            : moduleId
+              ? `/modules/${moduleId}#checkpoint-heading`
+              : null
+          : null;
       if (next) setMoveTo(next);
       else setTimeout(() => setStatus("idle"), 1000);
     } catch {
@@ -132,7 +145,10 @@ export function LessonCompleteButton({
 
   return (
     <>
-      <AchievementNotificationQueue achievements={achievements} onDone={() => setAchievements([])} />
+      <AchievementNotificationQueue
+        achievements={achievements}
+        onDone={() => setAchievements([])}
+      />
       {ceremony && afterOnRampHref && (
         <WhiteBeltCeremony
           open
@@ -163,7 +179,7 @@ export function LessonCompleteButton({
             )}
           >
             {isLoading ? (
-              <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
+              <Spinner className="size-4" />
             ) : completed ? (
               <CheckCircle2 className="size-4 text-success" aria-hidden="true" />
             ) : (
@@ -196,10 +212,20 @@ export function LessonCompleteButton({
           </AnimatePresence>
         </div>
 
-        {isLoading && <PendingLine delayMs={600} lines={["Saving your progress…", "Adding your XP…"]} still="Still saving: the server is taking a moment." />}
+        {isLoading && (
+          <PendingLine
+            delayMs={600}
+            lines={["Saving your progress…", "Adding your XP…"]}
+            still="Still saving: the server is taking a moment."
+          />
+        )}
         {moveTo && (
           <PendingLine
-            lines={[nextLessonId ? "Taking you to the next lesson…" : "Taking you to the module's grading…"]}
+            lines={[
+              nextLessonId
+                ? "Taking you to the next lesson…"
+                : "Taking you to the module's grading…",
+            ]}
             still="Still loading the page…"
           />
         )}
@@ -229,7 +255,9 @@ export function LessonCompleteButton({
               transition={{ duration: 0.3 }}
               className="text-sm text-destructive"
             >
-              {isLocked ? lockedCopy : (errorMessage ?? "That didn't save. Check your connection and try again.")}
+              {isLocked
+                ? lockedCopy
+                : (errorMessage ?? "That didn't save. Check your connection and try again.")}
             </motion.p>
           )}
         </AnimatePresence>

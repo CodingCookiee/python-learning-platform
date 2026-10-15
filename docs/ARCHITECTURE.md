@@ -527,6 +527,26 @@ Each milestone is shippable and leaves the app better than before.
   - Admin > Content has "Refresh public pages" (`POST /api/admin/content/refresh`, `revalidateTag("content")`) for after a content sync.
   - `npm run build` deletes the dev server's stale `.next/dev/types/validator.ts` first (`prebuild`).
   - In dev, a regenerated Prisma client replaces the cached instance.
+- **Admin control and safety (2026-10-15):**
+  - **Two admin levels** (`Role`: `ADMIN`, `SUPER_ADMIN`; `lib/admin/levels.ts`). A super admin has full control. An admin reviews capstones, sees a read-only overview, and gets submission notices. `requireAdminPage(level)` guards the pages, and `withSuperAdmin` guards the APIs.
+  - **Super admins** (`/admin/users`, `/admin/users/[id]`, `/admin/activity`) can:
+    - search and filter users, and open any learner's whole record;
+    - suspend (sign-in, every API call and page loads refuse the account), delete (by typing the email back), change roles, mark an email verified, send a reset link;
+    - grant or revoke a module pass (marked "granted"), clear a grading's wait, revoke or reinstate a certificate (`Certificate.revokedAt`: void for everyone, and the holder can't restore it).
+  - **Guards:** each action is guarded (not on yourself; never the last active super admin) and written to `AdminAction`, the audit log (`lib/admin/actions.ts`).
+  - **Notifications:** `AdminNotification` rows, one per admin, for new sign-ups (super admins) and capstone hand-ins (every admin). A bell in the header polls every minute while the tab is visible.
+  - **Security review fixes:**
+    - **C-1:** emails are stored and compared lower-cased (`lib/email-address.ts`); sign-up refuses look-alikes; verification matches the exact address; the bootstrap email only makes the first, verified super admin (`lib/admin/bootstrap.ts`).
+    - **H-1:** the legacy self-pass routes are deleted.
+    - **M-3:** Google sign-in needs a verified email.
+    - **L-1:** AI replies render without raw HTML (`LessonContent trusted={false}`).
+  - **Credentials stay out of URLs:** every credential form posts (`method="post"`), so a submit before the page's script loads can't put a password in the URL, and sign-in/sign-up redirect to a clean address if one arrives anyway. Reset and confirm links keep their one-time token for the tab only and take it out of the address bar.
+  - **No age rule:** pylearn is open to anyone (the `ageConfirmedAt` column is gone).
+  - Migrations: `20261015000000_admin_oversight`, `20261015010000_super_admin_role`, `20261015020000_promote_admins`.
+- **The Sensei and the quest (2026-10-15):**
+  - **The Sensei** (`components/sensei/sensei-assistant.tsx`, `lib/ai/sensei.ts`, `POST /api/sensei`) is a site-wide guide in the bottom-right corner. It runs on the learner's key and explains Python, the current lesson, module or capstone brief, and how pylearn works, using facts from the rules in code. It never writes drill, grading or capstone answers. It's disabled on drills (a tooltip points to the drill's tutor), and refused everywhere while a grading's clock runs. The chat lasts for the browser session.
+  - **The quest:** the panel queues steps reported before it has loaded (before, a first Run could be lost, and the learner had to press it twice). The sensei moves on as the output appears and the server confirms it; requests use `keepalive`, and server answers keep steps still being saved. While Run works, the panel says so ("Starting Python in your browser…"), and Python starts loading as soon as a lesson opens on a run step.
+- **The loader (2026-10-15):** `KnotLoader` is the mark being tied, in the learner's own belt colour (`data-belt` on `<html>`, set by the header) on loading screens and in the quest's and Sensei's waits. `Spinner` is the same knot in the button's own ink, on a quicker loop, in every button and pending line. With reduced motion, both hold still and breathe.
 - **End-to-end tests (2026-10-14):** Playwright in `tests/e2e/` (`npm run build && npm run test:e2e`), on the installed Chrome against a production build on :3010. Each test seeds its own throwaway `@example.invalid` learner (`tests/e2e/support/seed.ts`, run with tsx) and deletes it afterwards. The suite has page objects in `tests/e2e/pages/`, fixtures in `tests/e2e/fixtures/`, and axe checks on the key pages. It covers sign-in, the lean dashboard and the record, the belt test-out (with a late-night time zone), the weekly check-in, the Python certificate claimed by a black belt and checked signed out, and the landing page on desktop and a phone. CI runs it in the `e2e` job against a fresh Postgres. Writing it found two bugs, both fixed:
   - A link to a section of another app page (`#checkpoint-heading`, `#record-heading`) opened at the top, because the page streams in after the browser looks for the anchor. `components/layout/hash-scroll.tsx` now lands it.
   - The landing page's side-scrolling code samples weren't reachable by keyboard.

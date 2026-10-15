@@ -1,9 +1,10 @@
 "use client";
 
+import { Spinner } from "@/components/brand/knot-loader";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, X, BookOpen, Layers, Code2, LoaderCircle } from "lucide-react";
+import { Search, X, BookOpen, Layers, Code2 } from "lucide-react";
 import { PendingLine } from "@/components/ui/pending-line";
 import { cn } from "@/lib/utils";
 import { LockedMark } from "@/components/brand/marks";
@@ -202,10 +203,7 @@ export function SearchBar() {
               {/* Search input */}
               <div className="flex items-center gap-3 px-4 py-3.5">
                 {loading && query.length >= 2 ? (
-                  <LoaderCircle
-                    className="size-4 shrink-0 text-muted-foreground animate-spin"
-                    aria-hidden="true"
-                  />
+                  <Spinner className="size-4 shrink-0 text-muted-foreground" />
                 ) : (
                   <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                 )}
@@ -306,13 +304,20 @@ export function SearchBar() {
 
               {query.length >= 2 && searched !== query && visibleResults.length === 0 && (
                 <div className="border-t border-border px-4 py-5">
-                  <PendingLine live={false} delayMs={300} lines={["Searching the syllabus…"]} still="Still searching…" />
+                  <PendingLine
+                    live={false}
+                    delayMs={300}
+                    lines={["Searching the syllabus…"]}
+                    still="Still searching…"
+                  />
                 </div>
               )}
 
               {query.length >= 2 && searched === query && searchFailed && (
                 <div className="border-t border-border px-4 py-6 text-center">
-                  <p className="text-sm text-destructive">Search isn&apos;t working right now. Try again in a moment.</p>
+                  <p className="text-sm text-destructive">
+                    Search isn&apos;t working right now. Try again in a moment.
+                  </p>
                 </div>
               )}
 
@@ -322,14 +327,18 @@ export function SearchBar() {
                   : ""}
               </p>
 
-              {query.length >= 2 && searched === query && !searchFailed && !loading && visibleResults.length === 0 && (
-                <div className="border-t border-border px-4 py-6 text-center">
-                  <p className="text-sm text-muted-foreground">
-                    Nothing in the syllabus matches &ldquo;{query}&rdquo;. Try a topic like
-                    &ldquo;decorators&rdquo; or &ldquo;async&rdquo;.
-                  </p>
-                </div>
-              )}
+              {query.length >= 2 &&
+                searched === query &&
+                !searchFailed &&
+                !loading &&
+                visibleResults.length === 0 && (
+                  <div className="border-t border-border px-4 py-6 text-center">
+                    <p className="text-sm text-muted-foreground">
+                      Nothing in the syllabus matches &ldquo;{query}&rdquo;. Try a topic like
+                      &ldquo;decorators&rdquo; or &ldquo;async&rdquo;.
+                    </p>
+                  </div>
+                )}
             </motion.div>
           </motion.div>
         )}

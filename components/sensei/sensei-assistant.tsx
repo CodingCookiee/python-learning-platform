@@ -1,6 +1,6 @@
 "use client";
 
-import { BeltLoader } from "@/components/brand/belt-loader";
+import { KnotLoader } from "@/components/brand/knot-loader";
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -87,6 +87,7 @@ export function SenseiAssistant() {
   const listRef = React.useRef<HTMLOListElement>(null);
   const inputRef = React.useRef<HTMLTextAreaElement>(null);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
+  const panelRef = React.useRef<HTMLElement>(null);
   const scratchpadOpen = useScratchpadOpen();
   const panelId = React.useId();
 
@@ -96,6 +97,16 @@ export function SenseiAssistant() {
     listRef.current?.lastElementChild?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [turns, busy]);
 
+  // Escape closes it wherever focus is (with no key there's no box to type in, so focus may be outside)
+  React.useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !e.defaultPrevented) close();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  });
+
   async function openPanel() {
     setOpen(true);
     setTurns(readTurns());
@@ -103,7 +114,7 @@ export function SenseiAssistant() {
     setError(null);
     const res = await fetch("/api/sensei", { cache: "no-store" }).catch(() => null);
     setStatus(res?.ok ? ((await res.json()) as { status: Status }).status : "error");
-    requestAnimationFrame(() => inputRef.current?.focus());
+    requestAnimationFrame(() => (inputRef.current ?? panelRef.current)?.focus());
   }
 
   function close() {
@@ -223,6 +234,8 @@ export function SenseiAssistant() {
 
       {open && (
         <section
+          ref={panelRef}
+          tabIndex={-1}
           id={panelId}
           aria-label="Ask the Sensei"
           onKeyDown={(e) => {
@@ -232,7 +245,7 @@ export function SenseiAssistant() {
             }
           }}
           className={cn(
-            "fixed inset-x-2 bottom-2 z-43 flex max-h-[min(40rem,calc(100dvh-5rem))] flex-col rounded-md border border-border bg-card shadow-overlay md:inset-x-auto md:right-4 md:bottom-4 md:w-[24rem]",
+            "fixed inset-x-2 bottom-2 z-43 flex max-h-[min(40rem,calc(100dvh-5rem))] flex-col rounded-md border border-border bg-card shadow-overlay outline-none md:inset-x-auto md:right-4 md:bottom-4 md:w-[24rem]",
             scratchpadOpen && "xl:right-auto xl:left-4"
           )}
         >
@@ -262,7 +275,7 @@ export function SenseiAssistant() {
 
           <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-3">
             {status === "loading" ? (
-              <PendingLine icon={<BeltLoader size="sm" />} lines={["Waking the Sensei…"]} />
+              <PendingLine icon={<KnotLoader size="sm" />} lines={["Waking the Sensei…"]} />
             ) : status === "no_key" ? (
               <div className="flex flex-col gap-2 text-sm leading-relaxed">
                 <p>
@@ -347,7 +360,7 @@ export function SenseiAssistant() {
             )}
             {status === "ready" && turns.length === 0 && busy && (
               <PendingLine
-                icon={<BeltLoader size="sm" />}
+                icon={<KnotLoader size="sm" />}
                 lines={["Reading your question…", "Thinking it through…", "Writing an answer…"]}
                 stepMs={2500}
               />

@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/animations";
 import { cn } from "@/lib/utils";
-import { BeltLoader } from "@/components/brand/belt-loader";
+import { KnotLoader } from "@/components/brand/knot-loader";
 
 /**
  * A page's loading screen (its route's loading.tsx): the belt loader and what's loading ("Loading your
@@ -21,11 +21,14 @@ export function PageLoading({
     <div
       role="status"
       aria-busy="true"
-      className={cn("mx-auto min-h-[calc(100dvh-4rem)] max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8", className)}
+      className={cn(
+        "mx-auto min-h-[calc(100dvh-4rem)] max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8",
+        className
+      )}
     >
       {/* The belt loader says something is happening; the skeleton shows what's coming */}
       <p className="mb-6 flex items-center gap-3 text-sm text-muted-foreground">
-        <BeltLoader />
+        <KnotLoader />
         <span>{label}…</span>
       </p>
       <div aria-hidden="true">{children}</div>
@@ -46,7 +49,15 @@ export function SkeletonHeader({ lede = 2, className }: { lede?: number; classNa
 }
 
 /** A ruled list: rows of a line and a smaller line, with something at the end */
-export function SkeletonRows({ rows = 5, end = true, className }: { rows?: number; end?: boolean; className?: string }) {
+export function SkeletonRows({
+  rows = 5,
+  end = true,
+  className,
+}: {
+  rows?: number;
+  end?: boolean;
+  className?: string;
+}) {
   return (
     <div className={cn("flex flex-col border-t border-border", className)}>
       {Array.from({ length: rows }).map((_, i) => (

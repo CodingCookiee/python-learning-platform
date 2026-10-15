@@ -1,7 +1,8 @@
 "use client";
 
+import { Spinner } from "@/components/brand/knot-loader";
 import * as React from "react";
-import { LoaderCircle } from "lucide-react";
+
 import { patience, stageIndex, type StageTiming } from "@/lib/pending/stages";
 import { cn } from "@/lib/utils";
 
@@ -51,22 +52,36 @@ export function PendingLine({
   const stage = patience(elapsed, timing);
   const sub = stage === "slow" ? (slow ?? still) : stage === "still" ? still : undefined;
   return (
-    <div role={live ? "status" : undefined} className={cn("flex min-w-0 flex-col gap-1 text-sm", className)}>
+    <div
+      role={live ? "status" : undefined}
+      className={cn("flex min-w-0 flex-col gap-1 text-sm", className)}
+    >
       <span className="flex min-w-0 items-center gap-2 text-muted-foreground">
-        {icon ?? <LoaderCircle className="size-4 shrink-0 animate-spin text-primary" aria-hidden="true" />}
+        {icon ?? <Spinner className="size-4 shrink-0 text-primary" />}
         {/* Keyed so each new phase slides in (no fade, so the text is never faint) */}
-        <span key={line} aria-hidden="true" className="min-w-0 animate-in slide-in-from-bottom-1 duration-300">
+        <span
+          key={line}
+          aria-hidden="true"
+          className="min-w-0 animate-in slide-in-from-bottom-1 duration-300"
+        >
           {line}
         </span>
         <span className="sr-only">{stage !== "none" && still ? still : lines[0]}</span>
       </span>
       {sub && (
-        <span key={sub} aria-hidden="true" className="animate-in pl-6 text-xs text-muted-foreground slide-in-from-bottom-1 duration-300">
+        <span
+          key={sub}
+          aria-hidden="true"
+          className="animate-in pl-6 text-xs text-muted-foreground slide-in-from-bottom-1 duration-300"
+        >
           {sub}
         </span>
       )}
       {shimmer && (
-        <span aria-hidden="true" className="relative ml-6 h-0.5 overflow-hidden rounded-full bg-primary/15">
+        <span
+          aria-hidden="true"
+          className="relative ml-6 h-0.5 overflow-hidden rounded-full bg-primary/15"
+        >
           <span className="absolute inset-0 bg-linear-to-r from-transparent via-primary/70 to-transparent motion-safe:animate-[shimmer_1.6s_ease-in-out_infinite] motion-reduce:hidden" />
         </span>
       )}

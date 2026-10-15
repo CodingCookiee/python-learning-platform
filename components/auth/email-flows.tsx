@@ -14,12 +14,57 @@ import { FormError } from "@/components/auth/auth-shell";
 
 async function post(url: string, body: unknown): Promise<{ ok: boolean; error?: string }> {
   try {
-    const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
     const data = (await res.json().catch(() => ({}))) as { error?: string };
-    return res.ok ? { ok: true } : { ok: false, error: data.error ?? "Something went wrong. Try again." };
+    return res.ok
+      ? { ok: true }
+      : { ok: false, error: data.error ?? "Something went wrong. Try again." };
   } catch {
     return { ok: false, error: "We couldn't reach the server. Check your connection." };
   }
+}
+
+const noSubscribe = () => () => {};
+
+/**
+ * A link's one-time token (reset, confirm), taken out of the address bar once the page has it, so it
+ * isn't left in the browser's history or on screen. Kept for this tab only, so a refresh still works,
+ * and forgotten once used (`forget`).
+ */
+function useLinkToken(fromUrl: string, kind: "reset" | "verify") {
+  const key = `link-token:${kind}`;
+  const stored = React.useSyncExternalStore(
+    noSubscribe,
+    () => {
+      try {
+        return sessionStorage.getItem(key) ?? "";
+      } catch {
+        return "";
+      }
+    },
+    () => ""
+  );
+  React.useEffect(() => {
+    if (!fromUrl) return;
+    try {
+      sessionStorage.setItem(key, fromUrl);
+    } catch {
+      // Kept in this page only
+    }
+    window.history.replaceState(window.history.state, "", window.location.pathname);
+  }, [fromUrl, key]);
+  const forget = React.useCallback(() => {
+    try {
+      sessionStorage.removeItem(key);
+    } catch {
+      // Nothing kept
+    }
+  }, [key]);
+  return { token: fromUrl || stored, forget };
 }
 
 function Done({ children }: { children: React.ReactNode }) {
@@ -36,7 +81,8 @@ function Done({ children }: { children: React.ReactNode }) {
  * press buttons), then a confirmed state that owns the page, with one full-width way on to sign in.
  * Its heading changes with it, so the page never asks to confirm what's already confirmed.
  */
-export function VerifyEmailForm({ token }: { token: string }) {
+export function VerifyEmailForm({ token: fromUrl }: { token: string }) {
+  const { token, forget } = useLinkToken(fromUrl, "verify");
   const [state, setState] = React.useState<"idle" | "busy" | "done">("idle");
   const [error, setError] = React.useState<string | null>(null);
   const heading = React.useRef<HTMLHeadingElement>(null);
@@ -45,6 +91,7 @@ export function VerifyEmailForm({ token }: { token: string }) {
     setState("busy");
     const r = await post("/api/auth/verify", { token });
     if (r.ok) {
+      forget();
       setState("done");
       // The page changed under the button that was pressed: put focus on what it says now
       requestAnimationFrame(() => heading.current?.focus());
@@ -59,11 +106,16 @@ export function VerifyEmailForm({ token }: { token: string }) {
       <div className="flex flex-col gap-8">
         <Seal label="Confirmed" detail="Email" animate className="w-fit" />
         <div className="flex flex-col gap-2">
-          <h1 ref={heading} tabIndex={-1} className="text-3xl font-semibold tracking-[-0.015em] outline-none">
+          <h1
+            ref={heading}
+            tabIndex={-1}
+            className="text-3xl font-semibold tracking-[-0.015em] outline-none"
+          >
             You&apos;re all set.
           </h1>
           <p className="leading-relaxed text-muted-foreground">
-            Your email is confirmed and your white belt is waiting. Sign in to start your first lesson.
+            Your email is confirmed and your white belt is waiting. Sign in to start your first
+            lesson.
           </p>
         </div>
         <Button asChild size="lg" className="w-full">
@@ -79,11 +131,20 @@ export function VerifyEmailForm({ token }: { token: string }) {
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-1.5">
         <h1 className="text-2xl font-semibold tracking-[-0.01em]">Confirm your email</h1>
-        <p className="text-sm text-muted-foreground">Press the button to finish setting up your account.</p>
+        <p className="text-sm text-muted-foreground">
+          Press the button to finish setting up your account.
+        </p>
       </div>
       <div className="flex flex-col gap-4">
         {error && <FormError message={error} />}
-        <LoadingButton size="lg" onClick={() => void confirm()} loading={state === "busy"} loadingText="Confirming…" disabled={!token} className="w-full">
+        <LoadingButton
+          size="lg"
+          onClick={() => void confirm()}
+          loading={state === "busy"}
+          loadingText="Confirming…"
+          disabled={!token}
+          className="w-full"
+        >
           Confirm my email
         </LoadingButton>
       </div>
@@ -155,7 +216,8 @@ export function ForgotPasswordForm() {
   );
 }
 
-export function ResetPasswordForm({ token }: { token: string }) {
+export function ResetPasswordForm({ token: fromUrl }: { token: string }) {
+  const { token, forget } = useLinkToken(fromUrl, "reset");
   const router = useRouter();
   const [password, setPassword] = React.useState("");
   const [confirm, setConfirm] = React.useState("");
@@ -172,6 +234,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
     setBusy(true);
     const r = await post("/api/auth/password/reset", { token, password });
     if (r.ok) {
+      forget();
       // Busy until sign-in replaces this form
       startNavigation();
       router.push("/auth/signin?reset=1");
@@ -186,13 +249,32 @@ export function ResetPasswordForm({ token }: { token: string }) {
       {error && <FormError message={error} />}
       <div className="flex flex-col gap-2">
         <Label htmlFor="reset-password">New password</Label>
-        <Input id="reset-password" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <Input
+          id="reset-password"
+          type="password"
+          autoComplete="new-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="reset-confirm">Confirm new password</Label>
-        <Input id="reset-confirm" type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+        <Input
+          id="reset-confirm"
+          type="password"
+          autoComplete="new-password"
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
+        />
       </div>
-      <LoadingButton type="submit" size="lg" className="w-full" loading={busy} loadingText="Saving your new password…" disabled={!token}>
+      <LoadingButton
+        type="submit"
+        size="lg"
+        className="w-full"
+        loading={busy}
+        loadingText="Saving your new password…"
+        disabled={!token}
+      >
         Set the new password
       </LoadingButton>
     </form>
@@ -203,7 +285,8 @@ export function ResetPasswordForm({ token }: { token: string }) {
 export function ResendVerification({ email }: { email: string }) {
   const [state, setState] = React.useState<"idle" | "busy" | "sent">("idle");
   const [error, setError] = React.useState<string | null>(null);
-  if (state === "sent") return <p className="text-sm text-success">A new link is on its way to {email}.</p>;
+  if (state === "sent")
+    return <p className="text-sm text-success">A new link is on its way to {email}.</p>;
   return (
     <div className="flex flex-col gap-1.5">
       <LoadingButton
