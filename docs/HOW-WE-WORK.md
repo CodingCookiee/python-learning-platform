@@ -30,6 +30,7 @@ pylearn teaches Python from first syntax to advanced confidence, then AI automat
 | `docs/WHATS-LEFT.md` | What's left before launch, and the production steps (env vars, migrations to deploy) |
 | `docs/CURRICULUM.md`, `docs/CONTENT.md` | The course and how content files are written and synced |
 | `security_best_practices_report.md` | The security review: what's fixed and what's open |
+| `docs/AI-INTEGRATION.md` | How the AI features work and the rules every new AI feature follows |
 | `docs/superpowers/specs/`, `plans/` | Approved designs and implementation plans for larger features |
 | `lib/quest-steps.ts` | The sensei's lines. The owner approved every one; change them only with their say |
 
