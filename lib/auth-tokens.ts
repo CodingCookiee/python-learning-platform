@@ -32,8 +32,9 @@ export async function consumeToken(kind: TokenKind, token: string): Promise<stri
   if (!token || token.length > 200) return null;
   const row = await prisma.verificationToken.findUnique({ where: { token: hash(token) } });
   if (!row || !row.identifier.startsWith(`${kind}:`)) return null;
-  await prisma.verificationToken.deleteMany({ where: { token: row.token } });
-  if (row.expires.getTime() < Date.now()) return null;
+  // Whoever deletes the row uses the link: two requests racing with one link can't both succeed
+  const { count } = await prisma.verificationToken.deleteMany({ where: { token: row.token } });
+  if (count !== 1 || row.expires.getTime() < Date.now()) return null;
   return row.identifier.slice(kind.length + 1);
 }
 

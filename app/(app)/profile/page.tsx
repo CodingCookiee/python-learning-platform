@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
 import { initialsFor } from "@/lib/utils";
 import Link from "next/link";
 import { auth } from "@/auth";
-import { getAppOrigin } from "@/lib/server-url";
+import { getProgressSummary } from "@/lib/progress-summary";
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { XpProgressBar } from "@/components/gamification/xp-progress-bar";
@@ -28,60 +27,8 @@ import { EmptySlot } from "@/components/brand/empty-slot";
 
 export const metadata: Metadata = { title: "Profile" };
 
-interface ProgressData {
-  user: { id: string; name: string | null; email: string | null; xp: number; level: number };
-  streak: { current: number; longest: number; lastActivity: string | Date; activeDates: string[] };
-  completion: {
-    lessons: { completed: number; total: number; percentage: number };
-    exercises: { completed: number; total: number; percentage: number };
-    projects: { completed: number; total: number; percentage: number };
-    overall: number;
-  };
-  modules: Array<{
-    moduleId: string;
-    moduleTitle: string;
-    lessonsCompleted: number;
-    lessonsTotal: number;
-    projectsCompleted: number;
-    projectsTotal: number;
-    completionPercentage: number;
-  }>;
-  recentActivity: {
-    lessons: Array<{
-      lesson: { id: string; title: string; moduleId: string; order: number };
-      completedAt: string | Date;
-    }>;
-    projects: Array<{ project: { id: string; title: string; moduleId: string; xpReward: number } }>;
-  };
-  achievements: {
-    unlocked: Array<{
-      id: string;
-      name: string;
-      description: string;
-      icon: string;
-      category: string;
-      tier: string;
-      xpReward: number;
-      unlockedAt: string | Date;
-    }>;
-    total: number;
-  };
-}
-
-async function getProgressData(cookieHeader: string): Promise<ProgressData | null> {
-  try {
-    const res = await fetch(`${await getAppOrigin()}/api/progress`, {
-      headers: { cookie: cookieHeader },
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    return (await res.json()) as ProgressData;
-  } catch {
-    return null;
-  }
-}
-
-function formatDate(d: string | Date): string {
+function formatDate(d: string | Date | null): string {
+  if (!d) return "";
   return new Date(d).toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
@@ -93,13 +40,8 @@ export default async function ProfilePage() {
   const session = await auth();
   if (!session?.user) redirect("/auth/signin");
 
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore
-    .getAll()
-    .map((c) => `${c.name}=${c.value}`)
-    .join("; ");
-
-  const data = await getProgressData(cookieHeader);
+  // Read directly, not through our own API over HTTP: one less round trip, and no Host header
+  const data = await getProgressSummary(session.user.id).catch(() => null);
   if (!data) redirect("/dashboard");
 
   const { user, streak, completion, recentActivity, achievements } = data;
@@ -112,7 +54,10 @@ export default async function ProfilePage() {
   ]);
   const rank = rankFromTracks(tracks, blackBelt);
   const pythonModules = tracks.find((t) => t.slug === PYTHON_TRACK)?.modules ?? [];
-  const pythonLessons = pythonModules.reduce((n, m) => ({ done: n.done + m.lessonsDone, total: n.total + m.lessonsTotal }), { done: 0, total: 0 });
+  const pythonLessons = pythonModules.reduce(
+    (n, m) => ({ done: n.done + m.lessonsDone, total: n.total + m.lessonsTotal }),
+    { done: 0, total: 0 }
+  );
   const initials = initialsFor(user.name, user.email);
   const recentAchievements = achievements.unlocked.slice(0, 6);
   const recentLessons = recentActivity.lessons.slice(0, 6);
@@ -136,7 +81,11 @@ export default async function ProfilePage() {
         </FadeIn>
 
         <FadeIn delay={0.06}>
-          <CertificatesSection states={certificates} defaultName={user.name ?? ""} origin={publicOrigin()} />
+          <CertificatesSection
+            states={certificates}
+            defaultName={user.name ?? ""}
+            origin={publicOrigin()}
+          />
         </FadeIn>
 
         {/* Training record: ruled facts, not stat cards */}
@@ -165,7 +114,10 @@ export default async function ProfilePage() {
                 <dt className="text-sm text-muted-foreground">Python lessons finished</dt>
                 <dd className="font-condensed tabular leading-none">
                   <span className="text-3xl font-extrabold">{pythonLessons.done}</span>
-                  <span className="text-lg font-bold text-muted-foreground"> / {pythonLessons.total}</span>
+                  <span className="text-lg font-bold text-muted-foreground">
+                    {" "}
+                    / {pythonLessons.total}
+                  </span>
                 </dd>
               </div>
               {/* Not "of 24": the black belt asks for three, and every capstone is optional practice beyond */}
@@ -174,7 +126,9 @@ export default async function ProfilePage() {
                   Capstone projects approved
                   <span className="text-xs">The black belt takes three Python capstones.</span>
                 </dt>
-                <dd className="font-condensed tabular text-3xl leading-none font-extrabold">{completion.projects.completed}</dd>
+                <dd className="font-condensed tabular text-3xl leading-none font-extrabold">
+                  {completion.projects.completed}
+                </dd>
               </div>
             </dl>
           </section>
@@ -251,7 +205,10 @@ export default async function ProfilePage() {
               {recentLessons.length > 0 ? (
                 <ol className="flex flex-col border-t border-border">
                   {recentLessons.map(({ lesson, completedAt }) => (
-                    <li key={lesson.id} className="flex items-center gap-3 border-b border-border py-3">
+                    <li
+                      key={lesson.id}
+                      className="flex items-center gap-3 border-b border-border py-3"
+                    >
                       <Check className="size-4 shrink-0 text-success" aria-hidden="true" />
                       <Link
                         href={`/lessons/${lesson.id}`}

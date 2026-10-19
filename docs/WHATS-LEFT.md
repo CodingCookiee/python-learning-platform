@@ -1,12 +1,19 @@
 # What's left
 
-Updated 2026-10-14. The platform is built, and all the content is written: 25 modules (the on-ramp, 16 Python, 8 automation), 168 lessons and 24 capstones. The critique's product decisions, polish and quirks are done (section 5). What remains is **launching**: buying the domain, deploying, and checking the things that only work once the site is live, plus two checks that need your own accounts (section 4).
+Updated 2026-10-19, after the release QA ([the QA report](QA-REPORT-2026-10-19.md)). Earlier update: 2026-10-14. The platform is built, and all the content is written: 25 modules (the on-ramp, 16 Python, 8 automation), 168 lessons and 24 capstones. The critique's product decisions, polish and quirks are done (section 5). What remains is **launching**: buying the domain, deploying, and checking the things that only work once the site is live, plus two checks that need your own accounts (section 4).
 
 Domain: **pylearn.academy**. GitHub: [PL-PyLearn](https://github.com/PL-PyLearn). LinkedIn: [company/pylearn](https://www.linkedin.com/company/pylearn/).
 
 ---
 
 ## 1. Before launch
+
+The release QA (2026-10-19) found the code ready for v1. What's left before launch is setup, plus one decision:
+
+- [ ] **Decide: drills on the honour system for v1.** With `GRADING_MODE=client`, a learner who forges a request can mark drills and gradings passed (security report H-2). Capstones are still approved by an examiner, so certificates still need a person's sign-off. The real fix is the execution sandbox in v2 (ARCHITECTURE.md §17, M9). The alternative is holding the launch for it.
+- [ ] **Set the Upstash variables.** Without them every Vercel instance keeps its own rate-limit counters, so sign-in and sign-up limits barely hold. The server logs a "Missing production setting" error at startup when they're absent.
+- [ ] **Set up email (Resend, below).** Without it, sign-ups are verified on the spot and password reset is off. The startup check flags this too.
+- [ ] **Sign in as the admin straight after the first deploy**, before announcing the site. The first verified sign-in with `ADMIN_BOOTSTRAP_EMAIL` becomes the super admin; after that, no one else can.
 
 - [ ] **Buy pylearn.academy.** It was unregistered on 2026-10-14; buy it before someone else does (Cloudflare or Namecheap).
 - [ ] **A production database.** Either a new Neon project or branch for production, or the current dev database. A new one is cleaner, because the dev data includes test accounts.
@@ -28,7 +35,7 @@ Set these in the Vercel project's Production environment.
 | `NEXT_PUBLIC_APP_URL` | yes | `https://pylearn.academy` |
 | `ENCRYPTION_KEY` | yes | 32 bytes (`openssl rand -base64 32`). It encrypts learners' AI keys, and saving a key fails without it. If you reuse the dev database, use **the same key as dev**, or the saved keys can't be read |
 | `ADMIN_BOOTSTRAP_EMAIL` | yes | Your sign-in email, so your account becomes the examiner (admin) |
-| `GRADING_MODE` | yes | `server`: the server re-runs every drill's tests, so a browser can't fake a pass |
+| `GRADING_MODE` | yes | **`client`** for v1. `server` would re-run every drill's tests on the server, but it runs learner code inside the web server, where it can read the secrets (security report C-2). Safe server grading comes with the execution sandbox in v2 (ARCHITECTURE.md §17, M9) |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | yes | Rate limits that hold across Vercel instances |
 | `RESEND_API_KEY`, `EMAIL_FROM` | yes (or Gmail) | Email verification and password reset. Without email, sign-ups are verified automatically and password reset is unavailable |
 | `CONTACT_EMAIL` | yes | Shown on the Contact and Privacy pages |

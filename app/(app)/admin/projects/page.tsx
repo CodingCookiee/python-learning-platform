@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { cookies } from "next/headers";
 import { auth } from "@/auth";
-import { getAppOrigin } from "@/lib/server-url";
 import { isAdmin } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
@@ -11,20 +9,10 @@ import { FadeIn, StaggerContainer } from "@/components/animations";
 import { ArrowRight, GitBranch } from "lucide-react";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { SealMark, SheetMark } from "@/components/brand/marks";
-import type { EvaluationListItem } from "@/app/api/admin/projects/submissions/route";
+import { listPendingSubmissions } from "@/lib/admin/submissions";
 import { EmptySlot } from "@/components/brand/empty-slot";
 
 export const metadata: Metadata = { title: "Capstone submissions (admin)" };
-
-async function getSubmissions(cookieHeader: string): Promise<EvaluationListItem[]> {
-  const res = await fetch(`${await getAppOrigin()}/api/admin/projects/submissions`, {
-    headers: { cookie: cookieHeader },
-    cache: "no-store",
-  });
-  if (!res.ok) return [];
-  const data = (await res.json()) as { submissions: EvaluationListItem[] };
-  return data.submissions;
-}
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {
@@ -48,13 +36,8 @@ export default async function AdminProjectsPage() {
   const admin = await isAdmin(user.id);
   if (!admin) redirect("/");
 
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore
-    .getAll()
-    .map((c) => `${c.name}=${c.value}`)
-    .join("; ");
-
-  const submissions = await getSubmissions(cookieHeader);
+  // Read directly, not through our own API over HTTP
+  const submissions = await listPendingSubmissions();
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
@@ -123,7 +106,10 @@ export default async function AdminProjectsPage() {
                         <span className="inline-flex items-center gap-1.5 text-sm whitespace-nowrap">
                           {submission.filesPayload.type === "github" ? (
                             <>
-                              <GitBranch className="size-4 text-muted-foreground" aria-hidden="true" />
+                              <GitBranch
+                                className="size-4 text-muted-foreground"
+                                aria-hidden="true"
+                              />
                               GitHub
                             </>
                           ) : (

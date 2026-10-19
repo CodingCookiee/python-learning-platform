@@ -1,93 +1,75 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
-import { isAdmin } from "@/lib/api-auth";
+import { withAdmin, type AuthContext } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
-interface RouteContext {
-  params: Promise<{
-    submissionId: string;
-    fileIndex: string;
-  }>;
-}
-
-export async function GET(request: NextRequest, context: RouteContext) {
-  try {
-    const session = await auth();
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: { id: true },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    const admin = await isAdmin(user.id);
-    if (!admin) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const { submissionId, fileIndex } = await context.params;
-    const index = parseInt(fileIndex, 10);
-
-    if (isNaN(index) || index < 0) {
-      return NextResponse.json({ error: "Invalid file index" }, { status: 400 });
-    }
-
-    const submission = await prisma.projectSubmission.findUnique({
-      where: { id: submissionId },
-      select: { files: true },
-    });
-
-    if (!submission) {
-      return NextResponse.json({ error: "Submission not found" }, { status: 404 });
-    }
-
-    let filesPayload: {
-      type: string;
-      files?: Array<{ name: string; content?: string; type: string; size?: number }>;
-    };
+/**
+ * GET: one uploaded file of a submission, for the examiner. Always an inert download: the learner
+ * chose the name and the content, so neither the browser's type sniffing nor the page can run it.
+ */
+export const GET = withAdmin<{ submissionId: string; fileIndex: string }>(
+  async (
+    _request: NextRequest,
+    context: AuthContext<{ submissionId: string; fileIndex: string }>
+  ) => {
     try {
-      filesPayload = JSON.parse(submission.files);
-    } catch {
-      return NextResponse.json({ error: "Invalid file data" }, { status: 500 });
-    }
+      const { submissionId, fileIndex } = await context.params;
+      const index = parseInt(fileIndex, 10);
 
-    if (filesPayload.type !== "files" || !filesPayload.files || !filesPayload.files[index]) {
-      return NextResponse.json({ error: "File not found" }, { status: 404 });
-    }
+      if (isNaN(index) || index < 0) {
+        return NextResponse.json({ error: "Invalid file index" }, { status: 400 });
+      }
 
-    const file = filesPayload.files[index];
-    if (!file.content) {
-      return NextResponse.json(
-        {
-          error:
-            "Original file content was not stored for this submission. Legacy submissions can only show metadata.",
+      const submission = await prisma.projectSubmission.findUnique({
+        where: { id: submissionId },
+        select: { files: true },
+      });
+
+      if (!submission) {
+        return NextResponse.json({ error: "Submission not found" }, { status: 404 });
+      }
+
+      let filesPayload: {
+        type: string;
+        files?: Array<{ name: string; content?: string; type: string; size?: number }>;
+      };
+      try {
+        filesPayload = JSON.parse(submission.files);
+      } catch {
+        return NextResponse.json({ error: "Invalid file data" }, { status: 500 });
+      }
+
+      if (filesPayload.type !== "files" || !filesPayload.files || !filesPayload.files[index]) {
+        return NextResponse.json({ error: "File not found" }, { status: 404 });
+      }
+
+      const file = filesPayload.files[index];
+      if (!file.content) {
+        return NextResponse.json(
+          {
+            error:
+              "Original file content was not stored for this submission. Legacy submissions can only show metadata.",
+          },
+          { status: 410 }
+        );
+      }
+
+      const content = Buffer.from(file.content, "base64");
+      // The plain-ASCII fallback name keeps only safe characters; the UTF-8 form carries the real one
+      const asciiName = file.name.replace(/[^\w.\- ]+/g, "_").slice(0, 120) || "file";
+      return new NextResponse(content, {
+        headers: {
+          "Content-Type": "application/octet-stream",
+          "Content-Disposition": `attachment; filename="${asciiName}"; filename*=UTF-8''${encodeURIComponent(file.name)}`,
+          "Content-Length": content.length.toString(),
+          "Content-Security-Policy": "sandbox",
+          "X-Content-Type-Options": "nosniff",
         },
-        { status: 410 }
-      );
+      });
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      return NextResponse.json({ error: "Failed to download file" }, { status: 500 });
     }
-
-    // Decode base64 content
-    const content = Buffer.from(file.content, "base64");
-
-    // Return file with appropriate headers
-    const safeFileName = file.name.replace(/"/g, '\\"');
-    return new NextResponse(content, {
-      headers: {
-        "Content-Type": file.type || "application/octet-stream",
-        "Content-Disposition": `attachment; filename="${safeFileName}"; filename*=UTF-8''${encodeURIComponent(file.name)}`,
-        "Content-Length": content.length.toString(),
-      },
-    });
-  } catch (error) {
-    console.error("Error downloading file:", error);
-    return NextResponse.json({ error: "Failed to download file" }, { status: 500 });
   }
-}
+);

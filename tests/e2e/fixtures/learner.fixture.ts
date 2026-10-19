@@ -2,7 +2,12 @@ import { test as base } from "@playwright/test";
 import { SignInPage } from "../pages/sign-in.page";
 import { DashboardPage, LogPage, ModulePage, ProfilePage } from "../pages/app.pages";
 import { E2E_PASSWORD } from "../support/constants";
-import { createLearner, deleteLearners, uniqueEmail, type LearnerKind } from "../support/seed-client";
+import {
+  createLearner,
+  deleteLearners,
+  uniqueEmail,
+  type LearnerKind,
+} from "../support/seed-client";
 
 interface Learner {
   email: string;
@@ -22,11 +27,15 @@ interface Fixtures {
 }
 
 export const test = base.extend<Fixtures>({
-  // eslint-disable-next-line no-empty-pattern
   makeLearner: async ({}, provide, testInfo) => {
     const made: string[] = [];
     await provide((kind) => {
-      const email = uniqueEmail(testInfo.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 24));
+      const email = uniqueEmail(
+        testInfo.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .slice(0, 24)
+      );
       createLearner(email, kind);
       made.push(email);
       return { email, password: E2E_PASSWORD };

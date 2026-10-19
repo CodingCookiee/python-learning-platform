@@ -18,6 +18,8 @@ export interface LimitResult {
 /** The limits in one place, so they're easy to tune */
 export const LIMITS = {
   signIn: { limit: 10, windowSec: 15 * 60 },
+  // Across every account from one address: password spraying, not one forgetful learner
+  signInIp: { limit: 40, windowSec: 15 * 60 },
   register: { limit: 5, windowSec: 60 * 60 },
   emailSend: { limit: 3, windowSec: 60 * 60 },
   passwordChange: { limit: 5, windowSec: 15 * 60 },

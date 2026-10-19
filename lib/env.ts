@@ -57,6 +57,26 @@ export function env(): ServerEnv {
   return cached;
 }
 
+/**
+ * Production settings that are missing or unsafe, checked once at startup (instrumentation.ts).
+ * `fatal` stops the server; `missing` is logged, so a deploy without them is easy to spot.
+ */
+export function productionProblems(e: ServerEnv = env()): { fatal: string[]; missing: string[] } {
+  const fatal: string[] = [];
+  const missing: string[] = [];
+  if (e.NODE_ENV !== "production") return { fatal, missing };
+  // Server grading runs learner code inside this process until the execution sandbox exists (C-2)
+  if (e.GRADING_MODE === "server") fatal.push("GRADING_MODE=server isn't safe yet: keep it on client (security report C-2).");
+  if (!(e.UPSTASH_REDIS_REST_URL && e.UPSTASH_REDIS_REST_TOKEN))
+    missing.push("UPSTASH_REDIS_REST_URL/TOKEN: rate limits only hold per instance without them.");
+  if (!e.RESEND_API_KEY && !(e.GMAIL_USER && e.GMAIL_APP_PASSWORD))
+    missing.push("RESEND_API_KEY or GMAIL_USER/GMAIL_APP_PASSWORD: without email, sign-ups aren't verified and password reset is off.");
+  if (!e.ENCRYPTION_KEY) missing.push("ENCRYPTION_KEY: learners can't save their AI keys.");
+  if (!e.CONTACT_EMAIL) missing.push("CONTACT_EMAIL: the Contact and Privacy pages have no address.");
+  if (!e.ADMIN_BOOTSTRAP_EMAIL) missing.push("ADMIN_BOOTSTRAP_EMAIL: no account can become the first admin.");
+  return { fatal, missing };
+}
+
 export function isRedisConfigured(): boolean {
   const e = env();
   return Boolean(e.UPSTASH_REDIS_REST_URL && e.UPSTASH_REDIS_REST_TOKEN);

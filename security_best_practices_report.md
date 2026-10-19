@@ -2,6 +2,28 @@
 
 Reviewed 2026-10-14 against the Next.js server, React frontend and general web frontend security guidance. Stack: Next.js 16.2.7 (App Router, Proxy), React 19.2, Auth.js v5 (JWT sessions in an HttpOnly cookie), Prisma 7 / Postgres, Pyodide (browser and Node worker threads), Upstash Redis.
 
+## Status on 2026-10-19 (release QA)
+
+Every finding was re-checked against the code on 2026-10-19, and the quick ones were fixed in the same pass.
+
+| ID | Status | How |
+|---|---|---|
+| C-1 | **Fixed** | Emails are normalised everywhere; the bootstrap admin needs a verified exact address and only while no admin exists |
+| C-2 | Open, contained | `GRADING_MODE` stays `client`, and production now **refuses to start** with `server` (`instrumentation.ts`, `productionProblems` in `lib/env.ts`). The real fix is the execution sandbox (ARCHITECTURE.md §17, M9) |
+| C-3 | **Fixed** | `next` 16.3.8, `next-auth` 5.0.0-beta.32 (`@auth/core` 0.41.3), `@auth/prisma-adapter` 2.11.3, `nodemailer` 10.0.15 (Auth.js's optional nodemailer peer is pointed at it with an npm `overrides` entry), `shadcn` moved to devDependencies. The audit went from 35 advisories (5 critical, 21 high) to 13 (0 critical, 7 high), all in Prisma's CLI tooling, Next's build tooling and Monaco's bundled DOMPurify. CI now fails on any critical advisory |
+| H-1 | **Fixed** | The legacy self-pass routes are deleted |
+| H-2 | Accepted for v1 | Drill grading is honour-system while `GRADING_MODE=client`. Capstones stay examiner-approved, so certificates still need a person's sign-off |
+| M-1 | Partly fixed | Sign-in is now limited per IP as well as per email (`signInIp`). Production logs a missing-setting error at startup when Upstash isn't set. Set the Upstash variables before launch |
+| M-2 | Open | First follow-up after launch: a session version in the JWT |
+| M-3 | **Fixed** | Google needs `email_verified`; GitHub sign-ins now check GitHub's verified-email list (`githubEmailVerified` in `auth.config.ts`) |
+| M-4 | Open, low on Vercel | Vercel sets the host header itself |
+| M-5 | Open | HTTPS only, no redirects and an 8 s timeout limit it |
+| L-1 | **Fixed** | AI replies render without raw HTML |
+| L-3 | **Fixed** | Examiner downloads are always `application/octet-stream` with `Content-Security-Policy: sandbox` and a safe ASCII filename; the route uses `withAdmin`, so a **suspended admin can no longer download files** (found in this pass) |
+| L-5 | **Fixed** | A one-time link is accepted only by the request that deletes it (test: two simultaneous uses, one succeeds) |
+| L-2, L-4, L-6 to L-9 | Open, low | Unchanged |
+| Info: drafts in `localStorage` | **Fixed** | Browser storage is keyed to the account and cleared on sign-out (`lib/account-storage.ts`) |
+
 ## Executive summary
 
 The app's foundations are sound:

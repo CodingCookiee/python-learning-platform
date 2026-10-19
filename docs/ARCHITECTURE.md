@@ -560,7 +560,8 @@ Each milestone is shippable and leaves the app better than before.
 - **Acceptance tests in GitHub Actions:** capstones (`capstone/acceptance/`) and `github` labs run their tests in the learner's own public repo through a workflow file generated per connection (`lib/ci/workflow.ts`). The workflow fetches the suite from `/api/ci/suite/{token}` and posts results to `/api/ci/report/{token}`; a run only counts after GitHub's API confirms it belongs to the connected repo, used the unmodified workflow file, and succeeded (`lib/ci/links.ts`). Costs nothing: GitHub Actions is free on public repos. A capstone that passes its acceptance tests counts toward the black belt like an approved one, and stays passed (`verifiedAt`) whatever later runs or posted reports say; a passed github lab is a verified lab. The tests run with `python -P -m pytest --noconftest --disable-plugin-autoload`, so the repo can't swap in its own pytest, conftest or plugins, though the learner's code still shares the environment: the examiner's review remains the real check. Reports only say which run to look up; the run link shown is rebuilt from the connected repo, and GitHub problems (rate limits) back off for two minutes. `npm run content:acceptance` checks each suite against a reference solution locally.
 
 Still open:
-- For a public launch: moving email from Gmail to Resend on your own domain (Gmail allows about 500 a day and may land in spam), and switching `GRADING_MODE` to `server` before a public launch.
+- For a public launch: moving email from Gmail to Resend on your own domain (Gmail allows about 500 a day and may land in spam).
+- Keep `GRADING_MODE=client` in production for v1: server grading runs learner code inside the web server (security report C-2). Safe server grading comes with the execution sandbox in v2 (M9, §17).
 
 | # | Milestone | Contents | Exit criteria |
 |---|-----------|----------|---------------|
@@ -573,6 +574,7 @@ Still open:
 | **M6** | Track 2 part 2 | A5–A8, MCP harness, red-team labs, learning log + weekly check-in, portfolio export | Roadmap Phases 4–6 doable in-app |
 | **M7** | Public-ready | Email verification/reset, rate limits everywhere, onboarding + pacing, analytics, accessibility pass, docs for content authors | Safe to share with anyone |
 | **M8** | Everyone welcome (§16) | 1. Beginner on-ramp before module 1 (done 2026-10-07) · 2. First-session quest after onboarding (done 2026-10-07) · 3. "How it works" on the landing page (done 2026-10-08) | A complete beginner, a student and a developer each understand the app from the landing page and finish a guided first session |
+| **M9–M12** | Next version (§17) | An execution sandbox (fixes server grading), multi-language foundations, the Go track, then the next language | See §17 |
 
 ---
 
@@ -643,3 +645,69 @@ success in their first session.
 
 Each part gets its own design, spec and plan before it's built (milestone M8 in §12).
 
+
+
+---
+
+## 17. Next version (v2): more languages, Go first
+
+Decided 2026-10-19: **v1 ships as it is, Python only.** The next version adds more languages, starting with Go. This section is the plan; each milestone gets its own design, spec and plan in `docs/superpowers/` before it's built.
+
+### Why it's more than new content
+
+Python is wired in at every level today:
+
+| Layer | Python-specific today | What v2 needs |
+|---|---|---|
+| Runtime | Pyodide in a browser worker (`public/workers/python-worker.mjs`, `lib/python-runtime.ts`); server grading in Pyodide worker threads | A runtime per language behind one interface (`run`, `test`, phases for the waiting lines) |
+| Test contract | The `plp` harness in `tests.py` (named tests, hidden tests, `run_program`, `solution_source`) | The same contract per language. For Go: a `plp`-style harness over `go test` |
+| Content | `starter.py`, `solution.py`, `tests.py`; `content:validate` runs every solution in Pyodide | Per-language file names and a validator that runs each language's solutions |
+| Tracks and ranks | `BELTS` in `lib/ranks.ts` map Python modules 1–16 to kyu; one rank per learner, shown in the header | `Track.language`; a belt ladder per language; a rank per language, with the header showing the language being trained |
+| Black belt and certificates | `lib/black-belt.ts`, `CERTIFICATE_TRACKS = ["python", "automation"]` | A black belt and a certificate per language (`PL-GO-…`) |
+| Onboarding, pacing, quest | `goal: python \| automation`; the quest's first lesson and bug drill are Python | A language choice in onboarding, and the quest per language |
+| Editor | Monaco in Python mode, Python snippets | The language mode and snippets per drill |
+| AI | The tutor prompt and `guardReply` assume Python (`def`/`class`); the Sensei's facts are Python | Prompts per language; the guard matches each language's definitions (`func`, `type`) |
+| Capstones and labs | The GitHub Actions workflow installs Python and runs pytest | A workflow per language (`setup-go`, `go test`) |
+| Public site | The landing facts, structured data (one Course per track), `llms.txt`, the FAQ and the copy | A Course per language, and copy for a multi-language school (see "Taglines" below) |
+| Achievements | Some criteria count "Python lessons" | Criteria scoped by track or language |
+
+### Running Go
+
+Three options, which can be combined:
+
+| Option | How | Strengths | Costs |
+|---|---|---|---|
+| **A. A sandboxed execution service** (recommended as the foundation) | The real Go toolchain in an isolated container or microVM (gVisor, Firecracker or a hosted sandbox), with no network, an empty environment, and CPU, memory and time limits | Full Go, real `go test`, and trustworthy grading. **The same service fixes security findings C-2 and H-2 for Python**, so server grading can finally be switched on | It runs on servers, so it costs money, and every Run is a round trip |
+| B. A Go interpreter in the browser | Yaegi (a Go interpreter written in Go) compiled to WebAssembly, in a worker like Pyodide | Free, offline, instant like Python today | Not full Go: parts of the language and the standard library behave differently, and the download is large. Fine for lesson examples; risky as the grader |
+| C. The Go compiler in the browser | The Go toolchain compiled to WebAssembly | Full Go, free | A very large download and slow compiles; experimental |
+
+**Recommendation:** build A first, because it unblocks trustworthy grading for every language (Python included). Then evaluate B for instant "Run" on lesson examples, with A as the grader.
+
+### Milestones
+
+| # | Milestone | Contents | Exit criteria |
+|---|---|---|---|
+| **M9** | Execution sandbox | The sandboxed execution service (option A), first for Python server grading. Pyodide workers become a fallback | `GRADING_MODE=server` is safe and on in production; C-2 and H-2 closed |
+| **M10** | Multi-language foundations | `Track.language`; a runtime interface; a test contract per language; per-language belts, rank and certificates; the content pipeline per language; language-aware AI prompts and guard; a language choice in onboarding | The Python track runs entirely through the new interfaces, unchanged for learners |
+| **M11** | Go track | Go curriculum (its own module list and belts), Go drills with the Go harness, the Go quest, the Go capstone workflow, and the public site and copy for more than one language | A learner can earn a Go belt and a Go certificate in the app |
+| **M12** | The next language | The same, for the next language chosen | |
+
+### Decisions needed before M10
+
+1. **The name.** "pylearn" says Python. Keep it (Python-first, with Go as a further track), or rename for a multi-language school? Renaming touches the domain, the GitHub organization, the LinkedIn page and the certificates already issued (`PL-PY-…` stays valid either way).
+2. **The rank model.** A separate belt ladder per language (recommended: "a black belt in Go" means something specific), or one shared ladder across languages?
+3. **The on-ramp.** Keep the beginner on-ramp in Python for everyone, or write one per language?
+4. **AI automation.** It stays Python-based (its labs and libraries are Python), so it opens after Python module 14 as now. Should a Go black belt also open it?
+5. **The sandbox budget.** Option A is the first paid infrastructure. Choose a provider and a monthly limit.
+
+### Taglines and copy to change in v2 (not before)
+
+v1 keeps its Python copy. When the second language ships, these change together:
+
+- **The headline and share cards:** "Earn your black belt in Python." (`components/landing/hero.tsx`, `lib/og-card.tsx`, `app/opengraph-image.tsx`, `app/twitter-image.tsx`), and the page title "pylearn: earn your black belt in Python" (`app/layout.tsx`).
+- **The description:** "A graded path from first Python syntax to advanced Python, then AI automation…" (`app/layout.tsx`, `lib/landing/structured-data.ts`, `app/auth/signup/page.tsx`).
+- **The tagline line:** "Python from first syntax to advanced, then AI automation." (`components/auth/auth-shell.tsx`, the email footer in `lib/email-templates.ts`).
+- **The landing sections, About, FAQ and `llms.txt`:** `components/landing/*`, `app/about/page.tsx`, `components/landing/faq.tsx`, `app/llms.txt/route.ts`.
+- **PRODUCT.md:** the users, purpose and positioning.
+
+The direction, to settle with the name decision: lead with the school ("Earn your black belt in code"), then name the languages ("Python today, Go next"). Each language keeps its own specific promise ("a black belt in Go") on its own pages.

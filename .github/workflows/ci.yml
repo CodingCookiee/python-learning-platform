@@ -20,6 +20,10 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # Known advisories in what ships: fail on critical. The highs left are in Prisma's CLI tooling
+      # and Next's build tooling, outside the request path (security report C-3); review them by hand
+      - name: Dependency audit
+        run: npm audit --omit=dev --audit-level=critical
       - run: npx prisma generate
       - run: npm run lint
       - run: npm run typecheck

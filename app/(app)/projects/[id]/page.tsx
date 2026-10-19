@@ -1,28 +1,27 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { projectMetadata } from "@/lib/page-titles";
 import { notFound, redirect } from "next/navigation";
-import { cookies } from "next/headers";
 import { auth } from "@/auth";
-import { getAppOrigin } from "@/lib/server-url";
+import { getProjectDetail } from "@/lib/project-detail";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import { capstoneReviewWait } from "@/lib/review-wait";
 import { ProjectDetailClient } from "./_components/project-detail-client";
 import type { ProjectDetailData } from "./_components/project-detail-client";
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
   const { id } = await params;
   return projectMetadata(id);
 }
 
-async function getProject(id: string, cookieHeader: string): Promise<ProjectDetailData | null> {
-  const res = await fetch(`${await getAppOrigin()}/api/projects/${id}`, {
-    headers: { cookie: cookieHeader },
-    cache: "no-store",
-  });
-  if (res.status === 404) return null;
-  if (!res.ok) return null;
-  return (await res.json()) as ProjectDetailData;
+/** Read directly rather than through our own API over HTTP, shaped as the API sends it (dates as text) */
+async function getProject(id: string, userId: string): Promise<ProjectDetailData | null> {
+  const detail = await getProjectDetail(id, userId).catch(() => null);
+  return detail ? (JSON.parse(JSON.stringify(detail)) as ProjectDetailData) : null;
 }
 
 interface PageProps {
@@ -35,17 +34,13 @@ export default async function ProjectDetailPage({ params }: PageProps) {
 
   const { id } = await params;
 
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore
-    .getAll()
-    .map((c) => `${c.name}=${c.value}`)
-    .join("; ");
-
-  const project = await getProject(id, cookieHeader);
+  const project = await getProject(id, session.user!.id!);
   if (!project) notFound();
   // While it's with the examiner: how long reviews have been taking, and the queue ahead of it
   const reviewWait =
-    project.submission?.status === "pending" ? await capstoneReviewWait(new Date(project.submission.submittedAt)) : null;
+    project.submission?.status === "pending"
+      ? await capstoneReviewWait(new Date(project.submission.submittedAt))
+      : null;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">

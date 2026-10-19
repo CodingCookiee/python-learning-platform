@@ -57,9 +57,9 @@ NEXT_PUBLIC_VERCEL_ANALYTICS_ID=your-analytics-id
   `EMAIL_FROM` on a domain verified in Resend. Without either, new accounts are verified automatically.
 - `AUTH_URL` (or `NEXT_PUBLIC_APP_URL`) must be the public origin: emailed links and lab webhook URLs
   are built from it.
-- `GRADING_MODE=server` re-runs each drill's tests on the server when it's submitted, so a pass can't
-  be faked from the browser. The first submission on a cold instance takes a few seconds while Pyodide
-  starts; packages cache in `/tmp/pyodide`.
+- Keep `GRADING_MODE=client` for v1. `server` re-runs each drill's tests on the server, but it runs
+  learner code inside the web server, where it could read the server's secrets (security report C-2).
+  It becomes safe with the execution sandbox planned for v2 (docs/ARCHITECTURE.md §17, M9).
 - `ENCRYPTION_KEY` (`openssl rand -base64 32`) is required for learners to save their own AI keys.
   Rotating it makes saved keys unreadable, so learners paste them again.
 

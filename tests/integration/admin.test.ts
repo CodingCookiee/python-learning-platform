@@ -9,7 +9,7 @@ import { getCertificateForViewer, updateCertificate } from "@/lib/certificates";
 import { newCertificateCode } from "@/lib/certificate-rules";
 import { CHECKPOINT_RETRY_MINUTES } from "@/lib/mastery-rules";
 import { isEmailBlocked } from "@/lib/admin/blocked-emails";
-import { issueToken } from "@/lib/auth-tokens";
+import { consumeToken, issueToken } from "@/lib/auth-tokens";
 import { POST as confirmEmail } from "@/app/api/auth/verify/route";
 import { makeLearner } from "./helpers";
 
@@ -93,6 +93,13 @@ describe("account actions", () => {
     const res = await post(orphan);
     expect(res.status).toBe(410);
     expect(((await res.json()) as { ok?: boolean }).ok).toBeUndefined();
+  });
+
+  it("lets a one-time link be used once, even by two requests at the same moment", async () => {
+    const address = `admin-race-${Date.now()}@example.invalid`;
+    const token = await issueToken("reset", address);
+    const both = await Promise.all([consumeToken("reset", token), consumeToken("reset", token)]);
+    expect(both.filter((r) => r === address)).toHaveLength(1);
   });
 
   it("can bar a deleted address from signing up again, keeping only a fingerprint, and lift it", async () => {

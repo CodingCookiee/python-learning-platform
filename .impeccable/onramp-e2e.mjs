@@ -1,7 +1,7 @@
 // Dev-only: the beginner on-ramp end to end with throwaway accounts (deleted at the end).
 //   BASE=http://localhost:3010 node .impeccable/onramp-e2e.mjs
-// Sign up (16+ box) → onboarding as "New to programming" → the on-ramp page → the dashboard card →
-// finish lesson 6 → the white belt ceremony → module 1; then an account with no age on record.
+// Sign up → onboarding as "New to programming" → the on-ramp page → the dashboard card →
+// finish lesson 6 → the white belt ceremony → module 1. (The age rule was removed on 2026-10-15.)
 import { spawn, execSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 
@@ -64,20 +64,16 @@ const report = [];
 const step = async (name, data = {}) => { report.push({ step: name, ...data, errors: [...new Set(issues.splice(0))] }); };
 
 try {
-  // 1. Sign up: refused without the age box, accepted with it
+  // 1. Sign up
   await go("/auth/signup", 6000);
   await fill("#name", "Ada Beginner");
   await fill("#email", EMAIL);
   await fill("#password", PASSWORD);
   await fill("#confirmPassword", PASSWORD);
-  await clickText("button[type=submit]", "Create account");
-  await sleep(1200);
-  const refused = await ev(`document.querySelector("#ageConfirmed-error")?.textContent ?? ""`);
   const signupAxe = await axe();
-  await ev(`document.querySelector("#ageConfirmed").click()`);
   await clickText("button[type=submit]", "Create account");
   await waitFor(`location.pathname === "/onboarding"`, 60);
-  await step("sign-up", { refusedWithoutAge: refused, landedOn: await at(), axe: signupAxe });
+  await step("sign-up", { landedOn: await at(), axe: signupAxe });
 
   // 2. Onboarding as "New to programming" → the on-ramp page
   await sleep(1500);
@@ -137,30 +133,10 @@ try {
     earned: await ev(`["Hello, World", "Bug Squasher", "Decision Maker", "In the Loop", "White Belt Tied"].filter((n) => document.body.innerText.includes(n))`),
   });
 
-  // 6. An account with no age on record is asked in onboarding; under 16 gets the explanation
-  await send("Network.clearBrowserCookies");
-  db("noage", NOAGE);
-  await go("/auth/signin", 5000);
-  await fill("#email", NOAGE);
-  await fill("#password", PASSWORD);
-  await clickText("button[type=submit]", "Sign in");
-  await waitFor(`location.pathname === "/onboarding"`, 60);
-  await sleep(1500);
-  const asked = await ev(`document.body.innerText.includes("How old are you?")`);
-  await clickText("[role=radio]", "under 16");
-  await sleep(800);
-  await shot("4-under-16.png");
-  await step("no-age-onboarding", {
-    asked,
-    fourQuestions: await ev(`document.body.innerText.includes("Four questions")`),
-    under16: await ev(`document.body.innerText.includes("pylearn is for people 16 and over")`),
-    deleteOffered: await ev(`[...document.querySelectorAll("button")].some((b) => b.textContent.includes("Delete my account"))`),
-    axe: await axe(),
-  });
 } catch (e) {
   report.push({ step: "crashed", error: String(e) });
 } finally {
-  report.push({ step: "cleanup", result: db("cleanup", EMAIL, NOAGE) });
+  report.push({ step: "cleanup", result: db("cleanup", EMAIL) });
   for (const r of report) console.log(JSON.stringify(r));
   ws.close();
   chrome.kill();

@@ -11,7 +11,7 @@ import { CredentialsSignin } from "next-auth";
 import { compare } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { env } from "@/lib/env";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, clientIp } from "@/lib/rate-limit";
 
 /** Shown to the learner as a code; neither reveals whether an account exists without the password */
 class UnverifiedEmail extends CredentialsSignin {
@@ -22,6 +22,22 @@ class TooManyAttempts extends CredentialsSignin {
 }
 class SuspendedAccount extends CredentialsSignin {
   code = "suspended";
+}
+
+/** Whether GitHub lists this address as verified on the account that's signing in */
+async function githubEmailVerified(accessToken: string | undefined, email: string | null | undefined) {
+  if (!accessToken || !email) return false;
+  try {
+    const res = await fetch("https://api.github.com/user/emails", {
+      headers: { authorization: `Bearer ${accessToken}`, accept: "application/vnd.github+json", "user-agent": "pylearn" },
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) return false;
+    const emails = (await res.json()) as Array<{ email: string; verified: boolean }>;
+    return emails.some((e) => e.verified && normalizeEmail(e.email) === normalizeEmail(email));
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -37,14 +53,16 @@ const providers: Provider[] = [
       email: { label: "Email", type: "email" },
       password: { label: "Password", type: "password" },
     },
-    async authorize(credentials) {
+    async authorize(credentials, request) {
       if (!credentials?.email || !credentials?.password) {
         return null;
       }
-      // Slow down password guessing against one account
+      // Slow down password guessing against one account, and across accounts from one address
       const email = normalizeEmail(String(credentials.email));
       const limited = await rateLimit("signIn", email);
       if (!limited.ok) throw new TooManyAttempts();
+      const fromIp = await rateLimit("signInIp", clientIp(request));
+      if (!fromIp.ok) throw new TooManyAttempts();
 
       // Case-insensitive: accounts made before emails were lower-cased still sign in
       const user = await prisma.user.findFirst({
@@ -129,6 +147,10 @@ export const authConfig = {
       if (account?.provider !== "credentials") {
         // Google says whether it verified the address; an unverified one could belong to anybody
         if (account?.provider === "google" && (profile as { email_verified?: boolean } | undefined)?.email_verified !== true) {
+          return false;
+        }
+        // GitHub sends the primary address whether or not it's verified: ask GitHub which it is
+        if (account?.provider === "github" && !(await githubEmailVerified(account.access_token, user.email))) {
           return false;
         }
         // A suspended account stays shut whichever way it signs in
