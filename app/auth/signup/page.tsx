@@ -19,7 +19,7 @@ export default async function SignUpPage({
   const params = await searchParams;
   // Credentials in the address (an old GET submit): drop them before anything else
   if (hasCredentialsInQuery(params)) redirect("/auth/signup");
-  // ?start=new: the landing page's "I've never coded", carried into onboarding
+  // ?start=new: the landing page's "I've never coded", carried into onboarding; ?start=code forgets it
   const { start } = params;
   return (
     <AuthShell

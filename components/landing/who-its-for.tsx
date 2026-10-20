@@ -34,7 +34,7 @@ const CARDS = [
         . Then go deep: the data model, concurrency, FastAPI, then AI automation.
       </>
     ),
-    action: { label: "I already code", href: "/auth/signup" },
+    action: { label: "I already code", href: "/auth/signup?start=code" },
   },
 ] as const;
 

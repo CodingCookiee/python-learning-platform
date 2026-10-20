@@ -383,7 +383,7 @@ export default async function LandingPage() {
                 </Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
-                <Link href="/auth/signup">
+                <Link href="/auth/signup?start=code">
                   I already code
                   <ArrowRight data-icon="inline-end" aria-hidden="true" />
                 </Link>

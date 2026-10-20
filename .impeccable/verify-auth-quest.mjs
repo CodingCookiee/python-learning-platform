@@ -21,10 +21,10 @@ try {
   await page.goto(`${BASE}/auth/signup`);
   await page.getByLabel("Name").fill("Pat Tester");
   await page.getByLabel("Email").fill(SIGNUP);
-  log({ hint: await page.locator("#password-hint").textContent() });
+  log({ hint: await page.locator("#password-note").textContent() });
   await page.getByLabel("Password", { exact: true }).fill("Password2026!");
   await page.getByLabel("Confirm password").click();
-  log({ commonError: await page.locator("#password-error").textContent() });
+  log({ commonError: await page.locator("#password-note").textContent() });
   await page.getByRole("button", { name: "Show password", exact: true }).first().click();
   log({ shownType: await page.getByLabel("Password", { exact: true }).getAttribute("type") });
   await page.screenshot({ path: `${OUT}signup-policy.png` });
