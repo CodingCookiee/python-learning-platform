@@ -96,12 +96,10 @@ export function SearchBar() {
     return () => document.removeEventListener("keydown", handler);
   }, [closeSearch]);
 
-  // Focus input when opened
-  React.useEffect(() => {
-    if (open) {
-      const t = setTimeout(() => inputRef.current?.focus(), 50);
-      return () => clearTimeout(t);
-    }
+  // Focus the input in the same render that opens it, before paint: a key typed straight after
+  // Ctrl+K lands in the box instead of being lost (a 50 ms delay used to drop the first letter)
+  React.useLayoutEffect(() => {
+    if (open) inputRef.current?.focus();
   }, [open]);
 
   // Debounced search
