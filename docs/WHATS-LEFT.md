@@ -1,6 +1,6 @@
 # What's left
 
-Updated 2026-10-19, after the release QA ([the QA report](QA-REPORT-2026-10-19.md)). Earlier update: 2026-10-14. The platform is built, and all the content is written: 25 modules (the on-ramp, 16 Python, 8 automation), 168 lessons and 24 capstones. The critique's product decisions, polish and quirks are done (section 5). What remains is **launching**: buying the domain, deploying, and checking the things that only work once the site is live, plus two checks that need your own accounts (section 4).
+Updated 2026-10-23. The release QA of 2026-10-19 found the code ready for v1 ([the QA report](QA-REPORT-2026-10-19.md)). Where the project stands right now is in [STATUS.md](STATUS.md). The platform is built, and all the content is written: 25 modules (the on-ramp, 16 Python, 8 automation), 168 lessons and 24 capstones. The critique's product decisions, polish and quirks are done (section 5). What remains is **launching**: buying the domain, deploying, and checking the things that only work once the site is live, plus two checks that need your own accounts (section 4).
 
 Domain: **pylearn.academy**. GitHub: [PL-PyLearn](https://github.com/PL-PyLearn). LinkedIn: [company/pylearn](https://www.linkedin.com/company/pylearn/).
 
@@ -16,7 +16,7 @@ The release QA (2026-10-19) found the code ready for v1. What's left before laun
 - [ ] **Sign in as the admin straight after the first deploy**, before announcing the site. The first verified sign-in with `ADMIN_BOOTSTRAP_EMAIL` becomes the super admin; after that, no one else can.
 
 - [ ] **Buy pylearn.academy.** It was unregistered on 2026-10-14; buy it before someone else does (Cloudflare or Namecheap).
-- [ ] **A production database.** Either a new Neon project or branch for production, or the current dev database. A new one is cleaner, because the dev data includes test accounts.
+- [ ] **A production database.** A new Neon project for production, in **AWS us-east-1**: the app's functions run in Vercel's `iad1` (US East, set in `vercel.json`), and every page makes several queries, each one crossing the distance between the two. A new project is also cleaner than the dev database, which holds test accounts.
 - [ ] **Email that reaches inboxes.** Gmail SMTP works but allows about 500 messages a day and can land in spam. For a public launch, use Resend on pylearn.academy: add the domain in Resend, set its DNS records (SPF, DKIM), then set `RESEND_API_KEY` and `EMAIL_FROM` (for example `pylearn <hello@pylearn.academy>`).
 - [ ] **A contact address.** `CONTACT_EMAIL` shows on the Contact and Privacy pages. Use a project address, not your personal one; for example `hello@pylearn.academy` through your registrar's email forwarding.
 
@@ -40,15 +40,14 @@ Set these in the Vercel project's Production environment.
 | `RESEND_API_KEY`, `EMAIL_FROM` | yes (or Gmail) | Email verification and password reset. Without email, sign-ups are verified automatically and password reset is unavailable |
 | `CONTACT_EMAIL` | yes | Shown on the Contact and Privacy pages |
 | `GITHUB_TOKEN` | recommended | Raises GitHub's API limit for confirming learners' GitHub Actions runs |
-| `LAB_SIGNING_SECRET` | recommended | Signs lab webhook tokens |
 | `AUTH_GITHUB_ID` / `_SECRET`, `AUTH_GOOGLE_ID` / `_SECRET` | optional | Sign in with GitHub or Google |
-| `PLP_MAX_JOBS`, `GRADING_POOL_SIZE` | optional | The size of the server grading pool |
+| `PASSWORD_BREACH_CHECK` | optional | Leave unset. `off` would skip the breached-password check |
 
 ### Steps
 
-- [ ] Create the Vercel project from the GitHub repo, and set the variables above.
-- [ ] Deploy.
-- [ ] Apply the database migrations: `npx prisma migrate deploy`, with production's `DATABASE_URL` and `DIRECT_URL`. This includes `20261012000000_examiner_ai_review`, `20261013000000_certificates`, `20261014000000_belt_test_out`, the admin migrations of 2026-10-15 and `20261015040000_blocked_emails`.
+- [ ] Create the Vercel project from the GitHub repo, and set the variables above. Keep **Fluid compute** on (the default): the AI routes need up to 180 seconds (`maxDuration`).
+- [ ] Deploy. The build runs `prisma migrate deploy` itself (`vercel.json`), so every migration is applied to the production database, including `20261012000000_examiner_ai_review`, `20261013000000_certificates`, `20261014000000_belt_test_out`, the admin migrations of 2026-10-15 and `20261015040000_blocked_emails`. Check the build log shows them applied.
+- [ ] Check the function logs for `[pylearn] Missing production setting` lines, and set anything they name.
 - [ ] Load the content: `npm run content:sync`. It syncs all modules, lessons, drills, capstones and achievements. Then, in Admin > Content, press **Refresh public pages** so the landing and About pages show the new numbers straight away.
 - [ ] Add the domain in Vercel: `pylearn.academy` as the primary, and `www.pylearn.academy` redirecting to it. Then set the DNS records Vercel shows.
 - [ ] Sign in with `ADMIN_BOOTSTRAP_EMAIL`, and check that `/admin` opens.
@@ -124,3 +123,6 @@ These need your accounts, so they couldn't be tested here.
   - the drill's test list repeats the results;
   - the certificate page shows the ID, date and URL twice;
   - the certificate page has no "how it was graded" block for verifiers.
+- [ ] **Dead code:** `lib/code-execution.ts` (a client for an external runner that was never adopted) is imported by nothing, and `LAB_SIGNING_SECRET` is declared in `lib/env.ts` but never used. Both can go.
+- [ ] **To check:** in the quest regression run of 2026-10-19, the developer's dashboard tour showed no pointer on its first stop ("Your belt"), while the beginner's did. The tour still completed. Not reproduced by hand yet.
+- [ ] **Security follow-ups after launch,** in this order: end other sessions on a password change (M-2), then the low items (L-2, L-4, L-6, L-7, L-9). See the security report's status table.

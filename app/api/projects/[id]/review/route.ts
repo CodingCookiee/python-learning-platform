@@ -5,6 +5,9 @@ import { CacheKeys, invalidateCache } from "@/lib/cache";
 import { reviewSubmission } from "@/lib/ai/review-submission";
 import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 
+// A review reads the project (GitHub included) and gives the model up to 150 s
+export const maxDuration = 180;
+
 /**
  * POST /api/projects/[id]/review
  * An AI review of the learner's latest submission for this capstone, on their own

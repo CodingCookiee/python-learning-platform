@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { withAuth, AuthContext } from "@/lib/api-auth";
 import { callWithLearnerKey } from "@/lib/ai/credentials";
 
+// The test call gives the provider up to 30 s
+export const maxDuration = 60;
+
 /** POST /api/settings/ai/test: one tiny call on the saved key, to check the key and model work */
 export const POST = withAuth(async (_req: NextRequest, context: AuthContext) => {
   try {

@@ -1,295 +1,72 @@
-# Deployment Guide - Python Learning Platform
+# Deployment
 
-## Prerequisites
+How pylearn deploys and runs in production. The launch checklist, with every environment variable, is in [docs/WHATS-LEFT.md](docs/WHATS-LEFT.md) §1–§3. This file explains the mechanics behind it.
 
-1. **Vercel Account**: Sign up at [vercel.com](https://vercel.com)
-2. **GitHub Repository**: Push your code to GitHub
-3. **Database**: Set up PostgreSQL (Vercel Postgres or Supabase)
-4. **Redis**: Set up Upstash Redis for caching
+## Contents
 
-## Environment Variables Setup
+- [The stack in production](#the-stack-in-production)
+- [What a deploy does](#what-a-deploy-does)
+- [Settings that matter](#settings-that-matter)
+- [Content](#content)
+- [The startup check](#the-startup-check)
+- [Troubleshooting](#troubleshooting)
 
-Before deploying, configure these environment variables in your Vercel project dashboard:
+## The stack in production
 
-### Database
+- **Vercel** runs the Next.js app. Functions are pinned to `iad1` (US East) in `vercel.json`.
+- **Neon Postgres** is the database. Create the production database in **AWS us-east-1**, next to the functions: every page makes several queries, and each one crosses the distance between the two.
+- **Upstash Redis** holds the rate-limit counters and caches, shared by every function instance.
+- **Resend** (or Gmail SMTP) sends the verification and password-reset emails.
+- **Learners' browsers** run Python (Pyodide) and grade drills: `GRADING_MODE=client`.
+- **Model providers** (Anthropic, OpenAI, Google) are called on each learner's own key. The platform holds no AI key.
 
-```
-DATABASE_URL=postgresql://user:password@host:5432/dbname
-```
+## What a deploy does
 
-> The full, current list lives in `.env.example` and `docs/ARCHITECTURE.md` §11.
-> Set `DIRECT_URL` too: the Vercel build runs `prisma migrate deploy` with it.
-
-### Authentication (Auth.js v5)
-
-```
-AUTH_URL=https://your-domain.vercel.app
-AUTH_SECRET=generate-with-openssl-rand-base64-32
-ADMIN_BOOTSTRAP_EMAIL=you@example.com   # this account becomes ADMIN on first sign-in
-```
-
-### OAuth Providers (optional; enabled only when both values are set)
+`vercel.json` sets the build command:
 
 ```
-AUTH_GITHUB_ID=your-github-client-id
-AUTH_GITHUB_SECRET=your-github-client-secret
-AUTH_GOOGLE_ID=your-google-client-id
-AUTH_GOOGLE_SECRET=your-google-client-secret
+prisma generate && prisma migrate deploy && next build
 ```
 
-### Redis (Upstash)
+So **every deploy applies pending migrations** to the database in `DATABASE_URL`, using `DIRECT_URL`, before building. Both must be set in the build environment. Running `npx prisma migrate deploy` by hand is only needed to migrate without a deploy.
 
-```
-UPSTASH_REDIS_REST_URL=https://your-redis-url.upstash.io
-UPSTASH_REDIS_REST_TOKEN=your-token
-```
+`AUTH_URL` must be set at **build time** too: `robots.txt`, the sitemap, certificate links and share cards are built with it.
 
-### Analytics (Optional)
+The build also runs `scripts/check-malware-signatures.mjs`. API responses get `Cache-Control: private, no-store` (`vercel.json`), and every page gets security headers (`next.config.ts`) and a per-request Content-Security-Policy (`proxy.ts`).
 
-```
-NEXT_PUBLIC_VERCEL_ANALYTICS_ID=your-analytics-id
-```
+## Settings that matter
 
-### Email, grading and AI (recommended before a public launch)
+- **Keep Fluid compute on.** It's Vercel's default for new projects. The AI routes declare `maxDuration` (tutor and Sensei 120 s, capstone reviews 180 s), which needs it; without it, functions stop after 10–15 seconds and most AI replies would fail.
+- **`GRADING_MODE=client`.** Server grading runs learner code inside the web server, where it could read the secrets (security report C-2). Production refuses to start with `server`. Safe server grading comes with the execution sandbox in v2 (docs/ARCHITECTURE.md §17, M9).
+- **`ENCRYPTION_KEY`** encrypts learners' AI keys. Rotating it makes saved keys unreadable, so learners paste them again. If production reuses the dev database, it needs the dev key.
+- **`ADMIN_BOOTSTRAP_EMAIL`:** the first verified sign-in with this address becomes the super admin, and only while no admin exists. Sign in with it straight after the first deploy.
 
-- Email verification and password reset need a sender: `GMAIL_USER` + `GMAIL_APP_PASSWORD` (an App
-  Password from myaccount.google.com/apppasswords; free, about 500 a day), or `RESEND_API_KEY` +
-  `EMAIL_FROM` on a domain verified in Resend. Without either, new accounts are verified automatically.
-- `AUTH_URL` (or `NEXT_PUBLIC_APP_URL`) must be the public origin: emailed links and lab webhook URLs
-  are built from it.
-- Keep `GRADING_MODE=client` for v1. `server` re-runs each drill's tests on the server, but it runs
-  learner code inside the web server, where it could read the server's secrets (security report C-2).
-  It becomes safe with the execution sandbox planned for v2 (docs/ARCHITECTURE.md §17, M9).
-- `ENCRYPTION_KEY` (`openssl rand -base64 32`) is required for learners to save their own AI keys.
-  Rotating it makes saved keys unreadable, so learners paste them again.
+## Content
 
-## Deployment Steps
-
-### 1. Connect GitHub Repository to Vercel
+The course lives in `content/` as files and is copied into the database by a script, not by the build:
 
 ```bash
-# Install Vercel CLI (optional)
-npm i -g vercel
-
-# Login to Vercel
-vercel login
-
-# Link project
-vercel link
-```
-
-### 2. Set Up Vercel Postgres (Recommended)
-
-1. Go to your Vercel project dashboard
-2. Navigate to **Storage** tab
-3. Create new **Postgres** database
-4. Copy the `DATABASE_URL` connection string
-5. Add it to your environment variables
-
-### 3. Set Up Upstash Redis
-
-1. Go to [upstash.com](https://upstash.com)
-2. Create a new Redis database
-3. Select **REST API** tab
-4. Copy `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`
-5. Add them to Vercel environment variables
-
-### 4. Generate NextAuth Secret
-
-```bash
-openssl rand -base64 32
-```
-
-Copy the output and set it as `NEXTAUTH_SECRET` in Vercel.
-
-### 5. Run Database Migrations
-
-After deploying, run migrations in Vercel:
-
-Migrations run automatically during the Vercel build (`prisma migrate deploy`).
-To apply them manually and load the course content:
-
-```bash
-npm run db:deploy
-npm run content:validate   # every drill's solution passes, every starter fails
+npm run content:validate   # every drill's solution passes and every starter fails
 npm run content:sync       # copy content/ into the database (safe to re-run; never deletes progress)
 ```
 
-Run `content:sync` again whenever files in `content/` change.
+Run `content:sync` against production after the first deploy, and again whenever `content/` changes. Then press **Refresh public pages** in Admin › Content, so the landing and About pages show the new numbers straight away.
 
-For schema changes during development, use `npm run db:migrate -- --name <change>`.
+## The startup check
 
-### 6. Deploy to Vercel
+When a server instance starts in production, `instrumentation.ts` runs `productionProblems()` (`lib/env.ts`):
 
-#### Option A: Automatic Deployment (Recommended)
+- **It refuses to start** with `GRADING_MODE=server`.
+- **It logs `[pylearn] Missing production setting: …`** for each missing launch setting: Upstash, email, `ENCRYPTION_KEY`, `CONTACT_EMAIL`, `ADMIN_BOOTSTRAP_EMAIL`.
 
-1. Push code to GitHub main branch
-2. Vercel automatically deploys
-3. Check deployment status in Vercel dashboard
-
-#### Option B: Manual Deployment
-
-```bash
-# Deploy to production
-vercel --prod
-
-# Or deploy to preview
-vercel
-```
-
-## Build Configuration
-
-The build process is configured in `vercel.json`:
-
-- Runs Prisma generate before Next.js build
-- Optimized for serverless functions
-- Caching headers configured for API routes
-- Region: `iad1` (US East)
-
-## Post-Deployment Checklist
-
-- [ ] Verify all environment variables are set
-- [ ] Run database migrations
-- [ ] Seed initial data (modules, lessons, achievements)
-- [ ] Test authentication flow
-- [ ] Verify Redis caching is working
-- [ ] Check API routes are responding
-- [ ] Test mobile responsiveness
-- [ ] Enable Vercel Analytics (optional)
-- [ ] Set up custom domain (optional)
-- [ ] Configure OAuth providers (optional)
-
-## Monitoring
-
-### Vercel Dashboard
-
-- Check deployment logs
-- Monitor function execution times
-- View bandwidth and request metrics
-- Set up alerts for errors
-
-### Database Monitoring
-
-- Monitor connection pool usage
-- Check query performance
-- Set up automated backups
-
-### Redis Monitoring
-
-- Monitor cache hit rates
-- Check memory usage
-- Review command statistics
+After a deploy, check the function logs for these lines.
 
 ## Troubleshooting
 
-### Build Failures
-
-**Prisma generation fails:**
-
-```bash
-# Make sure DATABASE_URL is set in build environment
-# Check vercel.json buildCommand includes "prisma generate"
-```
-
-**Type errors:**
-
-```bash
-# Run locally to check for TypeScript errors
-npm run build
-```
-
-### Runtime Errors
-
-**Database connection fails:**
-
-- Verify DATABASE_URL is correct
-- Check database is accepting connections
-- Ensure database is not in sleep mode (if using free tier)
-
-**Redis connection fails:**
-
-- Verify Upstash credentials are correct
-- Check Redis instance is active
-- Review connection limits
-
-**API routes timeout:**
-
-- Optimize database queries
-- Implement proper caching
-- Check for infinite loops
-
-## CI/CD Pipeline (Optional)
-
-Add GitHub Actions workflow in `.github/workflows/deploy.yml`:
-
-```yaml
-name: Deploy to Vercel
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run build
-      - run: npm test # If tests exist
-```
-
-## Performance Optimization
-
-### Image Optimization
-
-- Use Next.js Image component
-- Compress images before uploading
-- Use WebP format when possible
-
-### Code Splitting
-
-- Lazy load heavy components (Monaco Editor)
-- Use dynamic imports for routes
-- Optimize bundle size
-
-### Caching Strategy
-
-- Cache static content (1 hour)
-- Cache user progress (5 minutes)
-- Cache lessons/modules (1 hour)
-- Invalidate on updates
-
-## Scaling Considerations
-
-### Database
-
-- Monitor connection pool usage
-- Consider read replicas for heavy traffic
-- Implement connection pooling (PgBouncer)
-
-### Serverless Functions
-
-- Keep functions under 10 seconds execution time
-- Use streaming for large responses
-- Implement proper error handling
-
-### Redis
-
-- Monitor memory usage
-- Implement cache eviction policies
-- Use Redis clustering for high traffic
-
-## Support & Resources
-
-- [Vercel Documentation](https://vercel.com/docs)
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Prisma Documentation](https://www.prisma.io/docs)
-- [Upstash Documentation](https://docs.upstash.com)
-- [NextAuth.js Documentation](https://next-auth.js.org)
+- **The build fails at `prisma migrate deploy`:** `DIRECT_URL` is missing or wrong in the build environment, or a migration conflicts with the database. Run `npx prisma migrate status` against it.
+- **"Invalid environment variables" at startup:** `lib/env.ts` names each one. `AUTH_SECRET` needs at least 32 characters.
+- **Sign-ups are verified instantly, and password reset says email isn't set up:** no email provider is configured.
+- **Rate limits barely hold:** the Upstash variables aren't set, so each instance counts on its own. The startup log says so.
+- **AI replies time out in production but work locally:** Fluid compute is off, or the plan caps function duration below the routes' `maxDuration`.
+- **The landing page shows old numbers after a content change:** press **Refresh public pages** in Admin › Content.
+- **Learners lost their saved AI keys:** `ENCRYPTION_KEY` changed.

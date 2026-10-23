@@ -3,6 +3,9 @@ import { withAuth, isAdmin, AuthContext } from "@/lib/api-auth";
 import { reviewForExaminer } from "@/lib/ai/review-submission";
 import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 
+// A review reads the project (GitHub included) and gives the model up to 150 s
+export const maxDuration = 180;
+
 /**
  * POST /api/admin/projects/submissions/[submissionId]/ai-review
  * An AI review of a submission waiting to be graded, on the examiner's own key. Admin only. It

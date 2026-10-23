@@ -7,6 +7,9 @@ import { getDrillForUser } from "@/lib/drills";
 import { callWithLearnerKey } from "@/lib/ai/credentials";
 import { EXPLAIN_QUESTION, guardReply, tutorSystemPrompt, tutorUserTurn } from "@/lib/ai/tutor";
 
+// The model can take up to 90 s to answer; Vercel must not cut the function off first
+export const maxDuration = 120;
+
 const turn = z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(8_000) });
 
 const tutorSchema = z.object({

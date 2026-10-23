@@ -24,17 +24,20 @@ pylearn teaches Python from first syntax to advanced confidence, then AI automat
 
 | File | What it holds |
 |---|---|
+| `docs/STATUS.md` | **Start here:** the phase the project is in, what's next, decisions waiting on the owner, the last verified state |
 | `PRODUCT.md` | Users, purpose, positioning, brand commitments |
 | `DESIGN.md` | The visual system: colours, type, shapes, every brand component and its rules. Follow it exactly |
 | `docs/ARCHITECTURE.md` | How the platform is built, plus dated notes on every significant change |
-| `docs/WHATS-LEFT.md` | What's left before launch, and the production steps (env vars, migrations to deploy) |
+| `docs/WHATS-LEFT.md` | The launch checklist (env vars, deploy steps, after-launch checks) and the smaller open items |
+| `DEPLOYMENT.md` | How a deploy works: the build, region, compute settings, content sync, the startup check, troubleshooting |
+| `docs/QA-REPORT-2026-10-19.md` | The v1 release QA: what was tested, results, bugs fixed, what's accepted |
 | `docs/CURRICULUM.md`, `docs/CONTENT.md` | The course and how content files are written and synced |
 | `security_best_practices_report.md` | The security review: what's fixed and what's open |
 | `docs/AI-INTEGRATION.md` | How the AI features work and the rules every new AI feature follows |
 | `docs/superpowers/specs/`, `plans/` | Approved designs and implementation plans for larger features |
 | `lib/quest-steps.ts` | The sensei's lines. The owner approved every one; change them only with their say |
 
-When you finish something significant, add a dated bullet to `docs/ARCHITECTURE.md`. If it adds or changes a visual piece, update `DESIGN.md`. If it adds a launch step (a migration, an env var), update `docs/WHATS-LEFT.md`.
+When you finish something significant, add a dated bullet to `docs/ARCHITECTURE.md`, and update `docs/STATUS.md` if the phase, the next steps or the open decisions changed. If it adds or changes a visual piece, update `DESIGN.md`. If it adds a launch step (a migration, an env var), update `docs/WHATS-LEFT.md`.
 
 ## How the owner communicates
 
@@ -107,7 +110,14 @@ When you finish something significant, add a dated bullet to `docs/ARCHITECTURE.
   `NEXT_DIST_DIR=.next-e2e AUTH_URL=http://localhost:3010 npm run build`
   then `NEXT_DIST_DIR=.next-e2e npx next start -p 3010`. Playwright uses :3010 and the installed Chrome (`NEXT_DIST_DIR=.next-e2e npx playwright test`).
 - **The database is a remote Neon dev branch and it's slow.** Allow long timeouts in browser tests (pages can take 10 seconds or more to stream in).
-- **Helpers:** `.impeccable/quest-e2e-db.ts` seeds and cleans test accounts (`fresh`, `existing`, `tour`, `bug-step`, `examiner`, `cleanup`, `cleanup-prefix`, and more). `.impeccable/*.mjs` are browser probes and screenshot scripts; screenshots go to the scratchpad or `.impeccable/review/`.
+- **Helpers:** `.impeccable/quest-e2e-db.ts` seeds and cleans test accounts (`fresh`, `existing`, `tour`, `bug-step`, `examiner`, `capstone-submission`, `cleanup`, `cleanup-prefix`, and more). `.impeccable/*.mjs` are browser probes and screenshot scripts; screenshots go to the scratchpad or `.impeccable/review/`.
+- **Release QA scripts** (run against a build on :3010):
+  - `qa-explore.mjs`: the HTTP surface, then a new learner through the real UI;
+  - `app-audit.mjs`: axe and overflow on every surface;
+  - `quest-e2e`, `onramp-e2e`, `admin-e2e`, `today-e2e`, `landing-e2e`, `verify-drafts`, `verify-auth-quest`, `tutor-wait-e2e`: the regression set.
+
+  The QA report says how to re-run all of it.
+- **Dependencies:** `package.json` pins exact versions, and its `overrides` point Auth.js's optional nodemailer peer at our nodemailer 10. npm may skip packages' install scripts (Prisma's); `npx prisma generate` covers that.
 - **Quirks:** on Windows, Vitest prints "something prevents the main process from exiting" but exits 0. Playwright screenshots add a caret-colour hydration warning that isn't an app bug. Prettier reformats on save, so re-read a file before editing it by exact string.
 
 ## Reporting back
@@ -130,3 +140,5 @@ Don't reopen these. `docs/ARCHITECTURE.md` and `PRODUCT.md` have the detail.
 - The Sensei assistant sits bottom-right, on the learner's key, with session memory. It's off on drills (where the tutor is) and during gradings.
 - Deleting an account can bar its address from signing up again. That's for admin deletions only, it stores a fingerprint, and it's ticked by default.
 - Production domain: pylearn.academy.
+- v1 ships Python-only with its current copy. v2 adds more languages, Go first, starting with an execution sandbox (ARCHITECTURE.md §17). Taglines change only when the second language ships.
+- `GRADING_MODE` stays `client` until that sandbox exists; production refuses `server`.

@@ -11,6 +11,9 @@ import {
   senseiUserTurn,
 } from "@/lib/ai/sensei";
 
+// The model can take up to 90 s to answer; Vercel must not cut the function off first
+export const maxDuration = 120;
+
 const turn = z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(8_000) });
 const askSchema = z.object({
   question: z.string().trim().min(1).max(4_000),

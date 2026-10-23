@@ -103,7 +103,7 @@ Non-goals for now: payments, teams/classrooms, mobile apps, video hosting.
 | Decision | Choice | Why |
 |----------|--------|-----|
 | Where code runs | **Tiered.** Pyodide worker by default, server sandbox only when an exercise needs it | ~80% of Python Core exercises need nothing beyond the stdlib. The browser is free and instant. |
-| Grading source of truth | `GRADING_MODE=client` (solo) → `server` (public) | Start simple, and switch to server re-verification before opening the platform to other people |
+| Grading source of truth | `GRADING_MODE=client` (solo) → `server` (public) | Start simple, and switch to server re-verification before opening the platform to other people. **Update 2026-10-19:** v1 launches on `client`; `server` waits for the execution sandbox (§17, M9), because it isn't safe in-process (security report C-2) |
 | Content source of truth | Git files → DB via idempotent sync | Reviewable, diffable, testable, and re-seeding keeps progress |
 | IDs | Stable `slug` on Track/Module/Lesson/Exercise | Content edits never orphan progress |
 | LLM access for learners | Platform **AI Gateway** with per-user quotas (optional BYOK later) | Learners shouldn't need an API key on day one, and the key never reaches the browser |
@@ -405,30 +405,27 @@ Every user-owned table gets a `User` relation with `onDelete: Cascade`.
 
 ## 11. Infrastructure & environment variables
 
-Hosting stays **Vercel** (app) + **Neon or Supabase Postgres** + **Upstash Redis** + **E2B** (sandbox).
-Every variable is listed in [`.env.example`](../.env.example). Summary:
+Updated 2026-10-23 to what runs; the original proposal's E2B sandbox, embeddings key, Vercel Blob, Langfuse and Sentry were not adopted (see §14).
 
-| Variable | Needed for | Required? | How to get it |
-|----------|-----------|-----------|---------------|
-| `DATABASE_URL` | Everything | **Yes** | Neon/Supabase pooled connection string |
-| `DIRECT_URL` | `prisma migrate` (bypasses the pooler) | Yes with a pooler | Same provider, direct/non-pooled string |
-| `AUTH_SECRET` | Sessions (replaces `NEXTAUTH_SECRET`) | **Yes** | `npx auth secret` or `openssl rand -base64 32` |
-| `AUTH_URL` / `NEXT_PUBLIC_APP_URL` | Callbacks, absolute links | Yes in prod | Your domain |
-| `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` | GitHub login | Optional | GitHub → Settings → Developer settings → OAuth Apps |
-| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Google login | Optional | Google Cloud Console → OAuth client |
-| `UPSTASH_REDIS_REST_URL` / `_TOKEN` | Cache, rate limits, LLM quotas | Recommended (app degrades without it) | Upstash console |
-| `ENCRYPTION_KEY` | Encrypting learners' AI keys (AES-256-GCM) | **Yes for §7** | `openssl rand -base64 32`. Rotating it makes stored keys unreadable, so learners re-paste them |
-| `ANTHROPIC_API_KEY` | Nothing yet: an optional platform key for a future free trial | No | Learners bring their own keys in Settings |
-| `VOYAGE_API_KEY` (or `OPENAI_API_KEY`) | Embeddings for the RAG module and site search | For Track 2 A4 | Voyage AI / OpenAI dashboard |
-| `E2B_API_KEY` | Tier 2 sandbox | For sandbox exercises | e2b.dev |
-| `CODE_EXECUTION_API_URL` / `_KEY` | Self-hosted sandbox alternative | Only if not using E2B | Your runner deployment |
-| `GRADING_MODE` | `client` or `server` | No (default `client`) | `server` before public launch |
-| `RESEND_API_KEY`, `EMAIL_FROM` | Verification & reset emails | Before public signup | resend.com + a verified domain |
-| `BLOB_READ_WRITE_TOKEN` | Project file uploads | For uploads | Vercel → Storage → Blob |
-| `LAB_SIGNING_SECRET` | Signing lab webhook tokens | For labs | `openssl rand -base64 32` |
-| `ADMIN_BOOTSTRAP_EMAIL` | First admin account | Once | Your email |
-| `LANGFUSE_PUBLIC_KEY` / `_SECRET_KEY` / `_HOST` | Tracing the platform's own LLM calls (dogfooding A7) | Optional | Langfuse cloud or self-host |
-| `SENTRY_DSN` | Error tracking | Optional | sentry.io |
+Hosting: **Vercel** (functions in `iad1`), **Neon Postgres** (put production in AWS us-east-1, next to the functions), **Upstash Redis**, and **Resend** or Gmail for email. Every variable is in [`.env.example`](../.env.example), and the launch values are in [WHATS-LEFT.md](WHATS-LEFT.md) §2. How a deploy works is in [DEPLOYMENT.md](../DEPLOYMENT.md).
+
+| Variable | Needed for | Required? |
+|----------|-----------|-----------|
+| `DATABASE_URL`, `DIRECT_URL` | Everything; `DIRECT_URL` for migrations, which every Vercel build runs | **Yes** |
+| `AUTH_SECRET` | Sessions (32+ characters) | **Yes** |
+| `AUTH_URL`, `NEXT_PUBLIC_APP_URL` | Absolute links, the sitemap, certificates; `AUTH_URL` at build time too | **Yes** in production |
+| `ADMIN_BOOTSTRAP_EMAIL` | The first super admin (verified, while no admin exists) | **Yes** in production |
+| `UPSTASH_REDIS_REST_URL`, `_TOKEN` | Rate limits and caches shared across instances | **Yes** in production (logged at startup if missing) |
+| `RESEND_API_KEY` + `EMAIL_FROM`, or `GMAIL_USER` + `GMAIL_APP_PASSWORD` | Verification and reset emails | **Yes** in production (logged if missing) |
+| `ENCRYPTION_KEY` | Encrypting learners' AI keys (AES-256-GCM) | **Yes** in production (logged if missing) |
+| `CONTACT_EMAIL` | The Contact and Privacy pages | **Yes** in production (logged if missing) |
+| `GRADING_MODE` | `client` (drills graded in the browser) | Keep `client`: production refuses `server` until the v2 sandbox (§17, M9) |
+| `GITHUB_TOKEN` | A higher GitHub API limit for checking learners' Actions runs | Recommended |
+| `AUTH_GITHUB_ID`/`_SECRET`, `AUTH_GOOGLE_ID`/`_SECRET` | Sign in with GitHub or Google | Optional |
+| `PASSWORD_BREACH_CHECK` | `off` skips the breached-password check | Optional |
+| `GRADING_POOL_SIZE`, `PLP_CACHE_DIR`, `PLP_MAX_JOBS` | The Node Pyodide pool (`content:validate`; server grading later) | Optional |
+| `LAB_SIGNING_SECRET` | Not used yet (lab hooks rely on their URL token) | No |
+| `NEXT_DIST_DIR` | Local test builds only (`.next-e2e`) | No |
 
 ---
 
@@ -547,6 +544,7 @@ Each milestone is shippable and leaves the app better than before.
   - **The Sensei** (`components/sensei/sensei-assistant.tsx`, `lib/ai/sensei.ts`, `POST /api/sensei`) is a site-wide guide in the bottom-right corner. It runs on the learner's key and explains Python, the current lesson, module or capstone brief, and how pylearn works, using facts from the rules in code. It never writes drill, grading or capstone answers. It's disabled on drills (a tooltip points to the drill's tutor), and refused everywhere while a grading's clock runs. The chat lasts for the browser session.
   - **The quest:** the panel queues steps reported before it has loaded (before, a first Run could be lost, and the learner had to press it twice). The sensei moves on as the output appears and the server confirms it; requests use `keepalive`, and server answers keep steps still being saved. While Run works, the panel says so ("Starting Python in your browser…"), and Python starts loading as soon as a lesson opens on a run step.
 - **The loader (2026-10-15):** `KnotLoader` is the mark being tied, in the learner's own belt colour (`data-belt` on `<html>`, set by the header) on loading screens and in the quest's and Sensei's waits. `Spinner` is the same knot in the button's own ink, on a quicker loop, in every button and pending line. With reduced motion, both hold still and breathe.
+- **Handoff and deploy settings (2026-10-23):** the AI routes declare `maxDuration` for Vercel (tutor and Sensei 120 s, key test 60 s, capstone reviews 180 s), since their model calls can outlast the old 10–15 s function default. `DEPLOYMENT.md` was rewritten to describe how a deploy works here: migrations run in the build, functions sit in `iad1` (so the production Neon goes in us-east-1), Fluid compute stays on. §11 now lists only the variables the code reads, and `.env.example` matches it. `docs/STATUS.md` holds the current phase, and `CLAUDE.md` loads it.
 - **Release QA (2026-10-19):** [the report](QA-REPORT-2026-10-19.md).
   - **Dependencies:** `next` 16.3.8, `next-auth` 5.0.0-beta.32, `@auth/prisma-adapter` 2.11.3 and `nodemailer` 10.0.15, with an npm `overrides` entry pointing Auth.js's optional nodemailer peer at it. CI fails on any critical advisory.
   - **Startup check:** `instrumentation.ts` calls `productionProblems` (`lib/env.ts`). In production it refuses `GRADING_MODE=server` and logs each missing launch setting.
