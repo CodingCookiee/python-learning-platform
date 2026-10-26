@@ -119,7 +119,7 @@ function ErrorBox({
         ? `${error.type} on line ${error.line}`
         : error.type);
   return (
-    <div className="rounded-md border border-destructive/30 bg-destructive/5 p-4">
+    <div className="rounded-md border border-destructive/30 bg-destructive/8 p-4">
       <p className="text-sm font-semibold text-destructive">{heading}</p>
       <p className="mt-1 text-sm text-foreground">{error.message}</p>
       {error.traceback && error.type !== "Timeout" && (
@@ -518,7 +518,7 @@ function TestResults({ result, onExplain }: { result: TestRunResult; onExplain?:
                 <div className="mt-2 ml-6 flex flex-col gap-2">
                   {t.stdout && <PrintedOutput text={t.stdout} />}
                   {t.error?.traceback && (
-                    <pre className="overflow-x-auto rounded-sm bg-destructive/5 p-3 font-mono text-xs leading-5 whitespace-pre-wrap text-muted-foreground">
+                    <pre className="overflow-x-auto rounded-sm bg-destructive/8 p-3 font-mono text-xs leading-5 whitespace-pre-wrap text-muted-foreground">
                       {t.error.traceback}
                     </pre>
                   )}

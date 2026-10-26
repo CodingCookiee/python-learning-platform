@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import { ArrowRight, GitBranch } from "lucide-react";
 import { AdminHeader } from "@/components/admin/admin-header";
-import { SealMark, SheetMark } from "@/components/brand/marks";
+import { SealMark, SheetMark, SnagMark } from "@/components/brand/marks";
 import { listPendingSubmissions } from "@/lib/admin/submissions";
 import { EmptySlot } from "@/components/brand/empty-slot";
 
@@ -58,11 +58,11 @@ export default async function AdminProjectsPage() {
 
         <FadeIn delay={0.05}>
           {!queue ? (
-            <EmptySlot center mark={<SealMark />} title="The queue didn't load.">
+            <EmptySlot center mark={<SnagMark />} title="The queue didn't load">
               Something went wrong reading the submissions. Reload the page to try again.
             </EmptySlot>
           ) : submissions.length === 0 ? (
-            <EmptySlot center mark={<SealMark />} title="The queue is empty.">
+            <EmptySlot center mark={<SealMark />} title="The queue is empty">
               New capstone submissions land here for review.
             </EmptySlot>
           ) : (

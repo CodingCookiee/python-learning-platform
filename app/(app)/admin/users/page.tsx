@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils";
 import { StatusChip } from "@/components/admin/status-chip";
 import { ROLE_LABEL } from "@/lib/admin/levels";
 import { UnblockEmail } from "@/components/admin/unblock-email";
+import { EmptySlot } from "@/components/brand/empty-slot";
+import { KnotMark } from "@/components/brand/marks";
 
 export const metadata: Metadata = { title: "Users (admin)" };
 
@@ -118,6 +120,22 @@ export default async function AdminUsersPage({
                 ? "No accounts match."
                 : `${total} ${total === 1 ? "account" : "accounts"}${q ? ` matching “${q}”` : ""}, newest first`}
             </h2>
+            {rows.length === 0 && (
+              <EmptySlot
+                mark={<KnotMark />}
+                action={
+                  (q || filter !== "all") && (
+                    <Button asChild variant="outline" size="sm">
+                      <Link href="/admin/users">Clear the search</Link>
+                    </Button>
+                  )
+                }
+              >
+                {q || filter !== "all"
+                  ? "No account matches this search and filter. Check the spelling, or clear them to see everyone."
+                  : "No accounts yet. They show up here as people sign up."}
+              </EmptySlot>
+            )}
             {rows.length > 0 && (
               <ol className="flex flex-col border-t border-border">
                 {rows.map((u) => (

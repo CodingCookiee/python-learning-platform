@@ -11,7 +11,7 @@ import { LoadingButton } from "@/components/ui/loading-button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
-import { FormError } from "@/components/auth/auth-shell";
+import { FieldNote, FormError } from "@/components/auth/auth-shell";
 import { signInSchema, type SignInInput } from "@/lib/validations/auth";
 import { ResendVerification } from "@/components/auth/email-flows";
 
@@ -93,14 +93,11 @@ export function SignInForm({ notice, alert = null }: { notice: string | null; al
           placeholder="you@example.com"
           disabled={isLoading}
           aria-invalid={Boolean(errors.email)}
-          aria-describedby={errors.email ? "email-error" : undefined}
+          aria-describedby="email-note"
           {...register("email")}
         />
-        {errors.email && (
-          <p id="email-error" className="text-sm text-destructive">
-            {errors.email.message}
-          </p>
-        )}
+        {/* A reserved line, as on sign-up, so an error appearing never moves the form */}
+        <FieldNote id="email-note" error={errors.email?.message} />
       </div>
 
       <div className="flex flex-col gap-2">
@@ -116,14 +113,10 @@ export function SignInForm({ notice, alert = null }: { notice: string | null; al
           enterKeyHint="go"
           disabled={isLoading}
           aria-invalid={Boolean(errors.password)}
-          aria-describedby={errors.password ? "password-error" : undefined}
+          aria-describedby="password-note"
           {...register("password")}
         />
-        {errors.password && (
-          <p id="password-error" className="text-sm text-destructive">
-            {errors.password.message}
-          </p>
-        )}
+        <FieldNote id="password-note" error={errors.password?.message} />
       </div>
 
       <LoadingButton

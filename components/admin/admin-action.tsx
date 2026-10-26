@@ -39,9 +39,15 @@ async function run(
     const data = (await res.json().catch(() => ({}))) as { message?: string; error?: string };
     return res.ok
       ? { ok: true, message: data.message ?? "Done." }
-      : { ok: false, message: data.error ?? "That didn't work." };
+      : {
+          ok: false,
+          message: data.error ?? "That didn't go through. Reload the page and try again.",
+        };
   } catch {
-    return { ok: false, message: "We couldn't reach the server." };
+    return {
+      ok: false,
+      message: "We couldn't reach the server. Check your connection and try again.",
+    };
   }
 }
 

@@ -16,7 +16,9 @@ import {
 import { cn } from "@/lib/utils";
 import type { AdminNotice } from "@/lib/admin/notifications";
 import { RankMark, SheetMark } from "@/components/brand/marks";
-import { Spinner } from "@/components/brand/knot-loader";
+import { KnotLoader, Spinner } from "@/components/brand/knot-loader";
+import { EmptySlot } from "@/components/brand/empty-slot";
+import { KnotMark } from "@/components/brand/marks";
 
 /** How often the closed bell asks for its count, while the tab is in view */
 const POLL_MS = 60_000;
@@ -46,6 +48,8 @@ export function AdminBell({ initialUnread }: { initialUnread: number }) {
   const [items, setItems] = React.useState<AdminNotice[] | null>(null);
   const [failed, setFailed] = React.useState(false);
   const [markingAll, setMarkingAll] = React.useState(false);
+  // Marking read failed: said in the panel, since the dots would otherwise just stay
+  const [markFailed, setMarkFailed] = React.useState(false);
 
   React.useEffect(() => {
     let stopped = false;
@@ -73,12 +77,13 @@ export function AdminBell({ initialUnread }: { initialUnread: number }) {
   }
 
   async function markRead(ids?: string[]) {
+    setMarkFailed(false);
     const res = await fetch("/api/admin/notifications", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(ids ? { ids } : {}),
     }).catch(() => null);
-    if (!res?.ok) return;
+    if (!res?.ok) return setMarkFailed(true);
     setUnread(((await res.json()) as { unread: number }).unread);
     setItems(
       (list) => list?.map((n) => (!ids || ids.includes(n.id) ? { ...n, read: true } : n)) ?? null
@@ -132,16 +137,33 @@ export function AdminBell({ initialUnread }: { initialUnread: number }) {
         </div>
         <DropdownMenuSeparator className="my-0" />
         <div className="max-h-[26rem] overflow-y-auto">
+          {markFailed && (
+            <p
+              role="alert"
+              className="border-b border-border bg-destructive/8 px-3 py-2 text-sm text-destructive"
+            >
+              They weren&apos;t marked read. Try again in a moment.
+            </p>
+          )}
           {failed ? (
-            <p className="px-3 py-6 text-center text-sm text-muted-foreground">
-              Couldn&apos;t load notifications. Try again.
+            <p
+              role="alert"
+              className="m-3 rounded-sm border border-destructive/30 bg-destructive/8 px-3 py-2.5 text-sm text-destructive"
+            >
+              The notifications didn&apos;t load. Close and reopen the bell to try again.
             </p>
           ) : items === null ? (
-            <p className="px-3 py-6 text-center text-sm text-muted-foreground">Loading…</p>
+            <div
+              role="status"
+              className="flex items-center justify-center gap-3 px-3 py-6 text-sm text-muted-foreground"
+            >
+              <KnotLoader size="sm" />
+              Loading the notifications
+            </div>
           ) : items.length === 0 ? (
-            <p className="px-3 py-6 text-center text-sm text-muted-foreground">
+            <EmptySlot mark={<KnotMark />} className="m-3">
               Nothing yet. New sign-ups and capstones land here.
-            </p>
+            </EmptySlot>
           ) : (
             items.map((n) => (
               <DropdownMenuItem

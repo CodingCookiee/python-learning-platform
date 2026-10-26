@@ -6,7 +6,8 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ConfettiEffect } from "@/components/animations";
 import { ArrowRight, Clock, Download } from "lucide-react";
-import { TapeMark } from "@/components/brand/marks";
+import { SheetMark, TapeMark } from "@/components/brand/marks";
+import { EmptySlot } from "@/components/brand/empty-slot";
 import { Seal } from "@/components/brand/seal";
 import { AiReviewPanel } from "@/components/projects/ai-review-panel";
 import { CiPanel } from "@/components/ci/ci-panel";
@@ -201,7 +202,9 @@ export function ProjectDetailClient({ project, reviewWait }: ProjectDetailClient
               ))}
             </ol>
           ) : (
-            <p className="text-muted-foreground">No requirements listed yet.</p>
+            <EmptySlot mark={<SheetMark />} title="No requirements listed yet">
+              The brief above is the whole task for now.
+            </EmptySlot>
           )}
         </section>
 
@@ -229,7 +232,9 @@ export function ProjectDetailClient({ project, reviewWait }: ProjectDetailClient
               ))}
             </ul>
           ) : (
-            <p className="text-muted-foreground">No criteria listed yet.</p>
+            <EmptySlot mark={<SheetMark />} title="No criteria listed yet">
+              The examiner grades against the brief and its requirements.
+            </EmptySlot>
           )}
         </section>
 

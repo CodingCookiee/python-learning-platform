@@ -47,6 +47,8 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export default async function CertificatePage({ params }: Params) {
   const found = await load((await params).code);
+  // A real 404 status for a verifier or crawler. That's why this route has no loading.tsx: streaming
+  // starts the response as a 200, and the status can't change once it has (Next.js loading docs)
   if (!found) notFound();
   const { certificate: c, holder, signedIn } = found;
   const words = CERTIFICATE[c.track];

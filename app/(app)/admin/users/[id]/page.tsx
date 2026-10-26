@@ -12,6 +12,8 @@ import { ROLE_LABEL } from "@/lib/admin/levels";
 import { isEmailConfigured } from "@/lib/email";
 import { CERTIFICATE } from "@/lib/certificate-rules";
 import { BELTS } from "@/lib/ranks";
+import { EmptySlot } from "@/components/brand/empty-slot";
+import { SealMark, SheetMark } from "@/components/brand/marks";
 
 export const metadata: Metadata = { title: "User record (admin)" };
 
@@ -291,7 +293,7 @@ export default async function AdminUserPage({ params }: { params: Promise<{ id: 
                 aside={<span className="text-sm text-muted-foreground">Latest 30</span>}
               >
                 {attempts.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No gradings yet.</p>
+                  <EmptySlot mark={<SealMark />}>No gradings yet. Each module grading this learner sits shows here.</EmptySlot>
                 ) : (
                   <ol className="flex flex-col border-t border-border">
                     {attempts.map((a) => {
@@ -339,7 +341,7 @@ export default async function AdminUserPage({ params }: { params: Promise<{ id: 
             <FadeIn delay={0.07}>
               <Section id="capstones-heading" title="Capstones">
                 {submissions.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No capstones handed in.</p>
+                  <EmptySlot mark={<SheetMark />}>No capstones handed in yet.</EmptySlot>
                 ) : (
                   <ol className="flex flex-col border-t border-border">
                     {submissions.map((s) => (
@@ -375,7 +377,7 @@ export default async function AdminUserPage({ params }: { params: Promise<{ id: 
             <FadeIn delay={0.08}>
               <Section id="certificates-heading" title="Certificates">
                 {certificates.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">None claimed.</p>
+                  <EmptySlot mark={<SheetMark />}>No certificates claimed yet.</EmptySlot>
                 ) : (
                   <ul className="flex flex-col border-t border-border">
                     {certificates.map((c) => (
@@ -473,9 +475,7 @@ export default async function AdminUserPage({ params }: { params: Promise<{ id: 
                 }
               >
                 {history.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    No admin has changed this account.
-                  </p>
+                  <EmptySlot mark={<SheetMark />}>No admin has changed this account.</EmptySlot>
                 ) : (
                   <ol className="flex flex-col border-t border-border">
                     {history.map((h) => (

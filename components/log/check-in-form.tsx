@@ -60,7 +60,8 @@ export function CheckInForm({ initial }: { initial: LogWeek }) {
   const [fields, setFields] = React.useState<Fields>(initial);
   const [saved, setSaved] = React.useState(initial.saved);
   const [busy, setBusy] = React.useState<"save" | "refill" | null>(null);
-  const [status, setStatus] = React.useState<string | null>(null);
+  // A confirmation reads quietly; a problem in Clay and announced at once, so the two never look alike
+  const [status, setStatus] = React.useState<{ kind: "ok" | "error"; text: string } | null>(null);
   const [prompts, setPrompts] = React.useState(initial.prompts);
 
   const set = <K extends keyof Fields>(key: K, value: Fields[K]) => {
@@ -81,10 +82,16 @@ export function CheckInForm({ initial }: { initial: LogWeek }) {
       });
       if (res.ok) {
         setSaved(true);
-        setStatus("Saved to your log.");
-      } else setStatus(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "That didn't save.");
+        setStatus({ kind: "ok", text: "Saved to your log." });
+      } else
+        setStatus({
+          kind: "error",
+          text:
+            ((await res.json().catch(() => ({}))) as { error?: string }).error ??
+            "Your check-in didn't save. Try again in a moment.",
+        });
     } catch {
-      setStatus("We couldn't reach the server.");
+      setStatus({ kind: "error", text: "We couldn't reach the server. Check your connection and try again." });
     } finally {
       setBusy(null);
     }
@@ -101,10 +108,10 @@ export function CheckInForm({ initial }: { initial: LogWeek }) {
         setFields((f) => ({ ...draft, learned: f.learned, stuck: f.stuck, question: f.question }));
         setPrompts(draft.prompts);
         setSaved(false);
-        setStatus("Refilled from this week's activity. Your own notes are kept.");
-      } else setStatus("Couldn't read this week's activity. Try again in a moment.");
+        setStatus({ kind: "ok", text: "Refilled from this week's activity. Your own notes are kept." });
+      } else setStatus({ kind: "error", text: "We couldn't read this week's activity. Try again in a moment." });
     } catch {
-      setStatus("We couldn't reach the server.");
+      setStatus({ kind: "error", text: "We couldn't reach the server. Check your connection and try again." });
     } finally {
       setBusy(null);
     }
@@ -169,8 +176,11 @@ export function CheckInForm({ initial }: { initial: LogWeek }) {
             Refill from this week&apos;s activity
           </LoadingButton>
           {status && (
-            <p role="status" className="text-sm text-muted-foreground">
-              {status}
+            <p
+              role={status.kind === "error" ? "alert" : "status"}
+              className={status.kind === "error" ? "text-sm text-destructive" : "text-sm text-muted-foreground"}
+            >
+              {status.text}
             </p>
           )}
         </div>

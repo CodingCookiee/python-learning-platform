@@ -10,45 +10,12 @@ import { LoadingButton } from "@/components/ui/loading-button";
 import { PendingLine } from "@/components/ui/pending-line";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FormError } from "@/components/auth/auth-shell";
-import { cn } from "@/lib/utils";
+import { FieldNote, FormError } from "@/components/auth/auth-shell";
 import { PasswordInput } from "@/components/ui/password-input";
 import { signUpSchema, type SignUpInput } from "@/lib/validations/auth";
 import { PASSWORD_RULE } from "@/lib/validations/password";
 import type { z } from "zod";
 import { rememberStart } from "@/lib/start-intent";
-
-/**
- * Every field keeps a line under it for its hint or its error, so a message appearing or clearing
- * never changes the form's height: nothing jumps while the learner fills it in.
- */
-function FieldNote({
-  id,
-  error,
-  hint,
-  lines = 1,
-  className,
-}: {
-  id: string;
-  error?: string;
-  hint?: string;
-  lines?: 1 | 2;
-  className?: string;
-}) {
-  return (
-    <p
-      id={id}
-      className={cn(
-        "text-sm leading-5",
-        lines === 2 ? "min-h-10" : "min-h-5",
-        error ? "text-destructive" : "text-muted-foreground",
-        className
-      )}
-    >
-      {error ?? hint}
-    </p>
-  );
-}
 
 const FIELD_NAMES: ReadonlyArray<keyof SignUpInput> = ["name", "email", "password", "confirmPassword"];
 

@@ -54,6 +54,7 @@ function Choice<T extends string>({
   value,
   onChange,
   locked = false,
+  missing = false,
 }: {
   name: string;
   options: Array<{ value: T; title: string; detail: string }>;
@@ -61,12 +62,16 @@ function Choice<T extends string>({
   onChange: (v: T) => void;
   /** While the plan saves, the answers hold still */
   locked?: boolean;
+  /** Left unanswered when the plan was saved: tied to the form's message, which says so */
+  missing?: boolean;
 }) {
   return (
     <div
       role="radiogroup"
       aria-label={name}
       aria-disabled={locked || undefined}
+      aria-invalid={missing || undefined}
+      aria-describedby={missing ? ONBOARDING_ERROR : undefined}
       className="grid gap-3"
     >
       {options.map((o) => (
@@ -93,6 +98,8 @@ function Choice<T extends string>({
   );
 }
 
+const ONBOARDING_ERROR = "onboarding-error";
+
 export function OnboardingForm({
   first,
   initial,
@@ -109,9 +116,12 @@ export function OnboardingForm({
   const [hours, setHours] = React.useState(initial.weeklyHours);
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  // Set by a save with a question unanswered; each question clears its own mark once it's answered
+  const [checked, setChecked] = React.useState(false);
 
   async function save() {
     if (!experience || !goal) {
+      setChecked(true);
       setError("Pick an answer for each question.");
       return;
     }
@@ -125,7 +135,8 @@ export function OnboardingForm({
       });
       if (!res.ok) {
         setError(
-          ((await res.json().catch(() => ({}))) as { error?: string }).error ?? "That didn't save."
+          ((await res.json().catch(() => ({}))) as { error?: string }).error ??
+            "Your plan didn't save. Try again in a moment."
         );
         setBusy(false);
         return;
@@ -137,7 +148,7 @@ export function OnboardingForm({
       router.push(first && next ? next : "/dashboard");
       router.refresh();
     } catch {
-      setError("We couldn't reach the server.");
+      setError("We couldn't reach the server. Check your connection and try again.");
       setBusy(false);
     }
   }
@@ -152,12 +163,20 @@ export function OnboardingForm({
           value={experience}
           onChange={setExperience}
           locked={busy}
+          missing={checked && !experience}
         />
       </section>
 
       <section className="flex flex-col gap-3">
         <h2 className="text-xl font-semibold">2. Where do you want to get to?</h2>
-        <Choice name="Goal" options={GOALS} value={goal} onChange={setGoal} locked={busy} />
+        <Choice
+          name="Goal"
+          options={GOALS}
+          value={goal}
+          onChange={setGoal}
+          locked={busy}
+          missing={checked && !goal}
+        />
       </section>
 
       <section className="flex flex-col gap-3">
@@ -187,7 +206,11 @@ export function OnboardingForm({
         </div>
       </section>
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && (
+        <p id={ONBOARDING_ERROR} role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      )}
       <div className="flex flex-wrap items-center gap-3">
         <LoadingButton
           size="lg"

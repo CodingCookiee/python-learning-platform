@@ -12,7 +12,8 @@ import { ProfileCard } from "./_components/profile-card";
 import { Check } from "lucide-react";
 import { RankCard } from "@/components/brand/rank-card";
 import { AchievementPatch } from "@/components/gamification/achievement-badge";
-import { SealMark, TapeMark } from "@/components/brand/marks";
+import { SealMark, SheetMark } from "@/components/brand/marks";
+import { Button } from "@/components/ui/button";
 import { rankFromTracks } from "@/lib/learner-rank";
 import { getCurriculumState, PYTHON_TRACK } from "@/lib/curriculum-state";
 import { blackBeltIfDue } from "@/lib/black-belt";
@@ -195,7 +196,14 @@ export default async function ProfilePage() {
                   ))}
                 </ul>
               ) : (
-                <EmptySlot mark={<SealMark />}>
+                <EmptySlot
+                  mark={<SealMark />}
+                  action={
+                    <Button asChild variant="outline" size="sm">
+                      <Link href="/modules">Open the syllabus</Link>
+                    </Button>
+                  }
+                >
                   Finish your first lesson to earn your first achievement.
                 </EmptySlot>
               )}
@@ -228,7 +236,16 @@ export default async function ProfilePage() {
                   ))}
                 </ol>
               ) : (
-                <EmptySlot mark={<TapeMark />}>Lessons you finish show up here.</EmptySlot>
+                <EmptySlot
+                  mark={<SheetMark />}
+                  action={
+                    <Button asChild variant="outline" size="sm">
+                      <Link href="/modules">Open the syllabus</Link>
+                    </Button>
+                  }
+                >
+                  Lessons you finish show up here.
+                </EmptySlot>
               )}
             </section>
           </FadeIn>

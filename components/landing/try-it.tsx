@@ -379,7 +379,7 @@ function Output({ value }: { value: Shown }) {
     <div
       className={cn(
         "border-t border-border px-3 py-2 font-mono text-[0.8125rem] leading-6",
-        value.kind === "error" ? "bg-destructive/6 text-destructive" : "bg-accent/35"
+        value.kind === "error" ? "bg-destructive/8 text-destructive" : "bg-accent/35"
       )}
     >
       <span className="mb-0.5 block font-sans text-xs font-semibold text-muted-foreground">

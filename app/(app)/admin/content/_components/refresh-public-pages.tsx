@@ -31,13 +31,17 @@ export function RefreshPublicPages() {
       >
         Refresh public pages
       </LoadingButton>
-      <p role="status" className="text-sm text-muted-foreground">
-        {state === "done"
-          ? "Done. The landing and About pages read the new content on their next visit."
-          : state === "error"
-            ? "That didn't go through. Try again."
+      {state === "error" ? (
+        <p role="alert" className="text-sm text-destructive">
+          The public pages weren&apos;t refreshed. Try again in a moment.
+        </p>
+      ) : (
+        <p role="status" className="text-sm text-muted-foreground">
+          {state === "done"
+            ? "Done. The landing and About pages read the new content on their next visit."
             : "After a sync, so the landing and About pages show it now rather than within the hour."}
-      </p>
+        </p>
+      )}
     </div>
   );
 }

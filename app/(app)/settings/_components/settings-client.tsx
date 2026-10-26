@@ -9,7 +9,8 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { PASSWORD_RULE, passwordProblem } from "@/lib/validations/password";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { AlertCircle, CheckCircle2, Moon, Sun, Monitor, Trash2 } from "lucide-react";
+import { CheckCircle2, Moon, Sun, Monitor, Trash2 } from "lucide-react";
+import { SnagMark } from "@/components/brand/marks";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,12 +49,13 @@ function StatusBanner({ status }: { status: Status }) {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0 }}
         className={`flex items-center gap-2 text-sm ${status.type === "success" ? "text-success" : "text-destructive"}`}
-        role="status"
+        // A problem is announced at once; a confirmation waits its turn
+        role={status.type === "error" ? "alert" : "status"}
       >
         {status.type === "success" ? (
           <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />
         ) : (
-          <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
+          <SnagMark className="size-4 shrink-0" />
         )}
         {status.message}
       </motion.p>
@@ -74,17 +76,21 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
   const [name, setName] = React.useState(initialName);
   const [savedName, setSavedName] = React.useState(initialName);
   const [profileStatus, setProfileStatus] = React.useState<Status>(null);
+  // A refusal about the name itself shows under the name field, tied to it
+  const [nameError, setNameError] = React.useState<string | null>(null);
   const [savingProfile, setSavingProfile] = React.useState(false);
 
   async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = name.trim();
     if (!trimmed) {
-      setProfileStatus({ type: "error", message: "Enter a name to save." });
+      setProfileStatus(null);
+      setNameError("Enter a name to save.");
       return;
     }
     setSavingProfile(true);
     setProfileStatus(null);
+    setNameError(null);
     try {
       const res = await fetch("/api/profile", {
         method: "PATCH",
@@ -93,16 +99,15 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
-        setProfileStatus({
-          type: "error",
-          message: res.status === 400 && data.error ? data.error : "That didn't save. Try again in a moment.",
-        });
+        // A 400 is the server refusing the name as written
+        if (res.status === 400 && data.error) setNameError(data.error);
+        else setProfileStatus({ type: "error", message: "That didn't save. Try again in a moment." });
         return;
       }
       setSavedName(trimmed);
       setProfileStatus({ type: "success", message: "Name saved." });
     } catch {
-      setProfileStatus({ type: "error", message: "We couldn't reach the server. Check your connection." });
+      setProfileStatus({ type: "error", message: "We couldn't reach the server. Check your connection and try again." });
     } finally {
       setSavingProfile(false);
     }
@@ -127,7 +132,7 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
   function pwFieldError(field: PwField) {
     if (pwField !== field || pwStatus?.type !== "error") return null;
     return (
-      <p id={`${field}-pw-error`} className="text-sm text-destructive">
+      <p id={`${field}-pw-error`} role="alert" className="text-sm text-destructive">
         {pwStatus.message}
       </p>
     );
@@ -161,11 +166,15 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ currentPassword: currentPw, newPassword: newPw }),
       });
-      const data = (await res.json()) as { error?: string };
+      // An error page that isn't JSON (a crash) still gets the right message, not "couldn't reach"
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
         // A wrong current password belongs to that field; the rest are about the new one
         if (res.status === 400) setPwField(/current password/i.test(data.error ?? "") ? "current" : "new");
-        setPwStatus({ type: "error", message: data.error ?? "Failed to change password." });
+        setPwStatus({
+          type: "error",
+          message: (res.status === 400 || res.status === 429) && data.error ? data.error : "Your password wasn't changed. Try again.",
+        });
         return;
       }
       // The change ends every session, this one included (User.sessionVersion), so sign this
@@ -183,7 +192,7 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
       setNewPw("");
       setConfirmPw("");
     } catch {
-      setPwStatus({ type: "error", message: "We couldn't reach the server. Check your connection." });
+      setPwStatus({ type: "error", message: "We couldn't reach the server. Check your connection and try again." });
     } finally {
       if (!leaving) setSavingPw(false);
     }
@@ -238,10 +247,20 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
             <Input
               id="settings-name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value);
+                if (nameError) setNameError(null);
+              }}
               maxLength={80}
               autoComplete="name"
+              aria-invalid={nameError ? true : undefined}
+              aria-describedby={nameError ? "settings-name-error" : undefined}
             />
+            {nameError && (
+              <p id="settings-name-error" role="alert" className="text-sm text-destructive">
+                {nameError}
+              </p>
+            )}
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="settings-email">Email</Label>

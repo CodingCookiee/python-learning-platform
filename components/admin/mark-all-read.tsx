@@ -9,25 +9,35 @@ import { LoadingButton } from "@/components/ui/loading-button";
 export function MarkAllRead() {
   const router = useRouter();
   const [busy, setBusy] = React.useState(false);
+  const [failed, setFailed] = React.useState(false);
   return (
-    <LoadingButton
-      variant="outline"
-      size="sm"
-      loading={busy}
-      loadingText="Marking…"
-      icon={<CheckCheck aria-hidden="true" />}
-      onClick={async () => {
-        setBusy(true);
-        await fetch("/api/admin/notifications", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: "{}",
-        }).catch(() => null);
-        setBusy(false);
-        router.refresh();
-      }}
-    >
-      Mark all read
-    </LoadingButton>
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <LoadingButton
+        variant="outline"
+        size="sm"
+        loading={busy}
+        loadingText="Marking…"
+        icon={<CheckCheck aria-hidden="true" />}
+        onClick={async () => {
+          setBusy(true);
+          setFailed(false);
+          const res = await fetch("/api/admin/notifications", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: "{}",
+          }).catch(() => null);
+          setBusy(false);
+          if (!res?.ok) return setFailed(true);
+          router.refresh();
+        }}
+      >
+        Mark all read
+      </LoadingButton>
+      {failed && (
+        <p role="alert" className="text-sm text-destructive">
+          They weren&apos;t marked read. Try again in a moment.
+        </p>
+      )}
+    </div>
   );
 }

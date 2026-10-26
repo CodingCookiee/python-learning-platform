@@ -315,7 +315,8 @@ export function SearchBar() {
 
               {query.length >= 2 && searched === query && searchFailed && (
                 <div className="border-t border-border px-4 py-6 text-center">
-                  <p className="text-sm text-destructive">
+                  {/* Announced: the live count below stays silent when the search fails */}
+                  <p role="alert" className="text-sm text-destructive">
                     Search isn&apos;t working right now. Try again in a moment.
                   </p>
                 </div>

@@ -30,11 +30,11 @@ export function UnblockEmail({ blocked }: { blocked: number }) {
       setResult(
         res.ok
           ? { ok: true, message: data.message ?? "Lifted." }
-          : { ok: false, message: data.error ?? "That didn't work." }
+          : { ok: false, message: data.error ?? "That didn't go through. Reload the page and try again." }
       );
       if (res.ok) setEmail("");
     } catch {
-      setResult({ ok: false, message: "We couldn't reach the server." });
+      setResult({ ok: false, message: "We couldn't reach the server. Check your connection and try again." });
     } finally {
       setBusy(false);
     }

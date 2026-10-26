@@ -315,7 +315,7 @@ export function ExampleOutput({
               "border-t border-border px-4 py-3 font-mono text-[0.8125rem] leading-6 transition-opacity",
               className,
               result.status === "running" && "opacity-55",
-              result.status === "error" ? "bg-destructive/6 text-destructive" : "bg-accent/35"
+              result.status === "error" ? "bg-destructive/8 text-destructive" : "bg-accent/35"
             )}
           >
             {(result.status === "error" || result.output.trim() !== "") && (

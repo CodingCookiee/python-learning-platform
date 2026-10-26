@@ -307,16 +307,26 @@ export function EvaluateClient({ submission, aiReady }: EvaluateClientProps) {
     if (!pendingDecision || !feedbackValid) return;
     setIsSubmitting(true);
     setError(null);
+    // A refusal from the server says why in plain words; anything else (no connection, a crash) gets
+    // one line with the next step, never an exception's own text
+    const fail = (message: string) => {
+      setError(message);
+      setIsSubmitting(false);
+      setPendingDecision(null);
+    };
+    const res = await fetch(`/api/admin/projects/submissions/${submission.id}/evaluate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ decision: pendingDecision, feedback: feedbackTrimmed, checklist }),
+    }).catch(() => null);
+    if (!res) return fail("The decision wasn't saved. Check your connection and try again.");
+    if (!res.ok) {
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      return fail(
+        res.status < 500 && data.error ? data.error : "The decision wasn't saved. Try again in a moment."
+      );
+    }
     try {
-      const res = await fetch(`/api/admin/projects/submissions/${submission.id}/evaluate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ decision: pendingDecision, feedback: feedbackTrimmed, checklist }),
-      });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(data.error ?? "Failed to evaluate submission");
-      }
       if (pendingDecision === "approved") {
         // Stamp the seal on the sheet, then return to the queue
         setPendingDecision(null);
@@ -326,10 +336,9 @@ export function EvaluateClient({ submission, aiReady }: EvaluateClientProps) {
       startNavigation();
       router.push("/admin/projects");
       router.refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
-      setIsSubmitting(false);
-      setPendingDecision(null);
+    } catch {
+      // Saved, but the way back to the queue failed: the decision stands
+      fail("The decision was saved, but the queue didn't reopen. Go back to the queue to carry on.");
     }
   }
 
@@ -521,9 +530,14 @@ export function EvaluateClient({ submission, aiReady }: EvaluateClientProps) {
             onChange={(e) => setFeedback(e.target.value)}
             rows={8}
             aria-label="Feedback for the learner"
+            aria-describedby="feedback-length"
+            aria-invalid={feedbackTrimmed.length > 0 && !feedbackValid ? true : undefined}
           />
           <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-            <p className={feedbackTrimmed.length > 0 && !feedbackValid ? "text-destructive" : "text-muted-foreground"}>
+            <p
+              id="feedback-length"
+              className={feedbackTrimmed.length > 0 && !feedbackValid ? "text-destructive" : "text-muted-foreground"}
+            >
               <span className="font-condensed tabular">{feedbackTrimmed.length}</span>
               {feedbackValid ? " characters" : " / 20 characters minimum"}
             </p>

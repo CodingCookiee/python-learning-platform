@@ -34,23 +34,22 @@ Updated 2026-10-26. Keep this page short and current: rewrite it when the phase 
   - whether a Go black belt opens AI automation;
   - the sandbox budget.
 
-## Last verified state (2026-10-20, on the final code)
+## Last verified state (2026-10-26, after the pre-launch review)
 
 | Check | Result |
 |---|---|
 | Type-check, lint | Clean |
-| Unit tests | 159 passed |
-| Integration tests | 91 passed |
-| Python runner tests | Passed |
-| Content validation | 831 drills and 1,155 examples, 0 errors |
-| Production build | Passes |
-| Playwright | 16 of 16 passed |
-| Exploratory QA (`.impeccable/qa-explore.mjs`) | 47 of 47 passed |
-| Regression scripts | All passed |
-| Accessibility audit | 40 surfaces, 0 axe violations, 0 overflow |
-| Dependency audit | 0 critical; 7 high, all in Prisma's CLI tooling, Next's build tooling and Monaco's bundled DOMPurify |
+| Unit tests | 182 passed (27 files) |
+| Integration tests | 112 passed (18 files), 252 s with the dev database to themselves |
+| Production build | Passes (68 routes) |
+| Playwright (on Edge; Chrome isn't installed on this machine) | 16 of 16 passed |
+| Accessibility (axe) | Clean on the auth pages, the fixed empty and error states, light and dark, except the 404 numeral (see below) |
+| Dependency audit | 2 critical in `next` 16.3.8 (image optimizer, now off; `use cache`, unused). Fixed in 16.4.1: upgrade after 2026-10-28 |
+| Old vs new code, same tests | Same speed (`progress-truth` 17 s both, `mastery` 25 s vs 27 s) |
 
-Since then (2026-10-23), the AI routes declare `maxDuration` for Vercel, and the docs were refreshed. Type-check, lint and the production build pass after that change.
+**Open decision:** the status page's 404 numeral is 40% muted ink (DESIGN.md), 1.88:1 against the ground. It's decorative and hidden from screen readers, which WCAG exempts, but axe still flags it; about 70% would pass.
+
+**Testing here:** the dev database is remote and slow. Run integration tests and Playwright with nothing else using it (no dev server, no second test run), or tests time out and Neon drops connections. Don't run another Auth.js app on `localhost` at the same time: both use the `authjs.session-token` cookie, so each signs the other out.
 
 ## Good to know when picking this up
 

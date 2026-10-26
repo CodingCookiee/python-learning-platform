@@ -80,10 +80,10 @@ export function LessonCompleteButton({
           payload?.error ??
           (res.status === 403
             ? "This lesson is locked until the prerequisite module is complete."
-            : "Something went wrong. Please try again.");
+            : "That didn't save. Try again in a moment.");
         setErrorMessage(message);
+        // The error stays until the next try: a message that vanishes can be missed
         setStatus("error");
-        setTimeout(() => setStatus("idle"), 2000);
         return;
       }
 
@@ -131,9 +131,8 @@ export function LessonCompleteButton({
       if (next) setMoveTo(next);
       else setTimeout(() => setStatus("idle"), 1000);
     } catch {
-      setErrorMessage("Something went wrong. Please try again.");
+      setErrorMessage("That didn't save. Check your connection and try again.");
       setStatus("error");
-      setTimeout(() => setStatus("idle"), 2000);
     }
   }
 
@@ -253,6 +252,7 @@ export function LessonCompleteButton({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
+              role="alert"
               className="text-sm text-destructive"
             >
               {isLocked

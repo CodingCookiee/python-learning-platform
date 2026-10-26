@@ -78,7 +78,7 @@ export function QuizCheck({ source }: { source: string }) {
                     "flex w-full items-center gap-3 rounded-sm border px-3.5 py-2.5 text-left font-mono text-sm transition-colors",
                     !answered && "border-border hover:border-(--keyline)/50 hover:bg-accent/40",
                     answered && isAnswer && "border-success/50 bg-success/8",
-                    answered && isPicked && !isAnswer && "border-destructive/45 bg-destructive/6",
+                    answered && isPicked && !isAnswer && "border-destructive/45 bg-destructive/8",
                     answered && !isPicked && !isAnswer && "border-border opacity-70"
                   )}
                 >

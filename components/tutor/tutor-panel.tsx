@@ -151,7 +151,7 @@ export function TutorPanel({
             setNeedsKey(true);
             setAskedWithoutKey(true);
           }
-          setError(data.error ?? "The tutor couldn't answer.");
+          setError(data.error ?? "The tutor couldn't answer. Try again.");
           // Drop the unanswered question so the history stays in pairs
           setTurns((t) => t.slice(0, -1));
           return;
@@ -163,7 +163,7 @@ export function TutorPanel({
           return [...copy, { role: "assistant", content: data.reply!, redacted: data.redacted }];
         });
       } catch {
-        setError("We couldn't reach the server.");
+        setError("We couldn't reach the server. Check your connection and try again.");
         setTurns((t) => t.slice(0, -1));
       } finally {
         setBusy(false);
@@ -260,7 +260,11 @@ export function TutorPanel({
             </div>
           )}
 
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {error && (
+            <p role="alert" className="text-sm text-destructive">
+              {error}
+            </p>
+          )}
 
           <div className="flex items-end gap-2">
             <Textarea

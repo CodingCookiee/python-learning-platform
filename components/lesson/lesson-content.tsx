@@ -181,7 +181,7 @@ const CALLOUTS = {
   warning: {
     label: "Watch out",
     Icon: TriangleAlert,
-    className: "border-destructive/30 bg-destructive/5 text-foreground [&>svg]:text-destructive",
+    className: "border-destructive/30 bg-destructive/8 text-foreground [&>svg]:text-destructive",
   },
 } as const;
 

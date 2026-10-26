@@ -140,3 +140,35 @@ export function FormError({ message }: { message: string }) {
     </p>
   );
 }
+
+/**
+ * Every field keeps a line under it for its hint or its error, so a message appearing or clearing
+ * never changes the form's height: nothing jumps while the learner fills it in.
+ */
+export function FieldNote({
+  id,
+  error,
+  hint,
+  lines = 1,
+  className,
+}: {
+  id: string;
+  error?: string;
+  hint?: string;
+  lines?: 1 | 2;
+  className?: string;
+}) {
+  return (
+    <p
+      id={id}
+      className={cn(
+        "text-sm leading-5",
+        lines === 2 ? "min-h-10" : "min-h-5",
+        error ? "text-destructive" : "text-muted-foreground",
+        className
+      )}
+    >
+      {error ?? hint}
+    </p>
+  );
+}

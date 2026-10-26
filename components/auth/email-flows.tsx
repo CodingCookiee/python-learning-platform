@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
 import { PASSWORD_RULE, passwordProblem } from "@/lib/validations/password";
-import { AUTH_HEADING, FormError } from "@/components/auth/auth-shell";
+import { AUTH_HEADING, FieldNote, FormError } from "@/components/auth/auth-shell";
 import { cn } from "@/lib/utils";
 
 async function post(url: string, body: unknown): Promise<{ ok: boolean; error?: string }> {
@@ -25,9 +25,9 @@ async function post(url: string, body: unknown): Promise<{ ok: boolean; error?: 
     const data = (await res.json().catch(() => ({}))) as { error?: string };
     return res.ok
       ? { ok: true }
-      : { ok: false, error: data.error ?? "Something went wrong. Try again." };
+      : { ok: false, error: data.error ?? "That didn't go through. Try again in a moment." };
   } catch {
-    return { ok: false, error: "We couldn't reach the server. Check your connection." };
+    return { ok: false, error: "We couldn't reach the server. Check your connection and try again." };
   }
 }
 
@@ -70,6 +70,30 @@ function useLinkToken(fromUrl: string, kind: "reset" | "verify") {
   return { token: fromUrl || stored, forget };
 }
 
+/** True once the page is running in the browser, where a link's kept token can be read */
+function useHydrated() {
+  return React.useSyncExternalStore(
+    noSubscribe,
+    () => true,
+    () => false
+  );
+}
+
+/**
+ * A link page opened without its code: in a new tab (the code is kept per tab), or typed in. Says so,
+ * with the way to a fresh link, rather than leaving a button that can't be pressed.
+ */
+function MissingLinkCode({ href, label }: { href: string; label: string }) {
+  return (
+    <div className="flex flex-col gap-3">
+      <FormError message="This link is missing its code. Open it from your email again, or ask for a new one." />
+      <Link href={href} className="w-fit text-sm font-medium text-primary underline underline-offset-2">
+        {label}
+      </Link>
+    </div>
+  );
+}
+
 function Done({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-start gap-3 rounded-md border border-success/35 bg-success/6 p-4 text-sm">
@@ -86,6 +110,7 @@ function Done({ children }: { children: React.ReactNode }) {
  */
 export function VerifyEmailForm({ token: fromUrl }: { token: string }) {
   const { token, forget } = useLinkToken(fromUrl, "verify");
+  const hydrated = useHydrated();
   const [state, setState] = React.useState<"idle" | "busy" | "done">("idle");
   const [error, setError] = React.useState<string | null>(null);
   const heading = React.useRef<HTMLHeadingElement>(null);
@@ -139,6 +164,7 @@ export function VerifyEmailForm({ token: fromUrl }: { token: string }) {
         </p>
       </div>
       <div className="flex flex-col gap-4">
+        {hydrated && !token && <MissingLinkCode href="/auth/signin" label="Sign in to get a new link" />}
         {error && <FormError message={error} />}
         <LoadingButton
           size="lg"
@@ -221,15 +247,19 @@ export function ResetPasswordForm({ token: fromUrl }: { token: string }) {
   const [confirm, setConfirm] = React.useState("");
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  // A refusal about one field shows in that field's own line (DESIGN.md); the server's answers go on top
+  const [fieldError, setFieldError] = React.useState<{ field: "password" | "confirm"; message: string } | null>(null);
+  const hydrated = useHydrated();
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     // A reset link works once: never send it twice
     if (busy) return;
-    const problem = passwordProblem(password);
-    if (problem) return setError(problem);
-    if (password !== confirm) return setError("The two passwords don't match.");
     setError(null);
+    const problem = passwordProblem(password);
+    if (problem) return setFieldError({ field: "password", message: problem });
+    if (password !== confirm) return setFieldError({ field: "confirm", message: "The two passwords don't match." });
+    setFieldError(null);
     setBusy(true);
     const r = await post("/api/auth/password/reset", { token, password });
     if (r.ok) {
@@ -245,6 +275,7 @@ export function ResetPasswordForm({ token: fromUrl }: { token: string }) {
 
   return (
     <form method="post" onSubmit={(e) => void submit(e)} className="flex flex-col gap-5" noValidate>
+      {hydrated && !token && <MissingLinkCode href="/auth/forgot-password" label="Ask for a new reset link" />}
       {error && <FormError message={error} />}
       <div className="flex flex-col gap-2">
         <Label htmlFor="reset-password">New password</Label>
@@ -252,13 +283,20 @@ export function ResetPasswordForm({ token: fromUrl }: { token: string }) {
           id="reset-password"
           what="new password"
           autoComplete="new-password"
-          aria-describedby="reset-password-hint"
+          aria-invalid={fieldError?.field === "password"}
+          aria-describedby="reset-password-note"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            if (fieldError?.field === "password") setFieldError(null);
+          }}
         />
-        <p id="reset-password-hint" className="text-sm text-muted-foreground">
-          {PASSWORD_RULE} It can&rsquo;t be the password you have now.
-        </p>
+        <FieldNote
+          id="reset-password-note"
+          lines={2}
+          error={fieldError?.field === "password" ? fieldError.message : undefined}
+          hint={`${PASSWORD_RULE} It can’t be the password you have now.`}
+        />
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="reset-confirm">Confirm new password</Label>
@@ -266,9 +304,15 @@ export function ResetPasswordForm({ token: fromUrl }: { token: string }) {
           id="reset-confirm"
           what="confirmation"
           autoComplete="new-password"
+          aria-invalid={fieldError?.field === "confirm"}
+          aria-describedby="reset-confirm-note"
           value={confirm}
-          onChange={(e) => setConfirm(e.target.value)}
+          onChange={(e) => {
+            setConfirm(e.target.value);
+            if (fieldError?.field === "confirm") setFieldError(null);
+          }}
         />
+        <FieldNote id="reset-confirm-note" error={fieldError?.field === "confirm" ? fieldError.message : undefined} />
       </div>
       <LoadingButton
         type="submit"
@@ -311,7 +355,7 @@ export function ResendVerification({ email }: { email: string }) {
       >
         Send the link again
       </LoadingButton>
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <FormError message={error} />}
     </div>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { AlertCircle, CheckCircle2, KeyRound } from "lucide-react";
+import { CheckCircle2, KeyRound } from "lucide-react";
+import { SnagMark } from "@/components/brand/marks";
 import { LoadingButton } from "@/components/ui/loading-button";
 import { PendingLine } from "@/components/ui/pending-line";
 import { Input } from "@/components/ui/input";
@@ -22,13 +23,14 @@ function StatusLine({ status }: { status: Status }) {
   if (!status) return null;
   return (
     <p
-      role="status"
+      // A problem is announced at once; a confirmation waits its turn
+      role={status.type === "error" ? "alert" : "status"}
       className={cn("flex items-center gap-2 text-sm", status.type === "success" ? "text-success" : "text-destructive")}
     >
       {status.type === "success" ? (
         <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />
       ) : (
-        <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
+        <SnagMark className="size-4 shrink-0" />
       )}
       {status.message}
     </p>
@@ -182,8 +184,7 @@ export function AiSettings({
   if (!available) {
     return (
       <p className="max-w-md text-sm text-muted-foreground">
-        The tutor needs the server&apos;s <code>ENCRYPTION_KEY</code> to store keys safely, and it isn&apos;t set
-        yet.
+        AI help isn&apos;t switched on for this site yet. Lessons and drills work without it.
       </p>
     );
   }

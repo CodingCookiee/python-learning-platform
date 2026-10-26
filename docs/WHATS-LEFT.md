@@ -107,6 +107,8 @@ A full review of `dev` (security, server correctness, pages, docs). Everything b
 - **Your email was in a drill** (`regex-mask-emails`): replaced with `maya@example.org`. Run `content:sync` so the dev database has it too. Four tracked `.pyc` files (with a local Windows path) are untracked, and Python bytecode is ignored.
 - **The database pool** has a connection timeout and handles a connection Neon closes while idle, which had crashed a render.
 - **Layout:** the page container is 1536px with a fluid gutter, on every page; the sign-in and sign-up switch links sit under the form.
+- **Empty and error states, one standard:** every empty section is an `EmptySlot` with the right mark (titles without a full stop), every full-page error the shared status page (the certificate 404 too), and every inline error Clay at 8%, announced (`role="alert"`), tied to its field where it's about one, with a next step. A lesson's save error no longer vanishes after 2 seconds; an email link that lost its code explains itself instead of showing a dead button; learners never see `ENCRYPTION_KEY` or "Failed to fetch".
+- **A missing certificate is a real 404 again:** the page had gained a loading screen, and streaming sends a 200 before the page knows. Verified by the Playwright suite.
 
 ## 5. Done on 2026-10-14
 

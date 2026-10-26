@@ -3,7 +3,8 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, GitBranch, CheckCircle2, AlertCircle, X, FileText } from "lucide-react";
+import { Upload, GitBranch, CheckCircle2, X, FileText } from "lucide-react";
+import { FormError } from "@/components/auth/auth-shell";
 import { Button } from "@/components/ui/button";
 import { LoadingButton } from "@/components/ui/loading-button";
 import { PendingLine } from "@/components/ui/pending-line";
@@ -124,7 +125,7 @@ export function ProjectSubmitClient({ projectId, projectTitle }: ProjectSubmitCl
     setSubmitError("");
 
     if (isProcessingFiles) {
-      setSubmitError("Please wait for the files to finish loading.");
+      setSubmitError("The files are still loading. Hand in again once they're listed.");
       return;
     }
 
@@ -136,7 +137,7 @@ export function ProjectSubmitClient({ projectId, projectTitle }: ProjectSubmitCl
       }
     } else {
       if (files.length === 0) {
-        setSubmitError("Please add at least one file.");
+        setSubmitError("Add at least one file.");
         return;
       }
       // The same limits the server applies, before a large upload is sent only to be refused
@@ -167,12 +168,12 @@ export function ProjectSubmitClient({ projectId, projectTitle }: ProjectSubmitCl
       }
       const data = (await res.json().catch(() => ({}))) as Partial<SubmitResponse>;
       if (!res.ok) {
-        setSubmitError(data.error ?? "Submission failed. Try again in a moment.");
+        setSubmitError(data.error ?? "Your capstone wasn't handed in. Try again in a moment.");
         return;
       }
       setSubmitted(true);
     } catch {
-      setSubmitError("Network error. Please try again.");
+      setSubmitError("We couldn't reach the server. Try again in a moment.");
     } finally {
       setIsSubmitting(false);
     }
@@ -327,12 +328,7 @@ export function ProjectSubmitClient({ projectId, projectTitle }: ProjectSubmitCl
               aria-invalid={!!githubError}
             />
             {githubError && (
-              <p
-                id="github-url-error"
-                className="flex items-center gap-1.5 text-xs text-destructive"
-                role="alert"
-              >
-                <AlertCircle className="size-3.5" aria-hidden="true" />
+              <p id="github-url-error" className="text-sm text-destructive" role="alert">
                 {githubError}
               </p>
             )}
@@ -355,20 +351,8 @@ export function ProjectSubmitClient({ projectId, projectTitle }: ProjectSubmitCl
         <p className="text-xs text-muted-foreground text-right">{notes.length}/2000</p>
       </div>
 
-      <AnimatePresence>
-        {submitError && (
-          <motion.p
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            className="flex items-center gap-1.5 text-sm text-destructive"
-            role="alert"
-          >
-            <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
-            {submitError}
-          </motion.p>
-        )}
-      </AnimatePresence>
+      {/* The form's own error, in the same Clay alert as every other form */}
+      {submitError && <FormError message={submitError} />}
 
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Button
