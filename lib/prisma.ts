@@ -13,9 +13,9 @@ const globalForPrisma = globalThis as unknown as {
 if (!globalForPrisma.pool) {
   globalForPrisma.pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    // Neon suspends an idle database and closes its connections. Give up on a connect that hangs
-    // (a cold start takes a few seconds, not minutes), and keep live connections from going stale
-    connectionTimeoutMillis: 15_000,
+    // Neon suspends an idle database and closes its connections: keep live ones from going stale.
+    // No connect timeout: under load a far-away database (local development) can take longer than any
+    // fixed limit, and a slow page beats an error page. On Vercel the function's own limit still applies
     keepAlive: true,
   });
   // A connection that drops while idle in the pool emits "error" on the pool, which would crash the
