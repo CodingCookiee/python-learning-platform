@@ -18,9 +18,12 @@ export async function generateMetadata({
   return projectMetadata(id);
 }
 
-/** Read directly rather than through our own API over HTTP, shaped as the API sends it (dates as text) */
+/**
+ * Read directly rather than through our own API over HTTP, shaped as the API sends it (dates as text).
+ * null means there's no such capstone; a failed read throws to the error page instead of posing as a 404
+ */
 async function getProject(id: string, userId: string): Promise<ProjectDetailData | null> {
-  const detail = await getProjectDetail(id, userId).catch(() => null);
+  const detail = await getProjectDetail(id, userId);
   return detail ? (JSON.parse(JSON.stringify(detail)) as ProjectDetailData) : null;
 }
 
@@ -43,7 +46,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
       : null;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+    <div className="mx-auto max-w-page px-gutter py-8 sm:py-12">
       <StaggerContainer className="flex flex-col gap-8">
         <FadeIn>
           <Breadcrumb

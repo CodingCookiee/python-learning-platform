@@ -16,6 +16,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/brand/logo";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { sessionIsCurrent } from "@/lib/session-version";
 import { unreadCount } from "@/lib/admin/notifications";
 import { AdminBell } from "@/components/admin/admin-bell";
 import { getLearnerRank } from "@/lib/learner-rank";
@@ -45,13 +46,17 @@ export async function Navbar() {
     ? await Promise.all([
         prisma.user.findUnique({
           where: { id: userId },
-          select: { role: true, suspendedAt: true, lastSeenAt: true },
+          select: { role: true, suspendedAt: true, lastSeenAt: true, sessionVersion: true },
         }),
         getLearnerRank(userId),
       ])
     : [null, null];
   // Suspended by an admin: end the session and say why (the API refuses them already)
   if (account?.suspendedAt) redirect("/auth/session-ended?reason=suspended");
+  // Signed in before the password last changed, on this device or another (lib/session-version.ts)
+  if (account && !sessionIsCurrent(user?.sessionVersion, account.sessionVersion)) {
+    redirect("/auth/session-ended?reason=password");
+  }
   // "Last seen" for the admin overview: any signed-in page counts, written at most every few minutes
   if (userId && account) recordSeen(userId, account.lastSeenAt);
   const userIsAdmin = account?.role === "ADMIN" || account?.role === "SUPER_ADMIN";
@@ -69,7 +74,7 @@ export async function Navbar() {
       {user && <SigningOutNotice />}
       {/* The loader everywhere is tied in this learner's belt */}
       {rank && <BeltTheme belt={rank.belt} />}
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-16 max-w-page items-center justify-between gap-4 px-gutter">
         <div className="flex items-center gap-8">
           <Link
             href={user ? "/dashboard" : "/"}

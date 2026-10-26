@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { startNavigation } from "@/components/layout/navigation-progress";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { AdminNotice } from "@/lib/admin/notifications";
 import { RankMark, SheetMark } from "@/components/brand/marks";
+import { Spinner } from "@/components/brand/knot-loader";
 
 /** How often the closed bell asks for its count, while the tab is in view */
 const POLL_MS = 60_000;
@@ -43,6 +45,7 @@ export function AdminBell({ initialUnread }: { initialUnread: number }) {
   const [unread, setUnread] = React.useState(initialUnread);
   const [items, setItems] = React.useState<AdminNotice[] | null>(null);
   const [failed, setFailed] = React.useState(false);
+  const [markingAll, setMarkingAll] = React.useState(false);
 
   React.useEffect(() => {
     let stopped = false;
@@ -110,10 +113,20 @@ export function AdminBell({ initialUnread }: { initialUnread: number }) {
           {unread > 0 && (
             <button
               type="button"
-              onClick={() => void markRead()}
-              className="text-xs font-medium text-primary underline"
+              onClick={async () => {
+                if (markingAll) return;
+                setMarkingAll(true);
+                await markRead();
+                setMarkingAll(false);
+              }}
+              aria-busy={markingAll || undefined}
+              className={cn(
+                "inline-flex items-center gap-1.5 text-xs font-medium text-primary underline",
+                markingAll && "cursor-progress"
+              )}
             >
-              Mark all read
+              {markingAll && <Spinner className="size-3" />}
+              {markingAll ? "Marking read…" : "Mark all read"}
             </button>
           )}
         </div>
@@ -135,6 +148,7 @@ export function AdminBell({ initialUnread }: { initialUnread: number }) {
                 key={n.id}
                 onSelect={() => {
                   if (!n.read) void markRead([n.id]);
+                  startNavigation();
                   router.push(n.href);
                 }}
                 className={cn(

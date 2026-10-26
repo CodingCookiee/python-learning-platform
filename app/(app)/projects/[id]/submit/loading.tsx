@@ -3,7 +3,7 @@ import { PageLoading } from "@/components/layout/page-loading";
 
 export default function ProjectSubmitLoading() {
   return (
-    <PageLoading label="Loading the hand-in form" className="max-w-3xl">
+    <PageLoading label="Loading the hand-in form">
       <div className="flex flex-col gap-8">
         {/* Breadcrumb */}
         <SkeletonLine width="50%" className="h-3" />

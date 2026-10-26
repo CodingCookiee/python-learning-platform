@@ -34,7 +34,7 @@ Success means a learner can do the thing again without hints. Finishing content 
 - Next.js 16 App Router, React 19, Tailwind v4, shadcn/Radix components, Monaco editor, Pyodide, Prisma + Neon Postgres, Upstash Redis, Auth.js v5. Deployed on Vercel (free tier).
 - The budget is near zero. There's no paid code sandbox. Learners bring their own AI API keys for the tutor and AI features.
 - Content: 2 tracks (Python Core → Advanced; AI Automation Engineer), modules → lessons → exercises → checkpoints → capstone projects.
-- Gamification is **prominent** and core to motivation: XP, levels, daily streaks, achievements with tiers, milestone celebrations, confetti on first solve.
+- Gamification is **prominent** and core to motivation: XP, levels, daily streaks, achievements with tiers, milestone celebrations, falling belt cloth on a first solve (never generic confetti).
 - There's a light/dark theme toggle.
 
 ## Brand Commitments
@@ -59,4 +59,4 @@ Success means a learner can do the thing again without hints. Finishing content 
 ## Accessibility & Inclusion
 
 - Target WCAG 2.2 AA. Everything in the editor and grading loop must be usable with the keyboard alone.
-- Respect `prefers-reduced-motion`, especially for celebrations and confetti.
+- Respect `prefers-reduced-motion`, especially for celebrations (the falling belt cloth).

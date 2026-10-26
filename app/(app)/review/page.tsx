@@ -23,11 +23,10 @@ const TYPE_LABEL: Record<string, string> = {
 
 const DAY = ["Today", "Tomorrow"];
 
-function dayLabel(i: number) {
+/** The weekday i days from now, in the learner's zone (the queue's days are counted there) */
+function dayLabel(i: number, timeZone: string | null) {
   if (i < DAY.length) return DAY[i]!;
-  const d = new Date();
-  d.setDate(d.getDate() + i);
-  return d.toLocaleDateString([], { weekday: "short" });
+  return new Date(Date.now() + i * 86_400_000).toLocaleDateString("en-US", { weekday: "short", timeZone: timeZone ?? "UTC" });
 }
 
 export default async function ReviewPage() {
@@ -39,7 +38,7 @@ export default async function ReviewPage() {
   const overLimit = queue.dueTotal > queue.due.length && queue.due.length === 0;
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+    <div className="mx-auto max-w-page px-gutter py-8 sm:py-12">
       <div className="flex flex-col gap-8">
         <FadeIn>
           <Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Review" }]} />
@@ -137,7 +136,7 @@ export default async function ReviewPage() {
                       />
                     </span>
                     <span className="font-condensed tabular text-sm font-bold">{n}</span>
-                    <span className="text-xs text-muted-foreground">{dayLabel(i)}</span>
+                    <span className="text-xs text-muted-foreground">{dayLabel(i, queue.timeZone)}</span>
                   </li>
                 ))}
               </ol>

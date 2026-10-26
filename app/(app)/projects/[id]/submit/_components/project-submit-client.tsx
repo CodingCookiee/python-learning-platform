@@ -12,6 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { startNavigation } from "@/components/layout/navigation-progress";
+import { TOO_BIG_TOTAL, uploadProblem } from "@/lib/capstone-upload";
 
 const ACCEPTED_EXTENSIONS = [".py", ".md", ".txt", ".zip", ".json", ".toml", ".cfg", ".ini"];
 const GITHUB_REGEX = /^https?:\/\/(www\.)?github\.com\/.+\/.+/i;
@@ -137,6 +139,12 @@ export function ProjectSubmitClient({ projectId, projectTitle }: ProjectSubmitCl
         setSubmitError("Please add at least one file.");
         return;
       }
+      // The same limits the server applies, before a large upload is sent only to be refused
+      const problem = uploadProblem(files);
+      if (problem) {
+        setSubmitError(problem);
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -152,9 +160,14 @@ export function ProjectSubmitClient({ projectId, projectTitle }: ProjectSubmitCl
         body: JSON.stringify(body),
       });
 
-      const data = (await res.json()) as SubmitResponse;
+      // A body over the host's limit is refused before the route runs, as plain text rather than JSON
+      if (res.status === 413) {
+        setSubmitError(TOO_BIG_TOTAL);
+        return;
+      }
+      const data = (await res.json().catch(() => ({}))) as Partial<SubmitResponse>;
       if (!res.ok) {
-        setSubmitError(data.error ?? "Submission failed.");
+        setSubmitError(data.error ?? "Submission failed. Try again in a moment.");
         return;
       }
       setSubmitted(true);
@@ -186,7 +199,14 @@ export function ProjectSubmitClient({ projectId, projectTitle }: ProjectSubmitCl
                 Your project has been submitted for review.
               </p>
             </div>
-            <Button onClick={() => router.push(`/projects/${projectId}`)}>Back to Project</Button>
+            <Button
+              onClick={() => {
+                startNavigation();
+                router.push(`/projects/${projectId}`);
+              }}
+            >
+              Back to Project
+            </Button>
           </CardContent>
         </Card>
       </motion.div>
@@ -354,7 +374,10 @@ export function ProjectSubmitClient({ projectId, projectTitle }: ProjectSubmitCl
         <Button
           type="button"
           variant="outline"
-          onClick={() => router.push(`/projects/${projectId}`)}
+          onClick={() => {
+            startNavigation();
+            router.push(`/projects/${projectId}`);
+          }}
           disabled={isSubmitting || isProcessingFiles}
         >
           Cancel

@@ -7,6 +7,8 @@ declare module "next-auth" {
     user: {
       id: string;
       role: AppRole;
+      /** The account's sessionVersion when this session signed in (lib/session-version.ts) */
+      sessionVersion: number;
     } & DefaultSession["user"];
   }
 }
@@ -14,5 +16,6 @@ declare module "next-auth" {
 declare module "@auth/core/jwt" {
   interface JWT {
     role?: AppRole;
+    sessionVersion?: number;
   }
 }

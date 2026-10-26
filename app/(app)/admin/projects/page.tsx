@@ -36,23 +36,32 @@ export default async function AdminProjectsPage() {
   const admin = await isAdmin(user.id);
   if (!admin) redirect("/");
 
-  // Read directly, not through our own API over HTTP
-  const submissions = await listPendingSubmissions();
+  // Read directly, not through our own API over HTTP. A failed read says so: an empty queue would
+  // tell the examiner there's nothing to grade
+  const queue = await listPendingSubmissions().catch((error: unknown) => {
+    console.error("Error listing submissions:", error);
+    return null;
+  });
+  const submissions = queue?.rows ?? [];
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+    <div className="mx-auto max-w-page px-gutter py-8 sm:py-12">
       <StaggerContainer className="flex flex-col gap-10">
         <FadeIn>
           <AdminHeader
             active="submissions"
             title="Submissions"
             description="Capstone projects waiting for a grade, oldest first. Approving one awards its XP."
-            pending={submissions.length}
+            pending={queue?.total ?? 0}
           />
         </FadeIn>
 
         <FadeIn delay={0.05}>
-          {submissions.length === 0 ? (
+          {!queue ? (
+            <EmptySlot center mark={<SealMark />} title="The queue didn't load.">
+              Something went wrong reading the submissions. Reload the page to try again.
+            </EmptySlot>
+          ) : submissions.length === 0 ? (
             <EmptySlot center mark={<SealMark />} title="The queue is empty.">
               New capstone submissions land here for review.
             </EmptySlot>
@@ -104,7 +113,7 @@ export default async function AdminProjectsPage() {
                       </td>
                       <td className="py-4 pr-4">
                         <span className="inline-flex items-center gap-1.5 text-sm whitespace-nowrap">
-                          {submission.filesPayload.type === "github" ? (
+                          {submission.via === "github" ? (
                             <>
                               <GitBranch
                                 className="size-4 text-muted-foreground"
@@ -115,7 +124,7 @@ export default async function AdminProjectsPage() {
                           ) : (
                             <>
                               <SheetMark className="size-4 text-muted-foreground" />
-                              Files
+                              {submission.fileCount === 1 ? "1 file" : `${submission.fileCount} files`}
                             </>
                           )}
                         </span>
@@ -132,6 +141,11 @@ export default async function AdminProjectsPage() {
                   ))}
                 </tbody>
               </table>
+              {queue.total > submissions.length && (
+                <p className="mt-4 text-sm text-muted-foreground">
+                  Showing the oldest {submissions.length} of {queue.total}. Grade these and the rest move up.
+                </p>
+              )}
             </div>
           )}
         </FadeIn>

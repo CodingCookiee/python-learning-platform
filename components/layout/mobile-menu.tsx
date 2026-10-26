@@ -128,7 +128,7 @@ export function MobileMenu({
             aria-label="Mobile navigation"
           >
             <nav
-              className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-4 sm:px-6 lg:px-8"
+              className="mx-auto flex max-w-page flex-col gap-1 px-gutter py-4"
               aria-label="Mobile main navigation"
             >
               {isAuthenticated ? (

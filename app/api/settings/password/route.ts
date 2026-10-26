@@ -6,6 +6,7 @@ import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 import bcrypt from "bcryptjs";
 import { newPasswordField, passwordProblem } from "@/lib/validations/password";
 import { BREACHED_MESSAGE, isBreachedPassword } from "@/lib/password-breach";
+import { END_OTHER_SESSIONS } from "@/lib/session-version";
 
 const schema = z.object({
   currentPassword: z.string().min(1),
@@ -51,7 +52,9 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
       return NextResponse.json({ error: BREACHED_MESSAGE }, { status: 400 });
     }
     const hashed = await bcrypt.hash(newPassword, 12);
-    await prisma.user.update({ where: { id: context.userId }, data: { password: hashed } });
+    // Every other session ends with the old password, and so does this one: the settings page signs
+    // straight back in with the new password (lib/session-version.ts)
+    await prisma.user.update({ where: { id: context.userId }, data: { password: hashed, ...END_OTHER_SESSIONS } });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error changing password:", error);

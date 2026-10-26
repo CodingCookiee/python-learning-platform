@@ -2,7 +2,7 @@ import type { NextAuthConfig } from "next-auth";
 import { notifySignup } from "@/lib/admin/notifications";
 import { isEmailBlocked } from "@/lib/admin/blocked-emails";
 import { normalizeEmail } from "@/lib/email-address";
-import { promotesToAdmin } from "@/lib/admin/bootstrap";
+import { addressProven, promotesToAdmin } from "@/lib/admin/bootstrap";
 import type { Provider } from "next-auth/providers";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
@@ -11,7 +11,8 @@ import { CredentialsSignin } from "next-auth";
 import { compare } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { env } from "@/lib/env";
-import { rateLimit, clientIp } from "@/lib/rate-limit";
+import { rateLimit, limitReached, clientIp } from "@/lib/rate-limit";
+import { isEmailConfigured } from "@/lib/email";
 
 /** Shown to the learner as a code; neither reveals whether an account exists without the password */
 class UnverifiedEmail extends CredentialsSignin {
@@ -61,22 +62,27 @@ const providers: Provider[] = [
       const email = normalizeEmail(String(credentials.email));
       const limited = await rateLimit("signIn", email);
       if (!limited.ok) throw new TooManyAttempts();
-      const fromIp = await rateLimit("signInIp", clientIp(request));
-      if (!fromIp.ok) throw new TooManyAttempts();
+      // Per address, only failures count (OWASP): a classroom behind one IP signing in at the start of
+      // a lesson isn't password spraying, but forty wrong passwords across accounts is
+      const ip = clientIp(request);
+      if (await limitReached("signInIp", ip)) throw new TooManyAttempts();
+      const failed = async () => {
+        await rateLimit("signInIp", ip);
+        return null;
+      };
 
-      // Case-insensitive: accounts made before emails were lower-cased still sign in
-      const user = await prisma.user.findFirst({
-        where: { email: { equals: email, mode: "insensitive" } },
-      });
+      // Exact: every stored email is already lower-cased. A case-insensitive match compiles to ILIKE,
+      // where "_" matches any character, so it could find someone else's account
+      const user = await prisma.user.findUnique({ where: { email } });
 
       if (!user || !user.password) {
-        return null;
+        return failed();
       }
 
       const isPasswordValid = await compare(credentials.password as string, user.password);
 
       if (!isPasswordValid) {
-        return null;
+        return failed();
       }
       if (!user.emailVerified) throw new UnverifiedEmail();
       // Suspended by an admin: the right password still doesn't open the account
@@ -105,19 +111,24 @@ if (env().AUTH_GOOGLE_ID && env().AUTH_GOOGLE_SECRET) {
 }
 
 /**
- * Load the user's role, promoting the bootstrap admin on first sight.
+ * Load the user's role and session version, promoting the bootstrap admin on first sight.
  */
-async function resolveRole(userId: string) {
+async function resolveAccount(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { email: true, role: true, emailVerified: true },
+    select: { email: true, role: true, emailVerified: true, sessionVersion: true, accounts: { select: { id: true }, take: 1 } },
   });
-  if (!user) return "LEARNER" as const;
+  if (!user) return { role: "LEARNER" as const, sessionVersion: 0 };
 
-  // The bootstrap email only ever makes the first admin, once verified (lib/admin/bootstrap.ts)
+  // The bootstrap email only ever makes the first admin, and only once the address is really proven
+  // (lib/admin/bootstrap.ts)
+  const proven = addressProven(
+    { emailVerified: Boolean(user.emailVerified), oauthLinked: user.accounts.length > 0 },
+    isEmailConfigured()
+  );
   if (
     promotesToAdmin(
-      { email: user.email, verified: Boolean(user.emailVerified), role: user.role },
+      { email: user.email, verified: proven, role: user.role },
       {
         bootstrapEmail: env().ADMIN_BOOTSTRAP_EMAIL,
         adminExists: Boolean(await prisma.user.findFirst({ where: { role: { in: ["ADMIN", "SUPER_ADMIN"] } }, select: { id: true } })),
@@ -126,9 +137,9 @@ async function resolveRole(userId: string) {
   ) {
     // The first admin has full control
     await prisma.user.update({ where: { id: userId }, data: { role: "SUPER_ADMIN" } });
-    return "SUPER_ADMIN" as const;
+    return { role: "SUPER_ADMIN" as const, sessionVersion: user.sessionVersion };
   }
-  return user.role;
+  return { role: user.role, sessionVersion: user.sessionVersion };
 }
 
 export const authConfig = {
@@ -149,14 +160,20 @@ export const authConfig = {
         if (account?.provider === "google" && (profile as { email_verified?: boolean } | undefined)?.email_verified !== true) {
           return false;
         }
-        // GitHub sends the primary address whether or not it's verified: ask GitHub which it is
-        if (account?.provider === "github" && !(await githubEmailVerified(account.access_token, user.email))) {
-          return false;
+        // GitHub sends the primary address whether or not it's verified: ask GitHub which it is. Only on
+        // the first GitHub sign-in, which makes the account. After that Auth.js hands this callback the
+        // stored user, whose address may no longer be on GitHub at all, and the account already proved it
+        if (account?.provider === "github") {
+          const linked = await prisma.account.findUnique({
+            where: { provider_providerAccountId: { provider: "github", providerAccountId: account.providerAccountId } },
+            select: { id: true },
+          });
+          if (!linked && !(await githubEmailVerified(account.access_token, user.email))) return false;
         }
         // A suspended account stays shut whichever way it signs in
         if (user.email) {
-          const existing = await prisma.user.findFirst({
-            where: { email: { equals: normalizeEmail(user.email), mode: "insensitive" } },
+          const existing = await prisma.user.findUnique({
+            where: { email: normalizeEmail(user.email) },
             select: { suspendedAt: true },
           });
           if (existing?.suspendedAt) return "/auth/signin?suspended=1";
@@ -167,8 +184,9 @@ export const authConfig = {
       }
 
       // For credentials, check if email is verified
-      const existingUser = await prisma.user.findFirst({
-        where: { email: { equals: normalizeEmail(user.email ?? ""), mode: "insensitive" } },
+      const existingUser = await prisma.user.findUnique({
+        where: { email: normalizeEmail(user.email ?? "") },
+        select: { emailVerified: true },
       });
 
       if (!existingUser?.emailVerified) {
@@ -185,6 +203,7 @@ export const authConfig = {
         session.user.name = token.name;
         session.user.image = token.picture;
         session.user.role = token.role ?? "LEARNER";
+        session.user.sessionVersion = token.sessionVersion ?? 0;
       }
       return session;
     },
@@ -195,16 +214,20 @@ export const authConfig = {
         token.email = user.email;
         token.name = user.name;
         token.picture = user.image;
-        token.role = await resolveRole(user.id);
+        // The version this session signs in under; a later password change outdates it (lib/session-version.ts)
+        const account = await resolveAccount(user.id);
+        token.role = account.role;
+        token.sessionVersion = account.sessionVersion;
       }
 
-      // Client-triggered updates may only change display fields. Identity
-      // fields (sub, email, role) must never come from the client.
+      // Client-triggered updates may only change display fields. Identity fields (sub, email, role)
+      // and the session version must never come from the client: refreshing the version here would
+      // let a session from before a password change renew itself.
       if (trigger === "update" && token.sub) {
         const data = (session ?? {}) as { name?: unknown; image?: unknown };
         if (typeof data.name === "string") token.name = data.name;
         if (typeof data.image === "string") token.picture = data.image;
-        token.role = await resolveRole(token.sub);
+        token.role = (await resolveAccount(token.sub)).role;
       }
 
       return token;

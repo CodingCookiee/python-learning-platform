@@ -1,6 +1,6 @@
 # What's left
 
-Updated 2026-10-23. The release QA of 2026-10-19 found the code ready for v1 ([the QA report](QA-REPORT-2026-10-19.md)). Where the project stands right now is in [STATUS.md](STATUS.md). The platform is built, and all the content is written: 25 modules (the on-ramp, 16 Python, 8 automation), 168 lessons and 24 capstones. The critique's product decisions, polish and quirks are done (section 5). What remains is **launching**: buying the domain, deploying, and checking the things that only work once the site is live, plus two checks that need your own accounts (section 4).
+Updated 2026-10-26. The release QA of 2026-10-19 found the code ready for v1 ([the QA report](QA-REPORT-2026-10-19.md)), and a pre-launch review on 2026-10-26 fixed what it found (section 5). Where the project stands right now is in [STATUS.md](STATUS.md). The platform is built, and all the content is written: 25 modules (the on-ramp, 16 Python, 8 automation), 168 lessons and 24 capstones. The critique's product decisions, polish and quirks are done (section 5). What remains is **launching**: buying the domain, deploying, and checking the things that only work once the site is live, plus two checks that need your own accounts (section 4).
 
 Domain: **pylearn.academy**. GitHub: [PL-PyLearn](https://github.com/PL-PyLearn). LinkedIn: [company/pylearn](https://www.linkedin.com/company/pylearn/).
 
@@ -13,7 +13,7 @@ The release QA (2026-10-19) found the code ready for v1. What's left before laun
 - [ ] **Decide: drills on the honour system for v1.** With `GRADING_MODE=client`, a learner who forges a request can mark drills and gradings passed (security report H-2). Capstones are still approved by an examiner, so certificates still need a person's sign-off. The real fix is the execution sandbox in v2 (ARCHITECTURE.md §17, M9). The alternative is holding the launch for it.
 - [ ] **Set the Upstash variables.** Without them every Vercel instance keeps its own rate-limit counters, so sign-in and sign-up limits barely hold. The server logs a "Missing production setting" error at startup when they're absent.
 - [ ] **Set up email (Resend, below).** Without it, sign-ups are verified on the spot and password reset is off. The startup check flags this too.
-- [ ] **Sign in as the admin straight after the first deploy**, before announcing the site. The first verified sign-in with `ADMIN_BOOTSTRAP_EMAIL` becomes the super admin; after that, no one else can.
+- [ ] **Sign in as the admin straight after the first deploy**, before announcing the site. The first sign-in with `ADMIN_BOOTSTRAP_EMAIL` whose address is really proven (confirmed by the emailed link, or a verified Google or GitHub address) becomes the super admin; after that, no one else can. Without email set up, sign-ups are only marked verified, which doesn't count, so set up email first.
 
 - [ ] **Buy pylearn.academy.** It was unregistered on 2026-10-14; buy it before someone else does (Cloudflare or Namecheap).
 - [ ] **A production database.** A new Neon project for production, in **AWS us-east-1**: the app's functions run in Vercel's `iad1` (US East, set in `vercel.json`), and every page makes several queries, each one crossing the distance between the two. A new project is also cleaner than the dev database, which holds test accounts.
@@ -34,7 +34,7 @@ Set these in the Vercel project's Production environment.
 | `AUTH_URL` | yes | `https://pylearn.academy`. It must also be available **at build time**: the sitemap and robots.txt are built with it, and so are the certificate links and share cards |
 | `NEXT_PUBLIC_APP_URL` | yes | `https://pylearn.academy` |
 | `ENCRYPTION_KEY` | yes | 32 bytes (`openssl rand -base64 32`). It encrypts learners' AI keys, and saving a key fails without it. If you reuse the dev database, use **the same key as dev**, or the saved keys can't be read |
-| `ADMIN_BOOTSTRAP_EMAIL` | yes | Your sign-in email, so your account becomes the examiner (admin) |
+| `ADMIN_BOOTSTRAP_EMAIL` | yes | Your sign-in email, so your account becomes the super admin once you've confirmed it |
 | `GRADING_MODE` | yes | **`client`** for v1. `server` would re-run every drill's tests on the server, but it runs learner code inside the web server, where it can read the secrets (security report C-2). Safe server grading comes with the execution sandbox in v2 (ARCHITECTURE.md §17, M9) |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | yes | Rate limits that hold across Vercel instances |
 | `RESEND_API_KEY`, `EMAIL_FROM` | yes (or Gmail) | Email verification and password reset. Without email, sign-ups are verified automatically and password reset is unavailable |
@@ -45,10 +45,11 @@ Set these in the Vercel project's Production environment.
 
 ### Steps
 
-- [ ] Create the Vercel project from the GitHub repo, and set the variables above. Keep **Fluid compute** on (the default): the AI routes need up to 180 seconds (`maxDuration`).
-- [ ] Deploy. The build runs `prisma migrate deploy` itself (`vercel.json`), so every migration is applied to the production database, including `20261012000000_examiner_ai_review`, `20261013000000_certificates`, `20261014000000_belt_test_out`, the admin migrations of 2026-10-15 and `20261015040000_blocked_emails`. Check the build log shows them applied.
-- [ ] Check the function logs for `[pylearn] Missing production setting` lines, and set anything they name.
-- [ ] Load the content: `npm run content:sync`. It syncs all modules, lessons, drills, capstones and achievements. Then, in Admin > Content, press **Refresh public pages** so the landing and About pages show the new numbers straight away.
+- [ ] Create the Vercel project from the GitHub repo, and set the variables above. Keep **Fluid compute** on (the default): the AI routes need up to 240 seconds (`maxDuration`).
+- [ ] **Previews:** the build only migrates the database on production, so a branch preview can't change the production schema. A preview still needs a database to build: connect Neon's Vercel integration (a database branch per preview), or turn previews off (Vercel > Settings > Git). Never give Preview the production `DATABASE_URL`.
+- [ ] Deploy. On production the build first checks the settings (`scripts/check-production-env.ts`: `GRADING_MODE=server` stops the deploy), then runs `prisma migrate deploy` (`vercel.json`), so every migration is applied to the production database, including `20261026000000_session_version_time_zone` and `20261012000000_examiner_ai_review`, `20261013000000_certificates`, `20261014000000_belt_test_out`, the admin migrations of 2026-10-15 and `20261015040000_blocked_emails`. Check the build log shows them applied.
+- [ ] Check the build log and the function logs for `[pylearn] Missing production setting` lines, and set anything they name.
+- [ ] Load the content: `npm run content:sync`, with production's `DATABASE_URL`. It syncs all modules, lessons, drills, capstones and achievements, and isn't part of the build, so **run it again whenever `content/` changes**. Then, in Admin > Content, press **Refresh public pages** so the landing and About pages show the new numbers straight away.
 - [ ] Add the domain in Vercel: `pylearn.academy` as the primary, and `www.pylearn.academy` redirecting to it. Then set the DNS records Vercel shows.
 - [ ] Sign in with `ADMIN_BOOTSTRAP_EMAIL`, and check that `/admin` opens.
 
@@ -87,6 +88,26 @@ These need your accounts, so they couldn't be tested here.
 - [ ] **LinkedIn "Add to profile".** Open any certificate page while signed in to LinkedIn and press the button. The link uses the `/profile/add` format (certification name, pylearn as the organization, issue month and year, the certificate's URL and ID). Only LinkedIn's side is untested.
   - Optional: give the link your company page's numeric ID (`organizationId`), so the certificate shows the pylearn logo. The ID is in the page's admin URL (`linkedin.com/company/<number>/admin`); send it and I'll add it.
 
+## 5. Done on 2026-10-26: the pre-launch review
+
+A full review of `dev` (security, server correctness, pages, docs). Everything below is fixed and tested.
+
+- **Account takeover through `_` in an email.** Email lookups were case-insensitive matches, which Postgres runs as `ILIKE`, where `_` matches any character: a reset link for `ann_lee@…` could set the password of `annxlee@…`. Every lookup is now exact on the lower-cased address.
+- **A password change or reset ends every other session** (security M-2): `User.sessionVersion`, checked by the API and every signed-in page. The settings page signs straight back in, and the other devices land on sign-in with a notice.
+- **The bootstrap admin needs a proven address**, not one only marked verified because email wasn't set up.
+- **GitHub sign-in:** the verified-email check runs only on a first sign-in, so a returning learner whose old address left GitHub isn't locked out. A refused sign-in lands on a proper page (`/auth/error`) instead of a 404.
+- **Sign-in limits:** the per-IP limit counts only failed attempts, so a classroom behind one address can all sign in. Confirming an email has its own budget. The client IP comes from Vercel's own header.
+- **Deploys:** the build migrates only on production, runs the malware check, and stops on an unsafe setting (Next.js skips instrumentation while building).
+- **Capstones:** an examiner can't grade their own; a decision is one transaction, so a double click can't award twice, and it's in the audit log. Uploads are measured from their content and capped at 3 MB, under Vercel's 4.5 MB request limit. The queue and `GET /api/progress` no longer carry file contents, and the progress summary no longer carries the examiner's private AI draft.
+- **Privacy:** deleting an account removes the admin notices about it and the address from the audit log. The last super admin can't delete their own account. The Privacy page now names Vercel and Resend, the last-active time and the public certificate page.
+- **Learners' own days:** streaks, the review cap, the AI daily cap and the training week follow the learner's time zone, not UTC.
+- **Races:** a first drill pass, a lesson completion, the quest's finish and a level change can't be counted twice.
+- **The tutor is off during a grading**, in every tab, like the Sensei.
+- **Dependencies:** `next` 16.3.8, `next-auth` beta.32, nodemailer 10.0.15 and zod 4.6.7. The image optimizer is switched off (nothing uses `next/image`), which removes one of `next` 16.3.8's two remaining critical advisories; the other is in `use cache`, which the app doesn't use. **Upgrade `next` to 16.4.1 or later after 2026-10-28** (when it's two weeks old), then make CI's audit step blocking again.
+- **Your email was in a drill** (`regex-mask-emails`): replaced with `maya@example.org`. Run `content:sync` so the dev database has it too. Four tracked `.pyc` files (with a local Windows path) are untracked, and Python bytecode is ignored.
+- **The database pool** has a connection timeout and handles a connection Neon closes while idle, which had crashed a render.
+- **Layout:** the page container is 1536px with a fluid gutter, on every page; the sign-in and sign-up switch links sit under the form.
+
 ## 5. Done on 2026-10-14
 
 - **Python certificate, end to end:** a test learner met the black belt by its real rule (16 gradings, 202 advanced drills held through review, three approved capstones), claimed through the dialog, landed on `PL-PY-…`, and the PNG rendered.
@@ -123,6 +144,6 @@ These need your accounts, so they couldn't be tested here.
   - the drill's test list repeats the results;
   - the certificate page shows the ID, date and URL twice;
   - the certificate page has no "how it was graded" block for verifiers.
-- [ ] **Dead code:** `lib/code-execution.ts` (a client for an external runner that was never adopted) is imported by nothing, and `LAB_SIGNING_SECRET` is declared in `lib/env.ts` but never used. Both can go.
+- [x] **Dead code (removed 2026-10-26):** `lib/code-execution.ts`, `lib/auth-utils.ts`, the unused Zustand stores, two unused barrels and `ui/select`, three API routes nothing called (`/api/achievements`, `/api/admin/content/modules`, `/api/lessons/[id]`), the `ioredis` and `zustand` packages, and `LAB_SIGNING_SECRET`.
 - [ ] **To check:** in the quest regression run of 2026-10-19, the developer's dashboard tour showed no pointer on its first stop ("Your belt"), while the beginner's did. The tour still completed. Not reproduced by hand yet.
-- [ ] **Security follow-ups after launch,** in this order: end other sessions on a password change (M-2), then the low items (L-2, L-4, L-6, L-7, L-9). See the security report's status table.
+- [ ] **Security follow-ups after launch:** the low items (L-2, L-6, L-7, L-9). M-2 (a password change ends other sessions) and L-4 (upload size from the content) were done on 2026-10-26. See the security report's status table.

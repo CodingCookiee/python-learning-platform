@@ -241,6 +241,7 @@ export function HandInButton({
         setBusy(false);
         return;
       }
+      if (href) startNavigation();
       startRefresh(() => (href ? router.push(href) : router.refresh()));
     } catch {
       setError("We couldn't reach the server. Try again in a moment.");

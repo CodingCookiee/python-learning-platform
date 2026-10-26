@@ -68,8 +68,10 @@ describe("account actions", () => {
     expect(await actions.deleteUser(me, doomed.user.id, "wrong@example.invalid")).toMatchObject({ ok: false, status: 400 });
     expect(await actions.deleteUser(me, doomed.user.id, doomed.user.email.toUpperCase())).toMatchObject({ ok: true });
     expect(await prisma.user.findUnique({ where: { id: doomed.user.id } })).toBeNull();
-    // The record outlives the account
-    expect(await lastAction()).toMatchObject({ action: "user.delete", targetId: doomed.user.id, targetLabel: expect.stringContaining(doomed.user.email) });
+    // The record outlives the account, but not who it was (the privacy page promises the address goes)
+    const record = await lastAction();
+    expect(record).toMatchObject({ action: "user.delete", targetId: doomed.user.id, targetLabel: "Deleted account" });
+    expect(JSON.stringify(record)).not.toContain(doomed.user.email);
     // Not barred unless the admin asked
     expect(await isEmailBlocked(doomed.user.email)).toBe(false);
   });
@@ -115,7 +117,10 @@ describe("account actions", () => {
     expect(await actions.unblockAddress(me, address)).toMatchObject({ ok: true });
     expect(await isEmailBlocked(address)).toBe(false);
     expect(await actions.unblockAddress(me, address)).toMatchObject({ ok: false, status: 404 });
-    expect(await lastAction()).toMatchObject({ action: "user.unblock-email" });
+    // Unbarring doesn't put the address on the record either
+    const unblocked = await lastAction();
+    expect(unblocked).toMatchObject({ action: "user.unblock-email" });
+    expect(JSON.stringify(unblocked)).not.toContain(address);
   });
 });
 

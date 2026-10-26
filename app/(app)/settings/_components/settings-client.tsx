@@ -21,7 +21,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { signOut } from "next-auth/react";
+import { signIn, signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { startNavigation } from "@/components/layout/navigation-progress";
 import { AiSettings } from "./ai-settings";
 import type { CredentialSummary, UsageSummary } from "@/lib/ai/credentials";
 import { forgetAccountStorage } from "@/lib/account-storage";
@@ -34,6 +36,7 @@ interface SettingsClientProps {
 }
 
 type Status = { type: "success" | "error"; message: string } | null;
+type PwField = "current" | "new" | "confirm";
 
 function StatusBanner({ status }: { status: Status }) {
   if (!status) return null;
@@ -59,6 +62,7 @@ function StatusBanner({ status }: { status: Status }) {
 }
 
 export function SettingsClient({ initialName, email, hasPassword, ai }: SettingsClientProps) {
+  const router = useRouter();
   const { theme, setTheme } = useTheme();
   // The theme is only known in the browser; render no selection on the server
   const mounted = React.useSyncExternalStore(
@@ -108,25 +112,49 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
   const [newPw, setNewPw] = React.useState("");
   const [confirmPw, setConfirmPw] = React.useState("");
   const [pwStatus, setPwStatus] = React.useState<Status>(null);
+  // Which field an error belongs to, so it shows under that field and is read with it
+  const [pwField, setPwField] = React.useState<PwField | null>(null);
   const [savingPw, setSavingPw] = React.useState(false);
+
+  function pwErrorProps(field: PwField) {
+    const has = pwField === field && pwStatus?.type === "error";
+    return {
+      "aria-invalid": has || undefined,
+      "aria-describedby": has ? `${field}-pw-error` : undefined,
+    };
+  }
+
+  function pwFieldError(field: PwField) {
+    if (pwField !== field || pwStatus?.type !== "error") return null;
+    return (
+      <p id={`${field}-pw-error`} className="text-sm text-destructive">
+        {pwStatus.message}
+      </p>
+    );
+  }
 
   async function handleSavePassword(e: React.FormEvent) {
     e.preventDefault();
     const problem = passwordProblem(newPw, { email, name: initialName ?? undefined });
     if (problem) {
+      setPwField("new");
       setPwStatus({ type: "error", message: problem });
       return;
     }
     if (newPw === currentPw) {
+      setPwField("new");
       setPwStatus({ type: "error", message: "That's the password you have now. Choose a new one." });
       return;
     }
     if (newPw !== confirmPw) {
+      setPwField("confirm");
       setPwStatus({ type: "error", message: "The two new passwords don't match." });
       return;
     }
     setSavingPw(true);
     setPwStatus(null);
+    setPwField(null);
+    let leaving = false;
     try {
       const res = await fetch("/api/settings/password", {
         method: "POST",
@@ -135,17 +163,29 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok) {
+        // A wrong current password belongs to that field; the rest are about the new one
+        if (res.status === 400) setPwField(/current password/i.test(data.error ?? "") ? "current" : "new");
         setPwStatus({ type: "error", message: data.error ?? "Failed to change password." });
         return;
       }
-      setPwStatus({ type: "success", message: "Password changed." });
+      // The change ends every session, this one included (User.sessionVersion), so sign this
+      // device straight back in with the new password
+      const again = await signIn("credentials", { email, password: newPw, redirect: false });
+      if (!again || again.error) {
+        // Busy until the sign-in page replaces this one
+        leaving = true;
+        startNavigation();
+        router.push("/auth/signin?signedout=1");
+        return;
+      }
+      setPwStatus({ type: "success", message: "Password changed. You've been signed out everywhere else." });
       setCurrentPw("");
       setNewPw("");
       setConfirmPw("");
     } catch {
       setPwStatus({ type: "error", message: "We couldn't reach the server. Check your connection." });
     } finally {
-      setSavingPw(false);
+      if (!leaving) setSavingPw(false);
     }
   }
 
@@ -163,7 +203,13 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
         await signOut({ callbackUrl: "/" });
         return;
       }
-      setDeleteError("Your account wasn't deleted. Try again, or sign out and back in first.");
+      // A refusal with a reason (the last super admin) says it; anything else gets the general line
+      const data = (await res.json().catch(() => null)) as { error?: string } | null;
+      setDeleteError(
+        res.status === 409 && data?.error
+          ? `Your account wasn't deleted. ${data.error}`
+          : "Your account wasn't deleted. Try again, or sign out and back in first."
+      );
       setDeleting(false);
     } catch {
       setDeleteError("We couldn't reach the server, so nothing was deleted.");
@@ -273,7 +319,7 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
       {hasPassword && (
         <SettingsRow
           title="Password"
-          description={`${PASSWORD_RULE} You stay signed in on this device.`}
+          description={`${PASSWORD_RULE} Changing it signs you out everywhere else; you stay signed in here.`}
         >
           <form method="post"
             onSubmit={(e) => {
@@ -289,7 +335,9 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
                 value={currentPw}
                 onChange={(e) => setCurrentPw(e.target.value)}
                 autoComplete="current-password"
+                {...pwErrorProps("current")}
               />
+              {pwFieldError("current")}
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="new-pw">New password</Label>
@@ -299,7 +347,9 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
                 value={newPw}
                 onChange={(e) => setNewPw(e.target.value)}
                 autoComplete="new-password"
+                {...pwErrorProps("new")}
               />
+              {pwFieldError("new")}
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="confirm-pw">Confirm new password</Label>
@@ -309,9 +359,12 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
                 value={confirmPw}
                 onChange={(e) => setConfirmPw(e.target.value)}
                 autoComplete="new-password"
+                {...pwErrorProps("confirm")}
               />
+              {pwFieldError("confirm")}
             </div>
-            <StatusBanner status={pwStatus} />
+            {/* Success, and errors that aren't about one field (the server couldn't be reached) */}
+            {!pwField && <StatusBanner status={pwStatus} />}
             <LoadingButton
               type="submit"
               variant={currentPw && newPw && confirmPw ? "default" : "outline"}

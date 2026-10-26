@@ -30,6 +30,28 @@ interface CompleteOptions {
 }
 
 /**
+ * Mark the lesson complete, true only for the one request that actually did it. Two at once (a
+ * double click, two tabs, the button racing a drill pass) can't both earn the lesson's XP: the
+ * conditional update lets one flip an open row, and the unique (user, lesson) lets one create it.
+ */
+async function markComplete(userId: string, lessonId: string): Promise<boolean> {
+  const now = new Date();
+  const { count } = await prisma.progress.updateMany({
+    where: { userId, lessonId, completed: false },
+    data: { completed: true, completedAt: now },
+  });
+  if (count === 1) return true;
+  try {
+    await prisma.progress.create({ data: { userId, lessonId, completed: true, completedAt: now } });
+    return true;
+  } catch (error) {
+    // Already there: complete before, or another request just finished it
+    if ((error as { code?: string }).code === "P2002") return false;
+    throw error;
+  }
+}
+
+/**
  * Record a lesson as complete and award what finishing it earns: its XP, achievements, the day's
  * streak and any milestone. Completing twice changes nothing and earns nothing. The caller checks
  * the lesson rules first (getLessonForUser's canComplete): the "Mark lesson complete" route for
@@ -40,17 +62,8 @@ export async function completeLesson(
   lessonId: string,
   { checkAchievements = true }: CompleteOptions = {}
 ): Promise<LessonCompletion> {
-  const existing = await prisma.progress.findUnique({
-    where: { userId_lessonId: { userId, lessonId } },
-    select: { completed: true },
-  });
-  if (existing?.completed) return { firstCompletion: false, xpGained: 0, achievements: [], milestone: null };
+  if (!(await markComplete(userId, lessonId))) return { firstCompletion: false, xpGained: 0, achievements: [], milestone: null };
 
-  await prisma.progress.upsert({
-    where: { userId_lessonId: { userId, lessonId } },
-    update: { completed: true, completedAt: new Date() },
-    create: { userId, lessonId, completed: true, completedAt: new Date() },
-  });
   await prisma.user.update({ where: { id: userId }, data: { xp: { increment: LESSON_XP } } });
   await updateUserLevel(userId);
   await updateStreak(userId, { checkAchievements: false });

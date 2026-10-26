@@ -6,6 +6,7 @@ import { consumeToken, peekToken } from "@/lib/auth-tokens";
 import { clientIp, rateLimit, tooManyRequests } from "@/lib/rate-limit";
 import { newPasswordField, passwordProblem } from "@/lib/validations/password";
 import { BREACHED_MESSAGE, isBreachedPassword } from "@/lib/password-breach";
+import { END_OTHER_SESSIONS } from "@/lib/session-version";
 
 const schema = z.object({
   token: z.string().min(10).max(200),
@@ -34,8 +35,8 @@ export async function POST(req: Request) {
   // Checked before the link is used up, so a refused password can be fixed and sent again
   const address = await peekToken("reset", parsed.data.token);
   const owner = address
-    ? await prisma.user.findFirst({
-        where: { email: { equals: address, mode: "insensitive" } },
+    ? await prisma.user.findUnique({
+        where: { email: address },
         select: { password: true, email: true, name: true },
       })
     : null;
@@ -54,12 +55,15 @@ export async function POST(req: Request) {
   if (!email) {
     return NextResponse.json({ error: "That reset link has expired or was already used. Ask for a new one." }, { status: 400 });
   }
-  const user = await prisma.user.findFirst({ where: { email: { equals: email, mode: "insensitive" } }, select: { id: true, emailVerified: true } });
+  // Exact, by the address the link was issued to. A case-insensitive match is ILIKE, where "_" is a
+  // wildcard: a link sent to ann_lee@ could have set the password of annxlee@'s account
+  const user = await prisma.user.findUnique({ where: { email }, select: { id: true, emailVerified: true } });
   if (!user) return NextResponse.json({ error: "That account no longer exists." }, { status: 400 });
 
   await prisma.user.update({
     where: { id: user.id },
-    data: { password: await hash(password, 12), emailVerified: user.emailVerified ?? new Date() },
+    // A reset usually means the password was lost or stolen: sign out every device (lib/session-version.ts)
+    data: { password: await hash(password, 12), emailVerified: user.emailVerified ?? new Date(), ...END_OTHER_SESSIONS },
   });
   return NextResponse.json({ ok: true });
 }

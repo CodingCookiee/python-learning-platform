@@ -16,6 +16,8 @@ export const metadata: Metadata = {
 function noticeFor(params: Record<string, string | string[] | undefined>): string | null {
   if (params.verified) return "Email confirmed. Sign in to start training.";
   if (params.reset) return "Password changed. Sign in with the new one.";
+  // A session from before a password change, here or on another device (lib/session-version.ts)
+  if (params.signedout) return "Your password was changed, so you were signed out here. Sign in with the new one.";
   if (params.check) return "Check your inbox: we sent a link to confirm your email.";
   return null;
 }

@@ -25,18 +25,22 @@ How pylearn deploys and runs in production. The launch checklist, with every env
 `vercel.json` sets the build command:
 
 ```
-prisma generate && prisma migrate deploy && next build
+prisma generate
+  && (production only: tsx scripts/check-production-env.ts && prisma migrate deploy)
+  && npm run build
 ```
 
-So **every deploy applies pending migrations** to the database in `DATABASE_URL`, using `DIRECT_URL`, before building. Both must be set in the build environment. Running `npx prisma migrate deploy` by hand is only needed to migrate without a deploy.
+- **Every production deploy applies pending migrations** to the database in `DATABASE_URL`, using `DIRECT_URL`, before building. Both must be set in the build environment. Running `npx prisma migrate deploy` by hand is only needed to migrate without a deploy.
+- **Preview deploys never migrate.** The step runs only when `VERCEL_ENV` is `production`, so a branch with an unmerged migration can't change the production schema. A preview still needs a database to build: connect Neon's Vercel integration (a database branch per preview), or turn previews off. Never give Preview the production `DATABASE_URL`.
+- **An unsafe setting stops the deploy** before the database is touched (see [the startup check](#the-startup-check)).
 
 `AUTH_URL` must be set at **build time** too: `robots.txt`, the sitemap, certificate links and share cards are built with it.
 
-The build also runs `scripts/check-malware-signatures.mjs`. API responses get `Cache-Control: private, no-store` (`vercel.json`), and every page gets security headers (`next.config.ts`) and a per-request Content-Security-Policy (`proxy.ts`).
+`npm run build` runs `scripts/check-malware-signatures.mjs` first, then `next build`. API responses get `Cache-Control: private, no-store` (`vercel.json`), and every page gets security headers (`next.config.ts`) and a per-request Content-Security-Policy (`proxy.ts`).
 
 ## Settings that matter
 
-- **Keep Fluid compute on.** It's Vercel's default for new projects. The AI routes declare `maxDuration` (tutor and Sensei 120 s, capstone reviews 180 s), which needs it; without it, functions stop after 10–15 seconds and most AI replies would fail.
+- **Keep Fluid compute on.** It's Vercel's default for new projects. The AI routes declare `maxDuration` (tutor and Sensei 120 s, capstone reviews 240 s), which needs it; without it, functions stop after 10–15 seconds and most AI replies would fail.
 - **`GRADING_MODE=client`.** Server grading runs learner code inside the web server, where it could read the secrets (security report C-2). Production refuses to start with `server`. Safe server grading comes with the execution sandbox in v2 (docs/ARCHITECTURE.md §17, M9).
 - **`ENCRYPTION_KEY`** encrypts learners' AI keys. Rotating it makes saved keys unreadable, so learners paste them again. If production reuses the dev database, it needs the dev key.
 - **`ADMIN_BOOTSTRAP_EMAIL`:** the first verified sign-in with this address becomes the super admin, and only while no admin exists. Sign in with it straight after the first deploy.
@@ -54,15 +58,16 @@ Run `content:sync` against production after the first deploy, and again whenever
 
 ## The startup check
 
-When a server instance starts in production, `instrumentation.ts` runs `productionProblems()` (`lib/env.ts`):
+`productionProblems()` (`lib/env.ts`) runs twice:
 
-- **It refuses to start** with `GRADING_MODE=server`.
-- **It logs `[pylearn] Missing production setting: …`** for each missing launch setting: Upstash, email, `ENCRYPTION_KEY`, `CONTACT_EMAIL`, `ADMIN_BOOTSTRAP_EMAIL`.
+- **In the production build** (`scripts/check-production-env.ts`, from `vercel.json`). `GRADING_MODE=server` **fails the build**, so the site stays on the last good deploy. Next.js skips instrumentation during `next build`, which is why this step exists.
+- **When a server instance starts** (`instrumentation.ts`). It throws on the same unsafe setting, which only matters if one were changed without a new build.
 
-After a deploy, check the function logs for these lines.
+Both log `[pylearn] Missing production setting: …` for each missing launch setting: Upstash, email, `ENCRYPTION_KEY`, `CONTACT_EMAIL`, `ADMIN_BOOTSTRAP_EMAIL`. Check the build log and the function logs for these lines.
 
 ## Troubleshooting
 
+- **The build stops with "Unsafe production settings":** set what it names (today, only `GRADING_MODE`, which must be `client`).
 - **The build fails at `prisma migrate deploy`:** `DIRECT_URL` is missing or wrong in the build environment, or a migration conflicts with the database. Run `npx prisma migrate status` against it.
 - **"Invalid environment variables" at startup:** `lib/env.ts` names each one. `AUTH_SECRET` needs at least 32 characters.
 - **Sign-ups are verified instantly, and password reset says email isn't set up:** no email provider is configured.

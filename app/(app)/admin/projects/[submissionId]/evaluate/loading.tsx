@@ -3,7 +3,7 @@ import { PageLoading } from "@/components/layout/page-loading";
 
 export default function EvaluateLoading() {
   return (
-    <PageLoading label="Loading the submission" className="max-w-4xl">
+    <PageLoading label="Loading the submission">
       <div className="flex flex-col gap-8">
         {/* Breadcrumb */}
         <SkeletonLine width="50%" className="h-3" />

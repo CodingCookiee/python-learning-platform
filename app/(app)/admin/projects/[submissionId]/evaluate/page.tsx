@@ -151,7 +151,7 @@ export default async function AdminEvaluatePage({ params }: PageProps) {
   const examinerKey = await prisma.aiCredential.findUnique({ where: { userId: dbUser.id }, select: { id: true } });
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+    <div className="mx-auto max-w-page px-gutter py-8 sm:py-12">
       <StaggerContainer className="flex flex-col gap-8">
         <FadeIn>
           <Breadcrumb

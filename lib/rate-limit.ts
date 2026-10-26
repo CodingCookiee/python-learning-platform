@@ -22,6 +22,8 @@ export const LIMITS = {
   signInIp: { limit: 40, windowSec: 15 * 60 },
   register: { limit: 5, windowSec: 60 * 60 },
   emailSend: { limit: 3, windowSec: 60 * 60 },
+  // Following an emailed link, per IP: separate from sending, so learners behind one address can all confirm
+  emailVerify: { limit: 30, windowSec: 60 * 60 },
   passwordChange: { limit: 5, windowSec: 15 * 60 },
   submit: { limit: 60, windowSec: 60 },
   tutor: { limit: 12, windowSec: 60 },
@@ -89,6 +91,25 @@ export async function rateLimit(name: LimitName, subject: string): Promise<Limit
   return { ok: count <= limit, remaining: Math.max(0, limit - count), retryAfter: ttl };
 }
 
+/**
+ * Whether `subject` has already used up `name`'s limit, without counting a hit. For limits that
+ * count only failures: check this first, and call rateLimit() when an attempt fails.
+ */
+export async function limitReached(name: LimitName, subject: string): Promise<boolean> {
+  const { limit, windowSec } = LIMITS[name];
+  const key = `rl:${name}:${subject}:${Math.floor(Date.now() / 1000 / windowSec)}`;
+  const r = redis();
+  if (r) {
+    try {
+      return Number((await r.get<number>(key)) ?? 0) >= limit;
+    } catch {
+      // As in rateLimit: a Redis outage falls back to this process's counts
+    }
+  }
+  const entry = memory.get(key);
+  return Boolean(entry && entry.resetAt > Date.now() && entry.count >= limit);
+}
+
 export function tooManyRequests(result: LimitResult, message = "Too many requests. Try again shortly."): NextResponse {
   const minutes = Math.ceil(result.retryAfter / 60);
   return NextResponse.json(
@@ -97,8 +118,11 @@ export function tooManyRequests(result: LimitResult, message = "Too many request
   );
 }
 
-/** The caller's IP, as far as the proxy chain tells us */
+/**
+ * The caller's IP. Vercel sets x-real-ip itself (a client can't choose it), so it comes first;
+ * the first X-Forwarded-For entry is only a fallback for other hosts (security review M-1)
+ */
 export function clientIp(req: Request): string {
   const forwarded = req.headers.get("x-forwarded-for");
-  return forwarded?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
+  return req.headers.get("x-real-ip")?.trim() || forwarded?.split(",")[0]?.trim() || "unknown";
 }

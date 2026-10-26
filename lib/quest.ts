@@ -143,14 +143,23 @@ export async function recordStep(
   if (!row || row.finishedAt || row.skippedAt || row.completed.includes(key)) {
     return { view: row ? await getQuest(userId, quest) : null, achievements: [] };
   }
-  const completed = known([...row.completed, key]);
-  const finishing = completed.length === STEPS.length;
-  // Only the request that actually adds the step (and, at the end, finishes the quest) wins
+  // Only the request that actually adds the step wins
   const { count } = await prisma.questProgress.updateMany({
     where: { id: row.id, finishedAt: null, NOT: { completed: { has: key } } },
-    data: { completed: { push: key }, ...(finishing ? { finishedAt: new Date() } : {}) },
+    data: { completed: { push: key } },
   });
-  const achievements = count > 0 && finishing ? await checkAndUnlockAchievements(userId) : [];
+  // Finishing is judged from the row as it now stands, not the read above: two different last steps
+  // landing together (a browser event and a drill pass) each saw the other still missing, and would
+  // both have left the quest unfinished. Whichever sets finishedAt awards Ready to Train.
+  const finished =
+    count > 0 &&
+    (
+      await prisma.questProgress.updateMany({
+        where: { id: row.id, finishedAt: null, completed: { hasEvery: STEPS.map((s) => s.key) } },
+        data: { finishedAt: new Date() },
+      })
+    ).count > 0;
+  const achievements = finished ? await checkAndUnlockAchievements(userId) : [];
   return { view: await getQuest(userId, quest), achievements };
 }
 

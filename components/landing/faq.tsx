@@ -92,8 +92,8 @@ export function Faq({ items, compact = false }: { items: FaqItem[]; compact?: bo
     );
   }
   return (
-    <section id="faq" aria-labelledby="faq-heading" className="scroll-mt-16 border-t border-border px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
-      <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] lg:gap-16">
+    <section id="faq" aria-labelledby="faq-heading" className="scroll-mt-16 border-t border-border px-gutter py-20 lg:py-28">
+      <div className="mx-auto grid max-w-page gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] lg:gap-16">
         <h2 id="faq-heading" className="font-condensed text-5xl leading-none font-extrabold tracking-[-0.02em] sm:text-6xl">
           Questions
         </h2>

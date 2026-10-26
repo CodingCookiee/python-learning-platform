@@ -19,7 +19,7 @@ export default async function OnboardingPage() {
 
   const first = !user.onboardedAt;
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-16">
+    <div className="mx-auto max-w-3xl px-gutter py-10 sm:py-16">
       <FadeIn>
         <header className="mb-10 flex flex-col gap-3">
           <p className="text-sm font-semibold text-primary">{first ? "Before your first lesson" : "Your training plan"}</p>

@@ -58,7 +58,7 @@ export default async function CertificatePage({ params }: Params) {
       <div className="print:hidden">
         <SkipLink href="#certificate">Skip to the certificate</SkipLink>
         <header className="border-b border-border bg-background">
-          <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-6 px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-6 px-gutter">
             <Link href="/" aria-label="pylearn home" className="rounded-sm">
               <Logo />
             </Link>
@@ -78,7 +78,7 @@ export default async function CertificatePage({ params }: Params) {
       <main
         id="certificate"
         tabIndex={-1}
-        className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-10 outline-none sm:px-6 lg:px-8 print:m-0 print:block print:max-w-none print:p-0"
+        className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-gutter py-10 outline-none print:m-0 print:block print:max-w-none print:p-0"
       >
         {c.withdrawnAt && holder && (
           <p role="status" className="rounded-md border border-dashed border-border bg-sheet px-4 py-3 text-sm print:hidden">

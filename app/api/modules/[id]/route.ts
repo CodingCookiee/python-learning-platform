@@ -1,139 +1,131 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
-import { getCached, CacheKeys } from "@/lib/cache";
 import { formatProjectEstimatedTime } from "@/lib/project-time";
 import { getLessonAccessState, getSequentialModuleUnlockMap } from "@/lib/module-access";
 
 /**
  * GET /api/modules/[id]
  * Get module details with all lessons and projects
- * Cached for 1 hour per user
+ * Not cached: it changes with every pass and completion, and clearing a per-learner cache of every
+ * module would need a Redis KEYS scan (lib/cache.ts)
  */
 export const GET = withAuth(async (req: NextRequest, context: AuthContext<{ id: string }>) => {
   try {
     const { id } = await context.params;
-    const cacheKey = CacheKeys.module(id, context.userId);
-
-    const response = await getCached(
-      cacheKey,
-      async () => {
-        const learningModule = await prisma.module.findFirst({
-          where: { id, archivedAt: null, trackId: { not: null } },
-          include: {
-            lessons: {
-              where: { archivedAt: null },
-              orderBy: { order: "asc" },
-              include: {
-                exercises: {
-                  where: { archivedAt: null },
-                  select: {
-                    id: true,
-                    title: true,
-                    difficulty: true,
-                    xpReward: true,
-                  },
-                },
-                progress: {
-                  where: { userId: context.userId },
-                  select: {
-                    completed: true,
-                    completedAt: true,
-                  },
+    const response = await (async () => {
+      const learningModule = await prisma.module.findFirst({
+        where: { id, archivedAt: null, trackId: { not: null } },
+        include: {
+          lessons: {
+            where: { archivedAt: null },
+            orderBy: { order: "asc" },
+            include: {
+              exercises: {
+                where: { archivedAt: null },
+                select: {
+                  id: true,
+                  title: true,
+                  difficulty: true,
+                  xpReward: true,
                 },
               },
-            },
-            projects: {
-              where: { archivedAt: null },
-              include: {
-                submissions: {
-                  where: { userId: context.userId },
-                  orderBy: { submittedAt: "desc" },
-                  take: 1,
+              progress: {
+                where: { userId: context.userId },
+                select: {
+                  completed: true,
+                  completedAt: true,
                 },
-              },
-            },
-            prerequisites: {
-              where: { archivedAt: null },
-              select: {
-                id: true,
-                title: true,
-                order: true,
-              },
-            },
-            dependents: {
-              where: { archivedAt: null },
-              select: {
-                id: true,
-                title: true,
-                order: true,
               },
             },
           },
-        });
+          projects: {
+            where: { archivedAt: null },
+            include: {
+              submissions: {
+                where: { userId: context.userId },
+                orderBy: { submittedAt: "desc" },
+                take: 1,
+              },
+            },
+          },
+          prerequisites: {
+            where: { archivedAt: null },
+            select: {
+              id: true,
+              title: true,
+              order: true,
+            },
+          },
+          dependents: {
+            where: { archivedAt: null },
+            select: {
+              id: true,
+              title: true,
+              order: true,
+            },
+          },
+        },
+      });
 
-        if (!learningModule) {
-          return null;
-        }
+      if (!learningModule) {
+        return null;
+      }
 
-        // Calculate module completion
-        const totalLessons = learningModule.lessons.length;
-        const completedLessons = learningModule.lessons.filter(
-          (lesson) => lesson.progress[0]?.completed
-        ).length;
-        const completionPercentage =
-          totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+      // Calculate module completion
+      const totalLessons = learningModule.lessons.length;
+      const completedLessons = learningModule.lessons.filter(
+        (lesson) => lesson.progress[0]?.completed
+      ).length;
+      const completionPercentage =
+        totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
 
-        const moduleUnlockMap = await getSequentialModuleUnlockMap(context.userId);
-        const isUnlocked = moduleUnlockMap.get(learningModule.id) ?? false;
-        const lessonAccess = getLessonAccessState(
-          learningModule.lessons.map((lesson) => ({
-            id: lesson.id,
-            title: lesson.title,
-            order: lesson.order,
-            completed: lesson.progress[0]?.completed || false,
-          })),
-          isUnlocked
-        );
-        const lessonAccessMap = new Map(
-          lessonAccess.map((lesson) => [lesson.id, lesson.isUnlocked])
-        );
+      const moduleUnlockMap = await getSequentialModuleUnlockMap(context.userId);
+      const isUnlocked = moduleUnlockMap.get(learningModule.id) ?? false;
+      const lessonAccess = getLessonAccessState(
+        learningModule.lessons.map((lesson) => ({
+          id: lesson.id,
+          title: lesson.title,
+          order: lesson.order,
+          completed: lesson.progress[0]?.completed || false,
+        })),
+        isUnlocked
+      );
+      const lessonAccessMap = new Map(lessonAccess.map((lesson) => [lesson.id, lesson.isUnlocked]));
 
-        return {
-          id: learningModule.id,
-          title: learningModule.title,
-          description: learningModule.description,
-          phase: learningModule.phase,
-          order: learningModule.order,
-          duration: learningModule.duration,
-          completionPercentage,
-          isUnlocked,
-          prerequisites: learningModule.prerequisites,
-          dependents: learningModule.dependents,
-          lessons: learningModule.lessons.map((lesson) => ({
-            id: lesson.id,
-            title: lesson.title,
-            description: lesson.description,
-            order: lesson.order,
-            estimatedTime: lesson.estimatedTime,
-            exerciseCount: lesson.exercises.length,
-            completed: lesson.progress[0]?.completed || false,
-            completedAt: lesson.progress[0]?.completedAt || null,
-            isUnlocked: lessonAccessMap.get(lesson.id) ?? false,
-          })),
-          projects: learningModule.projects.map((project) => ({
-            id: project.id,
-            title: project.title,
-            description: project.description,
-            estimatedTime: formatProjectEstimatedTime(project.estimatedTime),
-            xpReward: project.xpReward,
-            hasSubmission: project.submissions.length > 0,
-            latestSubmission: project.submissions[0] || null,
-          })),
-        };
-      },
-      3600 // Cache for 1 hour
-    );
+      return {
+        id: learningModule.id,
+        title: learningModule.title,
+        description: learningModule.description,
+        phase: learningModule.phase,
+        order: learningModule.order,
+        duration: learningModule.duration,
+        completionPercentage,
+        isUnlocked,
+        prerequisites: learningModule.prerequisites,
+        dependents: learningModule.dependents,
+        lessons: learningModule.lessons.map((lesson) => ({
+          id: lesson.id,
+          title: lesson.title,
+          description: lesson.description,
+          order: lesson.order,
+          estimatedTime: lesson.estimatedTime,
+          exerciseCount: lesson.exercises.length,
+          completed: lesson.progress[0]?.completed || false,
+          completedAt: lesson.progress[0]?.completedAt || null,
+          isUnlocked: lessonAccessMap.get(lesson.id) ?? false,
+        })),
+        projects: learningModule.projects.map((project) => ({
+          id: project.id,
+          title: project.title,
+          description: project.description,
+          estimatedTime: formatProjectEstimatedTime(project.estimatedTime),
+          xpReward: project.xpReward,
+          hasSubmission: project.submissions.length > 0,
+          latestSubmission: project.submissions[0] || null,
+        })),
+      };
+    })();
 
     if (!response) {
       return NextResponse.json({ error: "Module not found" }, { status: 404 });

@@ -24,6 +24,7 @@ import { Seal } from "@/components/brand/seal";
 import { SealMark, SenseiMark } from "@/components/brand/marks";
 import { draftFeedback, isReadableSource, matchCriteria } from "@/lib/ai/reviewer";
 import { cn } from "@/lib/utils";
+import { startNavigation } from "@/components/layout/navigation-progress";
 import type { SubmissionDetail } from "../page";
 
 interface EvaluateClientProps {
@@ -313,7 +314,7 @@ export function EvaluateClient({ submission, aiReady }: EvaluateClientProps) {
         body: JSON.stringify({ decision: pendingDecision, feedback: feedbackTrimmed, checklist }),
       });
       if (!res.ok) {
-        const data = (await res.json()) as { error?: string };
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(data.error ?? "Failed to evaluate submission");
       }
       if (pendingDecision === "approved") {
@@ -322,6 +323,7 @@ export function EvaluateClient({ submission, aiReady }: EvaluateClientProps) {
         setStamped(true);
         await new Promise((r) => setTimeout(r, 1100));
       }
+      startNavigation();
       router.push("/admin/projects");
       router.refresh();
     } catch (err) {

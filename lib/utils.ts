@@ -1,5 +1,14 @@
 import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { extendTailwindMerge } from "tailwind-merge";
+
+// Our own page width (max-w-page) and gutter (px-gutter, app/globals.css), so a narrower width or
+// padding passed to a component replaces them instead of both applying
+const twMerge = extendTailwindMerge({
+  extend: {
+    theme: { container: ["page"] },
+    classGroups: { px: [{ px: ["gutter"] }] },
+  },
+});
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

@@ -20,7 +20,7 @@ export async function SiteHeader() {
   const member = await signedIn();
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-6 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-16 max-w-page items-center justify-between gap-6 px-gutter">
         <Link href={member ? "/dashboard" : "/"} aria-label={member ? "pylearn: your dashboard" : "pylearn home"} className="rounded-sm">
           <Logo />
         </Link>
@@ -85,7 +85,7 @@ export async function SiteFooter() {
   const member = await signedIn();
   return (
     <footer className="border-t border-border">
-      <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-page flex-col gap-6 px-gutter py-10 sm:flex-row sm:items-center sm:justify-between">
         <Logo />
         <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
           {member ? (

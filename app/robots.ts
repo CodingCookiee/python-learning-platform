@@ -25,6 +25,8 @@ export default function robots(): MetadataRoute.Robots {
         // One-time links from emails
         "/auth/reset-password",
         "/auth/verify-email",
+        // Where a refused sign-in lands
+        "/auth/error",
       ],
     },
     sitemap: `${publicOrigin()}/sitemap.xml`,

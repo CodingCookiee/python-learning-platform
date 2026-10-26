@@ -6,7 +6,7 @@ export function Footer() {
   return (
     // Room underneath for the Sensei's button, which sits in the corner over the page's end
     <footer className="border-t border-border pb-16">
-      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-page flex-col gap-4 px-gutter py-8 sm:flex-row sm:items-center sm:justify-between">
         <Logo markClassName="size-6" className="text-muted-foreground" />
         <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
           <Link href="/dashboard" className="text-muted-foreground hover:text-foreground">

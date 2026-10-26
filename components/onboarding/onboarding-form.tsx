@@ -198,7 +198,10 @@ export function OnboardingForm({
           {first ? "Start training" : "Save my plan"}
         </LoadingButton>
         {!first && (
-          <Button variant="ghost" onClick={() => router.push("/dashboard")} disabled={busy}>
+          <Button variant="ghost" onClick={() => {
+              startNavigation();
+              router.push("/dashboard");
+            }} disabled={busy}>
             Cancel
           </Button>
         )}

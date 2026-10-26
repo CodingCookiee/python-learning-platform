@@ -4,8 +4,8 @@ from solution import mask_emails
 
 @test("Masks every address in the text")
 def _():
-    assert mask_emails("Contact raza@rain.one or support@shop.example.com") == (
-        "Contact r***@rain.one or s***@shop.example.com"
+    assert mask_emails("Contact maya@example.org or support@shop.example.com") == (
+        "Contact m***@example.org or s***@shop.example.com"
     )
 
 

@@ -34,70 +34,32 @@ export async function getCached<T>(
   }
 }
 
-export async function invalidateCache(pattern: string): Promise<void> {
+/**
+ * Drop one cached key. Exact keys only: a wildcard would need KEYS, which scans the whole keyspace on
+ * every call and slows down as the cache grows, so per-learner data is either cached under exact keys
+ * or not cached at all.
+ */
+export async function invalidateCache(key: string): Promise<void> {
   try {
-    // For simple keys
-    if (!pattern.includes("*")) {
-      await redis.del(pattern);
-      return;
-    }
-
-    // For pattern matching
-    const keys = await redis.keys(pattern);
-    if (keys.length > 0) {
-      await redis.del(...keys);
-    }
+    await redis.del(key);
   } catch (error) {
     console.error("Cache invalidation error:", error);
   }
 }
 
-export async function cacheSet(
-  key: string,
-  value: unknown,
-  ttl: number = DEFAULT_TTL
-): Promise<void> {
-  try {
-    await redis.setex(key, ttl, JSON.stringify(value));
-  } catch (error) {
-    console.error("Cache set error:", error);
-  }
-}
-
-export async function cacheGet<T>(key: string): Promise<T | null> {
-  try {
-    // Use redis.get<string> because we store serialized JSON strings
-    const cached = await redis.get<string>(key);
-    return cached ? (JSON.parse(cached) as T) : null;
-  } catch (error) {
-    console.error("Cache get error:", error);
-    return null;
-  }
-}
-
 /**
- * Generate cache keys
+ * The cached values: each is read by one place (named here) and cleared by the writes that change it
  */
 export const CacheKeys = {
+  /** GET /api/modules */
   modules: (userId: string) => `modules:${userId}`,
-  module: (moduleId: string, userId: string) => `module:${moduleId}:${userId}`,
-  lesson: (lessonId: string, userId: string) => `lesson:${lessonId}:${userId}`,
-  exercise: (exerciseId: string, userId: string) => `exercise:${exerciseId}:${userId}`,
-  /** GET /api/projects/[id]; everything that changes a submission must invalidate this */
+  /** lib/project-detail.ts (the capstone page); everything that changes a submission must invalidate this */
   project: (projectId: string, userId: string) => `project:v6:${projectId}:${userId}`,
-  userProgress: (userId: string) => `progress:${userId}`,
-  moduleProgress: (moduleId: string, userId: string) => `progress:module:${moduleId}:${userId}`,
+  /** lib/progress-summary.ts. v2: summaries cached before it held whole capstone submissions */
+  userProgress: (userId: string) => `progress:v2:${userId}`,
 };
 
-/**
- * Invalidate user-specific caches when progress changes
- */
+/** Clear the learner's progress-dependent caches when their progress changes */
 export async function invalidateUserCache(userId: string): Promise<void> {
-  await Promise.all([
-    invalidateCache(CacheKeys.modules(userId)),
-    invalidateCache(`module:*:${userId}`),
-    invalidateCache(`lesson:*:${userId}`),
-    invalidateCache(CacheKeys.userProgress(userId)),
-    invalidateCache(`progress:module:*:${userId}`),
-  ]);
+  await Promise.all([invalidateCache(CacheKeys.modules(userId)), invalidateCache(CacheKeys.userProgress(userId))]);
 }

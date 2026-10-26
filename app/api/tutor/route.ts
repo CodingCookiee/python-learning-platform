@@ -6,6 +6,7 @@ import { withAuth, AuthContext } from "@/lib/api-auth";
 import { getDrillForUser } from "@/lib/drills";
 import { callWithLearnerKey } from "@/lib/ai/credentials";
 import { EXPLAIN_QUESTION, guardReply, tutorSystemPrompt, tutorUserTurn } from "@/lib/ai/tutor";
+import { gradingInProgress } from "@/lib/ai/sensei";
 
 // The model can take up to 90 s to answer; Vercel must not cut the function off first
 export const maxDuration = 120;
@@ -28,7 +29,7 @@ const tutorSchema = z.object({
  * Ask the Socratic tutor about a drill, on the learner's own key. The model sees
  * the drill, the learner's code and latest result, but never the reference
  * solution, and the reply is checked so it can't hand the answer over anyway.
- * Off during checkpoints.
+ * Off during a grading (any drill, any tab).
  */
 export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
   try {
@@ -43,7 +44,9 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
 
     const drill = await getDrillForUser(exerciseId, context.userId);
     if (!drill) return NextResponse.json({ error: "Exercise not found" }, { status: 404 });
-    if (drill.mode.kind === "checkpoint") {
+    // Off for the whole grading, not just its own drills: otherwise another drill's tutor, in another
+    // tab, could be handed the graded drill's code
+    if (drill.mode.kind === "checkpoint" || (await gradingInProgress(context.userId))) {
       return NextResponse.json({ error: "The tutor is off during a grading." }, { status: 403 });
     }
     const { solution } = await prisma.exercise.findUniqueOrThrow({ where: { id: exerciseId }, select: { solution: true } });

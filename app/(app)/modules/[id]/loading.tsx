@@ -4,7 +4,7 @@ import { PageLoading, SkeletonHeading } from "@/components/layout/page-loading";
 /** A module: its sheet header with progress, what you'll learn, then the lessons */
 export default function ModuleDetailLoading() {
   return (
-    <PageLoading label="Loading the module" className="max-w-6xl">
+    <PageLoading label="Loading the module">
       <div className="flex flex-col gap-10">
         <Skeleton className="h-4 w-56" />
         <div className="grid gap-8 border-b border-border pb-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:gap-14">

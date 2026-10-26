@@ -7,6 +7,7 @@ import { CHECKPOINT_RETRY_MINUTES } from "@/lib/mastery-rules";
 import { invalidateUserCache } from "@/lib/cache";
 import { blockEmail, unblockEmail } from "@/lib/admin/blocked-emails";
 import { normalizeEmail } from "@/lib/email-address";
+import { DELETED_ACCOUNT_LABEL, forgetAccount } from "@/lib/admin/forget-account";
 
 /**
  * What an admin can do to an account, a learner's progress or a certificate. Every action checks its
@@ -66,10 +67,33 @@ async function log(
   });
 }
 
-/** Other admins who aren't suspended: an account can't take away the last of them */
 /** Other super admins who aren't suspended: the site can't lose the last of them */
-async function otherActiveSuperAdmins(exceptId: string): Promise<number> {
+export async function otherActiveSuperAdmins(exceptId: string): Promise<number> {
   return prisma.user.count({ where: { role: "SUPER_ADMIN", suspendedAt: null, id: { not: exceptId } } });
+}
+
+/** Admins act on other people's training, never their own: an examiner who trains is a learner there */
+const NOT_YOURSELF = "Not on your own account: another admin can do this for you.";
+
+/** A capstone approved or sent back, on the record like every other examiner action */
+export async function logCapstoneDecision(
+  adminId: string,
+  learnerId: string,
+  decision: "approved" | "rejected",
+  detail: { submissionId: string; projectId: string; project: string; xp: number }
+): Promise<void> {
+  const [admin, learner] = await Promise.all([
+    prisma.user.findUnique({ where: { id: adminId }, select: { id: true, email: true } }),
+    prisma.user.findUnique({ where: { id: learnerId }, select: { name: true, email: true } }),
+  ]);
+  if (!admin) return;
+  await log(
+    admin,
+    decision === "approved" ? "capstone.approve" : "capstone.reject",
+    learnerId,
+    learner ? label(learner) : DELETED_ACCOUNT_LABEL,
+    detail
+  );
 }
 
 // Accounts
@@ -121,11 +145,14 @@ export async function deleteUser(
     return fail(400, "Type the account's email address to confirm.");
   if (user.role === "SUPER_ADMIN" && (await otherActiveSuperAdmins(userId)) === 0)
     return fail(409, "That's the last active super admin.");
+  // Notices about it go, and the audit log forgets who it was (lib/admin/forget-account.ts)
+  await forgetAccount(userId);
   await prisma.user.delete({ where: { id: userId } });
   // Confirmation and reset links already sent for the address die with the account
   await revokeTokensFor(user.email);
   if (block) await blockEmail(user.email, admin.id);
-  await log(admin, "user.delete", userId, label(user), { blocked: block });
+  // The deletion is on the record, but not the address: a barred one is kept only as a fingerprint
+  await log(admin, "user.delete", userId, DELETED_ACCOUNT_LABEL, { blocked: block });
   return {
     ok: true,
     message: block
@@ -139,7 +166,8 @@ export async function unblockAddress(admin: Admin, email: string): Promise<Actio
   const address = normalizeEmail(email);
   if (!address.includes("@")) return fail(400, "Type the full email address.");
   if (!(await unblockEmail(address))) return fail(404, "That address isn't blocked.");
-  await log(admin, "user.unblock-email", null, address);
+  // The block was a fingerprint, not the address, so the log doesn't keep the address either
+  await log(admin, "user.unblock-email", null, "A barred address");
   return { ok: true, message: `${address} can sign up again.` };
 }
 
@@ -168,6 +196,7 @@ export async function setRole(
 }
 
 export async function markVerified(admin: Admin, userId: string): Promise<ActionResult> {
+  if (userId === admin.id) return fail(400, NOT_YOURSELF);
   const user = await target(userId);
   if (!user) return fail(404, "No such account.");
   if (user.emailVerified) return fail(409, "Their email is already confirmed.");
@@ -228,6 +257,7 @@ export async function grantModulePass(
   userId: string,
   moduleId: string
 ): Promise<ActionResult> {
+  if (userId === admin.id) return fail(400, NOT_YOURSELF);
   const [user, mod] = await Promise.all([target(userId), moduleFor(moduleId)]);
   if (!user) return fail(404, "No such account.");
   if (!mod) return fail(404, "No such module.");
@@ -259,6 +289,7 @@ export async function revokeModulePass(
   userId: string,
   moduleId: string
 ): Promise<ActionResult> {
+  if (userId === admin.id) return fail(400, NOT_YOURSELF);
   const [user, mod] = await Promise.all([target(userId), moduleFor(moduleId)]);
   if (!user) return fail(404, "No such account.");
   if (!mod) return fail(404, "No such module.");
@@ -287,6 +318,7 @@ export async function clearGradingCooldown(
   userId: string,
   moduleId: string
 ): Promise<ActionResult> {
+  if (userId === admin.id) return fail(400, NOT_YOURSELF);
   const [user, mod] = await Promise.all([target(userId), moduleFor(moduleId)]);
   if (!user) return fail(404, "No such account.");
   if (!mod) return fail(404, "No such module.");
@@ -329,6 +361,7 @@ export async function revokeCertificate(
     },
   });
   if (!cert) return fail(404, "No certificate with that ID.");
+  if (cert.user.id === admin.id) return fail(400, NOT_YOURSELF);
   if (cert.revokedAt) return fail(409, "It's already revoked.");
   await prisma.certificate.update({
     where: { code },
@@ -351,6 +384,7 @@ export async function reinstateCertificate(admin: Admin, code: string): Promise<
     },
   });
   if (!cert) return fail(404, "No certificate with that ID.");
+  if (cert.user.id === admin.id) return fail(400, NOT_YOURSELF);
   if (!cert.revokedAt) return fail(409, "It isn't revoked.");
   await prisma.certificate.update({
     where: { code },

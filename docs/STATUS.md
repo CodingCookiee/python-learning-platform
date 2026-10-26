@@ -1,10 +1,10 @@
 # Status: where pylearn stands
 
-Updated 2026-10-23. Keep this page short and current: rewrite it when the phase changes, rather than adding to it. The history lives in `docs/ARCHITECTURE.md` (dated notes); this page is only the present.
+Updated 2026-10-26. Keep this page short and current: rewrite it when the phase changes, rather than adding to it. The history lives in `docs/ARCHITECTURE.md` (dated notes); this page is only the present.
 
 ## The phase we're in
 
-**v1 is built, and it passed its release QA. It's waiting on the owner's launch setup.** All 25 modules, 168 lessons and 24 capstones are written and validated. Every flow was tested end to end on a production build ([QA report](QA-REPORT-2026-10-19.md)). No code task blocks launch.
+**v1 is built, and it passed its release QA. It's waiting on the owner's launch setup.** All 25 modules, 168 lessons and 24 capstones are written and validated. Every flow was tested end to end on a production build ([QA report](QA-REPORT-2026-10-19.md)), and a pre-launch review on 2026-10-26 fixed the security and correctness problems it found ([WHATS-LEFT.md](WHATS-LEFT.md) §5). No code task blocks launch.
 
 ## What's next, in order
 
@@ -16,7 +16,7 @@ Updated 2026-10-23. Keep this page short and current: rewrite it when the phase 
    - run `content:sync` after the first deploy;
    - sign in as the admin straight away.
 2. **Right after launch:** [WHATS-LEFT.md](WHATS-LEFT.md) §3–§4. That means a production run-through with real email, the AI features tried with a real key, Search Console and Bing, and the first week's logs.
-3. **Post-launch follow-ups:** [WHATS-LEFT.md](WHATS-LEFT.md) §6. That's security M-2 (end other sessions on a password change) first, then the small items and dead-code cleanup.
+3. **Post-launch follow-ups:** [WHATS-LEFT.md](WHATS-LEFT.md) §6. First, after 2026-10-28, upgrade `next` to 16.4.1 or later and make CI's audit step blocking again; then the low security items and the small things.
 4. **v2: more languages, Go first:** [ARCHITECTURE.md](ARCHITECTURE.md) §17. The milestones run in this order:
    - **M9:** an execution sandbox, which also makes grading tamper-proof;
    - **M10:** multi-language foundations;
@@ -55,6 +55,9 @@ Since then (2026-10-23), the AI routes declare `maxDuration` for Vercel, and the
 ## Good to know when picking this up
 
 - **Dependencies were upgraded on 2026-10-19:** `next` 16.3.8, `next-auth` beta.32, `nodemailer` 10 (Auth.js's optional nodemailer peer is pointed at it through `overrides` in `package.json`). After pulling, run `npm install` and restart the dev server. If routes 404 oddly, delete `.next` and restart.
-- **Production refuses to start with `GRADING_MODE=server`**, and logs each missing launch setting (`instrumentation.ts`, `lib/env.ts`).
+- **`GRADING_MODE=server` stops a production deploy** in the build (`scripts/check-production-env.ts`, run from `vercel.json`), and a server would refuse it at start too (`instrumentation.ts`). Both list each missing launch setting.
+- **A password change ends every other session:** `User.sessionVersion`, compared by `withAuth` and the navbar (`lib/session-version.ts`).
+- **Days are the learner's own:** streaks, the review cap, the AI cap and the training week use `User.timeZone` (`lib/day.ts`), saved from the browser by the streak ping.
+- **Email lookups are exact** on the lower-cased address. Don't use Prisma's `mode: "insensitive"` for emails: it compiles to `ILIKE`, where `_` is a wildcard.
 - **Test builds go to `.next-e2e` on :3010**, never into `.next` (see HOW-WE-WORK.md, "The local environment").
 - **The owner commits.** Check `git status` to see what's waiting.

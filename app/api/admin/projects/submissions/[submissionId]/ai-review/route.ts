@@ -3,8 +3,9 @@ import { withAuth, isAdmin, AuthContext } from "@/lib/api-auth";
 import { reviewForExaminer } from "@/lib/ai/review-submission";
 import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 
-// A review reads the project (GitHub included) and gives the model up to 150 s
-export const maxDuration = 180;
+// A review reads the project from GitHub (up to three 10 s calls) and gives the model up to 150 s, which
+// together can reach 180 s; 240 leaves headroom and stays inside Fluid compute's 300 s limit
+export const maxDuration = 240;
 
 /**
  * POST /api/admin/projects/submissions/[submissionId]/ai-review

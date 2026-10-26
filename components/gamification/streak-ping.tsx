@@ -3,23 +3,10 @@
 import { useEffect } from "react";
 import { accountKey } from "@/lib/account-storage";
 
-interface PingResponse {
-  currentStreak: number;
-  longestStreak: number;
-  achievements: Array<{
-    id: string;
-    name: string;
-    description: string;
-    icon: string;
-    tier: string;
-    xpReward: number;
-  }>;
-}
-
 /**
- * Silent component that checks the streak once per browser session (a lapsed
- * streak is reset; only real practice grows it).
- * Renders null -- purely a side-effect component.
+ * Silent component that checks the streak once per browser session (a lapsed streak is reset; only
+ * real practice grows it, so the ping never unlocks anything). It also tells the server the
+ * browser's time zone, so the learner's days are their own. Renders null.
  */
 export function StreakPing() {
   useEffect(() => {
@@ -31,15 +18,12 @@ export function StreakPing() {
 
     async function ping() {
       try {
-        const res = await fetch("/api/streak/ping", { method: "POST" });
-        if (!res.ok) return;
-
-        const data: PingResponse = await res.json();
-        sessionStorage.setItem(SESSION_KEY, "1");
-
-        if (data.achievements.length > 0) {
-          console.log("[StreakPing] New achievements unlocked:", data.achievements);
-        }
+        const res = await fetch("/api/streak/ping", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
+        });
+        if (res.ok) sessionStorage.setItem(SESSION_KEY, "1");
       } catch (error) {
         console.error("[StreakPing] Failed to ping streak endpoint:", error);
       }

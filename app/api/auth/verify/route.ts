@@ -12,7 +12,8 @@ const schema = z.object({ token: z.string().min(10).max(200) });
  * link, so mail scanners that open links can't use the token up.
  */
 export async function POST(req: Request) {
-  const limited = await rateLimit("emailSend", `verify:${clientIp(req)}`);
+  // Its own budget, not the sending one: learners behind one address (a classroom) all confirm at once
+  const limited = await rateLimit("emailVerify", clientIp(req));
   if (!limited.ok) return tooManyRequests(limited);
   const parsed = schema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "That link isn't valid." }, { status: 400 });

@@ -1,5 +1,5 @@
 {
-  "buildCommand": "prisma generate && prisma migrate deploy && next build",
+  "buildCommand": "prisma generate && if [ \"$VERCEL_ENV\" = \"production\" ]; then tsx scripts/check-production-env.ts && prisma migrate deploy; fi && npm run build",
   "framework": "nextjs",
   "regions": ["iad1"],
   "headers": [

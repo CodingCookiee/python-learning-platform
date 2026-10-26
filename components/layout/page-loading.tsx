@@ -22,7 +22,7 @@ export function PageLoading({
       role="status"
       aria-busy="true"
       className={cn(
-        "mx-auto min-h-[calc(100dvh-4rem)] max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8",
+        "mx-auto min-h-[calc(100dvh-4rem)] max-w-page px-gutter py-8 sm:py-12",
         className
       )}
     >

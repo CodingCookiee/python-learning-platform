@@ -58,3 +58,7 @@ next-env.d.ts
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Python bytecode: machine-specific (it embeds local paths) and never needed in the repo
+__pycache__/
+*.pyc

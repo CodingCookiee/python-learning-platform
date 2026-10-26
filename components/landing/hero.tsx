@@ -11,8 +11,8 @@ export function Hero({ moduleCount, lessonCount }: { moduleCount: number; lesson
   const [stripes, setStripes] = React.useState(0);
 
   return (
-    <section aria-labelledby="hero-heading" className="px-4 pt-10 pb-12 sm:px-6 lg:px-8 lg:pt-16">
-      <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] items-start gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-16">
+    <section aria-labelledby="hero-heading" className="px-gutter pt-10 pb-12 lg:pt-16">
+      <div className="mx-auto grid max-w-page grid-cols-[minmax(0,1fr)] items-start gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-16">
         <div className="flex flex-col gap-7 lg:pt-6">
           <h1
             id="hero-heading"
@@ -47,7 +47,7 @@ export function Hero({ moduleCount, lessonCount }: { moduleCount: number; lesson
         <TryIt onPass={() => setStripes(1)} />
       </div>
 
-      <div className="mx-auto mt-14 max-w-7xl lg:mt-20">
+      <div className="mx-auto mt-14 max-w-page lg:mt-20">
         <BeltLadder
           currentBelt="white"
           stripes={stripes}

@@ -4,7 +4,7 @@ import { PageLoading } from "@/components/layout/page-loading";
 /** The review queue: title and lede, the week strip, then the due drills */
 export default function ReviewLoading() {
   return (
-    <PageLoading label="Loading your review queue" className="max-w-4xl">
+    <PageLoading label="Loading your review queue">
       <div className="flex flex-col gap-10">
         <div className="flex flex-col gap-3">
           <Skeleton className="h-12 w-48" />

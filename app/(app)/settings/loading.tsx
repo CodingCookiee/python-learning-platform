@@ -4,7 +4,7 @@ import { PageLoading, SkeletonHeader } from "@/components/layout/page-loading";
 /** The loading screen for settings: a title, then rows of a label beside its controls */
 export default function SettingsLoading() {
   return (
-    <PageLoading label="Loading your settings" className="max-w-5xl">
+    <PageLoading label="Loading your settings">
       <div className="flex flex-col gap-10">
         <SkeletonHeader lede={1} />
         <div className="flex flex-col border-t border-border">

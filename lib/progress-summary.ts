@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getCached, CacheKeys } from "@/lib/cache";
+import { dayKey, startOfDay } from "@/lib/day";
+import { learnerTimeZone } from "@/lib/learner-time-zone";
 import type { Prisma } from "@/lib/generated/prisma/client";
 
 /** Live content only: archived rows and pre-content legacy modules (no track) stay hidden */
@@ -19,10 +21,10 @@ export function getProgressSummary(userId: string) {
 export type ProgressSummary = Awaited<ReturnType<typeof loadProgressSummary>>;
 
 async function loadProgressSummary(userId: string) {
+  // The calendar's days are the learner's own (the browser draws it in their zone), not the server's UTC
+  const timeZone = await learnerTimeZone(userId);
+  const eightyfourDaysAgo = startOfDay(new Date(Date.now() - 84 * 86_400_000), timeZone);
   // Independent reads, in parallel: on a remote database each one is a round trip
-  const eightyfourDaysAgo = new Date();
-  eightyfourDaysAgo.setDate(eightyfourDaysAgo.getDate() - 84);
-  eightyfourDaysAgo.setHours(0, 0, 0, 0);
   const [
     user,
     completedLessons,
@@ -49,9 +51,17 @@ async function loadProgressSummary(userId: string) {
       distinct: ["exerciseId"],
       select: { exerciseId: true, submittedAt: true },
     }),
+    // Only what the summary shows. The row also holds the uploaded files (base64, up to megabytes) and
+    // the examiner's private AI draft, and this summary goes to the browser and into the cache
     prisma.projectSubmission.findMany({
       where: { userId, status: "approved", project: LIVE_PROJECT },
-      include: { project: { select: { id: true, title: true, moduleId: true, xpReward: true } } },
+      select: {
+        id: true,
+        status: true,
+        submittedAt: true,
+        evaluatedAt: true,
+        project: { select: { id: true, title: true, moduleId: true, xpReward: true } },
+      },
     }),
     prisma.userAchievement.findMany({
       where: { userId, achievement: { archivedAt: null } },
@@ -90,20 +100,13 @@ async function loadProgressSummary(userId: string) {
       data: { userId, currentStreak: 0, longestStreak: 0, lastActivityDate: new Date() },
     }));
 
-  // Active dates for the streak calendar (last 84 days)
-  function toDateStr(date: Date): string {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const d = String(date.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
-  }
-
+  // Active dates for the streak calendar (last 84 days), as the learner's calendar dates
   const activeDateSet = new Set<string>();
   for (const p of recentProgress) {
-    if (p.completedAt) activeDateSet.add(toDateStr(new Date(p.completedAt)));
+    if (p.completedAt) activeDateSet.add(dayKey(new Date(p.completedAt), timeZone));
   }
   for (const e of recentExercises) {
-    activeDateSet.add(toDateStr(new Date(e.submittedAt)));
+    activeDateSet.add(dayKey(new Date(e.submittedAt), timeZone));
   }
   const activeDates = Array.from(activeDateSet).sort();
 

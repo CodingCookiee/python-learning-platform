@@ -148,6 +148,8 @@ export function CiPanel({
               onChange={(e) => setRepo(e.target.value)}
               placeholder="https://github.com/you/project"
               className="font-mono text-sm"
+              aria-invalid={error ? true : undefined}
+              aria-describedby={error ? `ci-error-${targetId}` : undefined}
             />
             <LoadingButton type="submit" loading={busy === "connect"} loadingText="Connecting…" disabled={busy === "check" || !repo.trim()}>
               Connect
@@ -259,7 +261,11 @@ export function CiPanel({
           )}
         </>
       )}
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && (
+        <p id={`ci-error-${targetId}`} role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      )}
     </section>
   );
 }

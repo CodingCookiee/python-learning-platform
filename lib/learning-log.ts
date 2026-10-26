@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { AUTOMATION_TRACK, getCurriculumState, PYTHON_TRACK } from "@/lib/curriculum-state";
 import { estimateTrainingHours, startOfWeek } from "@/lib/pacing";
+import { daysBetween, storedDayKey, weekRange } from "@/lib/day";
+import { learnerTimeZone } from "@/lib/learner-time-zone";
 import { ordinal } from "@/lib/ranks";
 import { BLACK_BELT, blackBeltIfDue } from "@/lib/black-belt";
 
@@ -36,8 +38,6 @@ export interface WeekPrompts {
   /** Drills tried this week and not passed since */
   unsolved: string[];
 }
-
-const WEEK_MS = 7 * 86_400_000;
 
 function list(items: string[], max = 3): string {
   if (items.length === 0) return "";
@@ -82,8 +82,9 @@ async function currentPhase(userId: string): Promise<{ phase: string; nextGoal: 
 }
 
 /** The week's drills: how many were passed, their topics, and the ones still unsolved */
-async function weekDrills(userId: string, weekOf: Date): Promise<WeekPrompts & { passed: number }> {
-  const range = { gte: weekOf, lt: new Date(weekOf.getTime() + WEEK_MS) };
+async function weekDrills(userId: string, weekOf: Date, timeZone: string | null): Promise<WeekPrompts & { passed: number }> {
+  const { start, end } = weekRange(storedDayKey(weekOf), timeZone);
+  const range = { gte: start, lt: end };
   const [passed, attempted] = await Promise.all([
     prisma.exerciseSubmission.findMany({
       where: { userId, passed: true, submittedAt: range },
@@ -116,23 +117,24 @@ async function weekDrills(userId: string, weekOf: Date): Promise<WeekPrompts & {
 }
 
 /** A check-in drafted from the week's activity: the facts, with prompts for what only the learner can say */
-async function draftFor(userId: string, weekOf: Date): Promise<Omit<LogWeek, "week" | "saved">> {
-  const until = new Date(weekOf.getTime() + WEEK_MS);
-  const range = { gte: weekOf, lt: until };
+async function draftFor(userId: string, weekOf: Date, timeZone: string | null): Promise<Omit<LogWeek, "week" | "saved">> {
+  // weekOf names the learner's Monday; the week itself runs from their own midnight to the next Monday's
+  const { start, end: until } = weekRange(storedDayKey(weekOf), timeZone);
+  const range = { gte: start, lt: until };
   const [lessons, drills, checkpoints, capstones, labs, hours, where] = await Promise.all([
     prisma.progress.findMany({
       where: { userId, completed: true, completedAt: range },
       orderBy: { completedAt: "asc" },
       select: { lesson: { select: { title: true } } },
     }),
-    weekDrills(userId, weekOf),
+    weekDrills(userId, weekOf, timeZone),
     prisma.checkpointAttempt.findMany({
       where: { userId, passed: true, submittedAt: range },
       select: { placement: true, module: { select: { title: true } } },
     }),
     prisma.projectSubmission.findMany({ where: { userId, submittedAt: range }, select: { project: { select: { title: true } } } }),
     prisma.labRun.findMany({ where: { userId, verifiedAt: range }, select: { lesson: { select: { lab: true, title: true } } } }),
-    estimateTrainingHours(userId, weekOf, until),
+    estimateTrainingHours(userId, start, until),
     currentPhase(userId),
   ]);
 
@@ -161,14 +163,15 @@ async function draftFor(userId: string, weekOf: Date): Promise<Omit<LogWeek, "we
 }
 
 async function weekNumber(userId: string, weekOf: Date): Promise<number> {
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { onboardedAt: true, createdAt: true } });
-  const started = startOfWeek(user?.onboardedAt ?? user?.createdAt ?? new Date());
-  return Math.max(1, Math.floor((weekOf.getTime() - started.getTime()) / WEEK_MS) + 1);
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { onboardedAt: true, createdAt: true, timeZone: true } });
+  const started = startOfWeek(user?.onboardedAt ?? user?.createdAt ?? new Date(), user?.timeZone);
+  return Math.max(1, Math.floor(daysBetween(storedDayKey(started), storedDayKey(weekOf)) / 7) + 1);
 }
 
 /** This week's check-in: the saved entry if there is one, otherwise a draft from activity */
 export async function getCurrentWeek(userId: string): Promise<LogWeek> {
-  const weekOf = startOfWeek();
+  const timeZone = await learnerTimeZone(userId);
+  const weekOf = startOfWeek(new Date(), timeZone);
   const [saved, week] = await Promise.all([
     prisma.learningLogEntry.findUnique({ where: { userId_weekOf: { userId, weekOf } } }),
     weekNumber(userId, weekOf),
@@ -176,17 +179,18 @@ export async function getCurrentWeek(userId: string): Promise<LogWeek> {
   if (saved) {
     const [phase, { topics, unsolved }] = await Promise.all([
       saved.phase || currentPhase(userId).then((p) => p.phase),
-      weekDrills(userId, weekOf),
+      weekDrills(userId, weekOf, timeZone),
     ]);
     return { ...pick(saved), weekOf: weekOf.toISOString(), week, phase, saved: true, prompts: { topics, unsolved } };
   }
-  return { ...(await draftFor(userId, weekOf)), week, saved: false };
+  return { ...(await draftFor(userId, weekOf, timeZone)), week, saved: false };
 }
 
 /** Pre-filled values only (for "Refill from this week's activity") */
 export async function getWeekDraft(userId: string): Promise<LogWeek> {
-  const weekOf = startOfWeek();
-  return { ...(await draftFor(userId, weekOf)), week: await weekNumber(userId, weekOf), saved: false };
+  const timeZone = await learnerTimeZone(userId);
+  const weekOf = startOfWeek(new Date(), timeZone);
+  return { ...(await draftFor(userId, weekOf, timeZone)), week: await weekNumber(userId, weekOf), saved: false };
 }
 
 function pick(e: { hours: number; built: string; learned: string; stuck: string; nextGoal: string; question: string }) {
@@ -195,7 +199,7 @@ function pick(e: { hours: number; built: string; learned: string; stuck: string;
 
 export async function getPastWeeks(userId: string, limit = 26): Promise<LogWeek[]> {
   const entries = await prisma.learningLogEntry.findMany({
-    where: { userId, weekOf: { lt: startOfWeek() } },
+    where: { userId, weekOf: { lt: startOfWeek(new Date(), await learnerTimeZone(userId)) } },
     orderBy: { weekOf: "desc" },
     take: limit,
   });
@@ -214,7 +218,7 @@ export async function saveCurrentWeek(
   userId: string,
   data: { hours: number; built: string; learned: string; stuck: string; nextGoal: string; question: string }
 ) {
-  const weekOf = startOfWeek();
+  const weekOf = startOfWeek(new Date(), await learnerTimeZone(userId));
   const { phase } = await currentPhase(userId);
   return prisma.learningLogEntry.upsert({
     where: { userId_weekOf: { userId, weekOf } },

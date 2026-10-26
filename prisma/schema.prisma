@@ -46,6 +46,10 @@ model User {
   /// Set by an admin: the account can't sign in or use the app until it's cleared
   suspendedAt     DateTime?
   suspendedReason String?
+  /// Raised when the password changes: sessions signed in under an older value stop working
+  sessionVersion  Int       @default(0)
+  /// The learner's IANA time zone (from their browser), so streaks and daily limits follow their own days
+  timeZone        String?
 
   /// First-run setup (/onboarding): set once the learner has answered it
   onboardedAt DateTime?

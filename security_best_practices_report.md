@@ -2,26 +2,32 @@
 
 Reviewed 2026-10-14 against the Next.js server, React frontend and general web frontend security guidance. Stack: Next.js 16.2.7 (App Router, Proxy), React 19.2, Auth.js v5 (JWT sessions in an HttpOnly cookie), Prisma 7 / Postgres, Pyodide (browser and Node worker threads), Upstash Redis.
 
-## Status on 2026-10-19 (release QA)
+## Status on 2026-10-26 (pre-launch review)
 
-Every finding was re-checked against the code on 2026-10-19, and the quick ones were fixed in the same pass.
+Every finding was re-checked against the code on 2026-10-19 (release QA) and again on 2026-10-26, when the pre-launch review fixed the rest it could and found the new items at the end of the table.
 
 | ID | Status | How |
 |---|---|---|
-| C-1 | **Fixed** | Emails are normalised everywhere; the bootstrap admin needs a verified exact address and only while no admin exists |
-| C-2 | Open, contained | `GRADING_MODE` stays `client`, and production now **refuses to start** with `server` (`instrumentation.ts`, `productionProblems` in `lib/env.ts`). The real fix is the execution sandbox (ARCHITECTURE.md §17, M9) |
-| C-3 | **Fixed** | `next` 16.3.8, `next-auth` 5.0.0-beta.32 (`@auth/core` 0.41.3), `@auth/prisma-adapter` 2.11.3, `nodemailer` 10.0.15 (Auth.js's optional nodemailer peer is pointed at it with an npm `overrides` entry), `shadcn` moved to devDependencies. The audit went from 35 advisories (5 critical, 21 high) to 13 (0 critical, 7 high), all in Prisma's CLI tooling, Next's build tooling and Monaco's bundled DOMPurify. CI now fails on any critical advisory |
+| C-1 | **Fixed** | Emails are normalised everywhere, and every lookup is now an **exact** match on the lower-cased address (2026-10-26: a case-insensitive match compiled to `ILIKE`, where `_` is a wildcard, so a reset link for `ann_lee@…` could reset `annxlee@…`). The bootstrap admin needs an exact address that was really proven (link-confirmed, or a verified Google or GitHub address), and only while no admin exists |
+| C-2 | Open, contained | `GRADING_MODE` stays `client`. A production build with `server` **stops before deploying** (`scripts/check-production-env.ts`, from `vercel.json`), and a server refuses it at start (`instrumentation.ts`). The real fix is the execution sandbox (ARCHITECTURE.md §17, M9) |
+| C-3 | Mostly fixed | `next` 16.3.8, `next-auth` 5.0.0-beta.32 (`@auth/core` 0.41.3), `@auth/prisma-adapter` 2.11.3, `nodemailer` 10.0.15 (Auth.js's optional nodemailer peer is pointed at it with an npm `overrides` entry), `zod` 4.6.7, `shadcn` in devDependencies. Two critical `next` advisories published since (fixed in 16.4.1): the image optimizer, now switched off (`images.unoptimized`; nothing uses `next/image`), and `use cache`, which the app doesn't use. Upgrade to 16.4.1+ after 2026-10-28 and make CI's audit blocking again |
 | H-1 | **Fixed** | The legacy self-pass routes are deleted |
 | H-2 | Accepted for v1 | Drill grading is honour-system while `GRADING_MODE=client`. Capstones stay examiner-approved, so certificates still need a person's sign-off |
-| M-1 | Partly fixed | Sign-in is now limited per IP as well as per email (`signInIp`). Production logs a missing-setting error at startup when Upstash isn't set. Set the Upstash variables before launch |
-| M-2 | Open | First follow-up after launch: a session version in the JWT |
-| M-3 | **Fixed** | Google needs `email_verified`; GitHub sign-ins now check GitHub's verified-email list (`githubEmailVerified` in `auth.config.ts`) |
-| M-4 | Open, low on Vercel | Vercel sets the host header itself |
+| M-1 | Partly fixed | Sign-in is limited per email, and per IP on **failed** attempts only (so a classroom behind one address isn't locked out). The client IP comes from Vercel's `x-real-ip`. Production logs a missing-setting line when Upstash isn't set: set the Upstash variables before launch |
+| M-2 | **Fixed** (2026-10-26) | `User.sessionVersion`: a session carries the version it signed in under, and a password change or reset raises it. `withAuth` and the navbar refuse older sessions; the settings page signs straight back in (`lib/session-version.ts`) |
+| M-3 | **Fixed** | Google needs `email_verified`; a first GitHub sign-in checks GitHub's verified-email list (`githubEmailVerified` in `auth.config.ts`). A returning GitHub account isn't re-checked, so a learner whose old address left GitHub isn't locked out |
+| M-4 | **Fixed** | The pages call their data functions directly; `lib/server-url.ts` is gone |
 | M-5 | Open | HTTPS only, no redirects and an 8 s timeout limit it |
 | L-1 | **Fixed** | AI replies render without raw HTML |
 | L-3 | **Fixed** | Examiner downloads are always `application/octet-stream` with `Content-Security-Policy: sandbox` and a safe ASCII filename; the route uses `withAdmin`, so a **suspended admin can no longer download files** (found in this pass) |
 | L-5 | **Fixed** | A one-time link is accepted only by the request that deletes it (test: two simultaneous uses, one succeeds) |
-| L-2, L-4, L-6 to L-9 | Open, low | Unchanged |
+| L-4 | **Fixed** (2026-10-26) | Capstone uploads are measured from their content: 1 MB a file, 3 MB in all (under Vercel's 4.5 MB request limit) (`lib/capstone-upload.ts`) |
+| L-2, L-6 to L-9 | Open, low | Unchanged |
+| N-1 (2026-10-26) | **Fixed** | An examiner could approve their own capstone, unaudited, and a double click could award twice. Self-grading is refused, the decision is one transaction, and it's in the audit log |
+| N-2 (2026-10-26) | **Fixed** | A deleted account's email stayed in the audit log and admin notices, against the Privacy page. Both are cleared on deletion (`lib/admin/forget-account.ts`) |
+| N-3 (2026-10-26) | **Fixed** | The last super admin could delete their own account, re-arming the bootstrap address. Refused now |
+| N-4 (2026-10-26) | **Fixed** | `GET /api/progress` sent the examiner's private AI draft and the uploaded files to the learner. It selects only what the profile shows |
+| N-5 (2026-10-26) | **Fixed** | A refused Google or GitHub sign-in landed on a 404 (no `/auth/error` page) |
 | Info: drafts in `localStorage` | **Fixed** | Browser storage is keyed to the account and cleared on sign-out (`lib/account-storage.ts`) |
 
 ## Executive summary

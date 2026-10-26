@@ -855,7 +855,7 @@ if (process.env.EVAL) {
   process.exit(0);
 }
 if (process.env.PROBE) {
-  for (const url of [`/api/lessons/${ids.lesson}`, `/api/modules/${ids.module}`]) {
+  for (const url of [`/api/modules/${ids.module}`]) {
     const out = await ev(
       `fetch(${JSON.stringify(url)}).then(async (r) => r.status + " " + (await r.text()).slice(0, 500))`
     );

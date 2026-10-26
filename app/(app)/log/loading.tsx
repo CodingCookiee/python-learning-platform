@@ -4,7 +4,7 @@ import { PageLoading, SkeletonHeader, SkeletonHeading, SkeletonRows } from "@/co
 /** The loading screen for the learning log: title, this week's check-in beside its preview, then past weeks */
 export default function LogLoading() {
   return (
-    <PageLoading label="Loading your learning log" className="max-w-6xl">
+    <PageLoading label="Loading your learning log">
       <div className="flex flex-col gap-10">
         <SkeletonHeader />
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">

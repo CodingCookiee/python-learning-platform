@@ -12,7 +12,8 @@ export const metadata: Metadata = { title: "Learning log" };
 function weekLabel(iso: string): string {
   const start = new Date(iso);
   const end = new Date(start.getTime() + 6 * 86_400_000);
-  const f = (d: Date) => d.toLocaleDateString([], { month: "short", day: "numeric" });
+  // A week is stored as its Monday's date (UTC midnight), so it reads the same date in UTC everywhere
+  const f = (d: Date) => d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
   return `${f(start)} – ${f(end)}`;
 }
 
@@ -22,7 +23,7 @@ export default async function LogPage() {
   const [current, past] = await Promise.all([getCurrentWeek(session.user.id), getPastWeeks(session.user.id)]);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+    <div className="mx-auto max-w-page px-gutter py-8 sm:py-12">
       <div className="flex flex-col gap-8">
         <FadeIn>
           <Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Learning log" }]} />

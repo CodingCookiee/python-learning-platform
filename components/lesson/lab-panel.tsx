@@ -72,8 +72,12 @@ function LabPanelInner({ initial }: { initial: LabView }) {
   const [input, setInput] = React.useState("");
   const [busy, setBusy] = React.useState<"check" | "refresh" | null>(null);
   const [error, setError] = React.useState<string | null>(null);
+  // Whether the error is about what was entered, so the field says so too
+  const [inputError, setInputError] = React.useState(false);
   const { spec } = lab;
   const verified = lab.verifiedAt !== null;
+  const inputErrorProps =
+    error && inputError ? { "aria-invalid": true, "aria-describedby": "lab-error" } : {};
 
   async function refresh() {
     setBusy("refresh");
@@ -92,6 +96,7 @@ function LabPanelInner({ initial }: { initial: LabView }) {
   async function check() {
     setBusy("check");
     setError(null);
+    setInputError(false);
     try {
       const res = await fetch(`/api/labs/${lab.lessonId}/check`, {
         method: "POST",
@@ -99,8 +104,10 @@ function LabPanelInner({ initial }: { initial: LabView }) {
         body: JSON.stringify(spec.kind === "url" ? { url: input } : { output: input }),
       });
       const data = (await res.json().catch(() => ({}))) as LabView & { error?: string };
-      if (!res.ok) setError(data.error ?? "The check didn't run.");
-      else setLab(data);
+      if (!res.ok) {
+        setError(data.error ?? "The check didn't run.");
+        setInputError(true);
+      } else setLab(data);
     } catch {
       setError("We couldn't reach the server.");
     } finally {
@@ -170,7 +177,7 @@ function LabPanelInner({ initial }: { initial: LabView }) {
             Your deployed URL <span className="font-normal text-muted-foreground">(the checker fetches {spec.path})</span>
           </label>
           <div className="flex gap-2">
-            <Input id="lab-url" value={input} onChange={(e) => setInput(e.target.value)} placeholder="https://my-service.example.com" className="font-mono text-sm" />
+            <Input id="lab-url" value={input} onChange={(e) => setInput(e.target.value)} placeholder="https://my-service.example.com" className="font-mono text-sm" {...inputErrorProps} />
             <LoadingButton onClick={() => void check()} loading={busy === "check"} loadingText="Checking…" disabled={busy === "refresh" || !input.trim()}>
               Check
             </LoadingButton>
@@ -189,14 +196,18 @@ function LabPanelInner({ initial }: { initial: LabView }) {
           <label className="text-sm font-semibold" htmlFor="lab-output">
             Paste the output{spec.command ? <> of <code className="font-mono text-[0.8125rem]">{spec.command}</code></> : null}
           </label>
-          <Textarea id="lab-output" value={input} onChange={(e) => setInput(e.target.value)} rows={5} spellCheck={false} className="font-mono text-xs" />
+          <Textarea id="lab-output" value={input} onChange={(e) => setInput(e.target.value)} rows={5} spellCheck={false} className="font-mono text-xs" {...inputErrorProps} />
           <LoadingButton className="w-fit" onClick={() => void check()} loading={busy === "check"} loadingText="Checking…" disabled={busy === "refresh" || !input.trim()}>
             Check
           </LoadingButton>
         </div>
       )}
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && (
+        <p id="lab-error" role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      )}
 
       {lab.lastResult && (
         <div className="flex flex-col gap-1 text-sm" aria-live="polite">

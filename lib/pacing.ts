@@ -1,4 +1,5 @@
 import { blackBeltIfDue } from "@/lib/black-belt";
+import { dateFromKey, weekKey, weekRange } from "@/lib/day";
 import { prisma } from "@/lib/prisma";
 import { AUTOMATION_TRACK, getCurriculumState, PYTHON_TRACK, type TrackProgress } from "@/lib/curriculum-state";
 
@@ -26,12 +27,12 @@ export interface Pace {
   blackBeltPending: boolean;
 }
 
-export function startOfWeek(now = new Date()): Date {
-  const d = new Date(now);
-  d.setHours(0, 0, 0, 0);
-  // Weeks start on Monday
-  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-  return d;
+/**
+ * The learner's current week as it's stored (a learning-log entry's weekOf): its Monday, in their
+ * own time zone, as that date's UTC midnight. For "what happened this week" use lib/day.ts weekRange.
+ */
+export function startOfWeek(now = new Date(), timeZone?: string | null): Date {
+  return dateFromKey(weekKey(now, timeZone));
 }
 
 function hoursLeftIn(track: TrackProgress | undefined): number {
@@ -69,9 +70,14 @@ export async function estimateTrainingHours(userId: string, from: Date, to = new
 }
 
 export async function getPace(userId: string): Promise<Pace> {
+  // One query, awaited twice: a real Promise, so Prisma's lazy one isn't sent again
+  const userRow = Promise.resolve(
+    prisma.user.findUnique({ where: { id: userId }, select: { weeklyHours: true, goal: true, timeZone: true } })
+  );
   const [user, hoursThisWeek, tracks] = await Promise.all([
-    prisma.user.findUnique({ where: { id: userId }, select: { weeklyHours: true, goal: true } }),
-    estimateTrainingHours(userId, startOfWeek()),
+    userRow,
+    // The learner's own week: from their Monday's midnight, not the server's
+    userRow.then((u) => estimateTrainingHours(userId, weekRange(weekKey(new Date(), u?.timeZone), u?.timeZone).start)),
     getCurriculumState(userId),
   ]);
 

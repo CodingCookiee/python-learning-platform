@@ -40,9 +40,14 @@ export default async function ProfilePage() {
   const session = await auth();
   if (!session?.user) redirect("/auth/signin");
 
-  // Read directly, not through our own API over HTTP: one less round trip, and no Host header
-  const data = await getProgressSummary(session.user.id).catch(() => null);
-  if (!data) redirect("/dashboard");
+  // Read directly, not through our own API over HTTP: one less round trip, and no Host header.
+  // An account that no longer exists ends the stale session; any other failure (a database blip)
+  // reaches the error page, rather than quietly sending the learner somewhere else
+  const data = await getProgressSummary(session.user.id).catch((error: unknown) => {
+    if (error instanceof Error && error.message === "User not found") return null;
+    throw error;
+  });
+  if (!data) redirect("/auth/session-ended");
 
   const { user, streak, completion, recentActivity, achievements } = data;
   // One read of the curriculum for the rank and the certificates
@@ -63,7 +68,7 @@ export default async function ProfilePage() {
   const recentLessons = recentActivity.lessons.slice(0, 6);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+    <div className="mx-auto max-w-page px-gutter py-8 sm:py-12">
       <StaggerContainer className="flex flex-col gap-10">
         <Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Profile" }]} />
 

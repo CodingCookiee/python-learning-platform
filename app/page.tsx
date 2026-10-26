@@ -87,9 +87,9 @@ export default async function LandingPage() {
         <section
           id="syllabus"
           aria-labelledby="syllabus-heading"
-          className="scroll-mt-16 border-t border-border bg-sheet px-4 py-20 sm:px-6 lg:px-8 lg:py-28"
+          className="scroll-mt-16 border-t border-border bg-sheet px-gutter py-20 lg:py-28"
         >
-          <div className="mx-auto max-w-7xl">
+          <div className="mx-auto max-w-page">
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:gap-16">
               <h2
                 id="syllabus-heading"
@@ -226,9 +226,9 @@ export default async function LandingPage() {
         <section
           id="bridge"
           aria-labelledby="bridge-heading"
-          className="scroll-mt-16 border-t border-border px-4 py-20 sm:px-6 lg:px-8 lg:py-28"
+          className="scroll-mt-16 border-t border-border px-gutter py-20 lg:py-28"
         >
-          <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] lg:gap-16">
+          <div className="mx-auto grid max-w-page gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] lg:gap-16">
             <div className="flex flex-col gap-5">
               <h2
                 id="bridge-heading"
@@ -279,9 +279,9 @@ export default async function LandingPage() {
         {/* ── Training record ───────────────────────────────────────── */}
         <section
           aria-labelledby="record-heading"
-          className="border-t border-border bg-sheet px-4 py-20 sm:px-6 lg:px-8 lg:py-28"
+          className="border-t border-border bg-sheet px-gutter py-20 lg:py-28"
         >
-          <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2 lg:gap-16">
+          <div className="mx-auto grid max-w-page items-center gap-12 lg:grid-cols-2 lg:gap-16">
             <div className="flex flex-col gap-5">
               <h2
                 id="record-heading"
@@ -366,9 +366,9 @@ export default async function LandingPage() {
         {/* ── Close ─────────────────────────────────────────────────── */}
         <section
           aria-labelledby="close-heading"
-          className="border-t border-border bg-sheet px-4 py-24 sm:px-6 lg:px-8 lg:py-32"
+          className="border-t border-border bg-sheet px-gutter py-24 lg:py-32"
         >
-          <div className="mx-auto flex max-w-7xl flex-col items-start gap-8">
+          <div className="mx-auto flex max-w-page flex-col items-start gap-8">
             <h2
               id="close-heading"
               className="font-condensed text-[clamp(3rem,8vw,6rem)] leading-[0.92] font-extrabold tracking-[-0.025em]"

@@ -3,6 +3,7 @@
 import { Spinner } from "@/components/brand/knot-loader";
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { startNavigation } from "@/components/layout/navigation-progress";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, X, BookOpen, Layers, Code2 } from "lucide-react";
 import { PendingLine } from "@/components/ui/pending-line";
@@ -134,6 +135,7 @@ export function SearchBar() {
   const visibleResults = query.length >= 2 ? results : [];
 
   function navigate(href: string) {
+    startNavigation();
     router.push(href);
     setOpen(false);
   }

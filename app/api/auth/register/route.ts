@@ -25,10 +25,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: BLOCKED_MESSAGE, field: "email" }, { status: 403 });
     }
 
-    // Check if user already exists
-    // Case-insensitive, so a look-alike of an existing address (or of the admin's) can't register
-    const existingUser = await prisma.user.findFirst({
-      where: { email: { equals: validatedData.email, mode: "insensitive" } },
+    // The schema lower-cases the address, as every stored one is, so an exact match also catches a
+    // different-case copy. Not ILIKE: there "_" is a wildcard and would match other people's addresses
+    const existingUser = await prisma.user.findUnique({
+      where: { email: validatedData.email },
       select: { id: true },
     });
 

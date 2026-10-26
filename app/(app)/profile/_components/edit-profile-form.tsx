@@ -4,6 +4,7 @@ import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { LoadingButton } from "@/components/ui/loading-button";
 import { Pencil, Check, X } from "lucide-react";
 
 interface EditProfileFormProps {
@@ -76,11 +77,19 @@ export function EditProfileForm({ initialName, onSaved }: EditProfileFormProps) 
             }}
             maxLength={80}
             aria-label="Display name"
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? "edit-name-error" : undefined}
             className="h-9 max-w-xs"
           />
-          <Button size="sm" onClick={() => void handleSave()} disabled={saving} aria-label="Save">
-            <Check className="size-3.5" aria-hidden="true" />
-          </Button>
+          <LoadingButton
+            size="sm"
+            onClick={() => void handleSave()}
+            loading={saving}
+            loadingText="Saving…"
+            icon={<Check className="size-3.5" aria-hidden="true" />}
+          >
+            Save
+          </LoadingButton>
           <Button
             size="sm"
             variant="outline"
@@ -94,7 +103,7 @@ export function EditProfileForm({ initialName, onSaved }: EditProfileFormProps) 
           </Button>
         </div>
         {error && (
-          <p className="text-xs text-destructive" role="alert">
+          <p id="edit-name-error" className="text-xs text-destructive" role="alert">
             {error}
           </p>
         )}

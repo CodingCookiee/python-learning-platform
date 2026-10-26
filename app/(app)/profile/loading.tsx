@@ -4,7 +4,7 @@ import { PageLoading, SkeletonHeading, SkeletonRows } from "@/components/layout/
 /** The loading screen for the profile: name and rank, the record, then patches beside activity */
 export default function ProfileLoading() {
   return (
-    <PageLoading label="Loading your profile" className="max-w-6xl">
+    <PageLoading label="Loading your profile">
       <div className="flex flex-col gap-10">
         <div className="flex items-center gap-5">
           <Skeleton className="size-16 shrink-0" />

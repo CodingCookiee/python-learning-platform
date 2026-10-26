@@ -18,8 +18,9 @@ const CONTENT_TOP = "pt-10 lg:pt-[clamp(1.5rem,calc(10vh-1.25rem),6rem)]";
 
 /**
  * Two-panel auth layout on one grid: the belt ladder on the left, the form on the right. Both
- * columns have the same three rows: the logo and the way to the other auth page along the top, the
- * content from one shared line, and the foot lines on one baseline.
+ * columns have the same three rows: the logo along the top, the content from one shared line, and
+ * the foot lines on one baseline. The way to the other auth page sits under the form, where people
+ * look once they find they're on the wrong one (the convention of Google, GitHub and Stripe).
  *
  * The form is what the page is for, so it leads: its column is the wider one and sits on the
  * lighter Sheet, with the inputs set into it on the ground tone. The left column steps back onto
@@ -39,7 +40,7 @@ export function AuthShell({
   /** The form's heading (a page whose form draws its own, like confirming an email, leaves it out) */
   heading?: string;
   sub?: React.ReactNode;
-  /** The other way in, top right: "Already training? Sign in" */
+  /** The other way in, under the form: "Already training? Sign in" */
   switchTo?: { prompt?: string; label: string; href: string };
   children: React.ReactNode;
 }) {
@@ -92,18 +93,11 @@ export function AuthShell({
         // Inputs sit into the Sheet on the ground tone, like wells in the page
         className="grid grid-rows-[auto_1fr_auto] px-6 py-8 outline-none sm:px-10 lg:px-12 [&_[data-slot=input]]:bg-background"
       >
-        <div className="flex h-9 items-center justify-between gap-4 lg:justify-end">
+        {/* Keeps the top row, so both columns' content starts on one line; the logo shows here on phones */}
+        <div className="flex h-9 items-center">
           <Link href="/" aria-label="pylearn home" className="w-fit rounded-sm lg:hidden">
             <Logo />
           </Link>
-          {switchTo && (
-            <p className="text-sm text-muted-foreground">
-              {switchTo.prompt && <span className="max-sm:hidden">{switchTo.prompt} </span>}
-              <Link href={switchTo.href} className="font-medium text-primary underline">
-                {switchTo.label}
-              </Link>
-            </p>
-          )}
         </div>
 
         <div className={cn("flex justify-center pb-6", CONTENT_TOP)}>
@@ -115,6 +109,14 @@ export function AuthShell({
               </div>
             )}
             {children}
+            {switchTo && (
+              <p className="border-t border-border pt-6 text-center text-sm text-muted-foreground">
+                {switchTo.prompt && <>{switchTo.prompt} </>}
+                <Link href={switchTo.href} className="font-medium text-primary underline underline-offset-2">
+                  {switchTo.label}
+                </Link>
+              </p>
+            )}
           </div>
         </div>
 

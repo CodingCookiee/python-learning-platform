@@ -9,6 +9,7 @@ import {
   updateUserLevel,
 } from "@/lib/achievements";
 import { prisma } from "@/lib/prisma";
+import { logCapstoneDecision } from "@/lib/admin/actions";
 
 const evaluateSchema = z.object({
   decision: z.enum(["approved", "rejected"]),
@@ -58,9 +59,12 @@ export const POST = withAuth<{ submissionId: string }>(
           project: {
             select: {
               id: true,
+              title: true,
+              xpReward: true,
               moduleId: true,
               module: {
                 select: {
+                  order: true,
                   lessons: { where: { archivedAt: null }, select: { id: true } },
                 },
               },
@@ -73,6 +77,14 @@ export const POST = withAuth<{ submissionId: string }>(
         return NextResponse.json({ error: "Submission not found" }, { status: 404 });
       }
 
+      // An examiner who is also training doesn't grade their own capstone
+      if (submission.userId === context.userId) {
+        return NextResponse.json(
+          { error: "You can't grade your own capstone. Another examiner will." },
+          { status: 403 }
+        );
+      }
+
       if (submission.status !== "pending") {
         return NextResponse.json(
           { error: "Submission has already been evaluated" },
@@ -80,13 +92,56 @@ export const POST = withAuth<{ submissionId: string }>(
         );
       }
 
-      await prisma.projectSubmission.update({
-        where: { id: submissionId },
-        data: {
-          status: decision,
-          feedback,
-          evaluatedAt: new Date(),
-        },
+      const moduleId = submission.project.moduleId;
+      const lessonIds = submission.project.module.lessons.map((l) => l.id);
+      const oldLevel =
+        (await prisma.user.findUnique({ where: { id: submission.userId }, select: { level: true } }))?.level ?? 1;
+
+      // The decision, the lessons it completes and the XP land together or not at all. The status
+      // flips only while it's still pending, so when two examiners press at once just one request
+      // decides (and awards); the other is told it's already graded.
+      const decided = await prisma.$transaction(async (tx) => {
+        const flipped = await tx.projectSubmission.updateMany({
+          where: { id: submissionId, status: "pending" },
+          data: { status: decision, feedback, evaluatedAt: new Date() },
+        });
+        if (flipped.count !== 1) return null;
+        if (decision !== "approved") return { xp: 0 };
+
+        // Every lesson of the module completed, in two statements rather than one per lesson
+        const completedAt = new Date();
+        await tx.progress.createMany({
+          data: lessonIds.map((lessonId) => ({ userId: submission.userId, lessonId, completed: true, completedAt })),
+          skipDuplicates: true,
+        });
+        await tx.progress.updateMany({
+          where: { userId: submission.userId, lessonId: { in: lessonIds }, completed: false },
+          data: { completed: true, completedAt },
+        });
+        // XP once per capstone: a resubmission approved after an earlier approval earns nothing more
+        const approvedBefore = await tx.projectSubmission.findFirst({
+          where: { userId: submission.userId, projectId: submission.projectId, status: "approved", id: { not: submissionId } },
+          select: { id: true },
+        });
+        if (approvedBefore) return { xp: 0 };
+        await tx.user.update({
+          where: { id: submission.userId },
+          data: { xp: { increment: submission.project.xpReward } },
+        });
+        return { xp: submission.project.xpReward };
+        // The database is remote: allow more than Prisma's 5 s default for a handful of statements
+      }, { maxWait: 10_000, timeout: 20_000 });
+
+      if (!decided) {
+        return NextResponse.json({ error: "Submission has already been evaluated" }, { status: 409 });
+      }
+
+      // On the record, like every other examiner action (Admin > Activity)
+      await logCapstoneDecision(context.userId, submission.userId, decision, {
+        submissionId,
+        projectId: submission.projectId,
+        project: submission.project.title,
+        xp: decided.xp,
       });
 
       let xpGained = 0;
@@ -96,84 +151,34 @@ export const POST = withAuth<{ submissionId: string }>(
       const newAchievements: Awaited<ReturnType<typeof checkAndUnlockAchievements>> = [];
 
       if (decision === "approved") {
-        const moduleId = submission.project.moduleId;
-        const lessonIds = submission.project.module.lessons.map((l) => l.id);
+        if (decided.xp > 0) {
+          xpGained = decided.xp;
+          await updateUserLevel(submission.userId);
 
-        for (const lessonId of lessonIds) {
-          await prisma.progress.upsert({
-            where: { userId_lessonId: { userId: submission.userId, lessonId } },
-            create: {
-              userId: submission.userId,
-              lessonId,
-              completed: true,
-              completedAt: new Date(),
-            },
-            update: {
-              completed: true,
-              completedAt: new Date(),
-            },
+          const projectAchievements = await checkAndUnlockAchievements(submission.userId, {
+            type: "project_complete",
+            moduleOrder: submission.project.module.order,
           });
-        }
+          newAchievements.push(...projectAchievements);
 
-        const previousApprovedSubmission = await prisma.projectSubmission.findFirst({
-          where: {
-            userId: submission.userId,
-            projectId: submission.projectId,
-            status: "approved",
-            id: { not: submissionId },
-          },
-          select: { id: true },
-        });
+          await updateStreak(submission.userId);
 
-        if (!previousApprovedSubmission) {
-          const project = await prisma.project.findUnique({
-            where: { id: submission.projectId },
-            select: {
-              xpReward: true,
-              module: { select: { order: true } },
-            },
+          const userAfter = await prisma.user.findUnique({
+            where: { id: submission.userId },
+            select: { level: true, xp: true },
           });
+          newLevel = userAfter?.level ?? oldLevel;
+          levelUp = newLevel > oldLevel;
 
-          if (project) {
-            xpGained = project.xpReward;
-
-            const userBefore = await prisma.user.findUnique({
-              where: { id: submission.userId },
-              select: { level: true },
+          if (userAfter) {
+            const xpAchievements = await checkAndUnlockAchievements(submission.userId, {
+              type: "xp_update",
+              totalXp: userAfter.xp,
             });
-            const oldLevel = userBefore?.level ?? 1;
-
-            await prisma.user.update({
-              where: { id: submission.userId },
-              data: { xp: { increment: xpGained } },
-            });
-            await updateUserLevel(submission.userId);
-
-            const projectAchievements = await checkAndUnlockAchievements(submission.userId, {
-              type: "project_complete",
-              moduleOrder: project.module.order,
-            });
-            newAchievements.push(...projectAchievements);
-
-            await updateStreak(submission.userId);
-
-            const userAfter = await prisma.user.findUnique({
-              where: { id: submission.userId },
-              select: { level: true, xp: true },
-            });
-            newLevel = userAfter?.level ?? oldLevel;
-            levelUp = newLevel > oldLevel;
-
-            if (userAfter) {
-              const xpAchievements = await checkAndUnlockAchievements(submission.userId, {
-                type: "xp_update",
-                totalXp: userAfter.xp,
-              });
-              newAchievements.push(...xpAchievements);
-            }
-
-            milestone = await checkMilestone(submission.userId);
+            newAchievements.push(...xpAchievements);
           }
+
+          milestone = await checkMilestone(submission.userId);
         }
 
         await invalidateCache(`module:${moduleId}:${submission.userId}`);

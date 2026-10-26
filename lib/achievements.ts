@@ -3,6 +3,8 @@ import { getCurriculumState } from "@/lib/curriculum-state";
 import { achievementCriteriaSchema, type AchievementCriteria } from "@/lib/content/schema";
 import { blackBeltIfDue } from "@/lib/black-belt";
 import { ciPassedProjectIds } from "@/lib/ci/passed";
+import { daysBetween, dateFromKey, dayKey, storedDayKey } from "@/lib/day";
+import { learnerTimeZone } from "@/lib/learner-time-zone";
 
 /**
  * Achievements (patches) are defined in content/achievements.yaml and synced into
@@ -36,10 +38,12 @@ export function calculateLevel(xp: number): number {
   return Math.floor(xp / 500) + 1;
 }
 
+/**
+ * Set the level from the XP as it stands in the database, in one statement: a read and then a write
+ * could put back a lower level when two requests add XP at once. Same rule as calculateLevel.
+ */
 export async function updateUserLevel(userId: string): Promise<void> {
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { xp: true } });
-  if (!user) return;
-  await prisma.user.update({ where: { id: userId }, data: { level: calculateLevel(user.xp) } });
+  await prisma.$executeRaw`UPDATE "users" SET "level" = FLOOR("xp" / 500) + 1 WHERE "id" = ${userId}`;
 }
 
 // Unlocking
@@ -83,31 +87,43 @@ export async function unlockAchievement(userId: string, achievementName: string)
  * achievement from fresh stats, so one at the end of a request is enough.
  */
 export async function updateStreak(userId: string, { checkAchievements = true } = {}): Promise<number> {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
+  // The learner's own day: training at 9pm in New York is still today there, though it's tomorrow in UTC
+  const today = dayKey(new Date(), await learnerTimeZone(userId));
 
   const streak = await prisma.streak.findUnique({ where: { userId } });
   if (!streak) {
-    await prisma.streak.create({ data: { userId, currentStreak: 1, longestStreak: 1, lastActivityDate: today } });
+    await prisma.streak.create({ data: { userId, currentStreak: 1, longestStreak: 1, lastActivityDate: dateFromKey(today) } });
     if (checkAchievements) await checkAndUnlockAchievements(userId, { type: "streak_update", streakDays: 1 });
     return 1;
   }
 
-  const last = new Date(streak.lastActivityDate);
-  last.setHours(0, 0, 0, 0);
-  // Already counted today. A streak still at 0 hasn't counted anything yet: sign-up creates it with
-  // today's date, and the first day of practice must count
-  if (last.getTime() === today.getTime() && streak.currentStreak > 0) return streak.currentStreak;
-
-  const next = last.getTime() === yesterday.getTime() ? streak.currentStreak + 1 : 1;
+  // Already counted on this day
+  if (streak.currentStreak > 0 && daysBetween(storedDayKey(streak.lastActivityDate), today) <= 0) return streak.currentStreak;
+  const next = nextStreak(streak, today);
   await prisma.streak.update({
     where: { userId },
-    data: { currentStreak: next, longestStreak: Math.max(next, streak.longestStreak), lastActivityDate: today },
+    data: { currentStreak: next, longestStreak: Math.max(next, streak.longestStreak), lastActivityDate: dateFromKey(today) },
   });
   if (checkAchievements) await checkAndUnlockAchievements(userId, { type: "streak_update", streakDays: next });
   return next;
+}
+
+/**
+ * The streak after training on `today` (the learner's "YYYY-MM-DD"). lastActivityDate holds the
+ * learner's day as that date's UTC midnight. The day after the last one adds a day; the same day
+ * changes nothing; a gap starts again at 1. A streak still at 0 hasn't counted anything yet: sign-up
+ * creates it with today's date, and the first day of practice must count. A last day "after" today
+ * (the learner moved west) counts as today.
+ */
+export function nextStreak(streak: { currentStreak: number; lastActivityDate: Date }, today: string): number {
+  const gap = daysBetween(storedDayKey(streak.lastActivityDate), today);
+  if (gap <= 0 && streak.currentStreak > 0) return streak.currentStreak;
+  return gap === 1 ? streak.currentStreak + 1 : 1;
+}
+
+/** Whether a streak has lapsed by `today`: no training yesterday or today, in the learner's days */
+export function streakLapsed(streak: { currentStreak: number; lastActivityDate: Date }, today: string): boolean {
+  return streak.currentStreak > 0 && daysBetween(storedDayKey(streak.lastActivityDate), today) > 1;
 }
 
 // Evaluation
@@ -353,10 +369,9 @@ export async function checkAndUnlockAchievements(
       remaining = notYet;
       // An unlock changes only the learner's XP (and level); nothing else the criteria read, so the
       // re-check takes the new XP rather than gathering every stat again
+      await updateUserLevel(userId);
       const user = await prisma.user.findUnique({ where: { id: userId }, select: { xp: true } });
-      const xp = user?.xp ?? stats.xp;
-      await prisma.user.update({ where: { id: userId }, data: { level: calculateLevel(xp) } });
-      stats = { ...stats, xp };
+      stats = { ...stats, xp: user?.xp ?? stats.xp };
     }
     return unlocked;
   } catch (error) {

@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import { startOfDay, startOfMonth } from "@/lib/day";
+import { learnerTimeZone } from "@/lib/learner-time-zone";
 import { decryptSecret, encryptSecret } from "@/lib/crypto";
 import { AiError, complete, type CompleteRequest, type CompleteResult, type Provider } from "@/lib/ai/gateway";
 
@@ -52,18 +54,15 @@ export async function deleteCredential(userId: string): Promise<void> {
   await prisma.aiCredential.deleteMany({ where: { userId } });
 }
 
-function startOfToday() {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d;
+/** When the learner's day began, in their own time zone: the daily cap resets at their midnight */
+async function startOfToday(userId: string): Promise<Date> {
+  return startOfDay(new Date(), await learnerTimeZone(userId));
 }
 
 export async function getUsageSummary(userId: string): Promise<UsageSummary> {
-  const month = new Date();
-  month.setDate(1);
-  month.setHours(0, 0, 0, 0);
+  const timeZone = await learnerTimeZone(userId);
   const [today, thisMonth] = await Promise.all(
-    [startOfToday(), month].map((since) =>
+    [startOfDay(new Date(), timeZone), startOfMonth(new Date(), timeZone)].map((since) =>
       prisma.llmUsage.aggregate({
         where: { userId, createdAt: { gte: since } },
         _count: true,
@@ -92,7 +91,7 @@ export async function callWithLearnerKey(
   const cred = await prisma.aiCredential.findUnique({ where: { userId } });
   if (!cred) return { ok: false, status: 409, code: "no_key", error: "Add your API key in Settings to use the tutor." };
 
-  const calls = await prisma.llmUsage.count({ where: { userId, createdAt: { gte: startOfToday() } } });
+  const calls = await prisma.llmUsage.count({ where: { userId, createdAt: { gte: await startOfToday(userId) } } });
   if (calls >= DAILY_CALL_LIMIT) {
     return { ok: false, status: 429, code: "daily_limit", error: `That's ${DAILY_CALL_LIMIT} AI calls today. More tomorrow.` };
   }

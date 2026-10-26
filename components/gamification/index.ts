@@ -4,8 +4,6 @@ export { XpProgressBar } from "./xp-progress-bar";
 export type { XpProgressBarProps } from "./xp-progress-bar";
 export { Confetti } from "./confetti";
 export type { ConfettiProps } from "./confetti";
-export { AchievementModal } from "./achievement-modal";
-export type { AchievementModalProps } from "./achievement-modal";
 export { AchievementUnlockModal } from "./achievement-unlock-modal";
 export type { AchievementUnlockModalProps } from "./achievement-unlock-modal";
 export { StreakDisplay } from "./streak-display";

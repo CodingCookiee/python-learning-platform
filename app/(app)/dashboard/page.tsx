@@ -76,7 +76,7 @@ export default async function DashboardPage() {
 
   const dbUser = await prisma.user.findUnique({
     where: { email: session?.user?.email ?? "" },
-    select: { id: true, onboardedAt: true, experience: true },
+    select: { id: true, onboardedAt: true, experience: true, timeZone: true },
   });
   // Signed in as an account that no longer exists: clear the stale session (else a redirect loop)
   if (!dbUser) redirect("/auth/session-ended");
@@ -92,7 +92,7 @@ export default async function DashboardPage() {
     countDueReviews(dbUser.id),
     getPace(dbUser.id),
     prisma.learningLogEntry.findUnique({
-      where: { userId_weekOf: { userId: dbUser.id, weekOf: startOfWeek() } },
+      where: { userId_weekOf: { userId: dbUser.id, weekOf: startOfWeek(new Date(), dbUser.timeZone) } },
       select: { id: true },
     }),
     getOnRamp(dbUser.id),
@@ -125,7 +125,7 @@ export default async function DashboardPage() {
 
   if (!data) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+      <div className="mx-auto max-w-page px-gutter py-8 sm:py-12">
         <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
           <p className="text-muted-foreground">
             Something went wrong loading your dashboard. Please try again.
@@ -143,7 +143,7 @@ export default async function DashboardPage() {
   const pythonLessons = syllabus.reduce((n, m) => ({ done: n.done + m.lessonsDone, total: n.total + m.lessonsTotal }), { done: 0, total: 0 });
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+    <div className="mx-auto max-w-page px-gutter py-8 sm:py-12">
       <StaggerContainer className="flex flex-col gap-8">
         <FadeIn>
           <header className="flex flex-col gap-2">

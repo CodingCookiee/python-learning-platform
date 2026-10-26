@@ -18,6 +18,8 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },
+  // Nothing uses next/image, so the optimizer endpoint (/_next/image) is only attack surface
+  images: { unoptimized: true },
   // Server-side grading (GRADING_MODE=server) runs Pyodide in Node worker threads
   serverExternalPackages: ["pyodide"],
   outputFileTracingIncludes: {

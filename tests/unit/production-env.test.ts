@@ -19,7 +19,6 @@ const base: ServerEnv = {
   CONTACT_EMAIL: "hello@example.invalid",
   GRADING_MODE: "client",
   ENCRYPTION_KEY: "k".repeat(44),
-  LAB_SIGNING_SECRET: undefined,
   GITHUB_TOKEN: undefined,
 };
 

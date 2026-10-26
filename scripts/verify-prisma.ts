@@ -13,7 +13,8 @@ const prisma = new PrismaClient({ adapter });
 async function verifyConnection() {
   try {
     console.log("🔍 Testing Prisma database connection...");
-    console.log("Using DATABASE_URL:", process.env.DATABASE_URL?.substring(0, 40) + "...");
+    // Only the host: the start of the URL holds the username and password
+    console.log("Using database host:", process.env.DATABASE_URL ? new URL(process.env.DATABASE_URL).host : "(DATABASE_URL not set)");
 
     // Test connection with a simple query
     await prisma.$connect();

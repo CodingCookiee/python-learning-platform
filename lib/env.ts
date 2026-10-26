@@ -33,7 +33,6 @@ const serverSchema = z.object({
 
   GRADING_MODE: z.enum(["client", "server"]).default("client"),
   ENCRYPTION_KEY: optional,
-  LAB_SIGNING_SECRET: optional,
   // Raises GitHub's API limit for confirming learners' Actions runs (lib/ci/github.ts)
   GITHUB_TOKEN: optional,
 });

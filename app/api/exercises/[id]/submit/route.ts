@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth, AuthContext } from "@/lib/api-auth";
-import { invalidateUserCache, invalidateCache, CacheKeys } from "@/lib/cache";
+import { invalidateUserCache } from "@/lib/cache";
 import {
   checkAndUnlockAchievements,
   updateStreak,
@@ -16,6 +16,7 @@ import { REVIEW_XP } from "@/lib/mastery-rules";
 import { gradeOnServer, isServerGrading } from "@/lib/grading/server";
 import { combinedSource, filesForRun, parseDrillFiles } from "@/lib/drill-files";
 import { completeLessonAfterPass } from "@/lib/lesson-complete";
+import { recordDrillAttempt } from "@/lib/drill-attempt";
 import { z } from "zod";
 import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 
@@ -81,32 +82,29 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
       return NextResponse.json({ error: "This grading is closed." }, { status: 409 });
     }
 
-    const [previousPractice, alreadyPassed, userBefore] = await Promise.all([
+    const [previousPractice, userBefore] = await Promise.all([
       prisma.exerciseSubmission.count({ where: { userId, exerciseId, mode: "practice" } }),
-      prisma.exerciseSubmission.findFirst({ where: { userId, exerciseId, passed: true }, select: { id: true } }),
       prisma.user.findUnique({ where: { id: userId }, select: { level: true } }),
     ]);
     const oldLevel = userBefore?.level ?? 1;
 
-    const submission = await prisma.exerciseSubmission.create({
-      data: {
-        userId,
-        exerciseId,
-        code,
-        passed,
-        testResults,
-        hintsUsed: mode === "checkpoint" ? 0 : hintsUsed,
-        attempts: mode === "practice" ? previousPractice + 1 : 1,
-        mode,
-        checkpointAttemptId: attempt?.id ?? null,
-      },
+    // Two tabs passing at once can't both be the first pass (lib/drill-attempt.ts)
+    const { submission, firstPass: firstSolve } = await recordDrillAttempt({
+      userId,
+      exerciseId,
+      code,
+      passed,
+      testResults,
+      hintsUsed: mode === "checkpoint" ? 0 : hintsUsed,
+      attempts: mode === "practice" ? previousPractice + 1 : 1,
+      mode,
+      checkpointAttemptId: attempt?.id ?? null,
     });
 
     let xpGained = 0;
     const achievements: UnlockedAchievement[] = [];
 
     // A drill's first pass, in any mode, earns its XP and joins the review deck
-    const firstSolve = passed && !alreadyPassed;
     if (firstSolve) {
       xpGained += exercise.xpReward;
       await addToReview(userId, exercise);
@@ -149,7 +147,6 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
     const userAfter = await prisma.user.findUnique({ where: { id: userId }, select: { level: true } });
     const newLevel = userAfter?.level ?? oldLevel;
 
-    await invalidateCache(CacheKeys.exercise(exerciseId, userId));
     await invalidateUserCache(userId);
 
     const finished = checkpoint?.ok ? checkpoint.finished : null;

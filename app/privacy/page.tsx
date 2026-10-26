@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/privacy" },
 };
 
-const UPDATED = "2026-10-15";
+const UPDATED = "2026-10-26";
 
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
@@ -36,7 +36,7 @@ export default function PrivacyPage() {
           <h1 className="font-condensed text-5xl leading-[0.95] font-extrabold tracking-[-0.02em]">Privacy policy</h1>
           <p className="text-lg leading-relaxed text-muted-foreground">
             What pylearn keeps about you, why, and how to get it deleted. Last updated{" "}
-            <time dateTime={UPDATED}>15 October 2026</time>.
+            <time dateTime={UPDATED}>26 October 2026</time>.
           </p>
         </header>
 
@@ -50,11 +50,16 @@ export default function PrivacyPage() {
             </li>
             <li>
               <strong>Your training:</strong> the lessons you finish, the code you submit for drills and gradings, drafts
-              the editor saves as you type, your rank, streak and achievements, and your weekly learning log.
+              the editor saves as you type, your rank, streak and achievements, your weekly learning log, and when you
+              last used the app (so we can see how many people are training).
             </li>
             <li>
               <strong>Your capstones and labs:</strong> the files or GitHub links you submit, the examiner&apos;s feedback,
               and, if you connect a GitHub repository, its name and the test results your workflow reports.
+            </li>
+            <li>
+              <strong>Your certificates, if you claim one:</strong> its page is public, so anyone with its link or ID can
+              check it. It shows the name you choose to print, the track, and the dates. You can withdraw it at any time.
             </li>
             <li>
               <strong>Your AI key, if you add one:</strong> encrypted, and shown back to you only by its last four
@@ -93,7 +98,8 @@ export default function PrivacyPage() {
               happen. Some are keyed by your IP address, and they expire within an hour.
             </li>
             <li>
-              <strong>Google (Gmail)</strong> sends our emails, so it sees your email address and the message.
+              <strong>Resend</strong> (or <strong>Google&apos;s Gmail</strong>) sends our emails, so it sees your email
+              address and the message.
             </li>
             <li>
               <strong>jsDelivr</strong> serves the code editor and the Python that runs in your browser. Your browser
@@ -111,7 +117,7 @@ export default function PrivacyPage() {
               chat stays in your browser until you close the tab.
             </li>
             <li>
-              <strong>Our hosting provider</strong> serves the site and keeps standard request logs.
+              <strong>Vercel</strong> hosts the site, in the United States, and keeps standard request logs.
             </li>
           </ul>
         </Section>
@@ -129,8 +135,10 @@ export default function PrivacyPage() {
             <Link href="/settings" className="font-medium text-primary underline">
               Settings
             </Link>
-            , your account and everything attached to it (progress, submissions, drafts, keys, logs) is deleted at once.
-            Backups held by the database provider age out on its own schedule. If we remove an account for abuse, we
+            , your account and everything attached to it (progress, submissions, drafts, keys, logs) is deleted at once,
+            along with the notices our admins got about it. Our admins&apos; record of actions on accounts keeps that an
+            action happened, but no longer who it was about. Backups held by the database provider age out on its own
+            schedule. If we remove an account for abuse, we
             may keep a one-way fingerprint of its email address (not the address) so it can&apos;t sign up again;
             accounts you delete yourself are never blocked.
           </p>

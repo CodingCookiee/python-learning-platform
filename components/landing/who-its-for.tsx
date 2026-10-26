@@ -44,8 +44,8 @@ const CARDS = [
  */
 export function WhoItsFor() {
   return (
-    <section aria-labelledby="who-heading" className="border-t border-border px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
-      <div className="mx-auto max-w-7xl">
+    <section aria-labelledby="who-heading" className="border-t border-border px-gutter py-20 lg:py-28">
+      <div className="mx-auto max-w-page">
         <h2 id="who-heading" className="font-condensed text-5xl leading-none font-extrabold tracking-[-0.02em] sm:text-6xl">
           Who it&apos;s for
         </h2>

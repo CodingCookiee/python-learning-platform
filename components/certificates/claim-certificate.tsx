@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { startNavigation } from "@/components/layout/navigation-progress";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -64,7 +65,10 @@ export function ClaimCertificate({
       // The seal goes on, then its page opens; busy until that page replaces this one
       setIssued(data.certificate.code);
       const code = data.certificate.code;
-      window.setTimeout(() => router.push(`/certificates/${code}`), 1100);
+      window.setTimeout(() => {
+        startNavigation();
+        router.push(`/certificates/${code}`);
+      }, 1100);
     } catch {
       setError("We couldn't reach the server. Try again in a moment.");
       setBusy(false);

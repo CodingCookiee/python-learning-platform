@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { addDays, nextReview, REVIEW_DAILY_LIMIT, REVIEW_INTERVALS, reviewEligible } from "@/lib/mastery-rules";
+import { startOfDay } from "@/lib/day";
+import { learnerTimeZone } from "@/lib/learner-time-zone";
 
 /**
  * Spaced review. Once a core or stretch drill is solved it joins the learner's
@@ -29,12 +31,13 @@ export interface ReviewQueue {
   deckSize: number;
   /** Reviews due on each of the next 7 days, today first (today's excludes those already due) */
   upcoming: number[];
+  /** The learner's time zone, which those days are counted in (null: UTC) */
+  timeZone: string | null;
 }
 
-function startOfToday(): Date {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d;
+/** When the learner's day began, in their own time zone: the daily limit resets at their midnight */
+async function startOfToday(userId: string, timeZone?: string | null): Promise<Date> {
+  return startOfDay(new Date(), timeZone === undefined ? await learnerTimeZone(userId) : timeZone);
 }
 
 /** Put a freshly solved drill in the deck (no-op when it's already there or not review material). */
@@ -67,9 +70,9 @@ async function backfill(userId: string) {
 }
 
 export async function getReviewQueue(userId: string): Promise<ReviewQueue> {
-  await backfill(userId);
+  const [, timeZone] = await Promise.all([backfill(userId), learnerTimeZone(userId)]);
+  const today = await startOfToday(userId, timeZone);
   const now = new Date();
-  const today = startOfToday();
   const [dueItems, dueTotal, reviewedToday, deckSize, soon] = await Promise.all([
     prisma.reviewItem.findMany({
       where: { userId, dueAt: { lte: now }, exercise: { archivedAt: null } },
@@ -113,12 +116,13 @@ export async function getReviewQueue(userId: string): Promise<ReviewQueue> {
     dailyLimit: REVIEW_DAILY_LIMIT,
     deckSize,
     upcoming,
+    timeZone,
   };
 }
 
 /** How many reviews are waiting today (for badges), within the daily limit. */
 export async function countDueReviews(userId: string): Promise<number> {
-  const today = startOfToday();
+  const today = await startOfToday(userId);
   const [due, reviewedToday] = await Promise.all([
     prisma.reviewItem.count({ where: { userId, dueAt: { lte: new Date() }, exercise: { archivedAt: null } } }),
     prisma.reviewItem.count({ where: { userId, lastReviewedAt: { gte: today } } }),

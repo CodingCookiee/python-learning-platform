@@ -26,10 +26,8 @@ export async function POST(req: Request) {
     );
   }
 
-  const user = await prisma.user.findFirst({
-    where: { email: { equals: email, mode: "insensitive" } },
-    select: { email: true, password: true },
-  });
+  // Exact: stored emails are lower-cased, and a case-insensitive match is ILIKE, where "_" is a wildcard
+  const user = await prisma.user.findUnique({ where: { email }, select: { email: true, password: true } });
   // Accounts that only use GitHub or Google have no password to reset
   if (user?.password) await sendPasswordResetEmail(user.email, await issueToken("reset", user.email));
   return NextResponse.json({ ok: true });

@@ -7,7 +7,6 @@ import {
   Calculator,
   SquareCheck,
   Cog,
-  Crown,
   Database,
   Diamond,
   FileStack,
@@ -16,7 +15,6 @@ import {
   Hammer,
   Layers,
   Link,
-  Lock,
   Microscope,
   Network,
   Package,
@@ -33,8 +31,6 @@ import {
   ChartColumn,
   CircleCheck,
   WandSparkles,
-  Award,
-  BadgeCheck,
   Bot,
   Boxes,
   Brain,
@@ -42,11 +38,9 @@ import {
   Cpu,
   Footprints,
   Gauge,
-  GraduationCap,
   Handshake,
   Library,
   ListChecks,
-  Medal,
   MessagesSquare,
   Plug,
   Repeat,
@@ -55,25 +49,24 @@ import {
   Target,
   Terminal,
   Timer,
-  Trophy,
   Webhook,
   Wrench,
   Hand,
   Bug,
   Signpost,
   RefreshCw,
-  Ribbon,
   Swords,
   type LucideIcon,
 } from "lucide-react";
-import { SealMark, StreakMark, TapeMark } from "@/components/brand/marks";
+import { LockedMark, RankMark, SealMark, StreakMark, TapeMark } from "@/components/brand/marks";
 
 type IconComponent = LucideIcon | ((props: { className?: string }) => React.ReactNode);
 
 /**
  * Curated icon set for achievements, keyed by the `icon` column in the seed.
- * Concepts pylearn owns (streaks, XP) use its authored marks; subject matter
- * uses lucide at the same stroke. Unknown names fall back to the seal.
+ * Concepts pylearn owns use its authored marks: streaks, XP, belts and dan grades (the rank
+ * mark), the examiner's approval and prizes (the seal), locks. Subject matter uses lucide at the
+ * same stroke. Unknown names fall back to the seal.
  */
 const ACHIEVEMENT_ICONS: Record<string, IconComponent> = {
   Blocks,
@@ -83,7 +76,7 @@ const ACHIEVEMENT_ICONS: Record<string, IconComponent> = {
   Calculator,
   CheckSquare: SquareCheck,
   Cog,
-  Crown,
+  Crown: SealMark,
   Database,
   Diamond,
   FileStack,
@@ -93,7 +86,7 @@ const ACHIEVEMENT_ICONS: Record<string, IconComponent> = {
   Hammer,
   Layers,
   Link,
-  Lock,
+  Lock: LockedMark,
   Microscope,
   Network,
   Package,
@@ -113,8 +106,8 @@ const ACHIEVEMENT_ICONS: Record<string, IconComponent> = {
   CheckCircle2: CircleCheck,
   Wand2: WandSparkles,
   Zap: TapeMark,
-  Award,
-  BadgeCheck,
+  Award: RankMark,
+  BadgeCheck: SealMark,
   Bot,
   Boxes,
   Brain,
@@ -122,11 +115,11 @@ const ACHIEVEMENT_ICONS: Record<string, IconComponent> = {
   Cpu,
   Footprints,
   Gauge,
-  GraduationCap,
+  GraduationCap: RankMark,
   Handshake,
   Library,
   ListChecks,
-  Medal,
+  Medal: RankMark,
   MessagesSquare,
   Plug,
   Repeat,
@@ -135,7 +128,7 @@ const ACHIEVEMENT_ICONS: Record<string, IconComponent> = {
   Target,
   Terminal,
   Timer,
-  Trophy,
+  Trophy: SealMark,
   Webhook,
   Wrench,
   // The Start on-ramp's badges
@@ -143,7 +136,7 @@ const ACHIEVEMENT_ICONS: Record<string, IconComponent> = {
   Bug,
   Signpost,
   RefreshCw,
-  Ribbon,
+  Ribbon: RankMark,
   // The first-session quest
   Swords,
 };

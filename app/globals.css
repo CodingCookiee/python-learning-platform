@@ -13,6 +13,8 @@
    ───────────────────────────────────────────────────────────────────────── */
 
 @theme inline {
+  /* The page container (max-w-page): wide enough that a laptop or desktop isn't mostly margin */
+  --container-page: 96rem;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-archivo);
@@ -342,6 +344,12 @@
 }
 @utility tabular {
   font-variant-numeric: tabular-nums;
+}
+
+/* The side gutter of every page and band: grows with the screen, from 16px on a phone to 32px from
+   about 1280px, instead of stepping at breakpoints */
+@utility px-gutter {
+  padding-inline: clamp(1rem, 2.5vw, 2rem);
 }
 
 /* ── Belt cloth ────────────────────────────────────────────────────────────

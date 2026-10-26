@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminLevel } from "@/lib/admin/levels";
 import { auth } from "@/auth";
+import { sessionIsCurrent } from "@/lib/session-version";
 
 /**
  * API route authorization utilities
@@ -34,11 +35,12 @@ export function withAuth<TParams extends Record<string, string> = Record<string,
     const { prisma } = await import("@/lib/prisma");
     const user = await prisma.user.findUnique({
       where: { id: sessionUserId },
-      select: { id: true, suspendedAt: true },
+      select: { id: true, suspendedAt: true, sessionVersion: true },
     });
 
-    // A valid token for an account that no longer exists is not a session
-    if (!user) {
+    // A valid token for an account that no longer exists is not a session, and nor is one signed in
+    // before the password last changed (lib/session-version.ts)
+    if (!user || !sessionIsCurrent(session.user.sessionVersion, user.sessionVersion)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     // Suspended by an admin: the session stays, but nothing works until it's lifted

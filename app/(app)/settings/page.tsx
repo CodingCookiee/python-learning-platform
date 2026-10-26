@@ -23,7 +23,7 @@ export default async function SettingsPage() {
   const [credential, usage] = await Promise.all([getCredentialSummary(user.id), getUsageSummary(user.id)]);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+    <div className="mx-auto max-w-page px-gutter py-8 sm:py-12">
       <StaggerContainer className="flex flex-col gap-8">
         <Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Settings" }]} />
         <FadeIn>

@@ -1,6 +1,6 @@
 # Python → AI Automation Learning Platform — Architecture
 
-Status: in progress · Last updated: 2026-09-25 · Owner: Raza Awan
+Status: v1 built, waiting on launch setup · Last updated: 2026-10-26 · Owner: Raza Awan
 
 This document covers what the platform is for, what the current code actually does, and how to get it
 to a platform where anyone can go from zero Python to shipping production AI agents **without leaving
@@ -544,6 +544,19 @@ Each milestone is shippable and leaves the app better than before.
   - **The Sensei** (`components/sensei/sensei-assistant.tsx`, `lib/ai/sensei.ts`, `POST /api/sensei`) is a site-wide guide in the bottom-right corner. It runs on the learner's key and explains Python, the current lesson, module or capstone brief, and how pylearn works, using facts from the rules in code. It never writes drill, grading or capstone answers. It's disabled on drills (a tooltip points to the drill's tutor), and refused everywhere while a grading's clock runs. The chat lasts for the browser session.
   - **The quest:** the panel queues steps reported before it has loaded (before, a first Run could be lost, and the learner had to press it twice). The sensei moves on as the output appears and the server confirms it; requests use `keepalive`, and server answers keep steps still being saved. While Run works, the panel says so ("Starting Python in your browser…"), and Python starts loading as soon as a lesson opens on a run step.
 - **The loader (2026-10-15):** `KnotLoader` is the mark being tied, in the learner's own belt colour (`data-belt` on `<html>`, set by the header) on loading screens and in the quest's and Sensei's waits. `Spinner` is the same knot in the button's own ink, on a quicker loop, in every button and pending line. With reduced motion, both hold still and breathe.
+- **Pre-launch review (2026-10-26):** a review of `dev` for security, server correctness, pages and docs; the full list is in WHATS-LEFT.md §5 and the security report's status table. What changed in the build:
+  - Emails are looked up exactly on the lower-cased address, never with `mode: "insensitive"` (it compiles to `ILIKE`, where `_` is a wildcard and matched other people's accounts).
+  - `User.sessionVersion` (migration `20261026000000_session_version_time_zone`): a session carries the version it signed in under; a password change or reset raises it, and `withAuth` and the navbar refuse older sessions (`lib/session-version.ts`). The client may never refresh it through a session update.
+  - `User.timeZone`, saved from the browser by the streak ping; per-learner days go through `lib/day.ts` (streaks, the review cap, the AI cap, the training week, the streak calendar). Site-wide admin reports stay in UTC.
+  - Awards that were read-then-write are now conditional writes (a first drill pass under a per-learner lock in `lib/drill-attempt.ts`, lesson completion, the quest's finish, the level, a capstone decision), so a race can't count twice.
+  - The bootstrap admin needs a proven address (`addressProven` in `lib/admin/bootstrap.ts`); the GitHub verified-email check runs on a first sign-in only; refused sign-ins land on `/auth/error`.
+  - The per-IP sign-in limit counts failures only (`limitReached` in `lib/rate-limit.ts`); confirming an email has its own budget (`emailVerify`).
+  - The build migrates only on production and stops on an unsafe setting (`scripts/check-production-env.ts`), since Next.js skips instrumentation while building. The image optimizer is off (`images.unoptimized`).
+  - Capstones: uploads measured from content and capped at 3 MB (`lib/capstone-upload.ts`); the queue and the progress summary carry no file contents or examiner drafts; self-grading is refused and decisions are audited. Deleting an account clears its admin notices and its address from the audit log (`lib/admin/forget-account.ts`).
+  - Redis `KEYS` is gone from cache invalidation; only exact keys are cleared.
+  - Dead code removed: `lib/code-execution.ts`, `lib/auth-utils.ts`, `lib/store/` (Zustand), three uncalled API routes, `ioredis`, `zustand`, `LAB_SIGNING_SECRET`.
+  - The pg pool has a connection timeout and an idle-error handler (Neon closes idle connections).
+  - Layout: one page width (`max-w-page`, 1536px) and one fluid gutter (`px-gutter`), registered with tailwind-merge in `lib/utils.ts`; the auth pages' switch link sits under the form.
 - **Handoff and deploy settings (2026-10-23):** the AI routes declare `maxDuration` for Vercel (tutor and Sensei 120 s, key test 60 s, capstone reviews 180 s), since their model calls can outlast the old 10–15 s function default. `DEPLOYMENT.md` was rewritten to describe how a deploy works here: migrations run in the build, functions sit in `iad1` (so the production Neon goes in us-east-1), Fluid compute stays on. §11 now lists only the variables the code reads, and `.env.example` matches it. `docs/STATUS.md` holds the current phase, and `CLAUDE.md` loads it.
 - **Release QA (2026-10-19):** [the report](QA-REPORT-2026-10-19.md).
   - **Dependencies:** `next` 16.3.8, `next-auth` 5.0.0-beta.32, `@auth/prisma-adapter` 2.11.3 and `nodemailer` 10.0.15, with an npm `overrides` entry pointing Auth.js's optional nodemailer peer at it. CI fails on any critical advisory.

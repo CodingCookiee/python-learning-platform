@@ -5,6 +5,7 @@ import { withAuth, AuthContext } from "@/lib/api-auth";
 import { CacheKeys, invalidateCache, invalidateUserCache } from "@/lib/cache";
 import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 import { z } from "zod";
+import { MAX_FILES, TOO_MANY_FILES, base64Bytes, uploadProblem } from "@/lib/capstone-upload";
 
 const GITHUB_URL_REGEX = /^https?:\/\/(www\.)?github\.com\/.+\/.+/i;
 
@@ -19,15 +20,21 @@ const submitSchema = z.discriminatedUnion("type", [
             .min(1)
             .max(200)
             .refine((n) => !n.includes("..") && !/^[\\/]/.test(n), "File names can't point outside the project"),
-          size: z.number().int().min(0).max(1_000_000, "Each file must be under 1 MB"),
+          // What the browser says; the limits below measure the content itself (lib/capstone-upload.ts)
+          size: z.number().int().min(0),
           type: z.string().max(100),
           // base64, so about 4/3 of the file's size
           content: z.string().min(1).max(1_400_000),
         })
       )
       .min(1, "At least one file is required")
-      .max(60, "Upload at most 60 files; for bigger projects, link a GitHub repo")
-      .refine((files) => files.reduce((n, f) => n + f.size, 0) <= 4_000_000, "Uploads are limited to 4 MB in total; link a GitHub repo instead"),
+      .max(MAX_FILES, TOO_MANY_FILES)
+      .superRefine((files, ctx) => {
+        const problem = uploadProblem(files);
+        if (problem) ctx.addIssue({ code: "custom", message: problem });
+      })
+      // Stored with the size of what arrived, not what was declared
+      .transform((files) => files.map((f) => ({ ...f, size: base64Bytes(f.content) }))),
     notes: z.string().max(2000).optional(),
   }),
   z.object({
@@ -62,8 +69,9 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id:
 
     const validation = submitSchema.safeParse(body);
     if (!validation.success) {
+      // The first problem in words the learner can act on (a size limit, a missing file)
       return NextResponse.json(
-        { error: "Invalid request", details: validation.error.issues },
+        { error: validation.error.issues[0]?.message ?? "Invalid request", details: validation.error.issues },
         { status: 400 }
       );
     }

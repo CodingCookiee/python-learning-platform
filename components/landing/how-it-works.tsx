@@ -76,9 +76,9 @@ export function HowItWorks() {
     <section
       id="how-it-works"
       aria-labelledby="how-heading"
-      className="scroll-mt-16 border-t border-border bg-sheet px-4 py-20 sm:px-6 lg:px-8 lg:py-28"
+      className="scroll-mt-16 border-t border-border bg-sheet px-gutter py-20 lg:py-28"
     >
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-page">
         <div className="flex max-w-3xl flex-col gap-4">
           <h2 id="how-heading" className="font-condensed text-5xl leading-none font-extrabold tracking-[-0.02em] sm:text-6xl">
             How it works

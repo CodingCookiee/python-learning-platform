@@ -25,10 +25,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Email isn't set up on this server yet." }, { status: 503 });
   }
 
-  const user = await prisma.user.findFirst({
-    where: { email: { equals: email, mode: "insensitive" } },
-    select: { email: true, emailVerified: true },
-  });
+  // Exact: stored emails are lower-cased, and a case-insensitive match is ILIKE, where "_" is a wildcard
+  const user = await prisma.user.findUnique({ where: { email }, select: { email: true, emailVerified: true } });
   if (user && !user.emailVerified) await sendVerificationEmail(user.email, await issueToken("verify", user.email));
   return NextResponse.json({ ok: true });
 }

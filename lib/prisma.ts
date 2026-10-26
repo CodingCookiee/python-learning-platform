@@ -13,6 +13,15 @@ const globalForPrisma = globalThis as unknown as {
 if (!globalForPrisma.pool) {
   globalForPrisma.pool = new Pool({
     connectionString: process.env.DATABASE_URL,
+    // Neon suspends an idle database and closes its connections. Give up on a connect that hangs
+    // (a cold start takes a few seconds, not minutes), and keep live connections from going stale
+    connectionTimeoutMillis: 15_000,
+    keepAlive: true,
+  });
+  // A connection that drops while idle in the pool emits "error" on the pool, which would crash the
+  // process if nothing listened. The pool replaces it on the next query, so a log line is enough
+  globalForPrisma.pool.on("error", (error) => {
+    console.warn("[db] An idle connection was closed:", error.message);
   });
 }
 

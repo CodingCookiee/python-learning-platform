@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { startNavigation } from "@/components/layout/navigation-progress";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -114,8 +115,10 @@ export function AdminAction({
     if (r.ok) {
       setOpen(false);
       setText("");
-      if (redirectTo) router.push(redirectTo);
-      else router.refresh();
+      if (redirectTo) {
+        startNavigation();
+        router.push(redirectTo);
+      } else router.refresh();
     }
   }
 
