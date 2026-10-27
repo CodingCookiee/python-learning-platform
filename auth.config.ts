@@ -13,6 +13,7 @@ import { prisma } from "@/lib/prisma";
 import { env } from "@/lib/env";
 import { rateLimit, limitReached, clientIp } from "@/lib/rate-limit";
 import { isEmailConfigured } from "@/lib/email";
+import { looksAutomated } from "@/lib/bot-check";
 
 /** Shown to the learner as a code; neither reveals whether an account exists without the password */
 class UnverifiedEmail extends CredentialsSignin {
@@ -23,6 +24,9 @@ class TooManyAttempts extends CredentialsSignin {
 }
 class SuspendedAccount extends CredentialsSignin {
   code = "suspended";
+}
+class LooksAutomated extends CredentialsSignin {
+  code = "automated";
 }
 
 /** Whether GitHub lists this address as verified on the account that's signing in */
@@ -58,6 +62,8 @@ const providers: Provider[] = [
       if (!credentials?.email || !credentials?.password) {
         return null;
       }
+      // Scripts trying passwords from many addresses get past per-IP limits; BotID catches them (lib/bot-check.ts)
+      if (await looksAutomated()) throw new LooksAutomated();
       // Slow down password guessing against one account, and across accounts from one address
       const email = normalizeEmail(String(credentials.email));
       const limited = await rateLimit("signIn", email);

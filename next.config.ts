@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withBotId } from "botid/next/config";
 
 // Everywhere, including files and API responses. The Content-Security-Policy is per request,
 // so it's set in proxy.ts instead.
@@ -38,4 +39,6 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// BotID's browser script and its checks reach Vercel through same-origin paths, so the CSP needs nothing
+// new (lib/bot-check.ts)
+export default withBotId(nextConfig);

@@ -21,6 +21,8 @@ import {
 import { FadeIn, StaggerContainer } from "@/components/animations";
 import { TapeMark } from "@/components/brand/marks";
 import { EmptySlot } from "@/components/brand/empty-slot";
+import { ReadingPause } from "@/components/lesson/reading-pause";
+import { readingTooFast } from "@/lib/reading-pace";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -101,6 +103,8 @@ export default async function LessonPage({ params }: PageProps) {
 
   const lesson = await getLessonForUser(id, user.id);
   if (!lesson) notFound();
+  const tooFast = await readingTooFast(user.id, `lesson:${lesson.id}`);
+  if (tooFast) return <ReadingPause retryAfter={tooFast.retryAfter} />;
   const lab = lesson.moduleUnlocked ? await getLabForUser(user.id, lesson.id) : null;
   const labCi = lab?.spec.kind === "github" ? await getLink(user.id, "lab", lesson.id) : null;
   // On-ramp lessons: the white belt ceremony hands over to Python module 1

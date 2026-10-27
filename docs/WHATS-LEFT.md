@@ -16,6 +16,7 @@ The release QA (2026-10-19) found the code ready for v1. What's left before laun
 - [ ] **Sign in as the admin straight after the first deploy**, before announcing the site. The first sign-in with `ADMIN_BOOTSTRAP_EMAIL` whose address is really proven (confirmed by the emailed link, or a verified Google or GitHub address) becomes the super admin; after that, no one else can. Without email set up, sign-ups are only marked verified, which doesn't count, so set up email first.
 
 - [x] **Terms of use (decided 2026-10-27):** one page with the privacy policy, `/privacy` ("Privacy and terms"); `/terms` redirects to its terms. Sign-up says that creating an account agrees to both. It was drafted for the owner to approve, not by a lawyer: it names no governing law or jurisdiction, which is worth adding once you know where the organisation is based.
+- [ ] **Make the GitHub repo private.** It's public, and `content/` holds every lesson, every drill's `solution.py` and every capstone's reference solution, so anyone can copy the course and its answers without signing in. GitHub: Settings → General → Danger Zone → Change visibility. Vercel deploys from a private repo the same way.
 - [ ] **Buy pylearn.academy.** It was unregistered on 2026-10-14; buy it before someone else does (Cloudflare or Namecheap).
 - [ ] **A production database.** A new Neon project for production, in **AWS us-east-1**: the app's functions run in Vercel's `iad1` (US East, set in `vercel.json`), and every page makes several queries, each one crossing the distance between the two. A new project is also cleaner than the dev database, which holds test accounts.
 - [ ] **Email that reaches inboxes.** Gmail SMTP works but allows about 500 messages a day and can land in spam. For a public launch, use Resend on pylearn.academy: add the domain in Resend, set its DNS records (SPF, DKIM), then set `RESEND_API_KEY` and `EMAIL_FROM` (for example `pylearn <hello@pylearn.academy>`).
@@ -43,6 +44,7 @@ Set these in the Vercel project's Production environment.
 | `GITHUB_TOKEN` | recommended | Raises GitHub's API limit for confirming learners' GitHub Actions runs |
 | `AUTH_GITHUB_ID` / `_SECRET`, `AUTH_GOOGLE_ID` / `_SECRET` | optional | Sign in with GitHub or Google |
 | `PASSWORD_BREACH_CHECK` | optional | Leave unset. `off` would skip the breached-password check |
+| `BOT_CHECK` | optional | Leave unset. `off` turns off the BotID check on sign-up, sign-in and the email routes: the switch to flip if it ever turns real people away |
 
 ### Steps
 
@@ -64,6 +66,7 @@ Set these in the Vercel project's Production environment.
   - a password reset.
 
   These flows have only been tested with email switched off.
+- [ ] **The bot check on production:** BotID only checks on Vercel, so the run-through above is its first real test. If sign-up, sign-in or "resend the link" says "We couldn't tell this came from a person", set `BOT_CHECK=off`, redeploy, and tell the next session. If the function logs show `[bot-check] BotID unavailable`, the check is being skipped: turn on OIDC federation in the Vercel project's security settings (BotID needs its token). Vercel's Firewall tab shows what it has blocked. Deep Analysis (stronger, paid per check) is an option there too; it needs no code.
 - [ ] **The domain everywhere:** set `https://pylearn.academy` as the website on the GitHub organization (Settings → Profile → URL) and on the LinkedIn page. LinkedIn wants the full `https://…` form.
 - [ ] **Search Console:**
   1. Add a **Domain** property for `pylearn.academy`, and verify it with the DNS TXT record. You can do this as soon as the domain is bought.

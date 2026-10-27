@@ -9,6 +9,7 @@ Updated 2026-10-26. Keep this page short and current: rewrite it when the phase 
 ## What's next, in order
 
 1. **Launch (the owner's tasks, not code):** the decision and setup in [WHATS-LEFT.md](WHATS-LEFT.md) §1–§2:
+   - make the GitHub repo private (it holds the whole course and its solutions);
    - buy `pylearn.academy`;
    - create the production Neon database in AWS us-east-1;
    - set up Resend email and Upstash;

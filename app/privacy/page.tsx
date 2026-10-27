@@ -291,7 +291,8 @@ export default function PrivacyPage() {
               <li>
                 <strong>Upstash</strong> holds short-lived counters that limit how often sign-ins,
                 emails and AI calls can happen. Some are keyed by your IP address, and they expire
-                within an hour.
+                within an hour. One lists which lessons and drills you&apos;ve opened, so that the
+                course can&apos;t be copied out in bulk; it expires within a day.
               </li>
               <li>
                 <strong>Resend</strong> (or <strong>Google&apos;s Gmail</strong>) sends our emails,
@@ -315,7 +316,10 @@ export default function PrivacyPage() {
               </li>
               <li>
                 <strong>Vercel</strong> hosts the site, in the United States, and keeps standard
-                request logs.
+                request logs. When you sign up, sign in with a password or ask for an email, its
+                BotID check looks at technical signals from your browser to confirm a person sent
+                the request, not a script. It never sees your password, and we don&apos;t keep its
+                answer.
               </li>
             </ul>
           </Section>

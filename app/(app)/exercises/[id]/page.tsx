@@ -8,6 +8,8 @@ import { isServerGrading } from "@/lib/grading/server";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { FadeIn } from "@/components/animations";
 import { ExerciseClient } from "./_components/exercise-client";
+import { ReadingPause } from "@/components/lesson/reading-pause";
+import { readingTooFast } from "@/lib/reading-pace";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -33,6 +35,11 @@ export default async function ExercisePage({ params, searchParams }: PageProps) 
     prisma.aiCredential.count({ where: { userId: user.id } }),
   ]);
   if (!drill) notFound();
+  // Gradings and reviews are paced by progress already; pausing one midway would cost the learner
+  if (drill.mode.kind === "practice") {
+    const tooFast = await readingTooFast(user.id, `drill:${drill.id}`);
+    if (tooFast) return <ReadingPause retryAfter={tooFast.retryAfter} />;
+  }
 
   const trail =
     drill.mode.kind === "checkpoint"

@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { FieldNote, FormError } from "@/components/auth/auth-shell";
 import { signInSchema, type SignInInput } from "@/lib/validations/auth";
 import { ResendVerification } from "@/components/auth/email-flows";
+import { BOT_MESSAGE } from "@/lib/bot-routes";
 
 /**
  * The sign-in form. The page around it renders on the server and passes in any notice from the URL,
@@ -64,6 +65,8 @@ export function SignInForm({
           setUnverifiedEmail(data.email);
         } else if (result.code === "suspended") {
           setError("This account is suspended. If you think that's a mistake, contact pylearn.");
+        } else if (result.code === "automated") {
+          setError(BOT_MESSAGE);
         } else if (result.code === "rate_limited") {
           setError("Too many sign-in attempts. Wait 15 minutes, or reset your password.");
         } else {

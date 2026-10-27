@@ -5,6 +5,7 @@ import { ZodError } from "zod";
 import { prisma } from "@/lib/prisma";
 import { signUpSchema } from "@/lib/validations/auth";
 import { clientIp, rateLimit, tooManyRequests } from "@/lib/rate-limit";
+import { botRefused, looksAutomated } from "@/lib/bot-check";
 import { isEmailConfigured, sendVerificationEmail } from "@/lib/email";
 import { issueToken } from "@/lib/auth-tokens";
 import { BREACHED_MESSAGE, isBreachedPassword } from "@/lib/password-breach";
@@ -14,6 +15,7 @@ export async function POST(req: Request) {
   try {
     const limited = await rateLimit("register", clientIp(req));
     if (!limited.ok) return tooManyRequests(limited, "Too many sign-ups from here.");
+    if (await looksAutomated()) return botRefused();
     const body = await req.json();
     const validatedData = signUpSchema.parse(body);
     if (await isBreachedPassword(validatedData.password)) {

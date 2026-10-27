@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { issueToken } from "@/lib/auth-tokens";
 import { isEmailConfigured, sendVerificationEmail } from "@/lib/email";
 import { clientIp, rateLimit, tooManyRequests } from "@/lib/rate-limit";
+import { botRefused, looksAutomated } from "@/lib/bot-check";
 
 const schema = z.object({ email: z.string().email().max(320) });
 
@@ -13,6 +14,7 @@ const schema = z.object({ email: z.string().email().max(320) });
  * address has an account, so this can't be used to find out who's signed up.
  */
 export async function POST(req: Request) {
+  if (await looksAutomated()) return botRefused();
   const parsed = schema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Enter a valid email." }, { status: 400 });
   const email = parsed.data.email.trim().toLowerCase();

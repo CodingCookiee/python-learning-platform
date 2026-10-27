@@ -4,6 +4,7 @@ import { issueToken } from "@/lib/auth-tokens";
 import { isEmailConfigured, sendPasswordResetEmail } from "@/lib/email";
 import { forgotPasswordSchema } from "@/lib/validations/auth";
 import { clientIp, rateLimit, tooManyRequests } from "@/lib/rate-limit";
+import { botRefused, looksAutomated } from "@/lib/bot-check";
 
 /**
  * POST /api/auth/password/forgot { email }
@@ -11,6 +12,7 @@ import { clientIp, rateLimit, tooManyRequests } from "@/lib/rate-limit";
  * back either way, so this can't be used to find out who's signed up.
  */
 export async function POST(req: Request) {
+  if (await looksAutomated()) return botRefused();
   const parsed = forgotPasswordSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Enter a valid email." }, { status: 400 });
   const email = parsed.data.email.trim().toLowerCase();

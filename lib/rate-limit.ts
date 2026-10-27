@@ -38,6 +38,10 @@ export const LIMITS = {
   questEvent: { limit: 60, windowSec: 10 * 60 },
   // Claiming a certificate, fixing its printed name, withdrawing or restoring it
   certificateClaim: { limit: 20, windowSec: 60 * 60 },
+  // Different lessons and practice drills opened, per account (lib/reading-pace.ts). A quick learner opens
+  // a module's worth (about 40) in a long day; these are paces only a script copying the course reaches
+  contentRead: { limit: 80, windowSec: 60 * 60 },
+  contentReadDay: { limit: 250, windowSec: 24 * 60 * 60 },
 } as const;
 
 export type LimitName = keyof typeof LIMITS;
@@ -108,6 +112,43 @@ export async function limitReached(name: LimitName, subject: string): Promise<bo
   }
   const entry = memory.get(key);
   return Boolean(entry && entry.resetAt > Date.now() && entry.count >= limit);
+}
+
+const memorySets = new Map<string, { members: Set<string>; resetAt: number }>();
+
+/**
+ * Like rateLimit, but counts different `member`s in the window rather than hits: opening the same page
+ * again is always allowed and counts once, so only new ones run into the limit.
+ */
+export async function distinctLimit(name: LimitName, subject: string, member: string): Promise<LimitResult> {
+  const { limit, windowSec } = LIMITS[name];
+  const key = `rl:${name}:${subject}:${Math.floor(Date.now() / 1000 / windowSec)}`;
+  const retryAfter = windowSec - (Math.floor(Date.now() / 1000) % windowSec);
+  const r = redis();
+  if (r) {
+    try {
+      const [seen, size] = await r.pipeline().sismember(key, member).scard(key).exec<[number, number]>();
+      if (seen) return { ok: true, remaining: Math.max(0, limit - size), retryAfter };
+      if (size >= limit) return { ok: false, remaining: 0, retryAfter };
+      await r.pipeline().sadd(key, member).expire(key, windowSec).exec();
+      return { ok: true, remaining: limit - size - 1, retryAfter };
+    } catch (e) {
+      // As in rateLimit: a Redis outage falls back to this process's counts
+      console.warn("[rate-limit] Redis unavailable, using memory:", (e as Error).message);
+    }
+  }
+  const now = Date.now();
+  let entry = memorySets.get(key);
+  if (!entry || entry.resetAt <= now) {
+    entry = { members: new Set(), resetAt: now + windowSec * 1000 };
+    memorySets.set(key, entry);
+    if (memorySets.size > 10_000) for (const [k, v] of memorySets) if (v.resetAt <= now) memorySets.delete(k);
+  }
+  if (!entry.members.has(member)) {
+    if (entry.members.size >= limit) return { ok: false, remaining: 0, retryAfter };
+    entry.members.add(member);
+  }
+  return { ok: true, remaining: Math.max(0, limit - entry.members.size), retryAfter };
 }
 
 export function tooManyRequests(result: LimitResult, message = "Too many requests. Try again shortly."): NextResponse {
