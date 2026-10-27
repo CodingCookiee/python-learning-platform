@@ -14,9 +14,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { startNavigation } from "@/components/layout/navigation-progress";
-import { TOO_BIG_TOTAL, uploadProblem } from "@/lib/capstone-upload";
+import { ACCEPTED_EXTENSIONS, TOO_BIG_TOTAL, isAcceptedName, uploadProblem, wrongType } from "@/lib/capstone-upload";
 
-const ACCEPTED_EXTENSIONS = [".py", ".md", ".txt", ".zip", ".json", ".toml", ".cfg", ".ini"];
 const GITHUB_REGEX = /^https?:\/\/(www\.)?github\.com\/.+\/.+/i;
 
 interface FileItem {
@@ -75,9 +74,13 @@ export function ProjectSubmitClient({ projectId, projectTitle }: ProjectSubmitCl
 
   async function addFiles(incoming: FileList | null) {
     if (!incoming) return;
+    // A dropped file skips the picker's type filter, so other kinds are turned away here, by name
+    const all = Array.from(incoming);
+    const refused = all.find((file) => !isAcceptedName(file.name));
+    setSubmitError(refused ? wrongType(refused.name) : "");
     setIsProcessingFiles(true);
     try {
-      const incomingItems = await Promise.all(Array.from(incoming).map((file) => fileToItem(file)));
+      const incomingItems = await Promise.all(all.filter((file) => isAcceptedName(file.name)).map(fileToItem));
 
       setFiles((prev) => {
         const names = new Set(prev.map((f) => f.name));
