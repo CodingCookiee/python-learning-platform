@@ -9,6 +9,7 @@ import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { EvaluateClient } from "./_components/evaluate-client";
 import { parseProjectListText } from "@/lib/project-content";
 import { reviewSchema, type AiReview } from "@/lib/ai/reviewer";
+import { getSavedKeys } from "@/lib/ai/credentials";
 
 export const metadata: Metadata = { title: "Evaluate a submission (admin)" };
 
@@ -148,7 +149,7 @@ export default async function AdminEvaluatePage({ params }: PageProps) {
 
   if (submission.status !== "pending") redirect("/admin/projects");
   // The examiner's AI review runs on their own key, like learners' (Settings)
-  const examinerKey = await prisma.aiCredential.findUnique({ where: { userId: dbUser.id }, select: { id: true } });
+  const examinerKeys = await getSavedKeys(dbUser.id);
 
   return (
     <div className="mx-auto max-w-page px-gutter py-8 sm:py-12">
@@ -173,7 +174,7 @@ export default async function AdminEvaluatePage({ params }: PageProps) {
         </FadeIn>
 
         <FadeIn delay={0.1}>
-          <EvaluateClient submission={submission} aiReady={examinerKey !== null} />
+          <EvaluateClient submission={submission} aiKeys={examinerKeys} />
         </FadeIn>
       </StaggerContainer>
     </div>

@@ -10,6 +10,9 @@ import { TutorWaiting } from "@/components/tutor/tutor-waiting";
 import { waitLines } from "@/lib/tutor/wait-lines";
 import { cn } from "@/lib/utils";
 import { Sensei } from "@/components/quest/sensei";
+import { AnsweringWith, useModelChoice } from "@/components/ai/model-switcher";
+import { modelName, type SavedKey } from "@/lib/ai/models";
+import type { Provider } from "@/lib/ai/gateway";
 
 /**
  * The Socratic tutor beside a drill. It runs on the learner's own key (Settings),
@@ -23,6 +26,20 @@ interface Turn {
   /** What the learner sees for their turn (an explain request shows as a label) */
   label?: string;
   redacted?: boolean;
+  /** Which model answered, so a switch partway through is marked on the first reply after it */
+  model?: { provider: Provider; id: string };
+}
+
+/** "Answered by GPT-5 mini" under a reply whose model differs from the reply before it */
+function switchedModel(turns: Turn[], i: number): string | null {
+  const model = turns[i]!.model;
+  if (!model) return null;
+  for (let j = i - 1; j >= 0; j--) {
+    const before = turns[j]!.model;
+    if (turns[j]!.role !== "assistant" || !before) continue;
+    return before.provider === model.provider && before.id === model.id ? null : modelName(model.provider, model.id);
+  }
+  return null;
 }
 
 /** The tutor's face: the Sensei's head (the same as the site's Ask the Sensei button), framed */
@@ -65,13 +82,14 @@ function readOfferHidden(): boolean {
 
 export function TutorPanel({
   exerciseId,
-  aiReady,
+  aiKeys,
   getContext,
   onUsed,
   ref,
 }: {
   exerciseId: string;
-  aiReady: boolean;
+  /** The learner's AI keys; without one the tutor offers to add a key */
+  aiKeys: SavedKey[];
   getContext: () => TutorContext;
   /** Called on the first question, e.g. so a review knows help was used */
   onUsed?: () => void;
@@ -84,7 +102,8 @@ export function TutorPanel({
   // What the waiting reply says, built from what this question sends
   const [waiting, setWaiting] = React.useState<string[]>([]);
   const [error, setError] = React.useState<string | null>(null);
-  const [needsKey, setNeedsKey] = React.useState(!aiReady);
+  const [needsKey, setNeedsKey] = React.useState(aiKeys.length === 0);
+  const [choice, choose] = useModelChoice("tutor", aiKeys);
   // The offer can be hidden for good, unless the learner then asks the tutor something (which says why it can't)
   const [askedWithoutKey, setAskedWithoutKey] = React.useState(false);
   const [hiddenNow, setHiddenNow] = React.useState(false);
@@ -137,6 +156,7 @@ export function TutorPanel({
             code: ctx.code,
             result: ctx.result?.slice(0, 8000),
             error: errorText?.slice(0, 8000),
+            ...(choice ? { choice } : {}),
           }),
         });
         const data = (await res.json().catch(() => ({}))) as {
@@ -145,6 +165,8 @@ export function TutorPanel({
           redacted?: boolean;
           error?: string;
           code?: string;
+          provider?: Provider;
+          model?: string;
         };
         if (!res.ok || !data.reply) {
           if (data.code === "no_key") {
@@ -160,7 +182,8 @@ export function TutorPanel({
           const copy = [...t];
           // Keep the server's wording of the question, so later turns carry the same history
           copy[copy.length - 1] = { role: "user", content: data.question ?? question, label };
-          return [...copy, { role: "assistant", content: data.reply!, redacted: data.redacted }];
+          const model = data.provider && data.model ? { provider: data.provider, id: data.model } : undefined;
+          return [...copy, { role: "assistant", content: data.reply!, redacted: data.redacted, model }];
         });
       } catch {
         setError("We couldn't reach the server. Check your connection and try again.");
@@ -169,7 +192,7 @@ export function TutorPanel({
         setBusy(false);
       }
     },
-    [busy, turns, exerciseId, getContext, onUsed]
+    [busy, turns, exerciseId, getContext, onUsed, choice]
   );
 
   React.useImperativeHandle(ref, () => ({ explain: (err: string) => void send("explain", "", err) }), [send]);
@@ -241,7 +264,12 @@ export function TutorPanel({
                   {t.role === "user" ? (
                     <p className="whitespace-pre-wrap">{t.label ?? t.content}</p>
                   ) : (
-                    <LessonContent content={t.content} runnable={false} trusted={false} className="[&_p]:mb-2 [&_p]:text-sm [&_p:last-child]:mb-0" />
+                    <>
+                      <LessonContent content={t.content} runnable={false} trusted={false} className="[&_p]:mb-2 [&_p]:text-sm [&_p:last-child]:mb-0" />
+                      {switchedModel(turns, i) && (
+                        <p className="mt-1.5 text-xs text-muted-foreground">Answered by {switchedModel(turns, i)}</p>
+                      )}
+                    </>
                   )}
                 </li>
               ))}
@@ -266,6 +294,7 @@ export function TutorPanel({
             </p>
           )}
 
+          <AnsweringWith keys={aiKeys} choice={choice} onChoose={choose} disabled={busy} />
           <div className="flex items-end gap-2">
             <Textarea
               value={input}

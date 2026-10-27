@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { prisma } from "../lib/prisma";
 import { decryptSecret, encryptSecret } from "../lib/crypto";
-import { callWithLearnerKey, getUsageSummary, saveCredential, getCredentialSummary } from "../lib/ai/credentials";
+import { callWithLearnerKey, getUsageSummary, saveCredential, getCredentials } from "../lib/ai/credentials";
 import { guardReply, tutorSystemPrompt, tutorUserTurn } from "../lib/ai/tutor";
 
 const EMAIL = "m3-probe@example.invalid";
@@ -78,9 +78,9 @@ async function main() {
     check("no key → no_key", !none.ok && none.code === "no_key");
 
     await saveCredential(user.id, { provider: "anthropic", model: "claude-sonnet-5", apiKey: "sk-ant-api03-abcdefWXYZ" });
-    const summary = await getCredentialSummary(user.id);
+    const [summary] = await getCredentials(user.id);
     check("summary shows only the hint", summary?.keyHint === "WXYZ" && !JSON.stringify(summary).includes("abcdef"));
-    const row = await prisma.aiCredential.findUniqueOrThrow({ where: { userId: user.id } });
+    const row = await prisma.aiCredential.findUniqueOrThrow({ where: { userId_provider: { userId: user.id, provider: "anthropic" } } });
     check("stored encrypted", row.encryptedKey.startsWith("v1:") && !row.encryptedKey.includes("abcdef"));
 
     const call = await callWithLearnerKey(user.id, "tutor", { system: sys, messages: [{ role: "user", content: "hi" }], maxTokens: 700 }, { exerciseId: "ex1" });
@@ -94,7 +94,7 @@ async function main() {
 
     // Keep the key when only the model changes; a provider switch needs a new one
     await saveCredential(user.id, { provider: "anthropic", model: "claude-opus-5-5" });
-    check("model change keeps the key", decryptSecret((await prisma.aiCredential.findUniqueOrThrow({ where: { userId: user.id } })).encryptedKey, user.id).endsWith("WXYZ"));
+    check("model change keeps the key", decryptSecret((await prisma.aiCredential.findUniqueOrThrow({ where: { userId_provider: { userId: user.id, provider: "anthropic" } } })).encryptedKey, user.id).endsWith("WXYZ"));
     let needsKey = false;
     try {
       await saveCredential(user.id, { provider: "openai", model: "gpt-5-mini" });

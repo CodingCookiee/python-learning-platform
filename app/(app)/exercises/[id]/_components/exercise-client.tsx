@@ -44,6 +44,7 @@ import { ClockAnnouncement, HandInButton } from "@/components/mastery/checkpoint
 import type { DrillData, DrillMode, DrillType } from "@/lib/drills";
 import { cn } from "@/lib/utils";
 import { TutorPanel, type TutorHandle } from "@/components/tutor/tutor-panel";
+import type { SavedKey } from "@/lib/ai/models";
 import { combinedSource } from "@/lib/drill-files";
 
 // Copy per drill type
@@ -738,11 +739,12 @@ function WaitLink({
 
 export function ExerciseClient({
   drill,
-  aiReady,
+  aiKeys,
   serverGrading = false,
 }: {
   drill: DrillData;
-  aiReady: boolean;
+  /** The learner's AI keys, for the tutor and its model switcher; empty without one */
+  aiKeys: SavedKey[];
   /** GRADING_MODE=server: a save re-runs the tests on the server, which the save's progress says */
   serverGrading?: boolean;
 }) {
@@ -885,7 +887,7 @@ export function ExerciseClient({
   };
   const codeBlocked = () => setClipboardNote("code");
   const explain: Explain =
-    tutorOn && aiReady ? (error) => tutorRef.current?.explain(errorText(error)) : null;
+    tutorOn && aiKeys.length > 0 ? (error) => tutorRef.current?.explain(errorText(error)) : null;
 
   React.useEffect(() => {
     getPythonRuntime().preload();
@@ -1546,7 +1548,7 @@ export function ExerciseClient({
         <TutorPanel
           ref={tutorRef}
           exerciseId={drill.id}
-          aiReady={aiReady}
+          aiKeys={aiKeys}
           getContext={() => ({
             code: isPredict
               ? drill.starterCode

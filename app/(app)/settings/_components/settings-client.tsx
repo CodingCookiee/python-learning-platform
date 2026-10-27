@@ -33,7 +33,7 @@ interface SettingsClientProps {
   initialName: string;
   email: string;
   hasPassword: boolean;
-  ai: { credential: CredentialSummary | null; usage: UsageSummary; available: boolean };
+  ai: { credentials: CredentialSummary[]; usage: UsageSummary; available: boolean };
 }
 
 type Status = { type: "success" | "error"; message: string } | null;
@@ -329,10 +329,10 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
       </SettingsRow>
 
       <SettingsRow
-        title="AI tutor"
-        description="The drill tutor and error explainer run on your own Anthropic, OpenAI or Google Gemini key, so you pay your provider directly. Everything else works without one."
+        title="AI keys"
+        description="The tutor, the Sensei and capstone reviews run on your own Anthropic, OpenAI or Google Gemini keys, so you pay your provider directly. One key works for all of its provider's models; add another provider's key to switch between them where you ask. Everything else works without one."
       >
-        <AiSettings initialCredential={ai.credential} usage={ai.usage} available={ai.available} />
+        <AiSettings initialCredentials={ai.credentials} usage={ai.usage} available={ai.available} />
       </SettingsRow>
 
       {hasPassword && (

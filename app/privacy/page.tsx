@@ -168,11 +168,11 @@ export default function PrivacyPage() {
             </ul>
           </Section>
 
-          <Section id="terms-ai" title="AI features on your own key">
+          <Section id="terms-ai" title="AI features on your own keys">
             <p>
-              The tutor, the Sensei and AI reviews are optional and run on an AI key you add
-              yourself. What you send goes to that provider under its terms, and what it charges is
-              between you and it. AI answers can be wrong or incomplete: treat them as a training
+              The tutor, the Sensei and AI reviews are optional and run on AI keys you add yourself,
+              one per provider. What you send goes to the provider of the model you pick, under its
+              terms, and what it charges is between you and it. AI answers can be wrong or incomplete: treat them as a training
               partner&apos;s suggestion and check them.
             </p>
           </Section>
@@ -252,9 +252,11 @@ export default function PrivacyPage() {
                 and the dates. You can withdraw it at any time.
               </li>
               <li>
-                <strong>Your AI key, if you add one:</strong> encrypted, and shown back to you only
-                by its last four characters. For each AI call we log the feature, the model and the
-                token counts, not what you asked or what the model answered.
+                <strong>Your AI keys, if you add any:</strong> one per provider, each encrypted, and
+                shown back to you only by its last four characters. For each AI call we log the
+                feature, the provider, the model and the token counts, not what you asked or what
+                the model answered. Your browser remembers which model you last picked in each place,
+                until you sign out.
               </li>
             </ul>
             <p>
@@ -307,10 +309,10 @@ export default function PrivacyPage() {
                 your public repository&apos;s workflow runs to confirm test results.
               </li>
               <li>
-                <strong>The AI provider you choose</strong> (Anthropic, OpenAI or Google), only if
-                you add your own key: when you ask the tutor or request a review, the drill or
-                brief, your code or files and your question go to that provider under your key and
-                its terms. When you ask the Sensei, your question, the conversation so far and the
+                <strong>The AI providers you choose</strong> (Anthropic, OpenAI or Google), only if
+                you add your own keys: when you ask the tutor or request a review, the drill or
+                brief, your code or files and your question go to the provider of the model you
+                picked, under your key and its terms. When you ask the Sensei, your question, the conversation so far and the
                 text of the page you&apos;re on go the same way. Conversations aren&apos;t stored by
                 pylearn: the Sensei&apos;s chat stays in your browser until you close the tab.
               </li>

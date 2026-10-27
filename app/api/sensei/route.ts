@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
 import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 import { withAuth, type AuthContext } from "@/lib/api-auth";
-import { callWithLearnerKey } from "@/lib/ai/credentials";
+import { callWithLearnerKey, getSavedKeys } from "@/lib/ai/credentials";
+import { choiceSchema } from "@/lib/ai/models";
 import {
   gradingInProgress,
   resolvePage,
@@ -21,25 +21,22 @@ const askSchema = z.object({
   history: z.array(turn).max(24).default([]),
   /** The page the learner is on, for context */
   path: z.string().max(300).startsWith("/"),
+  /** The model picked in the Sensei's switcher; without one, the default key's model */
+  choice: choiceSchema,
 });
 
 /** Where the Sensei steps back: drills have their own tutor */
 const onDrill = (path: string) => path.startsWith("/exercises/");
 
 /**
- * GET /api/sensei: whether the Sensei can help right now ("ready", "no_key", "grading")
+ * GET /api/sensei: whether the Sensei can help right now ("ready", "no_key", "grading"), and the
+ * learner's keys for its model switcher
  * POST /api/sensei { question, history, path }: ask, on the learner's own key
  */
 export const GET = withAuth(async (_req: NextRequest, context: AuthContext) => {
-  const [key, grading] = await Promise.all([
-    prisma.aiCredential.findUnique({
-      where: { userId: context.userId },
-      select: { provider: true },
-    }),
-    gradingInProgress(context.userId),
-  ]);
-  const status = grading ? "grading" : key ? "ready" : "no_key";
-  return NextResponse.json({ status }, { headers: { "cache-control": "no-store" } });
+  const [keys, grading] = await Promise.all([getSavedKeys(context.userId), gradingInProgress(context.userId)]);
+  const status = grading ? "grading" : keys.length > 0 ? "ready" : "no_key";
+  return NextResponse.json({ status, keys }, { headers: { "cache-control": "no-store" } });
 });
 
 export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
@@ -50,7 +47,7 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
     const parsed = askSchema.safeParse(await req.json().catch(() => null));
     if (!parsed.success)
       return NextResponse.json({ error: "Ask a question first." }, { status: 400 });
-    const { question, history, path } = parsed.data;
+    const { question, history, path, choice } = parsed.data;
     if (onDrill(path)) {
       return NextResponse.json(
         { error: "On drills, ask the tutor beside your code.", code: "drill" },
@@ -66,11 +63,16 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
     }
 
     const page = await resolvePage(path);
-    const call = await callWithLearnerKey(context.userId, "sensei", {
-      system: senseiSystemPrompt(page),
-      messages: [...history, { role: "user", content: senseiUserTurn(question) }],
-      maxTokens: 900,
-    });
+    const call = await callWithLearnerKey(
+      context.userId,
+      "sensei",
+      {
+        system: senseiSystemPrompt(page),
+        messages: [...history, { role: "user", content: senseiUserTurn(question) }],
+        maxTokens: 900,
+      },
+      { choice }
+    );
     if (!call.ok) {
       const error =
         call.code === "no_key" ? "Add your AI key in Settings to talk to the Sensei." : call.error;
@@ -81,6 +83,8 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
         call.result.text.trim() ||
         "I don't have a good answer to that. Could you ask it another way?",
       truncated: call.result.truncated,
+      provider: call.provider,
+      model: call.model,
     });
   } catch (error) {
     console.error("Error in the Sensei:", error);

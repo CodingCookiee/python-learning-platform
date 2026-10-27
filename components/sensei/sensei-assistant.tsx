@@ -13,6 +13,9 @@ import { LessonContent } from "@/components/lesson";
 import { Sensei } from "@/components/quest/sensei";
 import { cn } from "@/lib/utils";
 import { accountKey } from "@/lib/account-storage";
+import { AnsweringWith, useModelChoice } from "@/components/ai/model-switcher";
+import { modelName, type SavedKey } from "@/lib/ai/models";
+import { PROVIDERS, type Provider } from "@/lib/ai/gateway";
 
 /**
  * The Sensei: a guide on every signed-in page, in the bottom-left corner (the quest has the
@@ -24,6 +27,22 @@ import { accountKey } from "@/lib/account-storage";
 interface Turn {
   role: "user" | "assistant";
   content: string;
+  /** Which model answered, so a switch partway through is marked on the first reply after it */
+  model?: { provider: Provider; id: string };
+}
+
+/** "Answered by GPT-5 mini" under a reply whose model differs from the reply before it */
+function switchedModel(turns: Turn[], i: number): string | null {
+  const model = turns[i]!.model;
+  if (!model || !PROVIDERS.includes(model.provider)) return null;
+  for (let j = i - 1; j >= 0; j--) {
+    const before = turns[j]!.model;
+    if (turns[j]!.role !== "assistant" || !before) continue;
+    return before.provider === model.provider && before.id === model.id
+      ? null
+      : modelName(model.provider, model.id);
+  }
+  return null;
 }
 
 type Status = "loading" | "ready" | "no_key" | "grading" | "error";
@@ -57,6 +76,12 @@ function saveTurns(turns: Turn[]) {
   }
 }
 
+/**
+ * Escape in the model menu closes the menu, not the Sensei. The menu is portalled, but React still
+ * bubbles its keys up through the panel
+ */
+const inMenu = (target: EventTarget | null) => target instanceof Element && target.closest('[role="menu"]') !== null;
+
 /** Drills have their own tutor; the Sensei steps aside there */
 const isDrill = (path: string) => path.startsWith("/exercises/");
 /** Gradings allow no AI at all */
@@ -85,6 +110,8 @@ export function SenseiAssistant() {
   const [input, setInput] = React.useState("");
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [keys, setKeys] = React.useState<SavedKey[]>([]);
+  const [choice, choose] = useModelChoice("sensei", keys);
   const listRef = React.useRef<HTMLOListElement>(null);
   const inputRef = React.useRef<HTMLTextAreaElement>(null);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
@@ -102,7 +129,7 @@ export function SenseiAssistant() {
   React.useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !e.defaultPrevented) close();
+      if (e.key === "Escape" && !e.defaultPrevented && !inMenu(e.target)) close();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -114,7 +141,9 @@ export function SenseiAssistant() {
     setStatus("loading");
     setError(null);
     const res = await fetch("/api/sensei", { cache: "no-store" }).catch(() => null);
-    setStatus(res?.ok ? ((await res.json()) as { status: Status }).status : "error");
+    const data = res?.ok ? ((await res.json()) as { status: Status; keys?: SavedKey[] }) : null;
+    setKeys(data?.keys ?? []);
+    setStatus(data?.status ?? "error");
     requestAnimationFrame(() => (inputRef.current ?? panelRef.current)?.focus());
   }
 
@@ -136,12 +165,20 @@ export function SenseiAssistant() {
       const res = await fetch("/api/sensei", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: q, history, path: pathname }),
+        body: JSON.stringify({
+          question: q,
+          // Only what was said goes back to the model, not which model said it
+          history: history.map(({ role, content }) => ({ role, content })),
+          path: pathname,
+          ...(choice ? { choice } : {}),
+        }),
       });
       const data = (await res.json().catch(() => ({}))) as {
         reply?: string;
         error?: string;
         code?: string;
+        provider?: Provider;
+        model?: string;
       };
       if (!res.ok || !data.reply) {
         if (data.code === "no_key") setStatus("no_key");
@@ -152,7 +189,9 @@ export function SenseiAssistant() {
         setInput(q);
         return;
       }
-      const answered = [...next, { role: "assistant" as const, content: data.reply }];
+      const model =
+        data.provider && data.model ? { provider: data.provider, id: data.model } : undefined;
+      const answered = [...next, { role: "assistant" as const, content: data.reply, model }];
       setTurns(answered);
       saveTurns(answered);
     } catch {
@@ -240,7 +279,7 @@ export function SenseiAssistant() {
           id={panelId}
           aria-label="Ask the Sensei"
           onKeyDown={(e) => {
-            if (e.key === "Escape") {
+            if (e.key === "Escape" && !inMenu(e.target)) {
               e.stopPropagation();
               close();
             }
@@ -330,13 +369,20 @@ export function SenseiAssistant() {
                     {t.role === "user" ? (
                       <span className="whitespace-pre-wrap">{t.content}</span>
                     ) : (
-                      <LessonContent
-                        content={t.content}
-                        runnable={false}
-                        trusted={false}
-                        sideToc={false}
-                        className="[&_p]:mb-2 [&_p]:text-sm [&_p:last-child]:mb-0"
-                      />
+                      <>
+                        <LessonContent
+                          content={t.content}
+                          runnable={false}
+                          trusted={false}
+                          sideToc={false}
+                          className="[&_p]:mb-2 [&_p]:text-sm [&_p:last-child]:mb-0"
+                        />
+                        {switchedModel(turns, i) && (
+                          <p className="mt-1.5 text-xs text-muted-foreground">
+                            Answered by {switchedModel(turns, i)}
+                          </p>
+                        )}
+                      </>
                     )}
                   </li>
                 ))}
@@ -375,39 +421,47 @@ export function SenseiAssistant() {
 
           {status === "ready" && (
             <form
-              className="flex items-end gap-2 border-t border-border p-3"
+              className="flex flex-col gap-1.5 border-t border-border p-3"
               onSubmit={(e) => {
                 e.preventDefault();
                 void ask(input);
               }}
             >
-              <label htmlFor={`${panelId}-q`} className="sr-only">
-                Your question for the Sensei
-              </label>
-              <Textarea
-                id={`${panelId}-q`}
-                ref={inputRef}
-                rows={2}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    void ask(input);
-                  }
-                }}
-                placeholder="Ask about Python or pylearn"
-                className="min-h-0 resize-none text-sm"
-                maxLength={4000}
+              <AnsweringWith
+                keys={keys}
+                choice={choice}
+                onChoose={choose}
+                disabled={busy}
               />
-              <Button
-                type="submit"
-                size="icon-sm"
-                disabled={busy || !input.trim()}
-                aria-label="Ask"
-              >
-                <ArrowUp aria-hidden="true" />
-              </Button>
+              <div className="flex items-end gap-2">
+                <label htmlFor={`${panelId}-q`} className="sr-only">
+                  Your question for the Sensei
+                </label>
+                <Textarea
+                  id={`${panelId}-q`}
+                  ref={inputRef}
+                  rows={2}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      void ask(input);
+                    }
+                  }}
+                  placeholder="Ask about Python or pylearn"
+                  className="min-h-0 resize-none text-sm"
+                  maxLength={4000}
+                />
+                <Button
+                  type="submit"
+                  size="icon-sm"
+                  disabled={busy || !input.trim()}
+                  aria-label="Ask"
+                >
+                  <ArrowUp aria-hidden="true" />
+                </Button>
+              </div>
             </form>
           )}
         </section>

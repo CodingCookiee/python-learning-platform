@@ -26,11 +26,13 @@ import { draftFeedback, isReadableSource, matchCriteria } from "@/lib/ai/reviewe
 import { cn } from "@/lib/utils";
 import { startNavigation } from "@/components/layout/navigation-progress";
 import type { SubmissionDetail } from "../page";
+import { AnsweringWith, useModelChoice } from "@/components/ai/model-switcher";
+import type { SavedKey } from "@/lib/ai/models";
 
 interface EvaluateClientProps {
   submission: SubmissionDetail;
-  /** The examiner has an AI key in Settings, so "Review with AI" can run */
-  aiReady: boolean;
+  /** The examiner's AI keys: "Review with AI" runs on them, with a model switcher */
+  aiKeys: SavedKey[];
 }
 
 type ExaminerReview = NonNullable<SubmissionDetail["examinerAiReview"]>;
@@ -41,14 +43,14 @@ type ExaminerReview = NonNullable<SubmissionDetail["examinerAiReview"]>;
  */
 function ExaminerAiReview({
   submissionId,
-  aiReady,
+  aiKeys,
   initialReview,
   initialReviewedAt,
   onTick,
   onDraft,
 }: {
   submissionId: string;
-  aiReady: boolean;
+  aiKeys: SavedKey[];
   initialReview: ExaminerReview | null;
   initialReviewedAt: string | null;
   /** Tick the checklist from the review; says what it did */
@@ -61,13 +63,19 @@ function ExaminerAiReview({
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [applied, setApplied] = React.useState("");
+  const aiReady = aiKeys.length > 0;
+  const [choice, choose] = useModelChoice("examiner", aiKeys);
 
   async function run() {
     setBusy(true);
     setError(null);
     setApplied("");
     try {
-      const res = await fetch(`/api/admin/projects/submissions/${submissionId}/ai-review`, { method: "POST" });
+      const res = await fetch(`/api/admin/projects/submissions/${submissionId}/ai-review`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(choice ? { choice } : {}),
+      });
       const data = (await res.json().catch(() => ({}))) as { review?: ExaminerReview; reviewedAt?: string; error?: string };
       if (!res.ok || !data.review) setError(data.error ?? "The review failed.");
       else {
@@ -88,17 +96,20 @@ function ExaminerAiReview({
           Grade with AI <span className="font-normal text-muted-foreground">(on your key; you decide)</span>
         </h2>
         {aiReady && (
-          <LoadingButton
-            // Outline: the page's one primary is the decision (Approve and stamp), not the AI's opinion
-            variant="outline"
-            size="sm"
-            onClick={() => void run()}
-            loading={busy}
-            loadingText="Reviewing…"
-            icon={<SenseiMark />}
-          >
-            {review ? "Review again" : "Review with AI"}
-          </LoadingButton>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <AnsweringWith label="Review with" keys={aiKeys} choice={choice} onChoose={choose} disabled={busy} />
+            <LoadingButton
+              // Outline: the page's one primary is the decision (Approve and stamp), not the AI's opinion
+              variant="outline"
+              size="sm"
+              onClick={() => void run()}
+              loading={busy}
+              loadingText="Reviewing…"
+              icon={<SenseiMark />}
+            >
+              {review ? "Review again" : "Review with AI"}
+            </LoadingButton>
+          </div>
         )}
       </div>
       {!aiReady ? (
@@ -256,7 +267,7 @@ function SubmittedFile({
   );
 }
 
-export function EvaluateClient({ submission, aiReady }: EvaluateClientProps) {
+export function EvaluateClient({ submission, aiKeys }: EvaluateClientProps) {
   const router = useRouter();
 
   const [checklist, setChecklist] = React.useState<Record<string, boolean>>(() =>
@@ -470,7 +481,7 @@ export function EvaluateClient({ submission, aiReady }: EvaluateClientProps) {
 
         <ExaminerAiReview
           submissionId={submission.id}
-          aiReady={aiReady}
+          aiKeys={aiKeys}
           initialReview={submission.examinerAiReview}
           initialReviewedAt={submission.examinerAiReviewedAt}
           onTick={tickFromReview}

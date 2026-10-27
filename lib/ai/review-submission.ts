@@ -11,6 +11,7 @@ import {
   type SourceFile,
 } from "@/lib/ai/reviewer";
 import { parseProjectListText } from "@/lib/project-content";
+import type { ModelChoice } from "@/lib/ai/models";
 
 /** A review as stored on a submission: the model's verdicts, which model, and how many files it read */
 export type StoredReview = AiReview & { model: string; files: number };
@@ -28,11 +29,13 @@ interface ReviewableSubmission {
  * Review a capstone submission's code against the capstone's criteria, on `callerId`'s own AI key:
  * the learner's for their own review, the examiner's when grading ("grade"). It reads the uploads,
  * or the public GitHub repo. The review is advice; nothing here changes the submission's status.
+ * `choice` is the model picked where they asked; without one, their default key's model reviews.
  */
 export async function reviewSubmission(
   callerId: string,
   feature: "review" | "grade",
-  submission: ReviewableSubmission
+  submission: ReviewableSubmission,
+  choice?: ModelChoice
 ): Promise<ReviewRun> {
   let payload: { type?: string; files?: Array<{ name: string; content: string }>; url?: string; notes?: string | null };
   try {
@@ -71,7 +74,7 @@ export async function reviewSubmission(
     ],
     maxTokens: 3_000,
     timeoutMs: 150_000,
-  });
+  }, { choice });
   if (!call.ok) return { ok: false, status: call.status, error: call.error, code: call.code };
 
   const review = parseReview(call.result.text, criteria);
@@ -86,13 +89,14 @@ export async function reviewSubmission(
  */
 export async function reviewForExaminer(
   examinerId: string,
-  submissionId: string
+  submissionId: string,
+  choice?: ModelChoice
 ): Promise<{ ok: true; review: StoredReview; reviewedAt: string } | ReviewFailure> {
   const submission = await prisma.projectSubmission.findUnique({ where: { id: submissionId }, include: { project: true } });
   if (!submission) return { ok: false, status: 404, error: "Submission not found." };
   if (submission.status !== "pending") return { ok: false, status: 409, error: "This submission has already been graded." };
 
-  const run = await reviewSubmission(examinerId, "grade", submission);
+  const run = await reviewSubmission(examinerId, "grade", submission, choice);
   if (!run.ok) {
     return run.code === "no_key" ? { ...run, error: "Add your AI key in Settings to review with AI." } : run;
   }

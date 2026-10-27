@@ -4,6 +4,7 @@ import { CacheKeys, getCached } from "@/lib/cache";
 import { formatProjectEstimatedTime } from "@/lib/project-time";
 import { starterTemplateHref } from "@/lib/project-template";
 import { parseProjectListText } from "@/lib/project-content";
+import { getSavedKeys } from "@/lib/ai/credentials";
 
 /**
  * A capstone with this learner's latest submission, whether they have an AI key, and their GitHub
@@ -73,16 +74,15 @@ export async function getProjectDetail(id: string, userId: string) {
 
   if (!response) return null;
   // Not cached: whether the learner has an AI key can change at any time
-  const [keys, acceptance] = await Promise.all([
-    prisma.aiCredential.count({ where: { userId } }),
+  const [aiKeys, acceptance] = await Promise.all([
+    getSavedKeys(userId),
     prisma.project.findUnique({ where: { id }, select: { acceptance: true } }),
   ]);
-  const aiReady = keys > 0;
   const hasAcceptance = Boolean(acceptance?.acceptance);
   const link = hasAcceptance ? await getLink(userId, "capstone", id) : null;
   return {
     ...response,
-    aiReady,
+    aiKeys,
     hasAcceptance,
     ci: link ? viewOf(link, (response as { title: string }).title) : null,
   };

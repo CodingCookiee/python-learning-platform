@@ -157,7 +157,7 @@ export async function getUserRecord(userId: string) {
       password: true,
       accounts: { select: { provider: true } },
       streak: { select: { currentStreak: true, longestStreak: true, lastActivityDate: true } },
-      aiCredential: { select: { provider: true, model: true, updatedAt: true } },
+      aiCredentials: { select: { provider: true, model: true, isDefault: true, updatedAt: true } },
     },
   });
   if (!user) return null;

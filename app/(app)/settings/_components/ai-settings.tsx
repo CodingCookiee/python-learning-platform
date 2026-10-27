@@ -76,20 +76,24 @@ function ModelOption({
   );
 }
 
+type Busy = { action: "save" | "test" | "remove" | "default"; provider: Provider } | null;
+
 export function AiSettings({
-  initialCredential,
+  initialCredentials,
   usage,
   available,
 }: {
-  initialCredential: CredentialSummary | null;
+  initialCredentials: CredentialSummary[];
   usage: UsageSummary;
   available: boolean;
 }) {
-  const [credential, setCredential] = React.useState(initialCredential);
-  const [provider, setProvider] = React.useState<Provider>(initialCredential?.provider ?? "anthropic");
-  const [model, setModel] = React.useState(initialCredential?.model ?? DEFAULT_MODEL.anthropic);
+  const [credentials, setCredentials] = React.useState(initialCredentials);
+  // The form edits one provider's key: the default's to start with, or Anthropic before there are any
+  const first = initialCredentials.find((c) => c.isDefault) ?? initialCredentials[0];
+  const [provider, setProvider] = React.useState<Provider>(first?.provider ?? "anthropic");
+  const [model, setModel] = React.useState(first?.model ?? DEFAULT_MODEL.anthropic);
   // "Another model": a model id typed by hand instead of one of the suggestions
-  const [custom, setCustom] = React.useState(() => isCustom(initialCredential?.provider ?? "anthropic", model));
+  const [custom, setCustom] = React.useState(() => isCustom(first?.provider ?? "anthropic", model));
   // Focus the model id box when the learner picks "Another model", not when the page loads with one saved
   const modelInput = React.useRef<HTMLInputElement>(null);
   const focusModel = React.useRef(false);
@@ -98,46 +102,53 @@ export function AiSettings({
     focusModel.current = false;
   }, [custom]);
   const [apiKey, setApiKey] = React.useState("");
-  const [busy, setBusy] = React.useState<"save" | "test" | "remove" | null>(null);
+  const [busy, setBusy] = React.useState<Busy>(null);
   const [status, setStatus] = React.useState<Status>(null);
-  // The key test's answer, shown beside the key rather than under the form
-  const [testResult, setTestResult] = React.useState<Status>(null);
+  // A key test's answer, shown under the key it's about rather than under the form
+  const [testResult, setTestResult] = React.useState<{ provider: Provider; status: Status } | null>(null);
 
-  const keepsKey = credential !== null && credential.provider === provider;
-  // Something to save: a new key, or a provider or model other than the saved ones
-  const changed =
-    apiKey.trim() !== "" || (credential !== null && (credential.provider !== provider || credential.model !== model.trim()));
+  const saved = credentials.find((c) => c.provider === provider) ?? null;
+  // Something to save: a new key, or a model other than the saved one
+  const changed = apiKey.trim() !== "" || (saved !== null && saved.model !== model.trim());
+  const isBusy = (action: NonNullable<Busy>["action"], p: Provider) => busy?.action === action && busy.provider === p;
 
   function chooseProvider(next: Provider) {
     setProvider(next);
-    // Switching provider starts from its default model, unless coming back to the saved one
-    const nextModel = credential?.provider === next ? credential.model : DEFAULT_MODEL[next];
+    setApiKey("");
+    setStatus(null);
+    // A provider with a key opens on its model; one without starts from its default model
+    const nextModel = credentials.find((c) => c.provider === next)?.model ?? DEFAULT_MODEL[next];
     setModel(nextModel);
     setCustom(isCustom(next, nextModel));
   }
 
+  async function put(body: { provider: Provider; model: string; apiKey?: string; isDefault?: boolean }) {
+    const res = await fetch("/api/settings/ai", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = (await res.json().catch(() => ({}))) as { credentials?: CredentialSummary[]; error?: string };
+    if (res.ok && data.credentials) setCredentials(data.credentials);
+    return res.ok && data.credentials ? null : (data.error ?? "That didn't save.");
+  }
+
   async function save(e: React.FormEvent) {
     e.preventDefault();
-    if (!keepsKey && !apiKey.trim()) {
+    if (!saved && !apiKey.trim()) {
       setStatus({ type: "error", message: `Paste your ${PROVIDER_LABEL[provider]} API key.` });
       return;
     }
-    setBusy("save");
+    setBusy({ action: "save", provider });
     setStatus(null);
     try {
-      const res = await fetch("/api/settings/ai", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider, model: model.trim(), ...(apiKey.trim() ? { apiKey: apiKey.trim() } : {}) }),
-      });
-      const data = (await res.json().catch(() => ({}))) as { credential?: CredentialSummary; error?: string };
-      if (!res.ok || !data.credential) {
-        setStatus({ type: "error", message: data.error ?? "That didn't save." });
+      const error = await put({ provider, model: model.trim(), ...(apiKey.trim() ? { apiKey: apiKey.trim() } : {}) });
+      if (error) {
+        setStatus({ type: "error", message: error });
         return;
       }
-      setCredential(data.credential);
       setApiKey("");
-      setStatus({ type: "success", message: "Saved. Use Test to check the key works." });
+      setStatus({ type: "success", message: `Saved your ${PROVIDER_LABEL[provider]} key. Use Test to check it works.` });
     } catch {
       setStatus({ type: "error", message: "We couldn't reach the server." });
     } finally {
@@ -145,34 +156,58 @@ export function AiSettings({
     }
   }
 
-  async function test() {
-    setBusy("test");
+  async function makeDefault(c: CredentialSummary) {
+    setBusy({ action: "default", provider: c.provider });
     setStatus(null);
-    setTestResult(null);
     try {
-      const res = await fetch("/api/settings/ai/test", { method: "POST" });
-      const data = (await res.json().catch(() => ({}))) as { model?: string; error?: string };
-      setTestResult(
-        res.ok
-          ? { type: "success", message: `The key works with ${data.model}.` }
-          : { type: "error", message: data.error ?? "The test call failed." }
+      const error = await put({ provider: c.provider, model: c.model, isDefault: true });
+      setStatus(
+        error
+          ? { type: "error", message: error }
+          : { type: "success", message: `${PROVIDER_LABEL[c.provider]} answers wherever you haven't picked a model.` }
       );
     } catch {
-      setTestResult({ type: "error", message: "We couldn't reach the server." });
+      setStatus({ type: "error", message: "We couldn't reach the server." });
     } finally {
       setBusy(null);
     }
   }
 
-  async function remove() {
-    setBusy("remove");
+  async function test(p: Provider) {
+    setBusy({ action: "test", provider: p });
+    setStatus(null);
+    setTestResult(null);
+    try {
+      const res = await fetch("/api/settings/ai/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: p }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { model?: string; error?: string };
+      setTestResult({
+        provider: p,
+        status: res.ok
+          ? { type: "success", message: `The key works with ${data.model}.` }
+          : { type: "error", message: data.error ?? "The test call failed." },
+      });
+    } catch {
+      setTestResult({ provider: p, status: { type: "error", message: "We couldn't reach the server." } });
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function remove(p: Provider) {
+    setBusy({ action: "remove", provider: p });
     setStatus(null);
     try {
-      const res = await fetch("/api/settings/ai", { method: "DELETE" });
-      if (res.ok) {
-        setCredential(null);
-        setTestResult(null);
-        setStatus({ type: "success", message: "Key removed from pylearn." });
+      const res = await fetch(`/api/settings/ai?provider=${p}`, { method: "DELETE" });
+      const data = (await res.json().catch(() => ({}))) as { credentials?: CredentialSummary[] };
+      if (res.ok && data.credentials) {
+        setCredentials(data.credentials);
+        if (testResult?.provider === p) setTestResult(null);
+        if (provider === p) setApiKey("");
+        setStatus({ type: "success", message: `Your ${PROVIDER_LABEL[p]} key is removed from pylearn.` });
       } else setStatus({ type: "error", message: "The key wasn't removed. Try again." });
     } catch {
       setStatus({ type: "error", message: "We couldn't reach the server, so the key is still here." });
@@ -191,72 +226,111 @@ export function AiSettings({
 
   return (
     <div className="flex max-w-md flex-col gap-5">
-      {credential && (
-        <div className="flex items-start gap-3 rounded-md border border-border bg-sheet p-4 text-sm">
-          <KeyRound className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
-          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="font-semibold">
-              {PROVIDER_LABEL[credential.provider]} · <span className="font-mono text-[0.8125rem]">{credential.model}</span>
-            </span>
-            <span className="text-muted-foreground">
-              Key ending <span className="font-mono">{credential.keyHint}</span>
-            </span>
-          </div>
-          <div className="flex shrink-0 gap-2">
-            <LoadingButton
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => void test()}
-              loading={busy === "test"}
-              loadingText="Testing…"
-              disabled={busy !== null && busy !== "test"}
-            >
-              Test
-            </LoadingButton>
-            <LoadingButton
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => void remove()}
-              loading={busy === "remove"}
-              loadingText="Removing…"
-              disabled={busy !== null && busy !== "remove"}
-            >
-              Remove
-            </LoadingButton>
-          </div>
-        </div>
+      {credentials.length > 0 && (
+        <ul className="flex flex-col gap-2" aria-label="Your AI keys">
+          {credentials.map((c) => (
+            <li key={c.provider} className="flex flex-col gap-2">
+              {/* The details get the card's full width; the actions sit on their own row under them, so a long
+                  model id isn't squeezed into a narrow column beside three buttons */}
+              <div className="flex flex-col gap-3 rounded-md border border-border bg-sheet p-4 text-sm">
+                <div className="flex items-start gap-3">
+                  <KeyRound className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <span className="flex flex-wrap items-center gap-x-2 gap-y-1 font-semibold">
+                      {PROVIDER_LABEL[c.provider]}
+                      {c.isDefault && credentials.length > 1 && (
+                        <span className="rounded-sm border border-primary/40 px-1.5 text-xs font-semibold text-primary">
+                          Default
+                        </span>
+                      )}
+                    </span>
+                    <span className="flex flex-wrap gap-x-2 text-muted-foreground">
+                      <span className="font-mono text-[0.8125rem] break-all text-foreground">{c.model}</span>
+                      <span>
+                        · Key ending <span className="font-mono">{c.keyHint}</span>
+                      </span>
+                    </span>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2 pl-7">
+                  {!c.isDefault && (
+                    <LoadingButton
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => void makeDefault(c)}
+                      loading={isBusy("default", c.provider)}
+                      loadingText="Saving…"
+                      disabled={busy !== null && !isBusy("default", c.provider)}
+                    >
+                      Use by default
+                    </LoadingButton>
+                  )}
+                  <LoadingButton
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => void test(c.provider)}
+                    loading={isBusy("test", c.provider)}
+                    loadingText="Testing…"
+                    disabled={busy !== null && !isBusy("test", c.provider)}
+                    aria-label={`Test the ${PROVIDER_LABEL[c.provider]} key`}
+                  >
+                    Test
+                  </LoadingButton>
+                  <LoadingButton
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => void remove(c.provider)}
+                    loading={isBusy("remove", c.provider)}
+                    loadingText="Removing…"
+                    disabled={busy !== null && !isBusy("remove", c.provider)}
+                    aria-label={`Remove the ${PROVIDER_LABEL[c.provider]} key`}
+                  >
+                    Remove
+                  </LoadingButton>
+                </div>
+              </div>
+              {/* The test's progress and its answer sit right under the key they're about */}
+              {isBusy("test", c.provider) && (
+                <PendingLine
+                  lines={[`Calling ${PROVIDER_LABEL[c.provider]} with your key…`, "Waiting for its answer…"]}
+                  still="Some providers take a few seconds to answer."
+                  slow="Still waiting: the test gives up after 30 seconds."
+                />
+              )}
+              {testResult?.provider === c.provider && !isBusy("test", c.provider) && <StatusLine status={testResult.status} />}
+            </li>
+          ))}
+        </ul>
       )}
-      {/* The test's progress and its answer sit right under the key they're about */}
-      {credential && busy === "test" && (
-        <PendingLine
-          lines={[`Calling ${PROVIDER_LABEL[credential.provider]} with your key…`, "Waiting for its answer…"]}
-          still="Some providers take a few seconds to answer."
-          slow="Still waiting: the test gives up after 30 seconds."
-        />
-      )}
-      {credential && busy !== "test" && <StatusLine status={testResult} />}
 
       <form method="post" onSubmit={(e) => void save(e)} className="flex flex-col gap-4">
         <fieldset className="flex flex-col gap-2">
-          <legend className="mb-2 text-sm font-medium">Provider</legend>
+          <legend className="mb-2 text-sm font-medium">
+            {credentials.length === 0 ? "Provider" : "Add or change a key"}
+          </legend>
           <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Provider">
-            {PROVIDERS.map((p) => (
-              <button
-                key={p}
-                type="button"
-                role="radio"
-                aria-checked={provider === p}
-                onClick={() => chooseProvider(p)}
-                className={cn(
-                  "rounded-md border px-3 py-2 text-left text-sm font-medium transition-colors",
-                  provider === p ? "border-primary bg-accent/60" : "border-border hover:border-foreground/35"
-                )}
-              >
-                {PROVIDER_LABEL[p]}
-              </button>
-            ))}
+            {PROVIDERS.map((p) => {
+              const has = credentials.some((c) => c.provider === p);
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  role="radio"
+                  aria-checked={provider === p}
+                  onClick={() => chooseProvider(p)}
+                  className={cn(
+                    "flex flex-col rounded-md border px-3 py-2 text-left text-sm font-medium transition-colors",
+                    provider === p ? "border-primary bg-accent/60" : "border-border hover:border-foreground/35"
+                  )}
+                >
+                  {PROVIDER_LABEL[p]}
+                  <span className="text-xs font-normal text-muted-foreground">{has ? "Key saved" : "No key"}</span>
+                </button>
+              );
+            })}
           </div>
         </fieldset>
 
@@ -310,13 +384,13 @@ export function AiSettings({
         </fieldset>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="ai-key">API key</Label>
+          <Label htmlFor="ai-key">{PROVIDER_LABEL[provider]} API key</Label>
           <Input
             id="ai-key"
             type="password"
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
-            placeholder={keepsKey ? `Leave blank to keep the key ending ${credential!.keyHint}` : `${KEY_PAGE[provider].prefix}…`}
+            placeholder={saved ? `Leave blank to keep the key ending ${saved.keyHint}` : `${KEY_PAGE[provider].prefix}…`}
             autoComplete="off"
             spellCheck={false}
             className={cn("text-sm", apiKey && "font-mono")}
@@ -326,14 +400,21 @@ export function AiSettings({
             <a href={KEY_PAGE[provider].href} target="_blank" rel="noopener noreferrer" className="text-primary underline">
               {KEY_PAGE[provider].label}
             </a>{" "}
-            and set a spend limit there. It&apos;s encrypted on our server, used only for your tutor calls, and never
+            and set a spend limit there. It&apos;s encrypted on our server, used only for your own AI calls, and never
             shown again.
           </p>
         </div>
 
         <StatusLine status={status} />
-        <LoadingButton type="submit" variant={changed ? "default" : "outline"} loading={busy === "save"} loadingText="Saving…" disabled={busy !== null && busy !== "save"} className="w-fit">
-          {credential ? "Save changes" : "Save key"}
+        <LoadingButton
+          type="submit"
+          variant={changed || !saved ? "default" : "outline"}
+          loading={busy?.action === "save"}
+          loadingText="Saving…"
+          disabled={busy !== null && busy.action !== "save"}
+          className="w-fit"
+        >
+          {saved ? `Save ${PROVIDER_LABEL[provider]} changes` : `Save ${PROVIDER_LABEL[provider]} key`}
         </LoadingButton>
       </form>
 

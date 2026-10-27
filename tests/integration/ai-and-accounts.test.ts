@@ -1,7 +1,16 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { prisma } from "@/lib/prisma";
 import { decryptSecret } from "@/lib/crypto";
-import { callWithLearnerKey, getCredentialSummary, getUsageSummary, saveCredential } from "@/lib/ai/credentials";
+import {
+  callWithLearnerKey,
+  deleteCredential,
+  DAILY_CALL_LIMIT,
+  getCredentials,
+  getSavedKeys,
+  getUsageSummary,
+  saveCredential,
+} from "@/lib/ai/credentials";
+import type { Provider } from "@/lib/ai/gateway";
 import { consumeToken, issueToken } from "@/lib/auth-tokens";
 import { getAiUsageReport } from "@/lib/ai/usage-report";
 import { makeLearner } from "./helpers";
@@ -32,7 +41,10 @@ function fakeProvider(status = 200, errorMessage = "invalid x-api-key") {
   return seen;
 }
 
-const ask = () => callWithLearnerKey(learner.user.id, "tutor", { system: "s", messages: [{ role: "user", content: "hi" }], maxTokens: 50 });
+const ask = (choice?: { provider: Provider; model?: string }, userId = learner.user.id) =>
+  callWithLearnerKey(userId, "tutor", { system: "s", messages: [{ role: "user", content: "hi" }], maxTokens: 50 }, { choice });
+const keyRow = (userId: string, provider: Provider) =>
+  prisma.aiCredential.findUniqueOrThrow({ where: { userId_provider: { userId, provider } } });
 
 describe("learners' own AI keys", () => {
   it("need a key first", async () => {
@@ -42,10 +54,10 @@ describe("learners' own AI keys", () => {
 
   it("are stored encrypted, shown only by their last four characters", async () => {
     await saveCredential(learner.user.id, { provider: "anthropic", model: "claude-sonnet-5", apiKey: "sk-ant-api03-abcdefWXYZ" });
-    const summary = await getCredentialSummary(learner.user.id);
+    const [summary] = await getCredentials(learner.user.id);
     expect(summary?.keyHint).toBe("WXYZ");
     expect(JSON.stringify(summary)).not.toContain("abcdef");
-    const row = await prisma.aiCredential.findUniqueOrThrow({ where: { userId: learner.user.id } });
+    const row = await keyRow(learner.user.id, "anthropic");
     expect(row.encryptedKey).not.toContain("abcdef");
   });
 
@@ -61,7 +73,7 @@ describe("learners' own AI keys", () => {
 
   it("keep the key when only the model changes; a new provider needs a new key", async () => {
     await saveCredential(learner.user.id, { provider: "anthropic", model: "claude-opus-5-5" });
-    const row = await prisma.aiCredential.findUniqueOrThrow({ where: { userId: learner.user.id } });
+    const row = await keyRow(learner.user.id, "anthropic");
     expect(decryptSecret(row.encryptedKey, learner.user.id).endsWith("WXYZ")).toBe(true);
     await expect(saveCredential(learner.user.id, { provider: "openai", model: "gpt-5-mini" })).rejects.toThrow();
   });
@@ -69,7 +81,7 @@ describe("learners' own AI keys", () => {
   it("work with OpenAI too, with a system message", async () => {
     await saveCredential(learner.user.id, { provider: "openai", model: "gpt-5-mini", apiKey: "sk-proj-openai-9876" });
     const seen = fakeProvider();
-    expect((await ask()).ok).toBe(true);
+    expect((await ask({ provider: "openai" })).ok).toBe(true);
     expect(seen[0]!.url).toContain("api.openai.com");
     expect(seen[0]!.headers.authorization).toBe("Bearer sk-proj-openai-9876");
     expect((seen[0]!.body.messages as Array<{ role: string }>)[0]!.role).toBe("system");
@@ -84,11 +96,16 @@ describe("learners' own AI keys", () => {
   it("work with Gemini too: key in a header, its own roles, thinking left out of the reply", async () => {
     await saveCredential(learner.user.id, { provider: "gemini", model: "gemini-3.8-flash", apiKey: "AIzaSy-gemini-5555" });
     const seen = fakeProvider();
-    const r = await callWithLearnerKey(learner.user.id, "tutor", {
-      system: "s",
-      messages: [{ role: "user", content: "hi" }, { role: "assistant", content: "Hello" }, { role: "user", content: "help" }],
-      maxTokens: 50,
-    });
+    const r = await callWithLearnerKey(
+      learner.user.id,
+      "tutor",
+      {
+        system: "s",
+        messages: [{ role: "user", content: "hi" }, { role: "assistant", content: "Hello" }, { role: "user", content: "help" }],
+        maxTokens: 50,
+      },
+      { choice: { provider: "gemini" } }
+    );
     expect(r.ok && r.result.text).toBe("Which line runs first?");
     expect(seen[0]!.url).toBe("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent");
     expect(seen[0]!.url).not.toContain("AIza");
@@ -100,14 +117,86 @@ describe("learners' own AI keys", () => {
 
   it("report a rejected Gemini key as a key problem", async () => {
     fakeProvider(400, "API key not valid. Please pass a valid API key.");
-    const r = await ask();
+    const r = await ask({ provider: "gemini" });
     expect(!r.ok && r.code).toBe("auth");
+    expect(!r.ok && r.error).toBe("Google Gemini rejected your API key. Check it in Settings.");
   });
 
   it("show up in the admin usage report", async () => {
     const report = await getAiUsageReport(7);
     expect(report.daily).toHaveLength(7);
     expect(report.learners.some((l) => l.userId === learner.user.id)).toBe(true);
+  });
+});
+
+describe("several keys, one per provider", () => {
+  let owner: Awaited<ReturnType<typeof makeLearner>>;
+  beforeAll(async () => {
+    owner = await makeLearner("ai-keys");
+  });
+  afterAll(() => owner.cleanup());
+  const id = () => owner.user.id;
+
+  it("make the first key the default, and keep one key per provider", async () => {
+    await saveCredential(id(), { provider: "openai", model: "gpt-5-mini", apiKey: "sk-proj-first-1111" });
+    await saveCredential(id(), { provider: "anthropic", model: "claude-haiku-5-5", apiKey: "sk-ant-api03-second2222" });
+    await saveCredential(id(), { provider: "anthropic", model: "claude-sonnet-5-5" });
+    expect(await getSavedKeys(id())).toEqual([
+      { provider: "anthropic", model: "claude-sonnet-5-5", isDefault: false },
+      { provider: "openai", model: "gpt-5-mini", isDefault: true },
+    ]);
+    expect(await prisma.aiCredential.count({ where: { userId: id() } })).toBe(2);
+  });
+
+  it("answer on the default key without a choice, and on the chosen key and model with one", async () => {
+    const seen = fakeProvider();
+    const plain = await ask(undefined, id());
+    expect(plain.ok && [plain.provider, plain.model]).toEqual(["openai", "gpt-5-mini"]);
+    expect(seen[0]!.url).toContain("api.openai.com");
+
+    const chosen = await ask({ provider: "anthropic", model: "claude-opus-5-5" }, id());
+    expect(chosen.ok && [chosen.provider, chosen.model]).toEqual(["anthropic", "claude-opus-5-5"]);
+    expect(seen[1]!.headers["x-api-key"]).toBe("sk-ant-api03-second2222");
+    expect(seen[1]!.body.model).toBe("claude-opus-5-5");
+    // The chosen model is what's logged, not the key's own
+    const last = await prisma.llmUsage.findFirstOrThrow({ where: { userId: id() }, orderBy: { createdAt: "desc" } });
+    expect([last.provider, last.model]).toEqual(["anthropic", "claude-opus-5-5"]);
+  });
+
+  it("refuse a provider without a key rather than spend another provider's", async () => {
+    const seen = fakeProvider();
+    const before = await prisma.llmUsage.count({ where: { userId: id() } });
+    const r = await ask({ provider: "gemini", model: "gemini-3.8-flash" }, id());
+    expect(!r.ok && [r.code, r.status]).toEqual(["no_key_for_provider", 409]);
+    expect(!r.ok && r.error).toContain("Add a key for Google Gemini");
+    expect(seen).toHaveLength(0);
+    expect(await prisma.llmUsage.count({ where: { userId: id() } })).toBe(before);
+  });
+
+  it("move the default, and hand it on when the default key is removed", async () => {
+    await saveCredential(id(), { provider: "anthropic", model: "claude-sonnet-5-5", isDefault: true });
+    expect((await getSavedKeys(id())).map((k) => [k.provider, k.isDefault])).toEqual([
+      ["anthropic", true],
+      ["openai", false],
+    ]);
+    await deleteCredential(id(), "anthropic");
+    expect(await getSavedKeys(id())).toEqual([{ provider: "openai", model: "gpt-5-mini", isDefault: true }]);
+  });
+
+  it("share one daily limit across every key", async () => {
+    await saveCredential(id(), { provider: "gemini", model: "gemini-3.8-flash", apiKey: "AIzaSy-third-3333" });
+    const used = await prisma.llmUsage.count({ where: { userId: id() } });
+    await prisma.llmUsage.createMany({
+      data: Array.from({ length: DAILY_CALL_LIMIT - used }, () => ({
+        userId: id(),
+        feature: "tutor",
+        provider: "openai",
+        model: "gpt-5-mini",
+      })),
+    });
+    fakeProvider();
+    const r = await ask({ provider: "gemini" }, id());
+    expect(!r.ok && r.code).toBe("daily_limit");
   });
 });
 

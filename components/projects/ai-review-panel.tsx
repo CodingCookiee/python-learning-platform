@@ -9,6 +9,8 @@ import { PendingLine } from "@/components/ui/pending-line";
 import { cn } from "@/lib/utils";
 import type { AiReview } from "@/lib/ai/reviewer";
 import { SenseiMark } from "@/components/brand/marks";
+import { AnsweringWith, useModelChoice } from "@/components/ai/model-switcher";
+import type { SavedKey } from "@/lib/ai/models";
 
 type StoredReview = AiReview & { model?: string; files?: number };
 
@@ -88,12 +90,13 @@ export function AiReviewBody({
 /** On the capstone page: ask for a review of the latest submission, on the learner's own key */
 export function AiReviewPanel({
   projectId,
-  aiReady,
+  aiKeys,
   initialReview,
   initialReviewedAt,
 }: {
   projectId: string;
-  aiReady: boolean;
+  /** The learner's AI keys; without one the panel offers to add a key */
+  aiKeys: SavedKey[];
   initialReview: StoredReview | null;
   initialReviewedAt: string | null;
 }) {
@@ -101,12 +104,18 @@ export function AiReviewPanel({
   const [reviewedAt, setReviewedAt] = React.useState(initialReviewedAt);
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const aiReady = aiKeys.length > 0;
+  const [choice, choose] = useModelChoice("review", aiKeys);
 
   async function run() {
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch(`/api/projects/${projectId}/review`, { method: "POST" });
+      const res = await fetch(`/api/projects/${projectId}/review`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(choice ? { choice } : {}),
+      });
       const data = (await res.json().catch(() => ({}))) as { aiReview?: StoredReview; aiReviewedAt?: string; error?: string };
       if (!res.ok || !data.aiReview) setError(data.error ?? "The review failed.");
       else {
@@ -128,15 +137,18 @@ export function AiReviewPanel({
           AI review
         </h2>
         {aiReady && (
-          <LoadingButton
-            variant={review ? "outline" : "default"}
-            size="sm"
-            onClick={() => void run()}
-            loading={busy}
-            loadingText="Reviewing…"
-          >
-            {review ? "Review again" : "Review my submission"}
-          </LoadingButton>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <AnsweringWith label="Review with" keys={aiKeys} choice={choice} onChoose={choose} disabled={busy} />
+            <LoadingButton
+              variant={review ? "outline" : "default"}
+              size="sm"
+              onClick={() => void run()}
+              loading={busy}
+              loadingText="Reviewing…"
+            >
+              {review ? "Review again" : "Review my submission"}
+            </LoadingButton>
+          </div>
         )}
       </div>
       {!aiReady && (

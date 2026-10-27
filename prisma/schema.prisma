@@ -64,7 +64,7 @@ model User {
   projectSubmissions  ProjectSubmission[]
   checkpointAttempts  CheckpointAttempt[]
   reviewItems         ReviewItem[]
-  aiCredential        AiCredential?
+  aiCredentials       AiCredential[]
   llmUsage            LlmUsage[]
   labRuns             LabRun[]
   drillDrafts         DrillDraft[]
@@ -420,12 +420,16 @@ model Streak {
 
 /// The learner's own AI provider key (BYOK). The key is AES-256-GCM encrypted with
 /// ENCRYPTION_KEY, bound to the user id, and never sent back to the browser.
+/// A learner's own key for one provider: one per provider, and one of them is the default
 model AiCredential {
   id           String   @id @default(cuid())
-  userId       String   @unique
+  userId       String
   /// anthropic | openai | gemini
   provider     String
+  /// The model this key runs when the learner hasn't picked another where they ask
   model        String
+  /// The key used where the learner hasn't chosen a model; exactly one of a learner's keys
+  isDefault    Boolean  @default(false)
   encryptedKey String   @db.Text
   /// Last four characters, to recognise the key in Settings
   keyHint      String
@@ -434,6 +438,7 @@ model AiCredential {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, provider])
   @@map("ai_credentials")
 }
 

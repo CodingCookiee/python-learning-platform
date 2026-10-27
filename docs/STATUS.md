@@ -18,7 +18,8 @@ Updated 2026-10-26. Keep this page short and current: rewrite it when the phase 
    - sign in as the admin straight away.
 2. **Right after launch:** [WHATS-LEFT.md](WHATS-LEFT.md) §3–§4. That means a production run-through with real email, the AI features tried with a real key, Search Console and Bing, and the first week's logs.
 3. **Post-launch follow-ups:** [WHATS-LEFT.md](WHATS-LEFT.md) §6. First, after 2026-10-28, upgrade `next` to 16.4.1 or later and make CI's audit step blocking again; then the low security items and the small things.
-4. **v2: more languages, Go first:** [ARCHITECTURE.md](ARCHITECTURE.md) §17. The milestones run in this order:
+4. **v1.1: multiple AI keys and a model switcher,** built and tested on `dev` on 2026-10-27, after the launch commit (`4d2dbca`): a key per provider, and a model menu in the tutor, the Sensei and both capstone reviews. Deploy it after launch ([WHATS-LEFT.md](WHATS-LEFT.md) §6). The design is in [the spec](superpowers/specs/2026-10-27-multiple-ai-models-design.md), the steps in [the plan](superpowers/plans/2026-10-27-multiple-ai-models-plan.md).
+5. **v2: more languages, Go first:** [ARCHITECTURE.md](ARCHITECTURE.md) §17. The milestones run in this order:
    - **M9:** an execution sandbox, which also makes grading tamper-proof;
    - **M10:** multi-language foundations;
    - **M11:** the Go track.

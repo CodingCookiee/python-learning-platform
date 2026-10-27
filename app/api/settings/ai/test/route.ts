@@ -1,19 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { withAuth, AuthContext } from "@/lib/api-auth";
 import { callWithLearnerKey } from "@/lib/ai/credentials";
+import { PROVIDERS } from "@/lib/ai/gateway";
 
 // The test call gives the provider up to 30 s
 export const maxDuration = 60;
 
-/** POST /api/settings/ai/test: one tiny call on the saved key, to check the key and model work */
-export const POST = withAuth(async (_req: NextRequest, context: AuthContext) => {
+const testSchema = z.object({ provider: z.enum(PROVIDERS).optional() }).default({});
+
+/** POST /api/settings/ai/test { provider? }: one tiny call on that provider's saved key (else the default), to check it works */
+export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
   try {
-    const call = await callWithLearnerKey(context.userId, "test", {
-      system: "You are a connectivity check. Reply with the single word OK.",
-      messages: [{ role: "user", content: "Ping" }],
-      maxTokens: 16,
-      timeoutMs: 30_000,
-    });
+    const parsed = testSchema.safeParse(await req.json().catch(() => ({})));
+    if (!parsed.success) return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    const { provider } = parsed.data;
+    const call = await callWithLearnerKey(
+      context.userId,
+      "test",
+      {
+        system: "You are a connectivity check. Reply with the single word OK.",
+        messages: [{ role: "user", content: "Ping" }],
+        maxTokens: 16,
+        timeoutMs: 30_000,
+      },
+      provider ? { choice: { provider } } : {}
+    );
     if (!call.ok) return NextResponse.json({ error: call.error, code: call.code }, { status: call.status });
     return NextResponse.json({
       ok: true,

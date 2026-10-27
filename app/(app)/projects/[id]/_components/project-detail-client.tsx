@@ -14,6 +14,7 @@ import { CiPanel } from "@/components/ci/ci-panel";
 import { LessonContent } from "@/components/lesson";
 import type { CiLinkView } from "@/lib/ci/links";
 import type { AiReview } from "@/lib/ai/reviewer";
+import type { SavedKey } from "@/lib/ai/models";
 import type { ReviewWait } from "@/lib/review-wait";
 import { accountKey } from "@/lib/account-storage";
 
@@ -46,8 +47,8 @@ export interface ProjectDetailData {
     phase: string;
   };
   submission: ProjectSubmission | null;
-  /** The learner has an AI key saved (for the AI review) */
-  aiReady: boolean;
+  /** The learner's AI keys, for the AI review and its model switcher */
+  aiKeys: SavedKey[];
   /** The capstone has acceptance tests that run in GitHub Actions */
   hasAcceptance: boolean;
   ci: CiLinkView | null;
@@ -171,7 +172,7 @@ export function ProjectDetailClient({ project, reviewWait }: ProjectDetailClient
         {project.submission && !isCompleted && (
           <AiReviewPanel
             projectId={project.id}
-            aiReady={project.aiReady}
+            aiKeys={project.aiKeys}
             initialReview={project.submission.aiReview}
             initialReviewedAt={project.submission.aiReviewedAt}
           />

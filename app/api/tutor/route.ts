@@ -7,6 +7,7 @@ import { getDrillForUser } from "@/lib/drills";
 import { callWithLearnerKey } from "@/lib/ai/credentials";
 import { EXPLAIN_QUESTION, guardReply, tutorSystemPrompt, tutorUserTurn } from "@/lib/ai/tutor";
 import { gradingInProgress } from "@/lib/ai/sensei";
+import { choiceSchema } from "@/lib/ai/models";
 
 // The model can take up to 90 s to answer; Vercel must not cut the function off first
 export const maxDuration = 120;
@@ -22,6 +23,8 @@ const tutorSchema = z.object({
   code: z.string().max(40_000),
   result: z.string().max(8_000).optional(),
   error: z.string().max(8_000).optional(),
+  /** The model picked in the tutor's switcher; without one, the default key's model */
+  choice: choiceSchema,
 });
 
 /**
@@ -37,7 +40,7 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
     if (!limited.ok) return tooManyRequests(limited, "The tutor needs a breather.");
     const parsed = tutorSchema.safeParse(await req.json().catch(() => null));
     if (!parsed.success) return NextResponse.json({ error: "Invalid request" }, { status: 400 });
-    const { exerciseId, kind, history, code, result, error } = parsed.data;
+    const { exerciseId, kind, history, code, result, error, choice } = parsed.data;
     const question = kind === "explain" ? EXPLAIN_QUESTION : parsed.data.question;
     if (!question) return NextResponse.json({ error: "Ask a question first." }, { status: 400 });
     if (kind === "explain" && !error) return NextResponse.json({ error: "There's no error to explain." }, { status: 400 });
@@ -67,7 +70,7 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
         messages: [...history, { role: "user", content: tutorUserTurn(question, { code, result, error }) }],
         maxTokens: 700,
       },
-      { exerciseId }
+      { exerciseId, choice }
     );
     if (!call.ok) return NextResponse.json({ error: call.error, code: call.code }, { status: call.status });
 
@@ -78,6 +81,7 @@ export const POST = withAuth(async (req: NextRequest, context: AuthContext) => {
       truncated: call.result.truncated,
       question,
       usage: call.result.usage,
+      provider: call.provider,
       model: call.model,
     });
   } catch (error) {

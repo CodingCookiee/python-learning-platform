@@ -4,17 +4,19 @@ import { withAuth, AuthContext } from "@/lib/api-auth";
 import { CacheKeys, invalidateCache } from "@/lib/cache";
 import { reviewSubmission } from "@/lib/ai/review-submission";
 import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
+import { choiceSchema } from "@/lib/ai/models";
+import { z } from "zod";
 
 // A review reads the project from GitHub (up to three 10 s calls) and gives the model up to 150 s, which
 // together can reach 180 s; 240 leaves headroom and stays inside Fluid compute's 300 s limit
 export const maxDuration = 240;
 
 /**
- * POST /api/projects/[id]/review
+ * POST /api/projects/[id]/review { choice? }
  * An AI review of the learner's latest submission for this capstone, on their own
  * key. It's saved on the submission for them and the examiner to read.
  */
-export const POST = withAuth(async (_req: NextRequest, context: AuthContext<{ id: string }>) => {
+export const POST = withAuth(async (req: NextRequest, context: AuthContext<{ id: string }>) => {
   try {
     const { id: projectId } = await context.params;
     const limited = await rateLimit("aiReview", context.userId);
@@ -27,7 +29,10 @@ export const POST = withAuth(async (_req: NextRequest, context: AuthContext<{ id
     });
     if (!submission) return NextResponse.json({ error: "Submit the project first." }, { status: 404 });
 
-    const run = await reviewSubmission(context.userId, "review", submission);
+    // The model picked beside the review button; an empty body uses the default key's model
+    const body = z.object({ choice: choiceSchema }).safeParse(await req.json().catch(() => ({})));
+    if (!body.success) return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    const run = await reviewSubmission(context.userId, "review", submission, body.data.choice);
     if (!run.ok) return NextResponse.json({ error: run.error, code: run.code }, { status: run.status });
 
     const saved = await prisma.projectSubmission.update({

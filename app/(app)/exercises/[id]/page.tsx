@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { getDrillForUser } from "@/lib/drills";
+import { getSavedKeys } from "@/lib/ai/credentials";
 import { isServerGrading } from "@/lib/grading/server";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { FadeIn } from "@/components/animations";
@@ -32,7 +33,7 @@ export default async function ExercisePage({ params, searchParams }: PageProps) 
 
   const [drill, aiKeys] = await Promise.all([
     getDrillForUser(id, user.id, query.review ? "review" : "practice"),
-    prisma.aiCredential.count({ where: { userId: user.id } }),
+    getSavedKeys(user.id),
   ]);
   if (!drill) notFound();
   // Gradings and reviews are paced by progress already; pausing one midway would cost the learner
@@ -64,7 +65,7 @@ export default async function ExercisePage({ params, searchParams }: PageProps) 
         </FadeIn>
 
         <FadeIn delay={0.05}>
-          <ExerciseClient key={`${drill.id}-${drill.mode.kind}`} drill={drill} aiReady={aiKeys > 0} serverGrading={isServerGrading()} />
+          <ExerciseClient key={`${drill.id}-${drill.mode.kind}`} drill={drill} aiKeys={aiKeys} serverGrading={isServerGrading()} />
         </FadeIn>
       </div>
     </div>

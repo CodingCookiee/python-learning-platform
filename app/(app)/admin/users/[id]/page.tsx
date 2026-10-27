@@ -14,6 +14,7 @@ import { CERTIFICATE } from "@/lib/certificate-rules";
 import { BELTS } from "@/lib/ranks";
 import { EmptySlot } from "@/components/brand/empty-slot";
 import { SealMark, SheetMark } from "@/components/brand/marks";
+import { PROVIDER_LABEL, type Provider } from "@/lib/ai/gateway";
 
 export const metadata: Metadata = { title: "User record (admin)" };
 
@@ -536,9 +537,14 @@ export default async function AdminUserPage({ params }: { params: Promise<{ id: 
                     {counts.achievements} achievements · {counts.logEntries} log check-ins ·{" "}
                     {counts.aiCalls} AI calls
                   </Fact>
-                  <Fact label="AI key">
-                    {user.aiCredential
-                      ? `${user.aiCredential.provider}, ${user.aiCredential.model}`
+                  <Fact label={user.aiCredentials.length > 1 ? "AI keys" : "AI key"}>
+                    {user.aiCredentials.length > 0
+                      ? user.aiCredentials
+                          .map(
+                            (k) =>
+                              `${PROVIDER_LABEL[k.provider as Provider] ?? k.provider}, ${k.model}${user.aiCredentials.length > 1 && k.isDefault ? " (default)" : ""}`
+                          )
+                          .join(" · ")
                       : "None"}
                   </Fact>
                 </dl>

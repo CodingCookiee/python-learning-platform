@@ -144,6 +144,8 @@ A full review of `dev` (security, server correctness, pages, docs). Everything b
 
 ## 6. Smaller things noticed on the way
 
+- [ ] **v1.1 (multiple AI keys and a model switcher) deploys after launch.** It's built on `dev` after the launch commit `4d2dbca`. Its migration, `20261027000000_ai_keys_per_provider`, applies itself in the production build like the others; check the build log shows it, then add a second key in Settings and switch model in the tutor and the Sensei.
+- [ ] **The account menu has an `aria-allowed-role` axe finding** (seen 2026-10-27 while checking the model switcher). It's not from the switcher; worth a look.
 - [ ] **Landing height on phones:** folding the automation modules took it from about 11,100 px to 10,800. A real cut would need folding each belt's module list on phones too, or a shorter section.
 - [ ] **The Prisma dev-cache fix** is in place but unproven until the next schema change. If a new model is missing after `prisma generate`, restart `npm run dev` as before.
 - [ ] **From the critique, not yet done:**
