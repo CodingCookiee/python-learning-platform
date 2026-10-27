@@ -3,17 +3,12 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { contentSecurityPolicy, newNonce } from "@/lib/csp";
 
-/** A page load, as opposed to a script, worker, data or RSC request */
 function isPageRequest(req: NextRequest): boolean {
   const dest = req.headers.get("sec-fetch-dest");
   if (dest) return dest === "document";
   return (req.headers.get("accept") ?? "").includes("text/html");
 }
 
-/**
- * Proxy for route protection and authentication.
- * Runs on every request to protected routes.
- */
 export async function proxy(req: NextRequest) {
   const token = await getToken({
     req,
@@ -22,9 +17,26 @@ export async function proxy(req: NextRequest) {
   });
   const isAuthenticated = !!token;
   const pathname = req.nextUrl.pathname;
+  const sessionCookies = req.cookies.getAll().filter((c) => c.name.includes("authjs.session-token"));
+  const sessionEnded = !isAuthenticated && sessionCookies.length > 0;
 
-  // API routes that require authentication
-  // (API handlers also enforce auth themselves via withAuth)
+  const toSignIn = () => {
+    const signInUrl = new URL("/auth/signin", req.url);
+    signInUrl.searchParams.set("callbackUrl", pathname + req.nextUrl.search);
+    if (sessionEnded) signInUrl.searchParams.set("ended", "1");
+    const res = NextResponse.redirect(signInUrl);
+    for (const cookie of sessionCookies) {
+      res.cookies.set(cookie.name, "", {
+        maxAge: 0,
+        path: "/",
+        httpOnly: true,
+        sameSite: "lax",
+        secure: cookie.name.startsWith("__Secure-"),
+      });
+    }
+    return res;
+  };
+
   const protectedApiRoutes = ["/api/progress", "/api/exercises", "/api/profile", "/api/settings", "/api/checkpoints", "/api/review", "/api/tutor", "/api/onboarding", "/api/log", "/api/certificates"];
   const isProtectedApi = protectedApiRoutes.some((route) => pathname.startsWith(route));
 
@@ -50,11 +62,7 @@ export async function proxy(req: NextRequest) {
   }
 
   // Redirect unauthenticated users to sign in
-  if (!isAuthenticated && isProtectedRoute) {
-    const signInUrl = new URL("/auth/signin", req.url);
-    signInUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(signInUrl);
-  }
+  if (!isAuthenticated && isProtectedRoute) return toSignIn();
 
   // Redirect authenticated users away from auth pages
   if (
@@ -70,11 +78,7 @@ export async function proxy(req: NextRequest) {
   }
 
   // Unauthenticated users trying to access admin get sent to sign-in
-  if (!isAuthenticated && pathname.startsWith("/admin")) {
-    const signInUrl = new URL("/auth/signin", req.url);
-    signInUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(signInUrl);
-  }
+  if (!isAuthenticated && pathname.startsWith("/admin")) return toSignIn();
 
   // Pages get a Content-Security-Policy with a fresh nonce, which Next.js reads from the
   // request header and puts on its scripts (lib/csp.ts). Workers and files keep loading as before.

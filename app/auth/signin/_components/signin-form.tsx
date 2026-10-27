@@ -15,8 +15,19 @@ import { FieldNote, FormError } from "@/components/auth/auth-shell";
 import { signInSchema, type SignInInput } from "@/lib/validations/auth";
 import { ResendVerification } from "@/components/auth/email-flows";
 
-/** The sign-in form. The page around it renders on the server and passes in any notice from the URL */
-export function SignInForm({ notice, alert = null }: { notice: string | null; alert?: string | null }) {
+/**
+ * The sign-in form. The page around it renders on the server and passes in any notice from the URL,
+ * and the page the learner was sent away from (already checked to be on this site, lib/return-path.ts)
+ */
+export function SignInForm({
+  notice,
+  alert = null,
+  returnTo = null,
+}: {
+  notice: string | null;
+  alert?: string | null;
+  returnTo?: string | null;
+}) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -64,7 +75,8 @@ export function SignInForm({ notice, alert = null }: { notice: string | null; al
       leavingNow = true;
       setLeaving(true);
       startNavigation();
-      router.push("/dashboard");
+      // Back to where they were going, if they were sent here from a page; else the dashboard
+      router.push(returnTo ?? "/dashboard");
       router.refresh();
     } catch {
       setError("We couldn't reach the server. Check your connection and try again.");
@@ -74,9 +86,17 @@ export function SignInForm({ notice, alert = null }: { notice: string | null; al
   };
 
   return (
-    <form method="post" onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
+    <form
+      method="post"
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex flex-col gap-5"
+      noValidate
+    >
       {notice && !error && (
-        <p role="status" className="rounded-sm border border-success/35 bg-success/6 px-3 py-2.5 text-sm text-success">
+        <p
+          role="status"
+          className="rounded-sm border border-success/35 bg-success/6 px-3 py-2.5 text-sm text-success"
+        >
           {notice}
         </p>
       )}
@@ -103,7 +123,10 @@ export function SignInForm({ notice, alert = null }: { notice: string | null; al
       <div className="flex flex-col gap-2">
         <span className="flex items-baseline justify-between">
           <Label htmlFor="password">Password</Label>
-          <Link href="/auth/forgot-password" className="text-sm text-muted-foreground underline hover:text-foreground">
+          <Link
+            href="/auth/forgot-password"
+            className="text-sm text-muted-foreground underline hover:text-foreground"
+          >
             Forgot it?
           </Link>
         </span>

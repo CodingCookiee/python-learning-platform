@@ -285,6 +285,6 @@ The `prisma`-linked advisories (`mysql2`, `deepmerge-ts`, `@prisma/config`) are 
   - The CI run URL is rebuilt on the server.
   - AI provider and GitHub hosts are fixed, with timeouts.
 - **Email links** use the configured origin, not the Host header.
-- **Redirects:** no open redirects. Sign-in always lands on `/dashboard`, and Auth.js keeps its same-origin default.
+- **Redirects:** no open redirects. Sign-in returns a learner to the page that sent them there only when it's a path on this site (`lib/return-path.ts`: no `//host`, `/\host`, full URLs or control characters; unit-tested), else `/dashboard`. Auth.js keeps its same-origin default.
 - **Caching:** `unstable_cache` only wraps global landing-page data.
 - **Certificates:** public pages expose only the code, track, name and dates.

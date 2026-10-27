@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { hasCredentialsInQuery } from "@/lib/strip-credentials";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { SignInForm } from "./_components/signin-form";
+import { safeReturnPath } from "@/lib/return-path";
 
 export const metadata: Metadata = {
   title: "Sign in to your Python training",
@@ -17,20 +18,31 @@ function noticeFor(params: Record<string, string | string[] | undefined>): strin
   if (params.verified) return "Email confirmed. Sign in to start training.";
   if (params.reset) return "Password changed. Sign in with the new one.";
   // A session from before a password change, here or on another device (lib/session-version.ts)
-  if (params.signedout) return "Your password was changed, so you were signed out here. Sign in with the new one.";
+  if (params.signedout)
+    return "Your password was changed, so you were signed out here. Sign in with the new one.";
   if (params.check) return "Check your inbox: we sent a link to confirm your email.";
+  // Sent here from a page that needs an account (proxy.ts). Said, so a sign-out is never a mystery
+  if (params.ended)
+    return "Your session ended, so you were signed out. Sign in again to carry on where you were.";
+  if (safeReturnPath(params.callbackUrl))
+    return "You're signed out. Sign in to carry on where you were going.";
   return null;
 }
 
 /** Not good news: shown as an error rather than a notice */
 function alertFor(params: Record<string, string | string[] | undefined>): string | null {
-  if (params.suspended) return "This account is suspended. If you think that's a mistake, contact pylearn.";
+  if (params.suspended)
+    return "This account is suspended. If you think that's a mistake, contact pylearn.";
   if (params.blocked) return BLOCKED_MESSAGE;
   return null;
 }
 
 // Rendered on the server, so the page works (and reads) before any JavaScript arrives
-export default async function SignInPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const params = await searchParams;
   // Credentials in the address (an old GET submit): drop them before anything else
   if (hasCredentialsInQuery(params)) redirect("/auth/signin");
@@ -44,7 +56,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
       sub="Pick up your training where you stopped."
       switchTo={{ prompt: "New here?", label: "Create an account", href: "/auth/signup" }}
     >
-      <SignInForm notice={notice} alert={alert} />
+      <SignInForm notice={notice} alert={alert} returnTo={safeReturnPath(params.callbackUrl)} />
     </AuthShell>
   );
 }

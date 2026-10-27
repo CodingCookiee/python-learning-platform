@@ -556,6 +556,7 @@ Each milestone is shippable and leaves the app better than before.
   - Redis `KEYS` is gone from cache invalidation; only exact keys are cleared.
   - Dead code removed: `lib/code-execution.ts`, `lib/auth-utils.ts`, `lib/store/` (Zustand), three uncalled API routes, `ioredis`, `zustand`, `LAB_SIGNING_SECRET`.
   - The pg pool has a connection timeout and an idle-error handler (Neon closes idle connections).
+  - Sign-in says why you're there: the proxy marks a redirect from a page (`callbackUrl`) and one where a session cookie couldn't be read (`ended=1`, and the dead cookie is cleared); the page says "You're signed out…" or "Your session ended…", and signing in returns to that page through `safeReturnPath` (`lib/return-path.ts`).
   - Layout: one page width (`max-w-page`, 1536px) and one fluid gutter (`px-gutter`), registered with tailwind-merge in `lib/utils.ts`; the auth pages' switch link sits under the form.
 - **Handoff and deploy settings (2026-10-23):** the AI routes declare `maxDuration` for Vercel (tutor and Sensei 120 s, key test 60 s, capstone reviews 180 s), since their model calls can outlast the old 10–15 s function default. `DEPLOYMENT.md` was rewritten to describe how a deploy works here: migrations run in the build, functions sit in `iad1` (so the production Neon goes in us-east-1), Fluid compute stays on. §11 now lists only the variables the code reads, and `.env.example` matches it. `docs/STATUS.md` holds the current phase, and `CLAUDE.md` loads it.
 - **Release QA (2026-10-19):** [the report](QA-REPORT-2026-10-19.md).
