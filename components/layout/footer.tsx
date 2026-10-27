@@ -28,7 +28,7 @@ export function Footer() {
             Contact
           </Link>
           <Link href="/privacy" className="text-muted-foreground hover:text-foreground">
-            Privacy
+            Privacy and terms
           </Link>
           {PROFILE_LINKS.map((p) => (
             <a key={p.href} href={p.href} rel="me noopener" className="text-muted-foreground hover:text-foreground">

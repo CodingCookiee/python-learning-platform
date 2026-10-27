@@ -20,6 +20,10 @@ const nextConfig: NextConfig = {
   },
   // Nothing uses next/image, so the optimizer endpoint (/_next/image) is only attack surface
   images: { unoptimized: true },
+  // The terms and the privacy policy are one page; /terms is where people and tools look for terms
+  async redirects() {
+    return [{ source: "/terms", destination: "/privacy#terms", permanent: true }];
+  },
   // Server-side grading (GRADING_MODE=server) runs Pyodide in Node worker threads
   serverExternalPackages: ["pyodide"],
   outputFileTracingIncludes: {

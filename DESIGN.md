@@ -476,7 +476,7 @@ It draws on the same activity as the streak, and only that activity: finished le
 
 ### Status Page
 The shared screen for 404s and errors (`components/brand/status-page.tsx`). It is a single left-aligned column up to 48rem wide, centred vertically in the available height, with 80px of vertical padding. From top to bottom it holds:
-- the status code as a huge condensed numeral (800, clamp(5rem, 16vw, 9rem), 0.8 line-height, -0.035em, tabular) in muted ink at 40%;
+- the status code as a huge condensed numeral (800, clamp(5rem, 16vw, 9rem), 0.8 line-height, -0.035em, tabular) in muted ink at 70% (pale, but past the 3:1 contrast for large text), hidden from screen readers since the heading repeats it;
 - a loose white belt (a 16px by 12rem Belt Band with three empty stripe slots), which is the page's one image;
 - a condensed 800 headline (2.25rem, 3rem from 640px);
 - one plain-language line at 1.125rem in muted ink, up to 36rem wide;

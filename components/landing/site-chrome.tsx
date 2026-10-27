@@ -117,7 +117,7 @@ export async function SiteFooter() {
             Contact
           </Link>
           <Link href="/privacy" className={LINK}>
-            Privacy
+            Privacy and terms
           </Link>
           {PROFILE_LINKS.map((p) => (
             <a key={p.href} href={p.href} rel="me noopener" className={LINK}>

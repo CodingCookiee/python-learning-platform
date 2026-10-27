@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { startNavigation } from "@/components/layout/navigation-progress";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -175,6 +176,17 @@ export function SignUpForm({ start }: { start?: string }) {
       >
         Create account
       </LoadingButton>
+      <p className="text-center text-sm text-muted-foreground">
+        By creating an account, you agree to the{" "}
+        <Link href="/privacy#terms" className="font-medium text-primary underline">
+          terms of use
+        </Link>{" "}
+        and the{" "}
+        <Link href="/privacy#privacy" className="font-medium text-primary underline">
+          privacy policy
+        </Link>
+        .
+      </p>
       {/* Under the button, so a refusal adds to the foot of the form and nothing above it moves */}
       {error && <FormError message={error} />}
       {isLoading && !leaving && (

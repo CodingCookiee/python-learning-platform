@@ -122,7 +122,7 @@ export function AuthShell({
 
         <p className="pt-6 text-sm text-muted-foreground lg:text-right">
           <Link href="/privacy" className="hover:text-foreground">
-            Privacy policy: what we keep and why
+            Privacy and terms
           </Link>
         </p>
       </main>

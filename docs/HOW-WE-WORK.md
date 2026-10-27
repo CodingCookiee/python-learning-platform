@@ -142,3 +142,5 @@ Don't reopen these. `docs/ARCHITECTURE.md` and `PRODUCT.md` have the detail.
 - Production domain: pylearn.academy.
 - v1 ships Python-only with its current copy. v2 adds more languages, Go first, starting with an execution sandbox (ARCHITECTURE.md §17). Taglines change only when the second language ships.
 - `GRADING_MODE` stays `client` until that sandbox exists; production refuses `server`.
+- Drills and gradings are on the honour system for v1 (decided 2026-10-27): they're checked in the browser, so a forged request could record a pass. Capstones stay examiner-approved, so certificates still need a person's sign-off. The terms of use ask learners to train fairly.
+- The terms of use and the privacy policy are one page, `/privacy` ("Privacy and terms"), not two.

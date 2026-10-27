@@ -26,7 +26,6 @@ Updated 2026-10-26. Keep this page short and current: rewrite it when the phase 
 
 ## Decisions waiting on the owner
 
-- **Honour-system grading for v1.** With `GRADING_MODE=client`, a forged request can mark drills and gradings passed. Capstones and certificates still need an examiner. The recommendation is to accept it for v1 ([WHATS-LEFT.md](WHATS-LEFT.md) §1).
 - **Before v2's M10** ([ARCHITECTURE.md](ARCHITECTURE.md) §17):
   - keep the name "pylearn" or rename;
   - a belt ladder per language, or one shared;
@@ -43,11 +42,9 @@ Updated 2026-10-26. Keep this page short and current: rewrite it when the phase 
 | Integration tests | 112 passed (18 files), 252 s with the dev database to themselves |
 | Production build | Passes (68 routes) |
 | Playwright (on Edge; Chrome isn't installed on this machine) | 16 of 16 passed |
-| Accessibility (axe) | Clean on the auth pages, the fixed empty and error states, light and dark, except the 404 numeral (see below) |
+| Accessibility (axe) | Clean on the auth pages, the fixed empty and error states and the 404 pages, light and dark |
 | Dependency audit | 2 critical in `next` 16.3.8 (image optimizer, now off; `use cache`, unused). Fixed in 16.4.1: upgrade after 2026-10-28 |
 | Old vs new code, same tests | Same speed (`progress-truth` 17 s both, `mastery` 25 s vs 27 s) |
-
-**Open decision:** the status page's 404 numeral is 40% muted ink (DESIGN.md), 1.88:1 against the ground. It's decorative and hidden from screen readers, which WCAG exempts, but axe still flags it; about 70% would pass.
 
 **Testing here:** the dev database is remote and slow. Run integration tests and Playwright with nothing else using it (no dev server, no second test run), or tests time out and Neon drops connections. Don't run another Auth.js app on `localhost` at the same time: both use the `authjs.session-token` cookie, so each signs the other out.
 

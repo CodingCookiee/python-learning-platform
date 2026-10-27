@@ -48,7 +48,7 @@ Everything is free. Lessons and drills need a free account; the pages below are 
 - [Sign in](${origin}/auth/signin)
 - [About](${origin}/about): how gradings, capstones, the black belt and certificates work, and how to check a certificate
 - [Contact](${origin}/contact): how to reach pylearn
-- [Privacy policy](${origin}/privacy): what is stored, who handles it, and how to delete it
+- [Privacy and terms](${origin}/privacy): the terms of use; what is stored, who handles it, and how to delete it
 
 ## Start here (optional on-ramp, about 4 hours, no grade)
 
