@@ -6,7 +6,7 @@ vi.mock("botid/server", () => ({ checkBotId: () => checkBotId() }));
 import { LIMITS, distinctLimit } from "@/lib/rate-limit";
 import { readingTooFast, waitInWords } from "@/lib/reading-pace";
 import { looksAutomated } from "@/lib/bot-check";
-import { BOT_CHECKED } from "@/lib/bot-routes";
+import { BOT_CHECKED, canRunBotCheck } from "@/lib/bot-routes";
 
 let n = 0;
 const someone = () => `reader-${Date.now()}-${n++}`;
@@ -64,6 +64,15 @@ describe("bot check", () => {
       "/api/auth/verify/resend",
     ]);
     expect(BOT_CHECKED.every((r) => r.method === "POST")).toBe(true);
+  });
+
+  it("signs requests only where the browser can run the challenge, so sign-in over plain HTTP doesn't hang", () => {
+    // HTTPS or localhost
+    expect(canRunBotCheck({ isSecureContext: true, crypto: { subtle: {} } })).toBe(true);
+    // http://192.168.x.x: browsers leave out crypto.subtle, and the challenge would crash
+    expect(canRunBotCheck({ isSecureContext: false, crypto: {} })).toBe(false);
+    expect(canRunBotCheck({ isSecureContext: false, crypto: { subtle: {} } })).toBe(false);
+    expect(canRunBotCheck({ isSecureContext: true })).toBe(false);
   });
 
   it("only checks on Vercel, so local builds and tests never call it", async () => {

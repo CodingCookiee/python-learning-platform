@@ -7,6 +7,15 @@
 export const BOT_MESSAGE =
   "We couldn't tell this came from a person using the page. Reload the page and try again. If it keeps happening, contact pylearn.";
 
+/**
+ * Whether this browser can run BotID's challenge: it needs Web Crypto, which exists only in a secure
+ * context (HTTPS, or localhost). Over plain HTTP on a network address the challenge crashes and the
+ * request it guards never leaves, so there the requests go out unsigned instead.
+ */
+export function canRunBotCheck(w: { isSecureContext: boolean; crypto?: { subtle?: unknown } }): boolean {
+  return w.isSecureContext && Boolean(w.crypto?.subtle);
+}
+
 export const BOT_CHECKED = [
   { path: "/api/auth/register", method: "POST" },
   // Auth.js's credentials sign-in (authorize() in auth.config.ts)
