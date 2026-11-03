@@ -1,14 +1,4 @@
-/**
- * Test data for the end-to-end suite, run with tsx (the fixtures call it; the generated Prisma
- * client is ESM, which Playwright's own loader doesn't run). Throwaway accounts only, always on
- * @example.invalid, deleted by the fixture after each test.
- *
- *   npx tsx tests/e2e/support/seed.ts learner <email> <developer|black-belt>
- *   npx tsx tests/e2e/support/seed.ts module-id <order>      a Python module's id
- *   npx tsx tests/e2e/support/seed.ts delete <email>...
- *
- * Prints one line of JSON.
- */
+
 import "dotenv/config";
 import { hash } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
@@ -36,11 +26,6 @@ async function developer(email: string) {
   });
 }
 
-/**
- * The black belt by its real rule (lib/black-belt.ts), so the Python certificate goes through the
- * eligibility check: every Python grading passed, every advanced drill solved and held through the
- * last review stage, and three Python capstones approved
- */
 async function blackBelt(email: string) {
   const user = await developer(email);
   const modules = await prisma.module.findMany({
@@ -85,6 +70,11 @@ async function main() {
     out = await prisma.module.findFirstOrThrow({
       where: { order: Number(args[0]), archivedAt: null, track: { slug: "python" } },
       select: { id: true, title: true },
+    });
+  } else if (command === "drill-id") {
+    out = await prisma.exercise.findFirstOrThrow({
+      where: { slug: args[0], archivedAt: null },
+      select: { id: true },
     });
   } else if (command === "delete") {
     const emails = args.filter((e) => e.endsWith("@example.invalid"));

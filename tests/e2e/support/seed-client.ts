@@ -29,3 +29,7 @@ export function deleteLearners(...emails: string[]): void {
 export function pythonModule(order: number): { id: string; title: string } {
   return seed("module-id", String(order));
 }
+
+export function drillId(slug: string): string {
+  return seed<{ id: string }>("drill-id", slug).id;
+}

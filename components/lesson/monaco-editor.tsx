@@ -97,7 +97,18 @@ const PASTED_INPUT = /^insertFrom(Paste|Drop)|^deleteByCut$/;
 /** The Monaco language for a drill file's path. TOML has no built-in mode; ini is close. */
 export function languageFor(path: string): string {
   const ext = path.slice(path.lastIndexOf(".") + 1).toLowerCase();
-  return { py: "python", toml: "ini", ini: "ini", cfg: "ini", json: "json", md: "markdown", yaml: "yaml", yml: "yaml" }[ext] ?? "plaintext";
+  return (
+    {
+      py: "python",
+      toml: "ini",
+      ini: "ini",
+      cfg: "ini",
+      json: "json",
+      md: "markdown",
+      yaml: "yaml",
+      yml: "yaml",
+    }[ext] ?? "plaintext"
+  );
 }
 
 export function PythonEditor({
@@ -120,9 +131,17 @@ export function PythonEditor({
 
   // A phone-sized screen: read from the media query after hydration (the server renders the wide
   // layout, so reading it during the first render made the phone's markup disagree with the server's)
-  const isMobile = React.useSyncExternalStore(subscribePhone, () => window.matchMedia(PHONE_QUERY).matches, () => false);
+  const isMobile = React.useSyncExternalStore(
+    subscribePhone,
+    () => window.matchMedia(PHONE_QUERY).matches,
+    () => false
+  );
   // The keys people press: Ctrl on Windows and Linux; on a Mac, Cmd to run and Ctrl+Shift+M for focus
-  const isMac = React.useSyncExternalStore(subscribeNothing, () => /Mac|iPhone|iPad/.test(navigator.platform), () => false);
+  const isMac = React.useSyncExternalStore(
+    subscribeNothing,
+    () => /Mac|iPhone|iPad/.test(navigator.platform),
+    () => false
+  );
 
   const saveTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   // The Ctrl+Enter action is registered once at mount; read the latest handler through a ref
@@ -176,12 +195,40 @@ export function PythonEditor({
     return value;
   });
 
-  // Until mount has handed any saved code to the parent, show the saved code;
-  // afterwards the parent's value is the source of truth (so Reset works)
+  const editorRef = React.useRef<EditorInstance | null>(null);
+  const unseen = React.useRef<string[]>([]);
+  const applying = React.useRef(false);
   const [synced, setSynced] = React.useState(false);
 
+  React.useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    const echo = unseen.current.lastIndexOf(value);
+    if (echo !== -1) {
+      unseen.current.splice(0, echo + 1);
+      return;
+    }
+    if (value === editor.getValue()) return;
+    unseen.current = [];
+    applying.current = true;
+    try {
+      // One undoable edit, so Ctrl+Z after Reset brings the learner's code back
+      if (readOnly) editor.setValue(value);
+      else {
+        editor.executeEdits("parent", [
+          { range: editor.getModel()!.getFullModelRange(), text: value, forceMoveMarkers: true },
+        ]);
+        editor.pushUndoStop();
+      }
+    } finally {
+      applying.current = false;
+    }
+  }, [value, readOnly, synced]);
+
   function handleChange(newValue: string | undefined) {
+    if (applying.current) return;
     const val = newValue ?? "";
+    unseen.current.push(val);
     onChange(val);
     if (storageKey) {
       if (saveTimer.current) clearTimeout(saveTimer.current);
@@ -198,12 +245,11 @@ export function PythonEditor({
   }
 
   function handleMount(editor: EditorInstance, monaco: Monaco) {
+    editorRef.current = editor;
     // Code restored from localStorage is what's on screen, so it's what the parent must run
     if (initialValue !== value) onChange(initialValue);
     setSynced(true);
 
-    // The clipboard lock's backstop: Monaco's own Paste command (its command palette) reads the
-    // clipboard directly and inserts the text without a paste event, so take that text back out
     editor.onDidPaste((event) => {
       if (!lockRef.current) return;
       editor.executeEdits("clipboard-lock", [{ range: event.range, text: "" }]);
@@ -248,7 +294,6 @@ export function PythonEditor({
     });
   }
 
-  // Mobile: slightly shorter height so content fits without scrolling
   const editorHeight = isMobile ? "260px" : height;
 
   return (
@@ -263,13 +308,14 @@ export function PythonEditor({
         </div>
       )}
 
-      {/* The editor's height is held before Monaco's code arrives (it's loaded lazily and renders
-          nothing until then), so the run buttons and results below don't jump when it appears */}
-      <div className="overflow-hidden rounded-md border border-border" style={{ height: `calc(${editorHeight} + 2px)` }}>
+      <div
+        className="overflow-hidden rounded-md border border-border"
+        style={{ height: `calc(${editorHeight} + 2px)` }}
+      >
         <MonacoEditor
           height={editorHeight}
           defaultLanguage={language}
-          value={synced ? value : initialValue}
+          defaultValue={initialValue}
           theme={monacoTheme}
           onChange={handleChange}
           beforeMount={definePylearnThemes}
@@ -327,7 +373,8 @@ export function PythonEditor({
             <kbd className="font-mono">Tab</kbd> indents
           </span>
           <span>
-            <kbd className="font-mono">{isMac ? "⌃⇧M" : "Ctrl+M"}</kbd> then <kbd className="font-mono">Tab</kbd> leaves the editor
+            <kbd className="font-mono">{isMac ? "⌃⇧M" : "Ctrl+M"}</kbd> then{" "}
+            <kbd className="font-mono">Tab</kbd> leaves the editor
           </span>
         </p>
       )}
