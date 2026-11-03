@@ -183,7 +183,7 @@ export function LessonWorkspace({
         className={cn("grid min-w-0 gap-8", open && "xl:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]")}
       >
         <div ref={lessonRef} className="min-w-0">
-          <header className="mb-10 flex max-w-[70ch] flex-col gap-4 border-b border-border pb-8">
+          <header className="mb-10 flex max-w-[var(--measure,70ch)] flex-col gap-4 border-b border-border pb-8">
             {heading}
             <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
               {meta}

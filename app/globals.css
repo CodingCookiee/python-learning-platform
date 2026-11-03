@@ -16,9 +16,10 @@
   /* The page container (max-w-page): wide enough that a laptop or desktop isn't mostly margin */
   --container-page: 96rem;
   /* A lesson (max-w-lesson): exactly its columns, so it sits centred instead of leaving the spare width on
-     the right. The gutters (2 x 2rem), the lesson list (15rem) and its gap (3rem), the 70ch text, then
-     the gap (3rem) and the "On this page" column (14rem). The ch is the text's own: same font size */
-  --container-lesson: calc(39rem + 70ch);
+     the right. The gutters (2 x 2rem), the lesson list (17rem) and its gap (3rem), the 80ch text (the
+     lesson frame's --measure; 80 characters is WCAG 1.4.8's longest comfortable line), then the gap
+     (3rem) and the "On this page" column (16rem, --toc-width). The ch is the text's own: same font size */
+  --container-lesson: calc(43rem + 80ch);
   /* Settings (max-w-settings): the gutters (2 x 2rem), the 16rem label column, its 2.5rem gap and the
      controls' 36rem, centred like a lesson */
   --container-settings: 58.5rem;

@@ -131,7 +131,7 @@ export default async function LessonPage({ params }: PageProps) {
   const completesByDrills = required.length > 0 && !lesson.completed && !lesson.canComplete;
 
   return (
-    <div className="mx-auto max-w-lesson px-gutter py-8 sm:py-12 [[data-scratchpad-open]_&]:max-w-page">
+    <div className="mx-auto max-w-lesson px-gutter py-8 [--measure:80ch] [--toc-width:16rem] sm:py-12 xl:[--measure:min(80ch,100%_-_19rem)] [[data-scratchpad-open]_&]:max-w-page [[data-scratchpad-open]_&]:[--measure:80ch]">
       <StaggerContainer className="flex flex-col gap-8">
         <FadeIn>
           <Breadcrumb
@@ -145,7 +145,7 @@ export default async function LessonPage({ params }: PageProps) {
         </FadeIn>
 
         <FadeIn delay={0.04}>
-          <div className="grid grid-cols-1 gap-10 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-12">
+          <div className="grid grid-cols-1 gap-10 lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-12">
             <aside className="hidden lg:block">
               <LessonSidebar
                 currentLessonId={lesson.id}
@@ -192,7 +192,7 @@ export default async function LessonPage({ params }: PageProps) {
                 }
               >
                 {!lesson.moduleUnlocked && (
-                  <EmptySlot title="Not open yet" className="mb-10 max-w-[70ch] bg-sheet">
+                  <EmptySlot title="Not open yet" className="mb-10 max-w-(--measure) bg-sheet">
                     Pass the earlier modules to open this one. You can still read ahead.
                   </EmptySlot>
                 )}
@@ -200,7 +200,7 @@ export default async function LessonPage({ params }: PageProps) {
               </LessonWorkspace>
 
               {lab && (
-                <div className="max-w-[70ch]">
+                <div className="max-w-(--measure)">
                   <LabPanel initial={lab} ci={labCi ? viewOf(labCi, lab.spec.title) : null} />
                 </div>
               )}
@@ -208,7 +208,7 @@ export default async function LessonPage({ params }: PageProps) {
               {lesson.drills.length > 0 && (
                 <section
                   aria-labelledby="drills-heading"
-                  className="flex max-w-[70ch] flex-col gap-4"
+                  className="flex max-w-(--measure) flex-col gap-4"
                 >
                   <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                     <h2 id="drills-heading" className="text-2xl font-semibold">
@@ -234,7 +234,7 @@ export default async function LessonPage({ params }: PageProps) {
                 </section>
               )}
 
-              <div className="flex max-w-[70ch] flex-col gap-8 border-t border-border pt-8">
+              <div className="flex max-w-(--measure) flex-col gap-8 border-t border-border pt-8">
                 {completesByDrills ? (
                   <div className="flex flex-col gap-1">
                     <p className="font-semibold">

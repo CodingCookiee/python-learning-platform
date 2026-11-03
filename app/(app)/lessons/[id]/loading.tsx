@@ -3,12 +3,12 @@ import { PageLoading } from "@/components/layout/page-loading";
 
 export default function LessonLoading() {
   return (
-    <PageLoading label="Loading the lesson" className="max-w-lesson">
+    <PageLoading label="Loading the lesson" className="max-w-lesson [--measure:80ch] xl:[--measure:min(80ch,100%_-_19rem)]">
       <div className="flex flex-col gap-8">
         {/* Breadcrumb */}
         <SkeletonLine width="50%" className="h-3" />
 
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-12">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-12">
           {/* Sidebar */}
           <aside className="hidden lg:block">
             <div className="flex flex-col gap-4">
@@ -35,8 +35,8 @@ export default function LessonLoading() {
             </div>
           </aside>
 
-          {/* Main content: the text's 70ch measure */}
-          <div className="flex max-w-[70ch] flex-col gap-8">
+          {/* Main content: the text's measure */}
+          <div className="flex max-w-(--measure) flex-col gap-8">
             {/* Header */}
             <div className="flex flex-col gap-3">
               <div className="flex gap-2">

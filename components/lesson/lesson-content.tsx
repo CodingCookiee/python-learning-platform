@@ -382,7 +382,7 @@ export function LessonContent({
 
   return (
     <div className={cn("flex gap-12", className)}>
-      <div ref={contentRef} className="min-w-0 max-w-[70ch] flex-1">
+      <div ref={contentRef} className="min-w-0 max-w-[var(--measure,70ch)] flex-1">
         {hasToc && (
           <details data-toc className={cn("mb-8 rounded-md border border-border bg-sheet px-4 py-3", !narrow && "xl:hidden")}>
             <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold [&::-webkit-details-marker]:hidden">
@@ -411,7 +411,7 @@ export function LessonContent({
         </RunnableExamples.Provider>
       </div>
       {hasToc && !narrow && (
-        <aside className="hidden w-56 shrink-0 xl:block">
+        <aside className="hidden w-[var(--toc-width,14rem)] shrink-0 xl:block">
           <nav aria-label="On this page" className="sticky top-24 flex flex-col gap-3">
             <p className="text-sm font-semibold">On this page</p>
             <TocList items={tocItems} activeSlug={activeSlug} />
