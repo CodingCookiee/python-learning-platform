@@ -8,15 +8,33 @@ import { PendingLine } from "@/components/ui/pending-line";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { DEFAULT_MODEL, MODEL_SUGGESTIONS, PROVIDER_LABEL, PROVIDERS, type Provider } from "@/lib/ai/gateway";
+import {
+  DEFAULT_MODEL,
+  MODEL_SUGGESTIONS,
+  PROVIDER_LABEL,
+  PROVIDERS,
+  type Provider,
+} from "@/lib/ai/gateway";
 import type { CredentialSummary, UsageSummary } from "@/lib/ai/credentials";
 
 type Status = { type: "success" | "error"; message: string } | null;
 
 const KEY_PAGE: Record<Provider, { href: string; label: string; prefix: string }> = {
-  anthropic: { href: "https://console.anthropic.com/settings/keys", label: "console.anthropic.com", prefix: "sk-ant-" },
-  openai: { href: "https://platform.openai.com/api-keys", label: "platform.openai.com", prefix: "sk-" },
-  gemini: { href: "https://aistudio.google.com/apikey", label: "aistudio.google.com", prefix: "AIza" },
+  anthropic: {
+    href: "https://console.anthropic.com/settings/keys",
+    label: "console.anthropic.com",
+    prefix: "sk-ant-",
+  },
+  openai: {
+    href: "https://platform.openai.com/api-keys",
+    label: "platform.openai.com",
+    prefix: "sk-",
+  },
+  gemini: {
+    href: "https://aistudio.google.com/apikey",
+    label: "aistudio.google.com",
+    prefix: "AIza",
+  },
 };
 
 function StatusLine({ status }: { status: Status }) {
@@ -25,7 +43,10 @@ function StatusLine({ status }: { status: Status }) {
     <p
       // A problem is announced at once; a confirmation waits its turn
       role={status.type === "error" ? "alert" : "status"}
-      className={cn("flex items-center gap-2 text-sm", status.type === "success" ? "text-success" : "text-destructive")}
+      className={cn(
+        "flex items-center gap-2 text-sm",
+        status.type === "success" ? "text-success" : "text-destructive"
+      )}
     >
       {status.type === "success" ? (
         <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />
@@ -69,7 +90,9 @@ function ModelOption({
     >
       <span className="flex flex-wrap items-baseline gap-x-2 text-sm font-medium">
         {name}
-        {detail && <span className="font-mono text-xs font-normal text-muted-foreground">{detail}</span>}
+        {detail && (
+          <span className="font-mono text-xs font-normal text-muted-foreground">{detail}</span>
+        )}
       </span>
       <span className="text-sm text-muted-foreground">{note}</span>
     </button>
@@ -105,12 +128,15 @@ export function AiSettings({
   const [busy, setBusy] = React.useState<Busy>(null);
   const [status, setStatus] = React.useState<Status>(null);
   // A key test's answer, shown under the key it's about rather than under the form
-  const [testResult, setTestResult] = React.useState<{ provider: Provider; status: Status } | null>(null);
+  const [testResult, setTestResult] = React.useState<{ provider: Provider; status: Status } | null>(
+    null
+  );
 
   const saved = credentials.find((c) => c.provider === provider) ?? null;
   // Something to save: a new key, or a model other than the saved one
   const changed = apiKey.trim() !== "" || (saved !== null && saved.model !== model.trim());
-  const isBusy = (action: NonNullable<Busy>["action"], p: Provider) => busy?.action === action && busy.provider === p;
+  const isBusy = (action: NonNullable<Busy>["action"], p: Provider) =>
+    busy?.action === action && busy.provider === p;
 
   function chooseProvider(next: Provider) {
     setProvider(next);
@@ -122,13 +148,21 @@ export function AiSettings({
     setCustom(isCustom(next, nextModel));
   }
 
-  async function put(body: { provider: Provider; model: string; apiKey?: string; isDefault?: boolean }) {
+  async function put(body: {
+    provider: Provider;
+    model: string;
+    apiKey?: string;
+    isDefault?: boolean;
+  }) {
     const res = await fetch("/api/settings/ai", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
-    const data = (await res.json().catch(() => ({}))) as { credentials?: CredentialSummary[]; error?: string };
+    const data = (await res.json().catch(() => ({}))) as {
+      credentials?: CredentialSummary[];
+      error?: string;
+    };
     if (res.ok && data.credentials) setCredentials(data.credentials);
     return res.ok && data.credentials ? null : (data.error ?? "That didn't save.");
   }
@@ -142,13 +176,20 @@ export function AiSettings({
     setBusy({ action: "save", provider });
     setStatus(null);
     try {
-      const error = await put({ provider, model: model.trim(), ...(apiKey.trim() ? { apiKey: apiKey.trim() } : {}) });
+      const error = await put({
+        provider,
+        model: model.trim(),
+        ...(apiKey.trim() ? { apiKey: apiKey.trim() } : {}),
+      });
       if (error) {
         setStatus({ type: "error", message: error });
         return;
       }
       setApiKey("");
-      setStatus({ type: "success", message: `Saved your ${PROVIDER_LABEL[provider]} key. Use Test to check it works.` });
+      setStatus({
+        type: "success",
+        message: `Saved your ${PROVIDER_LABEL[provider]} key. Use Test to check it works.`,
+      });
     } catch {
       setStatus({ type: "error", message: "We couldn't reach the server." });
     } finally {
@@ -164,7 +205,10 @@ export function AiSettings({
       setStatus(
         error
           ? { type: "error", message: error }
-          : { type: "success", message: `${PROVIDER_LABEL[c.provider]} answers wherever you haven't picked a model.` }
+          : {
+              type: "success",
+              message: `${PROVIDER_LABEL[c.provider]} answers wherever you haven't picked a model.`,
+            }
       );
     } catch {
       setStatus({ type: "error", message: "We couldn't reach the server." });
@@ -191,7 +235,10 @@ export function AiSettings({
           : { type: "error", message: data.error ?? "The test call failed." },
       });
     } catch {
-      setTestResult({ provider: p, status: { type: "error", message: "We couldn't reach the server." } });
+      setTestResult({
+        provider: p,
+        status: { type: "error", message: "We couldn't reach the server." },
+      });
     } finally {
       setBusy(null);
     }
@@ -207,10 +254,16 @@ export function AiSettings({
         setCredentials(data.credentials);
         if (testResult?.provider === p) setTestResult(null);
         if (provider === p) setApiKey("");
-        setStatus({ type: "success", message: `Your ${PROVIDER_LABEL[p]} key is removed from pylearn.` });
+        setStatus({
+          type: "success",
+          message: `Your ${PROVIDER_LABEL[p]} key is removed from pylearn.`,
+        });
       } else setStatus({ type: "error", message: "The key wasn't removed. Try again." });
     } catch {
-      setStatus({ type: "error", message: "We couldn't reach the server, so the key is still here." });
+      setStatus({
+        type: "error",
+        message: "We couldn't reach the server, so the key is still here.",
+      });
     } finally {
       setBusy(null);
     }
@@ -218,14 +271,14 @@ export function AiSettings({
 
   if (!available) {
     return (
-      <p className="max-w-md text-sm text-muted-foreground">
+      <p className="max-w-xl text-sm text-muted-foreground">
         AI help isn&apos;t switched on for this site yet. Lessons and drills work without it.
       </p>
     );
   }
 
   return (
-    <div className="flex max-w-md flex-col gap-5">
+    <div className="flex max-w-xl flex-col gap-5">
       {credentials.length > 0 && (
         <ul className="flex flex-col gap-2" aria-label="Your AI keys">
           {credentials.map((c) => (
@@ -245,7 +298,9 @@ export function AiSettings({
                       )}
                     </span>
                     <span className="flex flex-wrap gap-x-2 text-muted-foreground">
-                      <span className="font-mono text-[0.8125rem] break-all text-foreground">{c.model}</span>
+                      <span className="font-mono text-[0.8125rem] break-all text-foreground">
+                        {c.model}
+                      </span>
                       <span>
                         · Key ending <span className="font-mono">{c.keyHint}</span>
                       </span>
@@ -295,12 +350,17 @@ export function AiSettings({
               {/* The test's progress and its answer sit right under the key they're about */}
               {isBusy("test", c.provider) && (
                 <PendingLine
-                  lines={[`Calling ${PROVIDER_LABEL[c.provider]} with your key…`, "Waiting for its answer…"]}
+                  lines={[
+                    `Calling ${PROVIDER_LABEL[c.provider]} with your key…`,
+                    "Waiting for its answer…",
+                  ]}
                   still="Some providers take a few seconds to answer."
                   slow="Still waiting: the test gives up after 30 seconds."
                 />
               )}
-              {testResult?.provider === c.provider && !isBusy("test", c.provider) && <StatusLine status={testResult.status} />}
+              {testResult?.provider === c.provider && !isBusy("test", c.provider) && (
+                <StatusLine status={testResult.status} />
+              )}
             </li>
           ))}
         </ul>
@@ -323,11 +383,15 @@ export function AiSettings({
                   onClick={() => chooseProvider(p)}
                   className={cn(
                     "flex flex-col rounded-md border px-3 py-2 text-left text-sm font-medium transition-colors",
-                    provider === p ? "border-primary bg-accent/60" : "border-border hover:border-foreground/35"
+                    provider === p
+                      ? "border-primary bg-accent/60"
+                      : "border-border hover:border-foreground/35"
                   )}
                 >
                   {PROVIDER_LABEL[p]}
-                  <span className="text-xs font-normal text-muted-foreground">{has ? "Key saved" : "No key"}</span>
+                  <span className="text-xs font-normal text-muted-foreground">
+                    {has ? "Key saved" : "No key"}
+                  </span>
                 </button>
               );
             })}
@@ -380,7 +444,9 @@ export function AiSettings({
               />
             </div>
           )}
-          <p className="text-sm text-muted-foreground">Bigger models tutor better and cost more per call.</p>
+          <p className="text-sm text-muted-foreground">
+            Bigger models tutor better and cost more per call.
+          </p>
         </fieldset>
 
         <div className="flex flex-col gap-2">
@@ -390,18 +456,27 @@ export function AiSettings({
             type="password"
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
-            placeholder={saved ? `Leave blank to keep the key ending ${saved.keyHint}` : `${KEY_PAGE[provider].prefix}…`}
+            placeholder={
+              saved
+                ? `Leave blank to keep the key ending ${saved.keyHint}`
+                : `${KEY_PAGE[provider].prefix}…`
+            }
             autoComplete="off"
             spellCheck={false}
             className={cn("text-sm", apiKey && "font-mono")}
           />
           <p className="text-sm text-muted-foreground">
             Create one at{" "}
-            <a href={KEY_PAGE[provider].href} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+            <a
+              href={KEY_PAGE[provider].href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary underline"
+            >
               {KEY_PAGE[provider].label}
             </a>{" "}
-            and set a spend limit there. It&apos;s encrypted on our server, used only for your own AI calls, and never
-            shown again.
+            and set a spend limit there. It&apos;s encrypted on our server, used only for your own
+            AI calls, and never shown again.
           </p>
         </div>
 
@@ -414,14 +489,16 @@ export function AiSettings({
           disabled={busy !== null && busy.action !== "save"}
           className="w-fit"
         >
-          {saved ? `Save ${PROVIDER_LABEL[provider]} changes` : `Save ${PROVIDER_LABEL[provider]} key`}
+          {saved
+            ? `Save ${PROVIDER_LABEL[provider]} changes`
+            : `Save ${PROVIDER_LABEL[provider]} key`}
         </LoadingButton>
       </form>
 
       <p className="font-condensed tabular text-sm text-muted-foreground">
-        Today {fmt(usage.today.calls)} of {usage.dailyLimit} calls · {fmt(usage.today.input)} tokens in,{" "}
-        {fmt(usage.today.output)} out. This month {fmt(usage.month.calls)} calls · {fmt(usage.month.input)} in,{" "}
-        {fmt(usage.month.output)} out.
+        Today {fmt(usage.today.calls)} of {usage.dailyLimit} calls · {fmt(usage.today.input)} tokens
+        in, {fmt(usage.today.output)} out. This month {fmt(usage.month.calls)} calls ·{" "}
+        {fmt(usage.month.input)} in, {fmt(usage.month.output)} out.
       </p>
     </div>
   );

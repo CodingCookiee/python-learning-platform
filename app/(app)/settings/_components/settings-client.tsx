@@ -101,13 +101,17 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         // A 400 is the server refusing the name as written
         if (res.status === 400 && data.error) setNameError(data.error);
-        else setProfileStatus({ type: "error", message: "That didn't save. Try again in a moment." });
+        else
+          setProfileStatus({ type: "error", message: "That didn't save. Try again in a moment." });
         return;
       }
       setSavedName(trimmed);
       setProfileStatus({ type: "success", message: "Name saved." });
     } catch {
-      setProfileStatus({ type: "error", message: "We couldn't reach the server. Check your connection and try again." });
+      setProfileStatus({
+        type: "error",
+        message: "We couldn't reach the server. Check your connection and try again.",
+      });
     } finally {
       setSavingProfile(false);
     }
@@ -148,7 +152,10 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
     }
     if (newPw === currentPw) {
       setPwField("new");
-      setPwStatus({ type: "error", message: "That's the password you have now. Choose a new one." });
+      setPwStatus({
+        type: "error",
+        message: "That's the password you have now. Choose a new one.",
+      });
       return;
     }
     if (newPw !== confirmPw) {
@@ -170,10 +177,14 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
         // A wrong current password belongs to that field; the rest are about the new one
-        if (res.status === 400) setPwField(/current password/i.test(data.error ?? "") ? "current" : "new");
+        if (res.status === 400)
+          setPwField(/current password/i.test(data.error ?? "") ? "current" : "new");
         setPwStatus({
           type: "error",
-          message: (res.status === 400 || res.status === 429) && data.error ? data.error : "Your password wasn't changed. Try again.",
+          message:
+            (res.status === 400 || res.status === 429) && data.error
+              ? data.error
+              : "Your password wasn't changed. Try again.",
         });
         return;
       }
@@ -187,12 +198,18 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
         router.push("/auth/signin?signedout=1");
         return;
       }
-      setPwStatus({ type: "success", message: "Password changed. You've been signed out everywhere else." });
+      setPwStatus({
+        type: "success",
+        message: "Password changed. You've been signed out everywhere else.",
+      });
       setCurrentPw("");
       setNewPw("");
       setConfirmPw("");
     } catch {
-      setPwStatus({ type: "error", message: "We couldn't reach the server. Check your connection and try again." });
+      setPwStatus({
+        type: "error",
+        message: "We couldn't reach the server. Check your connection and try again.",
+      });
     } finally {
       if (!leaving) setSavingPw(false);
     }
@@ -228,19 +245,41 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
 
   // Each option previews its own theme: ground, ink line, jade accent
   const themeOptions = [
-    { value: "light" as const, label: "Light", Icon: Sun, ground: "#f1f6f0", ink: "#1d3b31", accent: "#2f8a6c" },
-    { value: "dark" as const, label: "Dark", Icon: Moon, ground: "#111d18", ink: "#eaf2e8", accent: "#7fd3a8" },
-    { value: "system" as const, label: "Automatic", Icon: Monitor, ground: "", ink: "", accent: "" },
+    {
+      value: "light" as const,
+      label: "Light",
+      Icon: Sun,
+      ground: "#f1f6f0",
+      ink: "#1d3b31",
+      accent: "#2f8a6c",
+    },
+    {
+      value: "dark" as const,
+      label: "Dark",
+      Icon: Moon,
+      ground: "#111d18",
+      ink: "#eaf2e8",
+      accent: "#7fd3a8",
+    },
+    {
+      value: "system" as const,
+      label: "Automatic",
+      Icon: Monitor,
+      ground: "",
+      ink: "",
+      accent: "",
+    },
   ];
 
   return (
     <div className="flex flex-col border-t border-border">
       <SettingsRow title="Name" description="Shown on your profile and training record.">
-        <form method="post"
+        <form
+          method="post"
           onSubmit={(e) => {
             void handleSaveProfile(e);
           }}
-          className="flex max-w-md flex-col gap-4"
+          className="flex max-w-xl flex-col gap-4"
         >
           <div className="flex flex-col gap-2">
             <Label htmlFor="settings-name">Display name</Label>
@@ -287,7 +326,7 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
         title="Appearance"
         description="Light cotton or forest night. Automatic follows your device."
       >
-        <div className="grid max-w-md grid-cols-3 gap-3" role="radiogroup" aria-label="Theme">
+        <div className="grid max-w-xl grid-cols-3 gap-3" role="radiogroup" aria-label="Theme">
           {themeOptions.map(({ value, label, Icon, ground, ink, accent }) => {
             const selected = mounted && theme === value;
             return (
@@ -299,7 +338,9 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
                 onClick={() => setTheme(value)}
                 className={cn(
                   "flex flex-col gap-2 rounded-md border p-2 text-left text-sm font-medium transition-colors",
-                  selected ? "border-primary bg-accent/60" : "border-border hover:border-foreground/35"
+                  selected
+                    ? "border-primary bg-accent/60"
+                    : "border-border hover:border-foreground/35"
                 )}
               >
                 <span
@@ -313,8 +354,14 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
                 >
                   {ground && (
                     <>
-                      <span className="h-1.5 w-3/4 rounded-[1px]" style={{ backgroundColor: ink }} />
-                      <span className="h-3 w-1/2 rounded-[1px]" style={{ backgroundColor: accent }} />
+                      <span
+                        className="h-1.5 w-3/4 rounded-[1px]"
+                        style={{ backgroundColor: ink }}
+                      />
+                      <span
+                        className="h-3 w-1/2 rounded-[1px]"
+                        style={{ backgroundColor: accent }}
+                      />
                     </>
                   )}
                 </span>
@@ -340,11 +387,12 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
           title="Password"
           description={`${PASSWORD_RULE} Changing it signs you out everywhere else; you stay signed in here.`}
         >
-          <form method="post"
+          <form
+            method="post"
             onSubmit={(e) => {
               void handleSavePassword(e);
             }}
-            className="flex max-w-md flex-col gap-4"
+            className="flex max-w-xl flex-col gap-4"
           >
             <div className="flex flex-col gap-2">
               <Label htmlFor="current-pw">Current password</Label>
@@ -404,7 +452,13 @@ export function SettingsClient({ initialName, email, hasPassword, ai }: Settings
         <div className="flex flex-col gap-3">
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <LoadingButton variant="destructive" loading={deleting} loadingText="Deleting your account…" icon={<Trash2 aria-hidden="true" />} className="w-fit">
+              <LoadingButton
+                variant="destructive"
+                loading={deleting}
+                loadingText="Deleting your account…"
+                icon={<Trash2 aria-hidden="true" />}
+                className="w-fit"
+              >
                 Delete my account
               </LoadingButton>
             </AlertDialogTrigger>

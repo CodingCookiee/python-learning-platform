@@ -20,10 +20,14 @@ export default async function SettingsPage() {
   });
   // Signed in as an account that no longer exists: clear the stale session (else a redirect loop)
   if (!user) redirect("/auth/session-ended");
-  const [credentials, usage] = await Promise.all([getCredentials(user.id), getUsageSummary(user.id)]);
+  const [credentials, usage] = await Promise.all([
+    getCredentials(user.id),
+    getUsageSummary(user.id),
+  ]);
 
   return (
-    <div className="mx-auto max-w-page px-gutter py-8 sm:py-12">
+    // As wide as a label and its controls, centred, so a wide screen keeps its space even on both sides
+    <div className="mx-auto max-w-settings px-gutter py-8 sm:py-12">
       <StaggerContainer className="flex flex-col gap-8">
         <Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Settings" }]} />
         <FadeIn>
@@ -31,7 +35,9 @@ export default async function SettingsPage() {
             <h1 className="font-condensed text-5xl leading-none font-extrabold tracking-[-0.02em]">
               Settings
             </h1>
-            <p className="text-muted-foreground">Your name, theme, AI keys, password and account.</p>
+            <p className="text-muted-foreground">
+              Your name, theme, AI keys, password and account.
+            </p>
           </div>
         </FadeIn>
         <FadeIn delay={0.05}>

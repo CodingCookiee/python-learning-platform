@@ -24,7 +24,11 @@ import { EmptySlot } from "@/components/brand/empty-slot";
 import { ReadingPause } from "@/components/lesson/reading-pause";
 import { readingTooFast } from "@/lib/reading-pace";
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
   const { id } = await params;
   return lessonMetadata(id);
 }
@@ -127,7 +131,7 @@ export default async function LessonPage({ params }: PageProps) {
   const completesByDrills = required.length > 0 && !lesson.completed && !lesson.canComplete;
 
   return (
-    <div className="mx-auto max-w-page px-gutter py-8 sm:py-12">
+    <div className="mx-auto max-w-lesson px-gutter py-8 sm:py-12 [[data-scratchpad-open]_&]:max-w-page">
       <StaggerContainer className="flex flex-col gap-8">
         <FadeIn>
           <Breadcrumb
@@ -161,7 +165,9 @@ export default async function LessonPage({ params }: PageProps) {
                       {lesson.title}
                     </h1>
                     {lesson.description && (
-                      <p className="text-lg leading-relaxed text-muted-foreground">{lesson.description}</p>
+                      <p className="text-lg leading-relaxed text-muted-foreground">
+                        {lesson.description}
+                      </p>
                     )}
                   </>
                 }

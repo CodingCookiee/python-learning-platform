@@ -3,14 +3,14 @@ import { PageLoading } from "@/components/layout/page-loading";
 
 export default function LessonLoading() {
   return (
-    <PageLoading label="Loading the lesson">
+    <PageLoading label="Loading the lesson" className="max-w-lesson">
       <div className="flex flex-col gap-8">
         {/* Breadcrumb */}
         <SkeletonLine width="50%" className="h-3" />
 
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-12">
           {/* Sidebar */}
-          <aside className="hidden lg:block lg:col-span-1">
+          <aside className="hidden lg:block">
             <div className="flex flex-col gap-4">
               <SkeletonLine width="75%" className="h-4" />
               <SkeletonLine width="50%" className="h-3" />
@@ -35,8 +35,8 @@ export default function LessonLoading() {
             </div>
           </aside>
 
-          {/* Main content */}
-          <div className="lg:col-span-3 flex flex-col gap-8">
+          {/* Main content: the text's 70ch measure */}
+          <div className="flex max-w-[70ch] flex-col gap-8">
             {/* Header */}
             <div className="flex flex-col gap-3">
               <div className="flex gap-2">
