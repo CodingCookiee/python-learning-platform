@@ -7,10 +7,12 @@ import { defineConfig, devices } from "@playwright/test";
  *
  * The suite starts `next start` on :3010 itself (or reuses one already running there). Every test
  * makes its own throwaway learner in the database from .env and deletes it afterwards, so the
- * remote dev database is slow but shared state is never assumed. Runs on the installed Chrome.
+ * remote dev database is slow but shared state is never assumed. Runs on the installed Chrome;
+ * where only Edge is installed, `PW_CHANNEL=msedge npm run test:e2e`.
  */
 const PORT = 3010;
 const BASE_URL = process.env.BASE_URL ?? `http://localhost:${PORT}`;
+const CHANNEL = process.env.PW_CHANNEL ?? "chrome";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -26,7 +28,7 @@ export default defineConfig({
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : [["list"], ["html", { open: "never" }]],
   use: {
     baseURL: BASE_URL,
-    channel: "chrome",
+    channel: CHANNEL,
     // A failing test keeps its trace (DOM snapshots, network, console: `npx playwright show-trace`)
     // and a screenshot. No video: it needs a separate ffmpeg download
     trace: "retain-on-failure",
@@ -36,8 +38,8 @@ export default defineConfig({
     navigationTimeout: 45_000,
   },
   projects: [
-    { name: "desktop", use: { ...devices["Desktop Chrome"], channel: "chrome" }, grepInvert: /@phone/ },
-    { name: "phone", use: { ...devices["Pixel 7"], channel: "chrome" }, grep: /@phone/ },
+    { name: "desktop", use: { ...devices["Desktop Chrome"], channel: CHANNEL }, grepInvert: /@phone/ },
+    { name: "phone", use: { ...devices["Pixel 7"], channel: CHANNEL }, grep: /@phone/ },
   ],
   webServer: {
     command: `npx next start -p ${PORT}`,

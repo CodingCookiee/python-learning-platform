@@ -98,7 +98,7 @@ When you finish something significant, add a dated bullet to `docs/ARCHITECTURE.
 - **Never print, paste or log secrets** (API keys, `.env` values, tokens, passwords). If the owner pastes one, tell them to rotate it, and never repeat it.
 - **The owner's account is the only real admin.** Never use it, change it or touch real accounts. Test with throwaway `@example.invalid` accounts (`.impeccable/quest-e2e-db.ts` creates them) and delete them afterwards.
 - **Don't stop or restart the owner's dev server** on :3000. Tell them when it needs a restart.
-- **Don't publish personal details.** The About page names no person. The contact address comes from `CONTACT_EMAIL`. Personal GitHub or LinkedIn profiles are never the organisation's `sameAs`.
+- **Don't publish personal details.** That includes example data in course content and tests: use `example.org` or `.invalid` addresses and made-up names, never the owner's address from your session context (one once reached a drill's example). The About page names no person. The contact address comes from `CONTACT_EMAIL`. Personal GitHub or LinkedIn profiles are never the organisation's `sameAs`.
 - **Don't work around a denied permission or a safety block.** Explain what you couldn't do and hand that step to the owner.
 - **Don't download new executables.** For example, Playwright runs with video off rather than fetching ffmpeg.
 - **Keep `GRADING_MODE=client`** until server grading has a sandbox (security report C-2).
@@ -108,7 +108,8 @@ When you finish something significant, add a dated bullet to `docs/ARCHITECTURE.
 - **OS and shell:** Windows, with Git Bash for scripts and PowerShell available. Bash heredocs mangle backticks and backslashes, so write multi-line patches as files (a Python script in your scratchpad, or the Write/Edit tools) rather than inline.
 - **Dev server:** the owner's, on :3000. Running `next build` into `.next` while it runs corrupts its cache. Build tests into their own folder instead:
   `NEXT_DIST_DIR=.next-e2e AUTH_URL=http://localhost:3010 npm run build`
-  then `NEXT_DIST_DIR=.next-e2e npx next start -p 3010`. Playwright uses :3010 and the installed Chrome (`NEXT_DIST_DIR=.next-e2e npx playwright test`).
+  then `NEXT_DIST_DIR=.next-e2e npx next start -p 3010`. Playwright uses :3010 and the installed Chrome (`NEXT_DIST_DIR=.next-e2e npx playwright test`). This machine has only Edge: add `PW_CHANNEL=msedge`.
+- **A test server can outlive its shell.** A `next start` run in the background can keep :3010 after its task is stopped, and the next one fails with `EADDRINUSE`. Stop the node process whose command line has `start -p 3010`. Never touch the owner's :3000.
 - **The database is a remote Neon dev branch and it's slow.** Allow long timeouts in browser tests (pages can take 10 seconds or more to stream in).
 - **Helpers:** `.impeccable/quest-e2e-db.ts` seeds and cleans test accounts (`fresh`, `existing`, `tour`, `bug-step`, `examiner`, `capstone-submission`, `cleanup`, `cleanup-prefix`, and more). `.impeccable/*.mjs` are browser probes and screenshot scripts; screenshots go to the scratchpad or `.impeccable/review/`.
 - **Release QA scripts** (run against a build on :3010):
