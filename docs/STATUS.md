@@ -75,7 +75,7 @@ The changes since were checked as they were made, not with a full run:
   - the integration tests;
   - the full Playwright suite, which is now 20 tests, including the 2 new drill-editor tests.
 
-**Testing here:** the dev database is remote and slow. It's in Singapore: each query takes 100 to 140 ms to reach it and come back, and the route stalls now and then for seconds, sometimes a minute. So a local drill pass (up to 46 queries) can take from 5 s to over a minute; production, beside its database, doesn't have this (ARCHITECTURE.md, 2026-11-16). Run integration tests and Playwright with nothing else using it (no dev server, no second test run), or tests time out and Neon drops connections. Don't run another Auth.js app on `localhost` at the same time: both use the `authjs.session-token` cookie, so each signs the other out.
+**Testing here:** since 2026-11-16 the dev database is Postgres 18 on this machine (HOW-WE-WORK.md, "The local environment"), and the integration tests take 16 s (117 passed) instead of 252 s. The old Neon dev branch in Singapore is kept but not used: each query took 100 to 140 ms to reach it and come back, and the route stalled for seconds, sometimes a minute (ARCHITECTURE.md, 2026-11-16). If `.env` is ever pointed back at Neon, run integration tests and Playwright with nothing else using it (no dev server, no second test run), or tests time out and Neon drops connections. Don't run another Auth.js app on `localhost` at the same time: both use the `authjs.session-token` cookie, so each signs the other out.
 
 ## Good to know when picking this up
 
